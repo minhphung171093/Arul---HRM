@@ -2557,52 +2557,89 @@ class tpt_update_stock_move_report(osv.osv):
         cr.execute(sql)
         material_issue_id = cr.dictfetchone()['material_issue_id']
         if material_issue_id:
-            for product_id in [10730, 10733, 10734,10746,10748,10749,10750,10754,10756,10759,10760,10796,10799]:
-                
-                sql = '''
-                        select id from tpt_material_issue_line 
-                        where product_id = %s and material_issue_id = %s
-                    '''%(product_id, material_issue_id)
-                cr.execute(sql)
-                line_ids = cr.fetchall()[0]
-                sql = '''
+            issue = self.pool.get('tpt.material.issue').browse(cr, uid, material_issue_id, context=context)
+            issue_line = []
+            for line in issue.material_issue_line:
+                line_ids = self.pool.get('tpt.material.issue.line').search(cr, uid,[('id','!=',line.id),('product_id','=',line.product_id.id),('product_isu_qty','=',line.product_isu_qty),('material_issue_id','=',line.material_issue_id.id)])
+                if line_ids and line_ids[0] not in issue_line:
+                    sql = '''
                         delete from tpt_material_issue_line 
                         where id = %s
-                    '''%(line_ids)
-                cr.execute(sql)
+                    '''%(line_ids[0])
+                    cr.execute(sql)
+                    issue_line.append(line.id)
+            
+#             for product_id in [10730, 10733, 10734,10746,10748,10749,10750,10754,10756,10759,10760,10796,10799]:
+#                 
+#                 sql = '''
+#                         select id from tpt_material_issue_line 
+#                         where product_id = %s and material_issue_id = %s
+#                     '''%(product_id, material_issue_id)
+#                 cr.execute(sql)
+#                 line_ids = cr.fetchall()[0]
+#                 sql = '''
+#                         delete from tpt_material_issue_line 
+#                         where id = %s
+#                     '''%(line_ids)
+#                 cr.execute(sql)
                 ###################### delete stock move
-                sql = '''
-                        select id from stock_move 
-                        where product_id = %s and issue_id = %s
-                    '''%(product_id, material_issue_id)
-                cr.execute(sql)
-                move_ids = cr.fetchall()[0]
-                sql = '''
-                        delete from stock_move 
-                        where id = %s
-                    '''%(move_ids)
-                cr.execute(sql)
+                    sql = '''
+                            select count(*) from stock_move 
+                            where product_id = %s and issue_id = %s
+                        '''%(line.product_id.id, material_issue_id)
+                    cr.execute(sql)
+                    number = cr.fetchone()[0]
+                    if number == 2:
+#                     move_ids = cr.fetchall()[0]
+                        sql = '''
+                            select id from stock_move 
+                            where product_id = %s and issue_id = %s
+                        '''%(line.product_id.id, material_issue_id)
+                        cr.execute(sql)
+                        move_ids = cr.fetchall()[0]
+                        sql = '''
+                                delete from stock_move 
+                                where id = %s
+                            '''%(move_ids)
+                        cr.execute(sql)
                 
         return self.write(cr, uid, ids, {'result':'update_issue_line_for_request_6000028 Done'})
     
     def delete_account_move_6000028(self, cr, uid, ids, context=None):
+#         sql = '''
+#             delete from account_move_line 
+#             where move_id in (select id from account_move where doc_type = 'good' 
+#             and material_issue_id in (select id from tpt_material_issue where state = 'done' 
+#             and name in (select id from tpt_material_request where name = '6000028/2015') ) )
+#         '''
+#         cr.execute(sql)
+#         sql = '''
+#             delete from account_move where doc_type = 'good' and material_issue_id in (select id from tpt_material_issue where state = 'done' 
+#             and name in (select id from tpt_material_request where name = '6000028/2015') )
+#         '''
+#         cr.execute(sql)
+        
         sql = '''
             delete from account_move_line 
             where move_id in (select id from account_move where doc_type = 'good' 
-            and material_issue_id in (select id from tpt_material_issue where state = 'done' 
-            and name in (select id from tpt_material_request where name = '6000028/2015') ) )
+            and material_issue_id = 3066 ) 
         '''
         cr.execute(sql)
+        
         sql = '''
-            delete from account_move where doc_type = 'good' and material_issue_id in (select id from tpt_material_issue where state = 'done' 
-            and name in (select id from tpt_material_request where name = '6000028/2015') )
+            delete from account_move where doc_type = 'good' and material_issue_id = 3066
         '''
         cr.execute(sql)
+        
         return self.write(cr, uid, ids, {'result':'delete_account_move_6000028 Done'}) 
     
     def create_posting_6000028(self, cr, uid, ids, context=None):
+#         sql = '''
+#             select id from tpt_material_issue where state = 'done' and name in (select id from tpt_material_request where name = '6000028/2015')
+#         '''
+#         cr.execute(sql)
         sql = '''
-            select id from tpt_material_issue where state = 'done' and name in (select id from tpt_material_request where name = '6000028/2015')
+            select id from tpt_material_issue where id = 3066
         '''
         cr.execute(sql)
         issue_ids = [r[0] for r in cr.fetchall()]
