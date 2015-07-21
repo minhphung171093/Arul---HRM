@@ -5180,11 +5180,12 @@ class tpt_material_issue_line(osv.osv):
             if 'request_line_id' in vals and (vals['product_uom_qty']-kq) < vals['product_isu_qty'] and not context.get('create_issue_again',False):
                 raise osv.except_osv(_('Warning!'),_('Quantity must be less than Material Request quantity!'))
         new_id = super(tpt_material_issue_line, self).create(cr, uid, vals, context)
-        issue_line = self.browse(cr,uid, new_id)
-        kq2 = issue_line.product_uom_qty - (kq + issue_line.product_isu_qty)
-        sql = '''
-            update tpt_material_request_line set pending_qty = %s where id = %s
-        '''%(kq2, issue_line.request_line_id.id)
+        if not context.get('create_issue_again',False):
+            issue_line = self.browse(cr,uid, new_id)
+            kq2 = issue_line.product_uom_qty - (kq + issue_line.product_isu_qty)
+            sql = '''
+                update tpt_material_request_line set pending_qty = %s where id = %s
+            '''%(kq2, issue_line.request_line_id.id)
         cr.execute(sql)
         if 'product_isu_qty' in vals:
             if (vals['product_isu_qty'] < 0):
