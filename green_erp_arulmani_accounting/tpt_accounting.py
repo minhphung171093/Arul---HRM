@@ -1883,7 +1883,7 @@ class account_invoice_line(osv.osv):
                         tax = (basic + p_f + ed)*(tax_value) * voucher_rate
                     sum_tax += tax
             sum_tax_round = round(sum_tax)
-            deducte = sum_tax_round - sum_tax
+            deducte = sum_tax_round - round(sum_tax,2)
             if deducte > 0:
                 res.append({
                     'type':'tax',
