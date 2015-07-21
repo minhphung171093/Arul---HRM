@@ -13,7 +13,7 @@ import openerp.addons.decimal_precision as dp
 
 class stock_partial_picking(osv.osv_memory):
     _inherit = "stock.partial.picking"
-    
+ 
     def default_get(self, cr, uid, fields, context=None):
         if context is None: context = {}
         res = super(stock_partial_picking, self).default_get(cr, uid, fields, context=context)
@@ -210,6 +210,8 @@ class stock_partial_picking(osv.osv_memory):
         if move.picking_id.type == 'in':
             partial_move.update({
                                  'action_taken': move.action_taken or False,
+                                 'description': move.description or False,
+                                 'item_text': move.item_text or False,
                                  })
         return partial_move
 stock_partial_picking()
