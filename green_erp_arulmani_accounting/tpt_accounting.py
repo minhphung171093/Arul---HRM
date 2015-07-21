@@ -3940,34 +3940,32 @@ class tpt_material_issue(osv.osv):
                     ton_sl = cr.dictfetchone()['ton_sl']
                     if sum['product_isu_qty'] > ton_sl:
                         raise osv.except_osv(_('Warning!'),_("You are confirm %s but only %s available for this product '%s' " %(sum['product_isu_qty'], ton_sl,product_id.default_code)))
-                if cate_name == 'finish':
-                    parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
-                    if parent_ids:
-                        locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','FSH'),('location_id','=',parent_ids[0])])
-                    if locat_ids:
-                        location_id = locat_ids[0]
-                        sql = '''
-                            select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end onhand_qty from 
-                                (select st.product_qty as product_qty
-                                    from stock_move st 
-                                    where st.state='done' and st.product_id=%s and st.location_dest_id=%s and st.location_dest_id != st.location_id
-                                 union all
-                                 select st.product_qty*-1 as product_qty
-                                    from stock_move st 
-                                    where st.state='done'
-                                    and st.product_id=%s
-                                                and location_id=%s
-                                                and location_dest_id != location_id
-                                )foo
-                        '''%(p.product_id.id,location_id,p.product_id.id,location_id)
-                        cr.execute(sql)
-                        onhand_qty = cr.dictfetchone()['onhand_qty']
+#                 if cate_name == 'finish':
+#                     parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+#                     if parent_ids:
+#                         locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','FSH'),('location_id','=',parent_ids[0])])
+#                     if locat_ids:
+#                         location_id = locat_ids[0]
+#                         sql = '''
+#                             select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end onhand_qty from 
+#                                 (select st.product_qty as product_qty
+#                                     from stock_move st 
+#                                     where st.state='done' and st.product_id=%s and st.location_dest_id=%s and st.location_dest_id != st.location_id
+#                                  union all
+#                                  select st.product_qty*-1 as product_qty
+#                                     from stock_move st 
+#                                     where st.state='done'
+#                                     and st.product_id=%s
+#                                                 and location_id=%s
+#                                                 and location_dest_id != location_id
+#                                 )foo
+#                         '''%(p.product_id.id,location_id,p.product_id.id,location_id)
+#                         cr.execute(sql)
+#                         onhand_qty = cr.dictfetchone()['onhand_qty']
                 if cate_name == 'raw':
                     parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
-                    if parent_ids:
-                        locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw material','Raw Material']),('location_id','=',parent_ids[0])])
-                    if locat_ids:
-                        location_id = locat_ids[0]
+                    locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw material','Raw Material']),('location_id','=',parent_ids[0])])
+                    location_id = locat_ids[0]
                 if cate_name == 'spares':
                     parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
                     if parent_ids:
@@ -3976,50 +3974,33 @@ class tpt_material_issue(osv.osv):
                         location_id = locat_ids[0]
                 if location_id and cate_name != 'finish':
                     sql = '''
-                        select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end onhand_qty from 
-                            (select st.product_qty as product_qty
-                                from stock_move st 
-                                where st.state='done' and st.product_id=%s and st.location_dest_id=%s and st.location_dest_id != st.location_id
-                             union all
-                             select st.product_qty*-1 as product_qty
-                                from stock_move st 
-                                where st.state='done'
-                                        and st.product_id=%s
-                                            and location_id=%s
-                                            and location_dest_id != location_id
-                            )foo
-                    '''%(p.product_id.id,location_id,p.product_id.id,location_id)
-                    cr.execute(sql)
-                    onhand_qty = cr.dictfetchone()['onhand_qty']
-                if (p.product_isu_qty > onhand_qty):
-                    raise osv.except_osv(_('Warning!'),_('Issue quantity are %s but only %s available for this product in stock.' %(p.product_isu_qty, onhand_qty)))
-                if line.warehouse and line.warehouse.id and p.product_id and p.product_id.id:
-#                     price_ids = self.pool.get('tpt.product.avg.cost').search(cr, uid, [('warehouse_id','=',line.warehouse.id),('product_id','=',p.product_id.id)])
-#                 if price_ids:
-#                     price_avg = self.pool.get('tpt.product.avg.cost').browse(cr,uid,price_ids[0])
-#                     tpt_cost = price_avg.avg_cost
-                    
-                    sql = '''
-                            select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end ton_sl,case when sum(foo.price_unit)!=0 then sum(foo.price_unit) else 0 end total_cost from 
-                                (select st.product_qty,st.price_unit*st.product_qty as price_unit
-                                    from stock_move st
-                                        join stock_location loc1 on st.location_id=loc1.id
-                                        join stock_location loc2 on st.location_dest_id=loc2.id
-                                    where st.state='done' and st.location_dest_id = %s  and st.product_id=%s and date < '%s' 
-                                union all
-                                    select -1*st.product_qty,st.price_unit*st.product_qty as price_unit
-                                    from stock_move st
-                                        join stock_location loc1 on st.location_id=loc1.id
-                                        join stock_location loc2 on st.location_dest_id=loc2.id
-                                    where st.state='done' and st.location_id=%s and st.product_id=%s and date < '%s' 
-                                )foo
-                        '''%(line.warehouse.id,p.product_id.id,line.date_expec,line.warehouse.id,p.product_id.id,line.date_expec)
+                          select case when sum(st.product_qty)!=0 then sum(st.product_qty) else 0 end ton_sl,case when sum(st.price_unit*st.product_qty)!=0 then sum(st.price_unit*st.product_qty) else 0 end total_cost
+                            from stock_move st
+                            where st.state='done' and st.location_dest_id=%s and st.product_id=%s and to_char(date, 'YYYY-MM-DD')<'%s'
+                                and st.location_dest_id != st.location_id
+                                and ( picking_id is not null 
+                                or inspec_id is not null 
+                                or (st.id in (select move_id from stock_inventory_move_rel))
+                        )
+                    '''%(location_id,p.product_id.id,line.date_expec)
                     cr.execute(sql)
                     inventory = cr.dictfetchone()
                     if inventory:
-                        hand_quantity = float(inventory['ton_sl'])
-                        total_cost = float(inventory['total_cost'])
-                        tpt_cost = hand_quantity and total_cost/hand_quantity or 0
+                        hand_quantity = inventory['ton_sl'] or 0
+                        total_cost = inventory['total_cost'] or 0
+    #                     avg_cost = hand_quantity and total_cost/hand_quantity or 0
+                    sql = '''
+                       select case when sum(st.product_qty)!=0 then sum(st.product_qty) else 0 end ton_sl, case when sum(st.price_unit*st.product_qty)!=0 then sum(st.price_unit*st.product_qty) else 0 end total_cost
+                            from stock_move st
+                            where st.state='done' and st.location_id=%s and st.product_id=%s and to_char(date, 'YYYY-MM-DD')<'%s'
+                            and issue_id is not null
+                            
+                    '''%(location_id,p.product_id.id,line.date_expec)
+                    cr.execute(sql)
+                    for issue in cr.dictfetchall():
+                        hand_quantity_issue = issue['ton_sl'] or 0
+                        total_cost_issue = issue['total_cost'] or 0
+                    opening_stock_value = (total_cost-total_cost_issue)/(hand_quantity-hand_quantity_issue)
                     
                 rs = {
                       'name': '/',
@@ -4030,15 +4011,17 @@ class tpt_material_issue(osv.osv):
                       'location_dest_id':dest_id,
                       'issue_id':line.id,
                       'date':line.date_expec or False,
-                      'price_unit': tpt_cost or 0,
+                      'price_unit': opening_stock_value or 0,
                       }
                 
                 move_id = move_obj.create(cr,uid,rs)
+                # boi vi field price unit tu dong lam tron 2 so thap phan nen phai dung sql de update lai
+                sql = '''
+                        update stock_move set price_unit = %s where id = %s
+                '''%(opening_stock_value, move_id)
+                cr.execute(sql)
                 move_obj.action_done(cr, uid, [move_id])
                 cr.execute(''' update stock_move set date=%s,date_expected=%s where id=%s ''',(line.date_expec,line.date_expec,move_id,))
-#             if not line.warehouse.gl_pos_verification_id:
-#                     raise osv.except_osv(_('Warning!'),_('Account Warehouse is not null, please configure it in Warehouse Location master !'))
-                
             date_period = line.date_expec
             sql = '''
                 select id from account_journal
