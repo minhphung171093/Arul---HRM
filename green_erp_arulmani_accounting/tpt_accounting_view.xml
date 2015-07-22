@@ -426,6 +426,7 @@
                             <field name="is_tds_applicable" invisible = '1'/>
                             <field name="tds_id" attrs="{'invisible': [('is_tds_applicable','=',False)]}" options="{'create': false, 'create_edit': false}" invisible = '1'/>
                             <field name="create_uid" options="{'create': false, 'create_edit': false}"/>
+                            <field name="cost_center_id" required='1' options="{'create': false, 'create_edit': false}"/>
                             <field name="fiscal_position" widget="selection" invisible = '1'/>
                             <field name="origin" invisible = '1'/>
                             <field name="supplier_invoice_number" invisible = '1'/>
@@ -647,6 +648,7 @@
                             <field name="is_tds_applicable" invisible = '1'/>
                             <field name="tds_id" attrs="{'invisible': [('is_tds_applicable','=',False)]}" options="{'create': false, 'create_edit': false}" invisible = '1'/>
                             <field name="create_uid" options="{'create': false, 'create_edit': false}"/>
+                            <field name="cost_center_id" required='1' options="{'create': false, 'create_edit': false}"/>
                             <field name="fiscal_position" widget="selection" invisible = '1'/>
                             <field name="origin" invisible = '1'/>
                             <field name="supplier_invoice_number" invisible = '1'/>

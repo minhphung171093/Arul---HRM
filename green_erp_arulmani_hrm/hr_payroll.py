@@ -1090,7 +1090,21 @@ class arul_hr_payroll_executions(osv.osv):
                 for p in emp_obj.browse(cr,uid,employee_ids_no_emp_pay_struct): 
                     emp_code = emp_code +'\n'+ p.employee_id                               
                 raise osv.except_osv(_('No Pay Structure Defined for the following Employees'),_(emp_code))
-            
+            ###   
+            ##
+            sql = '''
+                select employee_id from arul_hr_payroll_employee_structure where state='draft' and history_id is null
+            '''
+            cr.execute(sql)
+            employee_draft_structure_emp_ids = [row[0] for row in cr.fetchall()]
+            ##        
+            employee_ids_draft_emp_pay_struct = emp_obj.search(cr, uid, [('payroll_area_id','=',line.payroll_area_id.id),('id','in',employee_draft_structure_emp_ids),('id','in',punch_onduty_emps)])
+            if employee_ids_draft_emp_pay_struct:  
+                emp_code='' 
+                for p in emp_obj.browse(cr,uid,employee_ids_draft_emp_pay_struct): 
+                    emp_code = emp_code +'\n'+ p.employee_id                               
+                raise osv.except_osv(_('Pay Structure not Approved for the following Employees'),_(emp_code))
+            ###
             for p in emp_obj.browse(cr,uid,employee_ids):
                 payroll_executions_details_ids = executions_details_obj.search(cr, uid, [('payroll_executions_id', '=', line.id), ('employee_id', '=', p.id)], context=context)
                 
@@ -1694,7 +1708,7 @@ class arul_hr_payroll_executions(osv.osv):
 			if gross_sal + esi_check >= emp_esi_limit:
                             emp_esi_con_amount = 0
                         else:
-                            emp_esi_con_amount = round(total_earning*emp_esi_con/100)
+                            emp_esi_con_amount = math.ceil(total_earning*emp_esi_con/100)# round=math.ceil
 
                         base_amount = net_basic + net_da 
                         emp_pf_con_amount = round(base_amount*emp_pf_con/100)
@@ -2196,7 +2210,7 @@ class arul_hr_payroll_executions(osv.osv):
                         if for_esi_base_gross_sal + esi_check >= emp_esi_limit:#S2
                             emp_esi_con_amount = 0
                         else:
-                            emp_esi_con_amount = round(total_earning*emp_esi_con/100)
+                            emp_esi_con_amount = math.ceil(total_earning*emp_esi_con/100)
 
                         base_amount = net_basic + net_da 
                         emp_pf_con_amount = round(base_amount*emp_pf_con/100)
@@ -2719,7 +2733,7 @@ class arul_hr_payroll_executions(osv.osv):
                         if for_esi_base_gross_sal + esi_check >= emp_esi_limit:
                             emp_esi_con_amount = 0
                         else:
-                            emp_esi_con_amount = round(total_earning*emp_esi_con/100)
+                            emp_esi_con_amount = math.ceil(total_earning*emp_esi_con/100)
 
                         base_amount = net_basic + net_da 
                         emp_pf_con_amount = round(base_amount*emp_pf_con/100) #math.ceil(base_amount*emp_pf_con/100)

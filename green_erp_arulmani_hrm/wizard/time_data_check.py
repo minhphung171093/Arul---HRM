@@ -46,7 +46,7 @@ class time_data_check(osv.osv_memory):
                  where  
                 io.a_shift_count1=0 and io.g1_shift_count1 =0 
                 and io.g2_shift_count1 =0  and io.b_shift_count1 =0  and io.c_shift_count1 =0  and 
-                io.total_shift_worked1 =0 and io.total_hours<10 and  io.total_hours>7.75  and actual_work_shift_id=
+                io.total_shift_worked1 =0 and io.total_hours<12.8 and  io.total_hours>7.75  and actual_work_shift_id=
                 (select id from arul_hr_capture_work_shift where code='G1')  )
         '''
         cr.execute(sql)
@@ -59,7 +59,7 @@ class time_data_check(osv.osv_memory):
                  where  
                 io.a_shift_count1=0 and io.g1_shift_count1 =0 
                 and io.g2_shift_count1 =0  and io.b_shift_count1 =0  and io.c_shift_count1 =0  and 
-                io.total_shift_worked1 =0 and io.total_hours<10 and  io.total_hours>7.30  and actual_work_shift_id=
+                io.total_shift_worked1 =0 and io.total_hours<12 and  io.total_hours>7.30  and actual_work_shift_id=
                 (select id from arul_hr_capture_work_shift where code='G2')  )
         '''
         cr.execute(sql)
