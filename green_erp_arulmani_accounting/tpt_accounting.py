@@ -5474,3 +5474,194 @@ class account_move(osv.osv):
     def write(self, cr, uid,ids, vals, context=None):
         return super(account_move, self).write(cr,1,ids,vals,context) 
 account_move()
+
+class tpt_auto_posting(osv.osv):
+    _name = "tpt.auto.posting"
+    _columns = {
+        'name':fields.char('Name', size = 1024),
+        'grn':fields.boolean('GRN'),
+        'supplier_invoice':fields.boolean('Supplier Invoice'),
+        'material_issue':fields.boolean('Material Issue'),
+        'delivery_order':fields.boolean('Delivery Order'),
+        'customer_invoice':fields.boolean('Customer Invoice'),
+        'supplier_payment':fields.boolean('Supplier Payment'),
+        'customer_payment':fields.boolean('Customer payment'),
+        'cash_transactions':fields.boolean('Cash Transactions'),
+        'bank_transactions':fields.boolean('Bank Transactions'),
+        'supplier_invoice_without':fields.boolean('Supplier Invoice (Without PO)'),
+        'service_invoice':fields.boolean('Service Invoice'),
+        'freight_invoice':fields.boolean('Freight Invoice'),
+        'journal_vouchers':fields.boolean('Journal Vouchers'),
+        'production_declaration':fields.boolean('Production Declaration'),
+        'payroll':fields.boolean('Payroll'),
+    }
+    _defaults = {
+        'name':'Auto Account Posting Configuration',
+    }
+    
+#     def split_auto_posting(self,cr,uid,stri):
+#         move_obj = self.pool.get('account.move')
+#         grn_ids = move_obj.search(cr, uid,[('state','=','draft'),('doc_type','=',stri)])
+#         if grn_ids:
+#             try:
+#                 move_obj.button_validate(cr, uid, grn_ids, context)
+#             except:
+#                 pass
+#         return True
+    
+    def auto_posting(self, cr, uid, context=None):
+        auto_ids = self.pool.get('tpt.auto.posting').search(cr, uid,[])
+        if auto_ids:
+            auto_id = self.pool.get('tpt.auto.posting').browse(cr, uid, auto_ids[0], context=context)
+            move_obj = self.pool.get('account.move')
+            if auto_id.grn:
+#                 stri = 'grn'
+#                 self.split_auto_posting(cr,uid,stri)
+                grn_ids = move_obj.search(cr, uid,[('state','=','draft'),('doc_type','=','grn')])
+                for grn_id in grn_ids:
+                    try:
+                        move_obj.button_validate(cr, uid, [grn_id], context)
+                    except:
+                        pass
+                    
+            if auto_id.customer_payment:
+                cus_ids = move_obj.search(cr, uid,[('state','=','draft'),('doc_type','=','cus_pay')])
+                for cus_id in cus_ids:
+                    try:
+                        move_obj.button_validate(cr, uid, [cus_id], context)
+                    except:
+                        pass
+                    
+            if auto_id.supplier_payment:
+                sup_ids = move_obj.search(cr, uid,[('state','=','draft'),('doc_type','=','sup_pay')])
+                for sup_id in sup_ids:
+                    try:
+                        move_obj.button_validate(cr, uid, [sup_id], context)
+                    except:
+                        pass
+                    
+            if auto_id.supplier_invoice:
+                sup_inv_po_ids = move_obj.search(cr, uid,[('state','=','draft'),('doc_type','=','sup_inv_po')])
+                for sup_inv_po_id in sup_inv_po_ids:
+                    try:
+                        move_obj.button_validate(cr, uid, [sup_inv_po_id], context)
+                    except:
+                        pass
+                    
+            if auto_id.customer_invoice:
+                cus_inv_ids = move_obj.search(cr, uid,[('state','=','draft'),('doc_type','=','cus_inv')])
+                for cus_inv_id in cus_inv_ids:
+                    try:
+                        move_obj.button_validate(cr, uid, [cus_inv_id], context)
+                    except:
+                        pass
+                    
+            if auto_id.material_issue:
+                issue_ids = move_obj.search(cr, uid,[('state','=','draft'),('doc_type','=','good')])
+                for issue_id in issue_ids:
+                    try:
+                        move_obj.button_validate(cr, uid, [issue_id], context)
+                    except:
+                        pass
+            if auto_id.delivery_order:
+                do_ids = move_obj.search(cr, uid,[('state','=','draft'),('doc_type','=','do')])
+                for do_id in do_ids:
+                    try:
+                        move_obj.button_validate(cr, uid, [do_id], context)
+                    except:
+                        pass
+            
+            if auto_id.cash_transactions:
+                cash_pay_ids = move_obj.search(cr, uid,[('state','=','draft'),('doc_type','=','cash_pay')])
+                for cash_pay_id in cash_pay_ids:
+                    try:
+                        move_obj.button_validate(cr, uid, [cash_pay_id], context)
+                    except:
+                        pass
+                    
+                cash_rec_ids = move_obj.search(cr, uid,[('state','=','draft'),('doc_type','=','cash_rec')])
+                for cash_rec_id in cash_rec_ids:
+                    try:
+                        move_obj.button_validate(cr, uid, [cash_rec_id], context)
+                    except:
+                        pass
+            
+            if auto_id.bank_transactions:
+                bank_pay_ids = move_obj.search(cr, uid,[('state','=','draft'),('doc_type','=','bank_pay')])
+                for bank_pay_id in bank_pay_ids:
+                    try:
+                        move_obj.button_validate(cr, uid, [bank_pay_id], context)
+                    except:
+                        pass
+                    
+                bank_rec_ids = move_obj.search(cr, uid,[('state','=','draft'),('doc_type','=','bank_rec')])
+                for bank_rec_id in bank_rec_ids:
+                    try:
+                        move_obj.button_validate(cr, uid, [bank_rec_id], context)
+                    except:
+                        pass
+            
+            if auto_id.supplier_invoice_without:
+                sup_wi_ids = move_obj.search(cr, uid,[('state','=','draft'),('doc_type','=','sup_inv')])
+                for sup_wi_id in sup_wi_ids:
+                    try:
+                        move_obj.button_validate(cr, uid, [sup_wi_id], context)
+                    except:
+                        pass
+                    
+            if auto_id.service_invoice:
+                ser_inv_ids = move_obj.search(cr, uid,[('state','=','draft'),('doc_type','=','ser_inv')])
+                for ser_inv_id in ser_inv_ids:
+                    try:
+                        move_obj.button_validate(cr, uid, [ser_inv_id], context)
+                    except:
+                        pass
+            
+            if auto_id.freight_invoice:
+                freight_ids = move_obj.search(cr, uid,[('state','=','draft'),('doc_type','=','freight')])
+                for freight_id in freight_ids:
+                    try:
+                        move_obj.button_validate(cr, uid, [freight_id], context)
+                    except:
+                        pass
+                    
+            if auto_id.production_declaration:
+                product_ids = move_obj.search(cr, uid,[('state','=','draft'),('doc_type','=','product')])
+                for product_id in product_ids:
+                    try:
+                        move_obj.button_validate(cr, uid, [product_id], context)
+                    except:
+                        pass
+                    
+            if auto_id.journal_vouchers:
+                voucher_ids = move_obj.search(cr, uid,[('state','=','draft'),('doc_type','=',False)])
+                for voucher_id in voucher_ids:
+                    try:
+                        move_obj.button_validate(cr, uid, [voucher_id], context)
+                    except:
+                        pass
+                    
+            if auto_id.payroll:
+                payroll_ids = move_obj.search(cr, uid,[('state','=','draft'),('doc_type','=','payroll')])
+                for payroll_id in payroll_ids:
+                    try:
+                        move_obj.button_validate(cr, uid, [payroll_id], context)
+                    except:
+                        pass
+                    
+                staff_payroll_ids = move_obj.search(cr, uid,[('state','=','draft'),('doc_type','=','staff_payroll')])
+                for staff_payroll_id in staff_payroll_ids:
+                    try:
+                        move_obj.button_validate(cr, uid, [staff_payroll_id], context)
+                    except:
+                        pass
+                    
+                worker_payroll_ids = move_obj.search(cr, uid,[('state','=','draft'),('doc_type','=','worker_payroll')])
+                for worker_payroll_id in worker_payroll_ids:
+                    try:
+                        move_obj.button_validate(cr, uid, [worker_payroll_id], context)
+                    except:
+                        pass
+                    
+        return True  
+tpt_auto_posting()
