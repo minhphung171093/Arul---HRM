@@ -1538,6 +1538,12 @@ class stock_production_lot(osv.osv):
         'location_id':fields.many2one('stock.location','Location'),
         'application_id':fields.many2one('crm.application','Application')
     }
+    def write(self, cr, uid, ids, vals, context=None):
+        batch = self.pool.get('stock.production.lot').browse(cr, uid, ids[0])
+        stock_available= batch.stock_available        
+        if stock_available < 1:
+                raise osv.except_osv(_('Warning!'),_('Not Allowed to Edit Sold Batch'))
+        return super(stock_production_lot, self).write(cr, uid,ids, vals, context)
     
     def init(self, cr):
         product_ids = self.pool.get('product.product').search(cr, 1, ['|',('name','in',['TITANIUM DIOXIDE-ANATASE','TiO2','M0501010001']),('default_code','in',['TITANIUM DIOXIDE-ANATASE','TiO2','M0501010001'])])

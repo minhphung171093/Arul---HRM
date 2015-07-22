@@ -12,3 +12,4 @@ import purchase_order_list
 import input_register_report
 import general_ledger_statement_report
 import trial_balance_report
+import service_tax_report # YuVi
