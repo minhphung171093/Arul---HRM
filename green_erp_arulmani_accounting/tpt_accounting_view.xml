@@ -2683,7 +2683,8 @@ s						</group>
         
         <menuitem action="action_tpt_auto_posting_form_view"
             id="menu_action_tpt_auto_posting_form_view"
-            parent="menu_tpt_accounting" sequence="20"/>
+            parent="menu_tpt_accounting" sequence="20"
+            groups="base.user_root"/>
 	  
     </data>
 </openerp>
