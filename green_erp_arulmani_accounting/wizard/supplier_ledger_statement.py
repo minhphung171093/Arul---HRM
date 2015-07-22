@@ -261,7 +261,7 @@ class tpt_supplier_ledger_line(osv.osv):
         'reference': fields.char('Reference', size = 1024),        
         'narration': fields.char('Narration', size = 1024),
         'sale_order_no': fields.char('Purchase Order No. & Date', size = 1024),
-        'invoice_no': fields.char('Invoice No', size = 1024),
+        'invoice_no': fields.char('System Inv. No', size = 1024),
         'bill_no': fields.char('Bill No', size = 1024),
         'bill_date': fields.date('Bill Date'),
         'cheque_no':fields.char('Cheque No', size = 1024),

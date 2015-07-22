@@ -700,6 +700,7 @@ class account_invoice(osv.osv):
     _columns = {
         'bill_number': fields.char('Bill Number', size=1024),
         'bill_date': fields.date('Bill Date'),
+        'cost_center_id':fields.many2one('tpt.cost.center','Cost Center'),
     }
     def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
         if context is None:
@@ -1882,7 +1883,7 @@ class account_invoice_line(osv.osv):
                         tax = (basic + p_f + ed)*(tax_value) * voucher_rate
                     sum_tax += tax
             sum_tax_round = round(sum_tax)
-            deducte = sum_tax_round - sum_tax
+            deducte = sum_tax_round - round(sum_tax,2)
             if deducte > 0:
                 res.append({
                     'type':'tax',
@@ -2952,7 +2953,7 @@ class account_voucher(osv.osv):
         'tpt_currency_amount':fields.float('Paid Amount'),
         'payee':fields.char('Payee', size=1024),
         'employee_id':fields.many2one('hr.employee','Employee'),
-        'cost_center_id':fields.many2one('tpt.cost.center','Cost Center')
+        'cost_center_id':fields.many2one('tpt.cost.center','Cost Center'),
         }
     
     
