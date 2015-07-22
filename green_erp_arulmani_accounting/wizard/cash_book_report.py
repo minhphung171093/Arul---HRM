@@ -117,20 +117,24 @@ class cash_book_report(osv.osv_memory):
             debit = 0.0
             if is_posted is True:
                 sql = '''
-                    select sum(aml.credit) as credit, aml.date from account_move_line aml 
-                    where aml.credit is not null and aml.credit != 0 and aml.date < '%s' 
-                    and move_id in (select move_id from account_voucher where type = 'payment' and state = 'posted' and journal_id in (select id from account_journal where type in ('cash','general')) )
-                    group by aml.date
-                '''%(date_from)
+                    select case when coalesce(sum(aml.credit),0)=0 then 0 else sum(aml.credit) end as credit 
+                    from account_move_line aml
+                    inner join account_move am on (am.id=aml.move_id)
+                    inner join account_account aa on (aa.id=aml.account_id  and aa.code='0000110001')
+                    inner join account_voucher av on (av.move_id = aml.move_id)
+                    where av.type in ('payment','receipt') and aml.credit>0 and av.state in ('posted') and av.date < '%s'
+                 '''%(date_from)
                 cr.execute(sql)
                 for move in cr.dictfetchall():
                     credit += move['credit']
                     
                 sql = '''
-                    select sum(aml.debit) as debit, aml.date from account_move_line aml 
-                    where aml.debit is not null and aml.debit != 0 and aml.date < '%s' 
-                    and move_id in (select move_id from account_voucher where type = 'receipt' and state = 'posted' and journal_id in (select id from account_journal where type in ('cash','general')) )
-                    group by aml.date
+                    select case when coalesce(sum(aml.debit),0)=0 then 0 else sum(aml.debit) end as debit 
+                    from account_move_line aml
+                    inner join account_move am on (am.id=aml.move_id)
+                    inner join account_account aa on (aa.id=aml.account_id  and aa.code='0000110001')
+                    inner join account_voucher av on (av.move_id = aml.move_id)
+                    where av.type in ('payment','receipt') and aml.debit>0 and av.state in ('posted') and av.date < '%s'
                 '''%(date_from)
                 cr.execute(sql)
                 for move in cr.dictfetchall():
@@ -138,20 +142,24 @@ class cash_book_report(osv.osv_memory):
                 balance = debit - credit
             else:
                 sql = '''
-                    select sum(aml.credit) as credit, aml.date from account_move_line aml 
-                    where aml.credit is not null and aml.credit != 0 and aml.date < '%s' 
-                    and move_id in (select move_id from account_voucher where type = 'payment' and state in ('draft','posted') and journal_id in (select id from account_journal where type in ('cash','general')) )
-                    group by aml.date
+                    select case when coalesce(sum(aml.credit),0)=0 then 0 else sum(aml.credit) end as credit 
+                    from account_move_line aml
+                    inner join account_move am on (am.id=aml.move_id)
+                    inner join account_account aa on (aa.id=aml.account_id  and aa.code='0000110001')
+                    inner join account_voucher av on (av.move_id = aml.move_id)
+                    where av.type in ('payment','receipt') and aml.credit>0 and av.state in ('draft','posted') and av.date < '%s'
                 '''%(date_from)
                 cr.execute(sql)
                 for move in cr.dictfetchall():
                     credit += move['credit']
                     
                 sql = '''
-                    select sum(aml.debit) as debit, aml.date from account_move_line aml 
-                    where aml.debit is not null and aml.debit != 0 and aml.date < '%s' 
-                    and move_id in (select move_id from account_voucher where type = 'receipt' and state in ('draft','posted') and journal_id in (select id from account_journal where type in ('cash','general')) )
-                    group by aml.date
+                    select case when coalesce(sum(aml.debit),0)=0 then 0 else sum(aml.debit) end as debit 
+                    from account_move_line aml
+                    inner join account_move am on (am.id=aml.move_id)
+                    inner join account_account aa on (aa.id=aml.account_id  and aa.code='0000110001')
+                    inner join account_voucher av on (av.move_id = aml.move_id)
+                    where av.type in ('payment','receipt') and aml.debit>0 and av.state in ('draft','posted') and av.date < '%s'
                 '''%(date_from)
                 cr.execute(sql)
                 for move in cr.dictfetchall():
