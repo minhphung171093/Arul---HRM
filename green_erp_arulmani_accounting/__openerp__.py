@@ -42,6 +42,7 @@
         'wizard/input_register_form_view.xml',
         'wizard/review_posting_view.xml',
         'wizard/account_report_common_view.xml',
+        'wizard/ed_type_pop_up_view.xml',
         'tpt_accounting_sequence.xml',
         'report/daily_sale_report_view.xml',
         'report/report_cash_book_view.xml',

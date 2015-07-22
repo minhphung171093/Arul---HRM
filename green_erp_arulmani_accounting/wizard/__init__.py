@@ -12,4 +12,5 @@ import input_register_form
 import general_ledger_statement
 import review_posting
 import account_report_common
+import ed_type_pop_up
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
