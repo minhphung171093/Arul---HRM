@@ -1661,7 +1661,7 @@ class account_invoice_line(osv.osv):
                         'name':line.name,
                         'price_unit': line.price_unit,
                         'quantity': 1,
-                        'price': -tax,
+                        'price': round(-tax,2),
                         'account_id': account,
                         'account_analytic_id': line.account_analytic_id.id,
                         })
@@ -1725,9 +1725,9 @@ class account_invoice_line(osv.osv):
                         tax = (basic + p_f + ed + line.aed_id_1)*(tax_value) * voucher_rate
                     else:
                         tax = (basic + p_f + ed)*(tax_value) * voucher_rate
-                    sum_tax += tax
+                    sum_tax += round(tax,2)
             sum_tax_round = round(sum_tax)
-            deducte = sum_tax_round - sum_tax
+            deducte = sum_tax_round - round(sum_tax,2)
             if deducte > 0:
                 res.append({
                     'type':'tax',
@@ -1817,7 +1817,7 @@ class account_invoice_line(osv.osv):
                         'name':line.name,
                         'price_unit': line.price_unit,
                         'quantity': 1,
-                        'price': tax,
+                        'price': round(tax,2),
                         'account_id': account,
                         'account_analytic_id': line.account_analytic_id.id,
                         })
@@ -1881,7 +1881,7 @@ class account_invoice_line(osv.osv):
                         tax = (basic + p_f + ed + line.aed_id_1)*(tax_value) * voucher_rate
                     else:
                         tax = (basic + p_f + ed)*(tax_value) * voucher_rate
-                    sum_tax += tax
+                    sum_tax += round(tax,2)
             sum_tax_round = round(sum_tax)
             deducte = sum_tax_round - round(sum_tax,2)
             if deducte > 0:
@@ -2576,6 +2576,8 @@ class account_invoice_line(osv.osv):
         res = []
         invoice = self.pool.get('account.invoice').browse(cr, uid, invoice_id)
         for line in invoice.invoice_line:
+            if line.tax_id and not line.tax_id.gl_account_id:
+                raise osv.except_osv(_('Warning!'),_('GL Account is not null, please configure it in Tax Master!'))
             if line.fright_fi_type == '2':
                 base_amount = round(line.fright)
                 tax_debit_amount = base_amount*(line.tax_id and line.tax_id.amount/100 or 0)
@@ -2584,14 +2586,12 @@ class account_invoice_line(osv.osv):
                 tax_debit_amount = base_amount*(line.tax_id and line.tax_id.amount/100 or 0)
             
             if tax_debit_amount:
-                if not line.tax_credit.gl_account_id:
-                    raise osv.except_osv(_('Warning!'),_('GL Account is not null, please configure it in Tax Master!'))
                 res.append({
                     'type':'tax',
                     'name':line.name,
                     'price_unit': line.price_unit,
                     'quantity': 1,
-                    'price': tax_debit_amount,
+                    'price': round(tax_debit_amount,2),
                     'account_id': line.tax_id and line.tax_id.gl_account_id and line.tax_id.gl_account_id.id or False,
                     'account_analytic_id': line.account_analytic_id.id,
                 })
@@ -2615,9 +2615,9 @@ class account_invoice_line(osv.osv):
                     tax_debit_amount = base_amount*(line.tax_id and line.tax_id.amount/100 or 0)
                 
                 if tax_debit_amount:
-                    sum_deducte += tax_debit_amount
+                    sum_deducte += round(tax_debit_amount,2)
             sum_deducte_round = round(sum_deducte)
-            deducte = sum_deducte_round - sum_deducte
+            deducte = sum_deducte_round - round(sum_deducte,2)
             if deducte > 0:
                 res.append({
                     'type':'tax',
@@ -2645,22 +2645,21 @@ class account_invoice_line(osv.osv):
         res = []
         invoice = self.pool.get('account.invoice').browse(cr, uid, invoice_id)
         for line in invoice.invoice_line:
+            if line.tax_credit and not line.tax_credit.gl_account_id:
+                raise osv.except_osv(_('Warning!'),_('GL Account is not null, please configure it in Tax Master!'))
             if line.fright_fi_type == '2':
                 base_amount = round(line.fright)
                 tax_credit_amount = base_amount*(line.tax_credit and line.tax_credit.amount/100 or 0)
             else:
                 base_amount = round(line.fright*line.quantity)
                 tax_credit_amount = base_amount*(line.tax_credit and line.tax_credit.amount/100 or 0)
-            
             if tax_credit_amount:
-                if not line.tax_credit.gl_account_id:
-                    raise osv.except_osv(_('Warning!'),_('GL Account is not null, please configure it in Tax Master!'))
                 res.append({
                     'type':'tax',
                     'name':line.name,
                     'price_unit': line.price_unit,
                     'quantity': 1,
-                    'price': -tax_credit_amount,
+                    'price': round(-tax_credit_amount,2),
                     'account_id': line.tax_credit and line.tax_credit.gl_account_id and line.tax_credit.gl_account_id.id or False,
                     'account_analytic_id': line.account_analytic_id.id,
                 })
@@ -2684,9 +2683,9 @@ class account_invoice_line(osv.osv):
                     tax_credit_amount = base_amount*(line.tax_credit and line.tax_credit.amount/100 or 0)
                 
                 if tax_credit_amount:
-                    sum_deducte += tax_credit_amount
+                    sum_deducte += round(tax_credit_amount,2)
             sum_deducte_round = round(sum_deducte)
-            deducte = sum_deducte_round - sum_deducte
+            deducte = sum_deducte_round - round(sum_deducte,2)
             if deducte > 0:
                 res.append({
                     'type':'tax',
