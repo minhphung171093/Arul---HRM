@@ -66,16 +66,12 @@ class Parser(report_sxw.rml_parse):
                 else:
                     return partner.country_id.name
     def get_s3(self,partner):
-        if partner.street3:
-            return partner.street3+", "+partner.city
-        else:
-            return partner.city
-    def get_s3(self,partner):
-        #raise osv.except_osv(_('Warning!%s'),s3)
-        if partner.street3:
-            return partner.street3+", "+partner.city
-        else:
-            return partner.city
+        if partner:
+            if partner.street3:
+                return partner.street3+", "+partner.city
+            else:
+                return partner.city
+    
     def get_stock_line(self, lines):
         prod_qty=0
         qty=0

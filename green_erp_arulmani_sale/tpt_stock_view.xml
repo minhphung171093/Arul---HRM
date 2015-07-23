@@ -217,7 +217,7 @@
 				<xpath expr="//field[@name='fiscal_position']" position="replace">
 					<field name="fiscal_position" widget="selection" invisible = "1"/>
 					<field name="type" string = "Document Type" readonly = "0"/>
-					<field name="excise_duty_id" options="{'create': false, 'create_edit': false}" domain="[('type_tax_use','=','excise_duty')]"/>
+					<field name="excise_duty_id" readonly='1' options="{'create': false, 'create_edit': false}" domain="[('type_tax_use','=','excise_duty')]"/>
 					<field name="doc_status" readonly='1'/>
 					<field name="pre_carriage_by" />
 					<!--  
@@ -245,7 +245,7 @@
 				<xpath expr="//field[@name='journal_id']" position="replace">
 					<!-- <field name="cons_loca" domain="[('consignee_parent_id','=',partner_id)]" options="{'create': false, 'create_edit': false,'always_reload': True}" context="{'show_address': 1}"/>
 					 -->
-					 <field name="cons_loca" domain="[('customer_account_group_id','=','VVTI Ship to Party')]" options="{'create': false, 'create_edit': false}" />
+					 <field name="cons_loca" readonly='1' domain="[('disapprove','=',1),('customer_account_group_id','=','VVTI Ship to Party')]" options="{'create': false, 'create_edit': false}" />
 				</xpath>
 				<xpath expr="//field[@name='date_invoice']" position="attributes">
 					<attribute name="on_change">onchange_date_invoice(date_invoice)</attribute>
@@ -257,9 +257,9 @@
 				<xpath expr="//field[@name='account_id']" position="replace">
 					<field name="account_id" required = "0" invisible = "1"/>
 					<field name="sale_id" readonly="1" options="{'create': false, 'create_edit': false}"/>
-					<field name="payment_term" options="{'create': false, 'create_edit': false}"/>
-					<field name="sale_tax_id" domain="[('type_tax_use','=','sale')]" options="{'create': false, 'create_edit': false}"/>
-					<field name="invoice_type" required ='1'/>
+					<field name="payment_term" readonly='1' options="{'create': false, 'create_edit': false}"/>
+					<field name="sale_tax_id" readonly='1' domain="[('type_tax_use','=','sale')]" options="{'create': false, 'create_edit': false}"/>
+					<field name="invoice_type" readonly='1' required ='1'/>
 					<field name="header_text" />
 					<field name="material_info" readonly="1"/>
 					<field name="other_info" />
@@ -279,7 +279,7 @@
 				</xpath> 
 				
 				<xpath expr="//form/sheet/notebook/page[@string='Invoice Lines']/field/tree/field[@name='product_id']"  position="replace">
-					<field name="product_id" required = "1" options="{'create': false, 'create_edit': false}"/>
+					<field name="product_id" readonly='1' required = "1" options="{'create': false, 'create_edit': false}"/>
 				</xpath>
 				
 				<xpath expr="//page[@string='Invoice Lines']/group/field[@name='residual']" position="replace">
@@ -292,8 +292,8 @@
 				</xpath>
 				
 				<xpath expr="//form/sheet/notebook/page[@string='Invoice Lines']/field/tree/field[@name='name']"  position="after">
-					<field name="product_type" />
-					<field name="application_id" options="{'create': false, 'create_edit': false}"/>
+					<field name="product_type" readonly='1'/>
+					<field name="application_id" readonly='1' options="{'create': false, 'create_edit': false}"/>
 				</xpath>
 				
 				<xpath expr="//form/sheet/notebook/page[@string='Invoice Lines']/field/tree/field[@name='account_id']"  position="attributes">
@@ -430,11 +430,11 @@
 		                    <field name="origin" invisible="1"/>
 		                    <field name="type" invisible="1" on_change="onchange_move_type(type)"/>
 		                    <field name="create_date" invisible="1" groups="base.group_no_one"/>
-		                    <field name="product_id" context="{'search_pro_by_so':1,'sale_id':parent.sale_id}" on_change="onchange_product_id(product_id,location_id,location_dest_id, False)" options="{'create': false, 'create_edit': false}"/>
-		                    <field name="product_type"/>
-            				<field name="application_id" options="{'create': false, 'create_edit': false}"/>
+		                    <field name="product_id" readonly = "1" context="{'search_pro_by_so':1,'sale_id':parent.sale_id}" on_change="onchange_product_id(product_id,location_id,location_dest_id, False)" options="{'create': false, 'create_edit': false}"/>
+		                    <field name="product_type" readonly = "1" />
+            				<field name="application_id" readonly = "1" options="{'create': false, 'create_edit': false}"/>
 		                    <field name="product_qty" readonly = "1" on_change="onchange_quantity(product_id, product_qty, product_uom, product_uos)"/>
-		                    <field name="product_uom" string="Unit of Measure" groups="product.group_uom" options="{'create': false, 'create_edit': false}"/>
+		                    <field name="product_uom" readonly = "1" string="Unit of Measure" groups="product.group_uom" options="{'create': false, 'create_edit': false}"/>
 		                    <field name="product_uos" invisible="1" groups="product.group_uos"/>
 		                    <button name="%(stock.move_scrap)d"
 		                        string="Scrap Products" type="action"

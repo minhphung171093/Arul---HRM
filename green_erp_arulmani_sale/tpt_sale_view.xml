@@ -11,32 +11,32 @@
                 		<field name="blanket_id" on_change="onchange_blanket_id(blanket_id)" domain="[('blank_order_line','!=',False), ('state','=','approve')]" options="{'create': false, 'create_edit': false}" required = "1" />
                 		<field name="blanket_line_id" domain="[('blanket_order_id','=',blanket_id)]" options="{'create': false, 'create_edit': false}" on_change="onchange_blanketorderline_id(blanket_line_id)" required="1" context="{'search_blanket_line':1,'blanket_id':blanket_id}"/>
                 		</xpath><xpath expr="//field[@name='partner_id']" position="after" >
-                		<field name="invoice_address" placeholder="Street..."/>
-                		<field name="street2"/>
-                		<field name="street3"/>
-                		<field name="city" placeholder="City"/>
-                		<field name="country_id" placeholder="Country" options="{'create': false, 'create_edit': false}"/>
-                		<field name="state_id" placeholder="State" options="{'create': false, 'create_edit': false}"/>
-                		<field name="zip" placeholder="ZIP"/> 
+                		<field name="invoice_address" readonly='1' placeholder="Street..."/>
+                		<field name="street2" readonly='1'/>
+                		<field name="street3" readonly='1'/>
+                		<field name="city" readonly='1' placeholder="City"/>
+                		<field name="country_id" readonly='1' placeholder="Country" options="{'create': false, 'create_edit': false}"/>
+                		<field name="state_id" readonly='1' placeholder="State" options="{'create': false, 'create_edit': false}"/>
+                		<field name="zip" readonly='1' placeholder="ZIP"/> 
                 		<field name="document_type"/>
                 		
-                		<field name="payment_term_id"  options="{'create': false, 'create_edit': false}"/>
-                		<field name="incoterms_id" options="{'create': false, 'create_edit': false}" />
-                		<field name="excise_duty_id" options="{'create': false, 'create_edit': false}"/>
+                		<field name="payment_term_id" readonly='1' options="{'create': false, 'create_edit': false}"/>
+                		<field name="incoterms_id" readonly='1' options="{'create': false, 'create_edit': false}" />
+                		<field name="excise_duty_id" readonly='1' options="{'create': false, 'create_edit': false}"/>
 	        	</xpath>
 				<xpath expr="//field[@name='date_order']"  position="replace">
 					<!--<field name="date_order" string = "SO Date" on_change = "onchange_so_date(date_order, blanket_id)"/>-->
 					<field name="date_order" string = "SO Date" on_change = "onchange_date_order(date_order)"/>
                 	<field name="po_date" on_change="onchange_po_date(po_date)" />
-                	<field name="po_number" />
+                	<field name="po_number" readonly='1' />
                 	<!-- 
                 	<field name="expected_date" />
                 	 -->
                 	<field name="quotaion_no"/>
-                	<field name="distribution_channel" options="{'create': false, 'create_edit': false}" />
-                	<field name="sale_tax_id" options="{'create': false, 'create_edit': false}"/>
+                	<field name="distribution_channel" readonly='1' options="{'create': false, 'create_edit': false}" />
+                	<field name="sale_tax_id" readonly='1' options="{'create': false, 'create_edit': false}"/>
                 	<field name="document_status"/>
-                	 <field name="reason" />
+                	 <field name="reason" readonly='1' />
                 	 <field name="flag_t" invisible="1" />
                 	 <field name="flag_p" invisible="1" />
                 	 <field name="tpt_currency_id" invisible="1" />
@@ -66,11 +66,11 @@
 					<attribute name="create">false</attribute>
 				</xpath>
 				<xpath expr="//field[@name='date_order']"  position="before">
-					<field name="order_type" />
+					<field name="order_type" readonly='1'/>
 				</xpath>
 				<xpath expr="//field[@name='currency_id']"  position="replace">
 					<field name="currency_id" invisible="0" readonly = "0" on_change="onchange_currency(currency_id)"
-					attrs="{'readonly': [('state','in',('done','progress'))]}"
+					attrs="{'readonly': [('state','in',('draft','done','progress'))]}"
 					required = "0" options="{'create': false, 'create_edit': false}" />
 				</xpath>
 				<xpath expr="//field[@name='payment_term']"  position="replace">
@@ -112,7 +112,7 @@
 				
 
 				<xpath expr="//field[@name='partner_id']"  position="replace">
-					<field name="partner_id" domain="[('customer','=',1),('is_company','=',1),('disapprove','=',1)]" options="{'create': false, 'create_edit': false}" on_change = "onchange_partner_id(partner_id,blanket_id)" context="{'search_default_customer':1, 'show_address': 1, 'search_partner_id':True, 'blanket_id':blanket_id}" />
+					<field name="partner_id" readonly='1' domain="[('customer','=',1),('is_company','=',1),('disapprove','=',1)]" options="{'create': false, 'create_edit': false}" on_change = "onchange_partner_id(partner_id,blanket_id)" context="{'search_default_customer':1, 'show_address': 1, 'search_partner_id':True, 'blanket_id':blanket_id}" />
 				</xpath>
 				
 				<xpath expr="//label[@string='Quotation ']"  position="replace">
@@ -206,9 +206,9 @@
                     		<field name="zip" placeholder="ZIP"/>
                     	</div>
                     	<field name="document_type" />
+                    	<field name="currency_id" readonly='1' options="{'create': false, 'create_edit': false}"/>
+                    	<field name="incoterm_id" readonly='1' options="{'create': false, 'create_edit': false}"/>
                     	<field name="payment_term_id" options="{'create': false, 'create_edit': false}"/>
-                    	<field name="currency_id" options="{'create': false, 'create_edit': false}"/>
-                    	<field name="incoterm_id" options="{'create': false, 'create_edit': false}"/>
                     	<field name="excise_duty_id" domain="[('type_tax_use','=','excise_duty')]" options="{'create': false, 'create_edit': false}"/>
                     	</group>
                       
@@ -219,7 +219,7 @@
 						<!-- <field name="exp_delivery_date" on_change = "onchange_exp_delivery_date(exp_delivery_date)"/>  -->
 						<!--<field name="dispatch_date" on_change = "onchange_sche_dispatch_date(dispatch_date)"/>-->
 						<field name="quotaion_no" invisible='1'/>
-						<field name="channel" options="{'create': false, 'create_edit': false}"/>
+						<field name="channel" readonly='1' options="{'create': false, 'create_edit': false}"/>
 						<field name="sale_tax_id" domain="[('type_tax_use','=','sale')]" options="{'create': false, 'create_edit': false}"/>
 						<field name="order_type" />
 						<field name="reason" />
@@ -602,6 +602,17 @@
 				</tree>
 			</field>
 		</record>    
+		<record id="view_tpt_commission_tree_vew" model="ir.ui.view">
+			<field name="name">tpt.cus.ind.commission.tree</field>
+			<field name="model">tpt.cus.ind.commission</field>
+			<field name="arch" type="xml">
+				<tree string="Ind. Commission">
+						<field name="tpt_commission_id" />
+						<field name="tpt_commission_code" />
+						
+				</tree>
+			</field>
+		</record>  
         <record id="tpt_view_res_partner_form" model="ir.ui.view">
             <field name="name">tpt.res.partner.form</field>
             <field name="model">res.partner</field>
@@ -613,12 +624,19 @@
 					<page string = "Consignee">
 						<field name="tpt_consignee_line" nolabel='1'>
 							<tree editable='top'>		    
-								<field name="tpt_consignee_id" on_change = "onchange_tpt_consignee_id(tpt_consignee_id)" domain="[('customer_account_group_id','=','VVTI Ship to Party')]" options="{'create': false, 'create_edit': false}"/>
+								<field name="tpt_consignee_id" on_change = "onchange_tpt_consignee_id(tpt_consignee_id)" domain="[('disapprove','=',1),('customer_account_group_id','=','VVTI Ship to Party')]" options="{'create': false, 'create_edit': false}"/>
 								<field name="tpt_consignee_code" invisible='0' readonly='1'/>			
 								</tree>
 							</field>							
 					</page>
-					 
+					<page string = "Ind. Commission">
+						<field name="tpt_commission_line" nolabel='1'>
+							<tree editable='top'>		    
+								<field name="tpt_commission_id" on_change = "onchange_tpt_commission_id(tpt_commission_id)" domain="[('disapprove','=',1),('customer_account_group_id','=','VVTI Indent Comm.')]" options="{'create': false, 'create_edit': false}"/>
+								<field name="tpt_commission_code" invisible='0' readonly='1'/>			
+								</tree>
+							</field>							
+					</page> 
 				<!-- TPT END -->
                 	<page string = "Consignee" invisible='1'>               	
 						<field name="consignee_line" mode="kanban">
@@ -693,7 +711,8 @@
                                     <div class="oe_title">
                                         <label for="name" class="oe_edit_only"/>
                                         <!-- <h1><field name="name" style="width: 70%%"/></h1>  -->
-                                        <h1><field name="consignee_shift_party" on_change="onchange_consignee_shift_party(consignee_shift_party)" options="{'create': false, 'create_edit': false}" domain="[('customer_account_group_id','=','VVTI Ship to Party')]" style="width: 70%%"/></h1>
+                                        <h1><field name="consignee_shift_party" on_change="onchange_consignee_shift_party(consignee_shift_party)" options="{'create': false, 'create_edit': false}" 
+                                        domain="[('disapprove','=',1),('customer_account_group_id','=','VVTI Ship to Party')]" style="width: 70%%"/></h1>
                                     </div>
                                     <group>
                                     	<group>

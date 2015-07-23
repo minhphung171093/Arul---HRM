@@ -76,7 +76,7 @@ product_product()
 class sale_order(osv.osv):
     _inherit = "sale.order"
     
-    _order = "blanket_id"
+    _order = "name desc" #"blanket_id"
     
     def init(self, cr):
         sql = '''
@@ -180,6 +180,7 @@ class sale_order(osv.osv):
         'document_status':'draft',
         'flag_t':False,
         'flag_p':False,
+        'document_type':'saleorder',#TPT
     }
     
     def onchange_currency(self, cr, uid, ids, currency_id=False, context=None):
@@ -354,6 +355,64 @@ class sale_order(osv.osv):
     def create(self, cr, uid, vals, context=None):
         if vals.get('name','/')=='/':
             vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.sale.order.import') or '/'
+        ###TPT
+        if 'blanket_id' in vals:
+            blanket = self.pool.get('tpt.blanket.order').browse(cr, uid, vals['blanket_id'])
+            addr = self.pool.get('res.partner').address_get(cr, uid, [blanket.customer_id.id], ['delivery', 'invoice', 'contact'])
+            ###
+            if 'blanket_line_id' in vals:
+                blanket_line = self.pool.get('tpt.blank.order.line').browse(cr, uid, vals['blanket_line_id'])
+                sql = '''
+                    select case when sum(product_uom_qty)!=0 then sum(product_uom_qty) else 0 end product_uom_qty from sale_order_line where order_id in (select id from sale_order where blanket_line_id=%s and state!='cancel')
+                '''%(vals['blanket_line_id'])
+                cr.execute(sql)
+                product_uom_qty = cr.dictfetchone()['product_uom_qty']
+                rs_order = {
+                      'product_id': blanket_line.product_id and blanket_line.product_id.id or False,
+                      'name': blanket_line.description or False,
+                      'product_type': blanket_line.product_type or False,
+                      'application_id': blanket_line.application_id and blanket_line.application_id.id or False,
+                      'product_uom_qty': blanket_line.product_uom_qty-product_uom_qty or False,
+                      'product_uom': blanket_line.uom_po_id and blanket_line.uom_po_id.id or False,
+                      'price_unit': blanket_line.price_unit or False,
+                      'price_subtotal': blanket_line.sub_total or False,
+                      'freight': blanket_line.freight or False,
+                      'state': 'draft',
+                      'type': 'make_to_stock',
+                      #'name_consignee_id' : blanket_line.name_consignee_id.id,
+                      'name_consignee_id' : blanket_line.tpt_name_consignee_id and blanket_line.tpt_name_consignee_id.tpt_consignee_id and blanket_line.tpt_name_consignee_id.tpt_consignee_id.id or False,#TPT Consignee Part blanket_line.tpt_name_consignee_id.tpt_consignee_id.id or False
+                      'location':blanket_line.location,
+                                }
+            ###
+            vals.update({
+                        'partner_id':blanket.customer_id and blanket.customer_id.id or False,
+                    'invoice_address':blanket.invoice_address or False,
+                    'street2':blanket.street2 or False,
+                    'street3':blanket.street3 or False,
+                    'city':blanket.city or False,
+                    'country_id':blanket.country_id and blanket.country_id.id or False,
+                    'state_id':blanket.state_id and blanket.state_id.id or False,
+                    'zip':blanket.zip or False,
+                    'po_date':blanket.po_date or False,
+                    'order_type':blanket.order_type or False,
+                    'po_number':blanket.po_number or False,
+                    'payment_term_id':blanket.payment_term_id and blanket.payment_term_id.id or False,
+                    'currency_id':blanket.currency_id and blanket.currency_id.id or False,
+                    'tpt_currency_id':blanket.currency_id and blanket.currency_id.id or False,
+                    'quotaion_no':blanket.quotaion_no or False,
+                    'incoterms_id':blanket.incoterm_id and blanket.incoterm_id.id or False,
+                    'distribution_channel':blanket.channel and blanket.channel.id or False,
+                    'excise_duty_id':blanket.excise_duty_id and blanket.excise_duty_id.id or False,
+                    'sale_tax_id':blanket.sale_tax_id and blanket.sale_tax_id.id or False, 
+                    'reason':blanket.reason or False,
+                    'amount_untaxed': blanket.amount_untaxed or False,
+                    'order_line':[],
+                    #'blanket_line_id': False,
+                    'order_policy': 'picking',
+                    'partner_invoice_id': addr['invoice'],
+                    'order_line': [(0,0,rs_order)],
+                         })
+        ###TPT
         new_id = super(sale_order, self).create(cr, uid, vals, context)
         sale = self.browse(cr, uid, new_id)
         
@@ -391,6 +450,64 @@ class sale_order(osv.osv):
         return new_id
     
     def write(self, cr, uid, ids, vals, context=None):
+        ###TPT
+        if 'blanket_id' in vals:
+            blanket = self.pool.get('tpt.blanket.order').browse(cr, uid, vals['blanket_id'])
+            addr = self.pool.get('res.partner').address_get(cr, uid, [blanket.customer_id.id], ['delivery', 'invoice', 'contact'])
+            #
+            if 'blanket_line_id' in vals:
+                blanket_line = self.pool.get('tpt.blank.order.line').browse(cr, uid, vals['blanket_line_id'])
+                sql = '''
+                    select case when sum(product_uom_qty)!=0 then sum(product_uom_qty) else 0 end product_uom_qty from sale_order_line where order_id in (select id from sale_order where blanket_line_id=%s and state!='cancel')
+                '''%(vals['blanket_line_id'])
+                cr.execute(sql)
+                product_uom_qty = cr.dictfetchone()['product_uom_qty']
+                rs_order = {
+                      'product_id': blanket_line.product_id and blanket_line.product_id.id or False,
+                      'name': blanket_line.description or False,
+                      'product_type': blanket_line.product_type or False,
+                      'application_id': blanket_line.application_id and blanket_line.application_id.id or False,
+                      'product_uom_qty': blanket_line.product_uom_qty-product_uom_qty or False,
+                      'product_uom': blanket_line.uom_po_id and blanket_line.uom_po_id.id or False,
+                      'price_unit': blanket_line.price_unit or False,
+                      'price_subtotal': blanket_line.sub_total or False,
+                      'freight': blanket_line.freight or False,
+                      'state': 'draft',
+                      'type': 'make_to_stock',
+                      #'name_consignee_id' : blanket_line.name_consignee_id.id,
+                      'name_consignee_id' : blanket_line.tpt_name_consignee_id and blanket_line.tpt_name_consignee_id.tpt_consignee_id and blanket_line.tpt_name_consignee_id.tpt_consignee_id.id or False,#TPT Consignee Part blanket_line.tpt_name_consignee_id.tpt_consignee_id.id or False
+                      'location':blanket_line.location,
+                                }
+            ###    
+            vals.update({
+                        'partner_id':blanket.customer_id and blanket.customer_id.id or False,
+                    'invoice_address':blanket.invoice_address or False,
+                    'street2':blanket.street2 or False,
+                    'street3':blanket.street3 or False,
+                    'city':blanket.city or False,
+                    'country_id':blanket.country_id and blanket.country_id.id or False,
+                    'state_id':blanket.state_id and blanket.state_id.id or False,
+                    'zip':blanket.zip or False,
+                    'po_date':blanket.po_date or False,
+                    'order_type':blanket.order_type or False,
+                    'po_number':blanket.po_number or False,
+                    'payment_term_id':blanket.payment_term_id and blanket.payment_term_id.id or False,
+                    'currency_id':blanket.currency_id and blanket.currency_id.id or False,
+                    'tpt_currency_id':blanket.currency_id and blanket.currency_id.id or False,
+                    'quotaion_no':blanket.quotaion_no or False,
+                    'incoterms_id':blanket.incoterm_id and blanket.incoterm_id.id or False,
+                    'distribution_channel':blanket.channel and blanket.channel.id or False,
+                    'excise_duty_id':blanket.excise_duty_id and blanket.excise_duty_id.id or False,
+                    'sale_tax_id':blanket.sale_tax_id and blanket.sale_tax_id.id or False, 
+                    'reason':blanket.reason or False,
+                    'amount_untaxed': blanket.amount_untaxed or False,
+                    'order_line':[],
+                    #'blanket_line_id': False,
+                    'order_policy': 'picking',
+                    'partner_invoice_id': addr['invoice'],
+                    'order_line': [(0,0,rs_order)],
+                         })
+        ###TPT
         new_write = super(sale_order, self).write(cr, uid,ids, vals, context)
         for sale in self.browse(cr, uid, ids):
             if 'shipped' in vals:
@@ -1169,6 +1286,18 @@ class tpt_blanket_order(osv.osv):
             vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.blanked.order.import') or '/'
         if 'customer_id' in vals:
             customer = self.pool.get('res.partner').browse(cr, uid, vals['customer_id'])
+            ###TPT
+            if customer.arulmani_type:
+                if customer.arulmani_type=='domestic':
+                    channel_obj = self.pool.get('crm.case.channel') 
+                    channel_id = channel_obj.search(cr, uid, [('code','=','10')])                  
+                if customer.arulmani_type=='export':
+                    channel_obj = self.pool.get('crm.case.channel') 
+                    channel_id = channel_obj.search(cr, uid, [('code','=','20')])
+                if customer.arulmani_type=='indirect_export':
+                    channel_obj = self.pool.get('crm.case.channel') 
+                    channel_id = channel_obj.search(cr, uid, [('code','=','30')]) 
+            ###TPT
             vals.update({
                         'invoice_address': customer.street or False,
                         'street2': customer.street2 or False,
@@ -1177,6 +1306,11 @@ class tpt_blanket_order(osv.osv):
                         'country_id': customer.country_id and customer.country_id.id or False,
                         'state_id': customer.state_id and customer.state_id.id or False,
                         'zip': customer.zip or False,
+                        ###TPT
+                        'channel':channel_id[0] or False,
+                        'incoterm_id':customer.inco_terms_id and customer.inco_terms_id.id or False,
+                        'currency_id':customer.currency_id and customer.currency_id.id or False,
+                        ###TPT
                          })
         new_id = super(tpt_blanket_order, self).create(cr, uid, vals, context=context)
         blanket = self.browse(cr, uid, new_id)
@@ -1194,6 +1328,18 @@ class tpt_blanket_order(osv.osv):
     def write(self, cr, uid, ids, vals, context=None):
         if 'customer_id' in vals:
             customer = self.pool.get('res.partner').browse(cr, uid, vals['customer_id'])
+            ###TPT
+            if customer.arulmani_type:
+                if customer.arulmani_type=='domestic':
+                    channel_obj = self.pool.get('crm.case.channel') 
+                    channel_id = channel_obj.search(cr, uid, [('code','=','10')])                  
+                if customer.arulmani_type=='export':
+                    channel_obj = self.pool.get('crm.case.channel') 
+                    channel_id = channel_obj.search(cr, uid, [('code','=','20')])
+                if customer.arulmani_type=='indirect_export':
+                    channel_obj = self.pool.get('crm.case.channel') 
+                    channel_id = channel_obj.search(cr, uid, [('code','=','30')])  
+            ###TPT
             vals.update({
                         'invoice_address': customer.street or False,
                         'street2': customer.street2 or False,
@@ -1202,6 +1348,11 @@ class tpt_blanket_order(osv.osv):
                         'country_id': customer.country_id and customer.country_id.id or False,
                         'state_id': customer.state_id and customer.state_id.id or False,
                         'zip': customer.zip or False,
+                        ###TPT
+                        'channel':channel_id[0] or False,
+                        'incoterm_id':customer.inco_terms_id and customer.inco_terms_id.id or False,
+                        'currency_id':customer.currency_id and customer.currency_id.id or False,
+                        ###TPT
                          })
         new_write = super(tpt_blanket_order, self).write(cr, uid, ids, vals, context=context) 
         for blanket in self.browse(cr, uid, ids):
@@ -1233,7 +1384,16 @@ class tpt_blanket_order(osv.osv):
                         
                       }
                 consignee_lines.append((0,0,rs))
-            
+            if customer.arulmani_type:
+                if customer.arulmani_type=='domestic':
+                    channel_obj = self.pool.get('crm.case.channel') 
+                    channel_id = channel_obj.search(cr, uid, [('code','=','10')])                  
+                if customer.arulmani_type=='export':
+                    channel_obj = self.pool.get('crm.case.channel') 
+                    channel_id = channel_obj.search(cr, uid, [('code','=','20')])
+                if customer.arulmani_type=='indirect_export':
+                    channel_obj = self.pool.get('crm.case.channel') 
+                    channel_id = channel_obj.search(cr, uid, [('code','=','30')])   
             vals = {'invoice_address': customer.street or False,
                     'street2': customer.street2 or False,
                     'street3': customer.street3 or False,
@@ -2124,6 +2284,7 @@ class res_partner(osv.osv):
         'consignee_shift_party': fields.many2one('res.partner', 'Consignee'),
         
         'tpt_consignee_line': fields.one2many('tpt.cus.consignee', 'tpt_consignee_header_id', 'TPT Consignee'),
+        'tpt_commission_line': fields.one2many('tpt.cus.ind.commission', 'tpt_commission_header_id', 'TPT Commission'),
                  }
     
     def onchange_consignee_shift_party(self, cr, uid, ids,customer_id=False, context=None):
@@ -2324,7 +2485,59 @@ class tpt_cus_consignee(osv.osv):
 
         return new_write
 tpt_cus_consignee()   
+class tpt_cus_ind_commission(osv.osv):
+    _name = "tpt.cus.ind.commission"
+      
+    _columns = {
+        'tpt_commission_header_id': fields.many2one('res.partner', 'Parent', ondelete = 'cascade'),        
+        'tpt_commission_id': fields.many2one('res.partner', 'Commission Name'),
+        'tpt_commission_code': fields.char('Commission Code'),
+    } 
+    def onchange_tpt_commission_id(self, cr, uid, ids, name_commission_id = False, context=None):
+        vals = {}
+        if name_commission_id :
+            line = self.pool.get('res.partner').browse(cr, uid, name_commission_id)
+            vals = {
+                    'tpt_commission_code': line.customer_code,    
+                    }
+        return {'value': vals} 
+    
+    def name_get(self, cr, uid, ids, context=None):
+        res = []
+        if isinstance(ids, (int, long)):
+            ids = [ids]
+        if not ids:
+            return res
+        reads = self.read(cr, uid, ids, ['tpt_commission_id','tpt_commission_code'], context)
+        for record in reads:
+            name = ''
+            if record['tpt_commission_code']:
+                name += record['tpt_commission_code'][0:6]+'_'
+            if record['tpt_commission_id']:
+                name += record['tpt_commission_id'][1]
+            
+            res.append((record['id'], name))
+        return res
+    ###
+    def create(self, cr, uid, vals, context=None):
+        if 'tpt_commission_id' in vals:
+            partner = self.pool.get('res.partner').browse(cr, uid, vals['tpt_commission_id'])
+            vals.update({'tpt_commission_code':partner.customer_code,
+                         
+                         })
+        
+        return super(tpt_cus_ind_commission, self).create(cr, uid, vals, context)
+    
+    def write(self, cr, uid, ids, vals, context=None):
+        if 'tpt_commission_id' in vals:
+            partner = self.pool.get('res.partner').browse(cr, uid, vals['tpt_commission_id'])
+            vals.update({'tpt_commission_code':partner.customer_code,
+                         
+                         })
+        new_write = super(tpt_cus_ind_commission, self).write(cr, uid,ids, vals, context)
 
+        return new_write
+tpt_cus_ind_commission()  
 class tpt_batch_allotment_line(osv.osv):
     _name = "tpt.batch.allotment.line"
     def get_phy_batch(self, cr, uid, ids, name, arg, context=None):
