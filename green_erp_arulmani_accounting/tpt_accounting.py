@@ -2782,6 +2782,41 @@ class tpt_ed_invoice_positing(osv.osv):
         'name': '/',       
                 }
     
+    def bt_validate(self, cr, uid, ids, context=None):
+#         for ed in self.browse(cr, uid, ids):
+#             move_line = []
+#             for ed_line in ed.tpt_ed_invoice_positing_line:
+#                 move_line.append((0,0,
+#                                   {
+#                                    'name': ed.name,
+#                                    'account_id': ed_line.gl_account_id.id,
+#                                    'debit': ed_line.debit,
+#                                    'credit': ed_line.credit,
+#                                    }))
+#             sql = '''
+#                 select id from account_journal
+#             '''
+#             cr.execute(sql)
+#             journal_ids = [r[0] for r in cr.fetchall()]
+#             sql = '''
+#                 select id from account_period where '%s' between date_start and date_stop
+#             '''%(ed.date)
+#             cr.execute(sql)
+#             period_ids = [r[0] for r in cr.fetchall()]
+#             if not period_ids:
+#                 raise osv.except_osv(_('Warning!'),_('Period is not null, please configure it in Period master !'))
+#             value={
+#                     'journal_id':journal_ids[0],
+#                     'period_id':period_ids[0] ,
+#                     'ref': ed.name,
+#                     'date': ed.date,
+#                     'ed_invoice_id': ed.id,
+#                     'line_id': move_line,
+#                     'doc_type': False
+#                     }
+#             new_jour_id = self.pool.get('account.move').create(cr,uid,value)
+        return self.write(cr, uid, ids,{'state':'posted'})
+    
     def _check_date(self, cr, uid, ids, context=None):
         for ed in self.browse(cr, uid, ids, context=context):
             if ed.date < ed.invoice_id.date_invoice:
@@ -2817,7 +2852,7 @@ class tpt_ed_invoice_positing_line(osv.osv):
     _name = "tpt.ed.invoice.positing.line"
     
     _columns = {
-        'ed_invoice_id':fields.many2one('tpt.ed.invoice.positing', 'ED Invoice',ondelete='restrict'),
+        'ed_invoice_id':fields.many2one('tpt.ed.invoice.positing', 'ED Invoice',ondelete='cascade'),
         'gl_account_id':fields.many2one('account.account', 'GL Code'),
         'gl_desc':fields.char('GL Description', size = 1024),
         'debit':fields.float('Debit'),
@@ -5222,7 +5257,7 @@ class account_move(osv.osv):
                                   ('freight', 'Freight Invoice'),
                                   ('worker_payroll', 'Workers Payroll')],'Document Type'),  
         'material_issue_id': fields.many2one('tpt.material.issue','Material Issue',ondelete='restrict'), 
-                                  
+        'ed_invoice_id': fields.many2one('tpt.ed.invoice.positing','ED Invoice Posting',ondelete='restrict'),                           
                 }
 account_move()
 
