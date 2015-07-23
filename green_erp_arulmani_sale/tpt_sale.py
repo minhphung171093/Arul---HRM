@@ -1907,8 +1907,9 @@ class tpt_batch_allotment(osv.osv):
                 used =line_id.used_qty or 0
                 allot_qty += qty - used
             lot_id = self.pool.get('stock.production.lot').browse(cr, uid, line.sys_batch.id) 
-            if allot_qty > lot_id.stock_available:
-                raise osv.except_osv(_('Warning!'),_('Batch number %s: Allotted quantity should not be greater than Available Quantity!'%line.sys_batch.name))
+            ##TPT COMMENTED BY BalamuruganPurushothaman on 23/07/2015 - temporarily
+            #if allot_qty > lot_id.stock_available:
+                #raise osv.except_osv(_('Warning!'),_('Batch number %s: Allotted quantity should not be greater than Available Quantity!'%line.sys_batch.name))
         if requested_qty:
             sql = '''
                     update tpt_batch_allotment set requested_qty = %s where id = %s
@@ -1949,8 +1950,9 @@ class tpt_batch_allotment(osv.osv):
                     used =line_id.used_qty or 0
                     allot_qty += qty - used
                 lot_id = self.pool.get('stock.production.lot').browse(cr, uid, line.sys_batch.id) 
-                if allot_qty > lot_id.stock_available:
-                    raise osv.except_osv(_('Warning!'),_('Allotted quantity should not be greater than available stock Quantity in Batch no %s!'%line.sys_batch.name))
+                #TPT-BalamuruganPurushothaman on 23/07/2015
+                #if allot_qty > lot_id.stock_available:
+                    #raise osv.except_osv(_('Warning!'),_('Allotted quantity should not be greater than available stock Quantity in Batch no %s!'%line.sys_batch.name))
                     
             if requested_qty:
                 sql = '''
