@@ -82,7 +82,7 @@
 		                			<field name="gl_document_no"/>
 		                			<field name="document_type"/>
 		                			<field name="transaction_quantity"/>
-		                			<field name="price_unit"/>
+		                	<!--		<field name="price_unit"/> -->
 		                			<field name="stock_value"/>
 		                			<field name="current_material_value"/>
 		                		</tree>
