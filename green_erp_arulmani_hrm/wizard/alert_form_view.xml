@@ -142,7 +142,35 @@
 	            </form>
 	        </field>
     	</record>
-	    
+	     <record id="alert_time_leave_form_view" model="ir.ui.view">
+	        <field name="name">time.leave.evalv</field>
+	        <field name="model">time.leave.evalv</field>
+	        <field eval="20" name="priority"/>
+	        <field name="arch" type="xml">
+	            <form string="Alert" version="7.0">
+	            
+	            	 <label string=From Date"/> 
+	                 <field name='from_date' />
+	                 <label string=From Date"/>
+	                 <field name='to_date' />
+	              
+	                <footer>
+	                <button name="submit_btn" type='object' string="Submit" class="oe_highlight"/>
+	                    or
+	                    <button string="Cancel" class="oe_highlight" special="cancel" />	                
+	                </footer>
+	            </form>
+	        </field>
+    	</record>
+
+	    <record model="ir.actions.act_window" id="action_time_alert_warning">
+	        <field name="name">Alert</field>
+	        <field name="res_model">time.leave.evalv</field>
+	        <field name="view_type">form</field>
+	        <field name="view_mode">form</field>
+	        <field name="view_id" ref="alert_time_leave_form_view" />
+	        <field name="target">new</field>
+	    </record>
     </data>
 </openerp>
 

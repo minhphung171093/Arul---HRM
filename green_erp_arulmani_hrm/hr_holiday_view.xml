@@ -1488,7 +1488,9 @@
 	            <header>
 	            	<field name="state" widget="statusbar" invisible='1' statusbar_visible="draft,done" statusbar_colors='{"draft":"blue","done":"blue"}'/>
 	                <button name="submit_evaluate" string="Submit" type="object" class="oe_highlight" groups="green_erp_arulmani_hrm.group_vvti_hrm_hr_user,green_erp_arulmani_hrm.group_vvti_hrm_time_user"/>
+	                <button name="tpt_submit_evaluate" string="Date Range Submit" type="object" class="oe_highlight" groups="green_erp_arulmani_hrm.group_vvti_hrm_hr_user,green_erp_arulmani_hrm.group_vvti_hrm_time_user"/>
 	                <button name="bt_confirm" state='draft' string="Confirmation" type="object" class="oe_highlight" attrs="{'invisible':[('state','=','done')]}" groups="green_erp_arulmani_hrm.group_vvti_hrm_hr_user,green_erp_arulmani_hrm.group_vvti_hrm_time_user"/>
+	            	
 	            </header>    
 	            <sheet>
 		           <group col = '4' colspan = '2'>    

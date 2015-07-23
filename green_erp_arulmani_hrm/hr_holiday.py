@@ -8095,6 +8095,22 @@ class tpt_time_leave_evaluation(osv.osv):
         return res   
     def bt_confirm(self, cr, uid, ids, context=None):
         return self.write(cr, uid, ids,{'state':'done'}) 
+    def tpt_submit_evaluate(self, cr, uid, ids, context=None):
+        for sub in self.browse(cr, uid, ids, context=context):
+            res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
+                                                'green_erp_arulmani_hrm', 'alert_time_leave_form_view')
+            return {
+                                        'name': 'Alert Message',
+                                        'view_type': 'form',
+                                        'view_mode': 'form',
+                                        'view_id': res[1],
+                                        'res_model': 'time.leave.evalv',
+                                        'domain': [],
+                                        'context': {'default_message':'Time Leave Evaluation','time_id':sub.id},
+                                        'type': 'ir.actions.act_window',
+                                        'target': 'new',
+                }
+        return self.write(cr, uid, ids,{'state':'done'}) 
     def submit_evaluate(self, cr, uid, ids, context=None):
         monthly_shift_obj = self.pool.get('arul.hr.monthly.shift.schedule')
         non_availability_obj = self.pool.get('tpt.non.availability')
