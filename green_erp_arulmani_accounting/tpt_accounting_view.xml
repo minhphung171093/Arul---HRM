@@ -2734,6 +2734,58 @@
             <field name="view_mode">tree,form,graph</field>
             <field name="view_id" eval="tpt_bank_reconciliation_tree"/>
         </record>
+
+	  <record id="tpt_auto_posting_tree_view" model="ir.ui.view">
+			<field name="name">tpt.auto.posting.tree</field>
+			<field name="model">tpt.auto.posting</field>
+			<field name="arch" type="xml">
+				<tree string="Auto Account Posting Configuration">
+					<field name="name"/>
+				</tree>
+			</field>
+		</record>
+		
+		<record id="tpt_auto_posting_form_view" model="ir.ui.view">
+            <field name="name">tpt.auto.posting.form</field>
+            <field name="model">tpt.auto.posting</field>
+            <field name="arch" type="xml">
+	            <form string="Auto Account Posting Configuration" version="7.0">   
+	            	<sheet>
+						<group col="4" colspan="2">
+							<field name="grn"/>
+							<field name="supplier_invoice"/>
+							<field name="material_issue"/>
+							<field name="delivery_order"/>
+							<field name="customer_invoice"/>
+							<field name="supplier_payment"/>
+							<field name="customer_payment"/>
+							<field name="cash_transactions"/>
+							<field name="bank_transactions"/>
+							<field name="supplier_invoice_without"/>
+							<field name="service_invoice"/>
+							<field name="freight_invoice"/>
+							<field name="journal_vouchers"/>
+							<field name="production_declaration"/>
+							<field name="payroll"/>
+s						</group>
+		         	</sheet>
+		         </form>
+			</field>
+		</record>
+          
+		<record id="action_tpt_auto_posting_form_view" model="ir.actions.act_window">
+            <field name="name">Auto Account Posting Configuration</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.auto.posting</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="tpt_auto_posting_tree_view"/>
+        </record>
+        
+        <menuitem action="action_tpt_auto_posting_form_view"
+            id="menu_action_tpt_auto_posting_form_view"
+            parent="menu_tpt_accounting" sequence="20"
+            groups="base.user_root"/>
 	  
     </data>
 </openerp>
