@@ -112,6 +112,7 @@
             <field name="arch" type="xml">
             	<xpath expr="//page[@string='Tax Definition']/group/group[@string='Invoices']/field[@name='tax_sign']" position="after">
 					<field name="gl_account_id" options="{'create': false, 'create_edit': false}"/>
+					<field name="section"/>
 				</xpath>
 			</field>
 		</record>
@@ -1502,6 +1503,10 @@
                     <xpath expr="//field[@name='account_id']" position="after">
                     	<field name="cost_center_id" required="1" options="{'create': false, 'create_edit': false}"/>
                     </xpath>
+                    
+                    <xpath expr="//button[@string='Unreconcile']" position="attributes">
+                    	<attribute name='groups'>base.user_root</attribute>
+                    </xpath>
                 </data>
             </field>
         </record>
@@ -1577,6 +1582,10 @@
                     </xpath>
                     <xpath expr="//field[@name='account_id']" position="after">
                     	<field name="cost_center_id" required="1" options="{'create': false, 'create_edit': false}"/>
+                    </xpath>
+                    
+                    <xpath expr="//button[@string='Unreconcile']" position="attributes">
+                    	<attribute name='groups'>base.user_root</attribute>
                     </xpath>
                 </data>
             </field>
@@ -2629,6 +2638,14 @@
             <field name="arch" type="xml">
             	<xpath expr="//button[@name='purchase_gm_confirmed']" position="attributes">
 					<attribute name='groups'>green_erp_arulmani_purchase.group_vvti_purchase_admin,green_erp_arulmani_accounting.group_vvti_mag_direct</attribute>
+				</xpath>
+				
+				<xpath expr="//button[@string='Print']" position="attributes">
+					<attribute name='groups'>green_erp_arulmani_purchase.group_vvti_purchase_user,green_erp_arulmani_accounting.group_vvti_accounting_user</attribute>
+				</xpath>
+				
+				<xpath expr="//button[@string='Print PO']" position="attributes">
+					<attribute name='groups'>green_erp_arulmani_purchase.group_vvti_purchase_user,green_erp_arulmani_accounting.group_vvti_accounting_user</attribute>
 				</xpath>
             </field>
 	  </record>

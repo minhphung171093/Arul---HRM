@@ -3443,7 +3443,7 @@ class tpt_quanlity_inspection(osv.osv):
     
     _columns = {
         'name' : fields.many2one('stock.picking.in','GRN No',required = True,readonly = True,states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'need_inspec_id':fields.many2one('stock.move','Need Inspec',states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'need_inspec_id':fields.many2one('stock.move','Need Inspec',ondelete='restrict',states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'date':fields.datetime('Create Date',readonly = True,states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'supplier_id':fields.many2one('res.partner','Supplier',required = True,readonly = True,states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'product_id': fields.many2one('product.product', 'Product',required = True,readonly = True,states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
@@ -3589,7 +3589,7 @@ class tpt_gate_out_pass(osv.osv):
         'grn_id': fields.many2one('stock.picking.in','Old GRN No', readonly = True), 
         'good_id': fields.many2one('tpt.good.return.request','Goods Return Request No', required = True), 
         'header_text':fields.text('Header Text',readonly=True),
-        'gate_date_time': fields.datetime('Gate Out Pass Date & Time', readonly = True),
+        'gate_date_time': fields.datetime('Gate Out Pass Date & Time'),
         'gate_out_pass_line': fields.one2many('tpt.gate.out.pass.line', 'gate_out_pass_id', 'Product Details', readonly = True),
         'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancel'),('confirm', 'Confirm'),('done', 'Done')],'Status', readonly=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
                 }
@@ -4933,6 +4933,8 @@ class tpt_material_issue(osv.osv):
         'doc_no': fields.char('Document Number', size = 1024,readonly = True),
         'cost_center_id': fields.many2one('tpt.cost.center','Cost center',states={'done':[('readonly', True)]}),
         'flag': fields.boolean('Flag'),
+        'again': fields.boolean('Create again'),
+        'april': fields.boolean('Create again'), # 3 issue 12, 14, 15
                 }
     _defaults = {
         'flag': False,
@@ -5175,15 +5177,16 @@ class tpt_material_issue_line(osv.osv):
             '''%(vals['request_line_id'])
             cr.execute(sql)
             kq = cr.fetchone()[0]
-            if 'request_line_id' in vals and (vals['product_uom_qty']-kq) < vals['product_isu_qty']:
+            if 'request_line_id' in vals and (vals['product_uom_qty']-kq) < vals['product_isu_qty'] and not context.get('create_issue_again',False):
                 raise osv.except_osv(_('Warning!'),_('Quantity must be less than Material Request quantity!'))
         new_id = super(tpt_material_issue_line, self).create(cr, uid, vals, context)
-        issue_line = self.browse(cr,uid, new_id)
-        kq2 = issue_line.product_uom_qty - (kq + issue_line.product_isu_qty)
-        sql = '''
-            update tpt_material_request_line set pending_qty = %s where id = %s
-        '''%(kq2, issue_line.request_line_id.id)
-        cr.execute(sql)
+        if not context.get('create_issue_again',False):
+            issue_line = self.browse(cr,uid, new_id)
+            kq2 = issue_line.product_uom_qty - (kq + issue_line.product_isu_qty)
+            sql = '''
+                update tpt_material_request_line set pending_qty = %s where id = %s
+            '''%(kq2, issue_line.request_line_id.id)
+            cr.execute(sql)
         if 'product_isu_qty' in vals:
             if (vals['product_isu_qty'] < 0):
                 raise osv.except_osv(_('Warning!'),_('Issue Quantity is not allowed as negative values'))

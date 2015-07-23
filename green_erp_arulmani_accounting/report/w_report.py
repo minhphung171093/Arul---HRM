@@ -67,8 +67,9 @@ class Parser(report_sxw.rml_parse):
             from (
             select ail.invoice_id,i.name as inv_doc,i.date_invoice,i.bill_number,i.bill_date,at.name as tax_name,
             rp.name as partnername,rp.tin, 
-            p.name_template as productname,
-            sum(ail.quantity) over (partition by ail.invoice_id,ailt.tax_id) as vatbased_qty,
+            ail.name as productname,
+            ail.quantity  as vatbased_qty,
+            --sum(ail.quantity) over (partition by ail.invoice_id,ailt.tax_id) as vatbased_qty,
             sum(ail.line_net-ail.fright) over (partition by ail.invoice_id,ailt.tax_id) as vatbased_amt,
             ailt.tax_id,at.amount as taxamt,
             pu.name as uom,ail.line_net-ail.fright as line_net
@@ -81,7 +82,7 @@ class Parser(report_sxw.rml_parse):
             join product_uom pu on (pu.id=ail.uos_id)
             join account_move am on (am.id=i.move_id)
             where date_invoice between '%s' and '%s' and 
-            at.description ~'VAT' and at.amount>0 and i.move_id>0 and am.state='posted'
+            at.description ~'VAT' and at.amount>0 and i.move_id>0 and am.state='posted' and am.doc_type<>'freight'
             )a 
             )b where b.productrank=1
             '''%(date_from, date_to)

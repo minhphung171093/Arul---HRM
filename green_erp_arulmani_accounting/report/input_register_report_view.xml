@@ -1,7 +1,55 @@
 <?xml version="1.0" encoding="utf-8"?>
 <openerp>
     <data>
-    	<record id="input_register_report" model="ir.actions.report.xml">
+        <record id="tpt_input_register_report_pdf" model="ir.actions.report.xml">
+	        <field name="name">tpt_input_register_report_pdf</field>
+	        <field name="type">ir.actions.report.xml</field>
+	        <field name="model">tpt.input.register</field>
+	        <field name="report_name">tpt_input_register_report_pdf</field>
+	        <field name="report_type">aeroo</field>
+	        <field name="in_format">oo-ods</field>
+	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-pdf'),('compatible_types','=','oo-ods')]"/>
+	        <field name="parser_loc">green_erp_arulmani_accounting/report/input_register_report.py</field>
+	        <field name="report_rml">green_erp_arulmani_accounting/report/input_register_report.ods</field>
+	        <field name="parser_state">loc</field>
+	        <field name="tml_source">file</field>
+	        <field name="attachment_use" eval="0"/>
+    	</record>		    
+		
+		<report 
+			auto="True" 
+			menu="False"
+			id="tpt_input_register_report_pdf" 
+			model="tpt.input.register" 
+			name="tpt_input_register_report_pdf"
+	        string="Input Register Report"
+	        rml="green_erp_arulmani_accounting/report/input_register_report.ods"/>
+	        
+	    <record id="tpt_input_register_report_xlf" model="ir.actions.report.xml">
+	        <field name="name">tpt_input_register_report_xlf</field>
+	        <field name="type">ir.actions.report.xml</field>
+	        <field name="model">tpt.input.register</field>
+	        <field name="report_name">tpt_input_register_report_xlf</field>
+	        <field name="report_type">aeroo</field>
+	        <field name="in_format">oo-ods</field>
+	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-xls'),('compatible_types','=','oo-ods')]"/>
+	        <field name="parser_loc">green_erp_arulmani_accounting/report/input_register_report.py</field>
+	        <field name="report_rml">green_erp_arulmani_accounting/report/input_register_report.ods</field>
+	        <field name="parser_state">loc</field>
+	        <field name="tml_source">file</field>
+	        <field name="attachment_use" eval="0"/>
+    	</record>		    
+		
+		<report 
+			auto="True" 
+			menu="False"
+			id="tpt_input_register_report_xlf" 
+			model="tpt.input.register" 
+			name="tpt_input_register_report_xlf"
+	        string="Input Register Report"
+	        rml="green_erp_arulmani_accounting/report/input_register_report.ods"/>
+    
+    	<!-- <record id="input_register_report" model="ir.actions.report.xml">
 	        <field name="name">input_register_report</field>
 	        <field name="type">ir.actions.report.xml</field>
 	        <field name="model">input.register.form</field>
@@ -23,6 +71,64 @@
 			model="input.register.form" 
 			name="input_register_report"
 	        string="Input Register Report"
-	        rml="green_erp_arulmani_accounting/report/input_register_report.ods"/>	
+	        rml="green_erp_arulmani_accounting/report/input_register_report.ods"/>	 -->
+	        
+	     
+	     <record id="view_tpt_input_register" model="ir.ui.view">
+	        <field name="name">view.tpt.input.register</field>
+	        <field name="model">tpt.input.register</field>
+	        <field name="arch" type="xml">
+	            <form version='7.0' string="Input Register Report" create="false" edit="false" delete="false">
+	            	
+	            	<sheet>
+	            	     <header>
+	            		    <button name="print_xls" string="Print (.xls)" type="object" class="oe_highlight" />
+	            		    <button name="print_pdf" string="Print (.pdf)" type="object" class="oe_highlight" />
+	            	      </header>
+	            	                 	     
+	            	     <div class="oe_text_center">
+            				<b><field name="name" nolabel="1" class="oe_text_center oe_inline"/></b>
+            			</div>
+            			<div class="oe_bold oe_text_left"> 
+            			    <field name="date_from_title" nolabel = '1' class="oe_text_left oe_inline"/>            				 
+            				<field name="date_from" class="oe_text_left oe_inline"/>            				 
+            			</div>
+            			<div class="oe_bold oe_text_left">
+            			    <field name="date_to_title" nolabel = '1' class=" oe_text_left oe_inline"/>           				 
+            				<field name="date_to" class = "oe_text_left oe_inline"/>            				
+            			</div>   
+            			<div class="oe_bold oe_text_left">            				 
+            				<field name="product_cate_id" class = "oe_text_left oe_inline"/>           				
+            			</div>          			        			
+	                	<!-- <div class='oe_green_erp_scroll'> -->
+	                	<group>
+		                	<field name="input_line" nolabel='1'>
+		                		<tree create="false" edit="false" delete="false">
+		                			<field name="doc_type"/>
+		                			<field name="doc_no"/>
+		                			<field name="inv_ex_date"/>
+		                			<field name="supplier"/>
+		                			<field name="supplier_type"/>
+		                			<field name="date_rcvd"/>
+		                			<field name="sup_ec_no"/>
+		                			<field name="Value"/>
+		                			<field name="Cenvat"/>
+		                			<field name="desc"/>
+		                			<field name="cha_id"/>
+		                			<field name="qty"/>
+		                			<field name="uom"/>		                			
+		                			<field name="billno"/>
+		                			<field name="billdate"/>
+		                			<field name="postdate"/>
+		                			<!-- <field name="total"/> -->
+		                		</tree>
+		                	</field>
+		                </group>
+		           
+	              </sheet>
+	          </form>
+	       </field>
+	    </record>
+	     
     </data>
 </openerp>

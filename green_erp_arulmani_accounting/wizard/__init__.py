@@ -12,4 +12,5 @@ import input_register_form
 import general_ledger_statement
 import account_report_common
 import review_posting
+import service_tax_register #YuVi
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

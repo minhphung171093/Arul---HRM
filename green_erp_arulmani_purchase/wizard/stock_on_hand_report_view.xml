@@ -30,8 +30,7 @@
 	    </record>
 	    
 	    
-       <menuitem action="action_stock_on_hand_report_view" id="menu_action_stock_on_hand_report_view" parent="stock.menu_stock_warehouse_mgmt" sequence="15" 
-       				groups="green_erp_arulmani_hrm.group_vvti_hrm_hr_user,green_erp_arulmani_hrm.group_vvti_hrm_time_user,green_erp_arulmani_hrm.group_vvti_hrm_plant_hr_user,green_erp_arulmani_sale.group_vvti_marketing_user"/>
+       <menuitem action="action_stock_on_hand_report_view" id="menu_action_stock_on_hand_report_view" parent="stock.menu_stock_warehouse_mgmt" sequence="15"/>
 
 	 
 	    

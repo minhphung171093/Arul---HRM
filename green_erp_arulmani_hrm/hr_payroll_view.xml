@@ -208,7 +208,11 @@
             <field name="name">arul.hr.payroll.employee.structure.form</field>
             <field name="model">arul.hr.payroll.employee.structure</field>
             <field name="arch" type="xml">
-	            <form string="Employee Payroll Structure" version="7.0">   
+	            <form string="Employee Payroll Structure" version="7.0">
+	            <header>
+	            	<button name="bt_approve" states='draft' string="Approve" type="object" class="oe_highlight" />
+                    <field name="state" widget="statusbar" statusbar_visible="draft,approved" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
+	            </header>    
 	            	<sheet>
 		                <group col='4' colspan='2'>
 		                	<field name="flag" invisible='1'/>
