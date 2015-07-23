@@ -2576,7 +2576,7 @@ class account_invoice_line(osv.osv):
         res = []
         invoice = self.pool.get('account.invoice').browse(cr, uid, invoice_id)
         for line in invoice.invoice_line:
-            if not line.tax_credit.gl_account_id:
+            if line.tax_id and not line.tax_id.gl_account_id:
                 raise osv.except_osv(_('Warning!'),_('GL Account is not null, please configure it in Tax Master!'))
             if line.fright_fi_type == '2':
                 base_amount = round(line.fright)
@@ -2645,8 +2645,8 @@ class account_invoice_line(osv.osv):
         res = []
         invoice = self.pool.get('account.invoice').browse(cr, uid, invoice_id)
         for line in invoice.invoice_line:
-            if not line.tax_credit.gl_account_id:
-                raise osv.except_osv(_('Warning!'),_('GL Account is not null, please configure it in Tax Master!'))    
+            if line.tax_credit and not line.tax_credit.gl_account_id:
+                raise osv.except_osv(_('Warning!'),_('GL Account is not null, please configure it in Tax Master!'))
             if line.fright_fi_type == '2':
                 base_amount = round(line.fright)
                 tax_credit_amount = base_amount*(line.tax_credit and line.tax_credit.amount/100 or 0)
