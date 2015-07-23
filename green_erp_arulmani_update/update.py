@@ -2363,7 +2363,80 @@ class tpt_update_stock_move_report(osv.osv):
             delete from tpt_material_issue where doc_no in ('1002356/2015','1002357/2015')
         '''
         cr.execute(sql)
-        return self.write(cr, uid, ids, {'result':'delete_2_issue_2406_2407 Done'}) 
+        return self.write(cr, uid, ids, {'result':'delete_2_issue_2406_2407 Done'})        
+    
+    def update_invoice_do_sale_blanket(self, cr, uid, ids, context=None):
+        sql = '''
+            update account_invoice set partner_id=4968,commercial_partner_id=4968 where id=1200;
+            update account_invoice_line set partner_id=4968 where invoice_id=1200;
+            
+            update account_move set partner_id=4968  where id in (select move_id from account_invoice where id=1200);
+            update account_move_line set partner_id=4968 where move_id in (select move_id from account_invoice where id=1200);
+            
+            update stock_picking set partner_id=4968 where id in (select delivery_order_id from account_invoice where id=1200);
+            update stock_move set partner_id=4968 where picking_id in (select delivery_order_id from account_invoice where id=1200);
+            
+            update account_move set partner_id=4968 where id in (select move_id from account_move_line where name=(select name from stock_picking where id in (select delivery_order_id from account_invoice where id=1200)));
+            update account_move_line set partner_id=4968 where name=(select name from stock_picking where id in (select delivery_order_id from account_invoice where id=1200));
+            
+            update sale_order set partner_id=4968,partner_invoice_id=4968,partner_shipping_id=4968 where id in (select sale_id from stock_picking where id in (select delivery_order_id from account_invoice where id=1200));
+            update sale_order_line set order_partner_id=4968 where order_id in (select id from sale_order where id in (select sale_id from stock_picking where id in (select delivery_order_id from account_invoice where id=1200)));
+            update tpt_blanket_order set customer_id=4968 where id in (select blanket_id from sale_order where id in (select sale_id from stock_picking where id in (select delivery_order_id from account_invoice where id=1200)));
+        '''
+        cr.execute(sql)
+        return self.write(cr, uid, ids, {'result':'update_invoice_do_sale_blanket Done'})
+
+    def config_GRN_2183(self, cr, uid, ids, context=None):
+        invoice_obj = self.pool.get('account.invoice')
+        inspec_obj = self.pool.get('tpt.quanlity.inspection')
+        picking_obj = self.pool.get('stock.picking')
+        move_obj = self.pool.get('account.move')
+        sql = '''
+            select id from stock_picking where name = 'VVTi/GRN/00002183'
+        '''
+        cr.execute(sql)
+        num = cr.fetchone()[0]
+        if num:
+            sql='''
+                select id from account_invoice where grn_no = %s
+            '''%(num)
+            cr.execute(sql)
+            inv_id = cr.fetchone()[0]
+            invoice_id = invoice_obj.browse(cr, uid, inv_id)
+            move_obj.button_cancel(cr, uid, [invoice_id.move_id.id])
+            cr.execute(''' delete from account_move_line where move_id = %s''',(invoice_id.move_id.id,))
+            cr.execute(''' delete from account_invoice_line where invoice_id = %s''',(invoice_id.id,))
+            cr.execute(''' delete from account_invoice where id = %s''',(invoice_id.id,))
+            cr.execute(''' delete from account_move where id = %s''',(invoice_id.move_id.id,))
+            
+            sql = '''
+                delete from account_move_line where left(name,17)=(select name from stock_picking where id = %s)
+            '''%(num)
+            cr.execute(sql)
+            sql = '''
+                delete from account_move where id in (select move_id from account_move_line where left(name,17)=(select name from stock_picking where id =%s))
+            '''%(num)
+            cr.execute(sql)
+            sql='''
+                select id from tpt_quanlity_inspection where need_inspec_id in (select id from stock_move where picking_id = %s)
+            '''%(num)
+            cr.execute(sql)
+            inspec_ids = [row[0] for row in cr.fetchall()]
+            if inspec_ids:
+                for move in inspec_ids:
+                    sql='''
+                        select id from stock_move where inspec_id = %s
+                    '''%(move)
+                    cr.execute(sql)
+                    move_ids = [row[0] for row in cr.fetchall()]
+                    if move_ids:
+                        cr.execute('delete from stock_move where id in %s',(tuple(move_ids),))
+                cr.execute('delete from tpt_quanlity_inspection where id in %s',(tuple(inspec_ids),))
+            cr.execute(''' update stock_picking set invoice_state ='2binvoiced' where id = %s''',(num,))
+            picking_obj.action_revert_done(cr, uid, [num], context)
+
+        
+        return self.write(cr, uid, ids, {'result':'config_GRN_2183 Done'})    
     
     def delete_account_move_old_data_for_issue(self, cr, uid, ids, context=None):
         sql = '''
@@ -2548,6 +2621,57 @@ class tpt_update_stock_move_report(osv.osv):
                     
                         
         return self.write(cr, uid, ids, {'result':'update_price_unit_for_good_issue Done'})  
+ 
+    def uom_change_list16th(self, cr, uid, ids, context=None):
+        sql = '''
+            update purchase_order_line set product_uom=16 where order_id=729 and line_no in (16,17,18,19,20,21,22);
+            update purchase_order_line set product_uom=21 where order_id=729 and line_no in (28,29,30,31);
+            
+            update tpt_purchase_product set uom_po_id=16 where pur_product_id=833
+                and description in ('SHUTTERING UPTO 5M HEIGHT',
+                                    '-SHUTTERING FROM 5M TO 10M HEIGHT',
+                                    'SHUTTERING FROM 10M TO15 M HEIGHT',
+                                    'SHUTTERING FROM 15M TO 20M HEIGHT',
+                                    'SHUTTERING FROM 20M TO 25M HEIGHT',
+                                    'CIRCULAR SHUTTERING UPTO 5M HEIGHT',
+                                    'CIRCUL SHUTTERING FROM 5M TO 10M HEIGHT');
+            update tpt_purchase_product set uom_po_id=21 where pur_product_id=833
+                and description in ('BRICK WORK FROM 5M TO 10M HEIGHT',
+                                    'BRICK WORK FROM 10M TO 15M HEIGHT',
+                                    'BRICK WORK FROM 15M TO 20M HEIGHT',
+                                    'BRICK WORK FROM 20M TO 25M HEIGHT');
+                                    
+            update tpt_rfq_line set uom_id=16 where rfq_id=725
+                and description in ('SHUTTERING UPTO 5M HEIGHT',
+                                    '-SHUTTERING FROM 5M TO 10M HEIGHT',
+                                    'SHUTTERING FROM 10M TO15 M HEIGHT',
+                                    'SHUTTERING FROM 15M TO 20M HEIGHT',
+                                    'SHUTTERING FROM 20M TO 25M HEIGHT',
+                                    'CIRCULAR SHUTTERING UPTO 5M HEIGHT',
+                                    'CIRCUL SHUTTERING FROM 5M TO 10M HEIGHT');
+            update tpt_rfq_line set uom_id=21 where rfq_id=725
+                and description in ('BRICK WORK FROM 5M TO 10M HEIGHT',
+                                    'BRICK WORK FROM 10M TO 15M HEIGHT',
+                                    'BRICK WORK FROM 15M TO 20M HEIGHT',
+                                    'BRICK WORK FROM 20M TO 25M HEIGHT');
+                                    
+            update tpt_purchase_quotation_line set uom_id=16 where purchase_quotation_id=930
+                and description in ('SHUTTERING UPTO 5M HEIGHT',
+                                    '-SHUTTERING FROM 5M TO 10M HEIGHT',
+                                    'SHUTTERING FROM 10M TO15 M HEIGHT',
+                                    'SHUTTERING FROM 15M TO 20M HEIGHT',
+                                    'SHUTTERING FROM 20M TO 25M HEIGHT',
+                                    'CIRCULAR SHUTTERING UPTO 5M HEIGHT',
+                                    'CIRCUL SHUTTERING FROM 5M TO 10M HEIGHT');
+            update tpt_purchase_quotation_line set uom_id=21 where purchase_quotation_id=930
+                and description in ('BRICK WORK FROM 5M TO 10M HEIGHT',
+                                    'BRICK WORK FROM 10M TO 15M HEIGHT',
+                                    'BRICK WORK FROM 15M TO 20M HEIGHT',
+                                    'BRICK WORK FROM 20M TO 25M HEIGHT');
+        '''
+        cr.execute(sql)
+        return self.write(cr, uid, ids, {'result':'uom_change_list16th Done'})   
+    
     
     def update_issue_line_for_request_6000028 (self, cr, uid, ids, context=None):
         sql = '''

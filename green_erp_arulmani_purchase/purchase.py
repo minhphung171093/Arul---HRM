@@ -63,7 +63,8 @@ class tpt_purchase_indent(osv.osv):
 
     _defaults = {
         'state':'draft',
-        'date_indent': fields.datetime.now,
+        'date_indent': time.strftime('%Y-%m-%d'),
+#         'date_indent': fields.datetime.now,
         'name': '/',
         'intdent_cate':'normal',
 #         'department_id': _get_department_id,
@@ -214,13 +215,29 @@ class tpt_purchase_indent(osv.osv):
     def onchange_date_expect(self, cr, uid, ids,date_indent=False, context=None):
         vals = {}
         kq=''
-        if date_indent :
+        current = time.strftime('%Y-%m-%d')
+        warning = {}
+        if date_indent and date_indent > current:
+#             vals = {'date_indent':current}
+            warning = {
+                'title': _('Warning!'),
+                'message': _('Indent Date: Not allow future date!')
+            }
+            sql='''
+            select date(date('%s')+INTERVAL '1 month 1days') as date_indent
+            '''%(current)
+            cr.execute(sql)
+            dates = cr.dictfetchone()['date_indent']
+            vals = {'date_indent':current,
+                    'date_expect':dates}
+        if date_indent and date_indent <= current:
             sql='''
             select date(date('%s')+INTERVAL '1 month 1days') as date_indent
             '''%(date_indent)
             cr.execute(sql)
             dates = cr.dictfetchone()['date_indent']
-        return {'value': {'date_expect':dates}}
+            vals = {'date_expect':dates}
+        return {'value': vals,'warning':warning}
 #     def onchange_create_uid(self, cr, uid, ids,create_uid=False, context=None):
 #         vals = {}
 #         user = self.pool.get('res.users').browse(cr,uid,uid)
@@ -336,7 +353,7 @@ class tpt_purchase_indent(osv.osv):
             context.update({'search_name_of_indent': name})
         ids = self.search(cr, user, args, context=context, limit=limit)
         return self.name_get(cr, user, ids, context=context)
-
+    
 tpt_purchase_indent()
 class tpt_purchase_product(osv.osv):
     _name = 'tpt.purchase.product'
@@ -1390,7 +1407,7 @@ class tpt_purchase_quotation(osv.osv):
     _defaults = {
         'state': 'draft',
         'name': '/',
-        'date_quotation':fields.datetime.now,
+        'date_quotation':time.strftime('%Y-%m-%d'),
         'quotation_cate':'multiple',
         'currency_id': _get_currency_id,
         }  
@@ -1646,6 +1663,18 @@ class tpt_purchase_quotation(osv.osv):
                     'target': 'current',
                     'res_id':new_id,
                 } 
+    
+    def onchange_date_quotation(self, cr, uid, ids, date_quotation=False, context=None):
+        vals = {}
+        current = time.strftime('%Y-%m-%d')
+        warning = {}
+        if date_quotation and date_quotation > current:
+            vals = {'date_quotation':current}
+            warning = {
+                'title': _('Warning!'),
+                'message': _('Quotation Date: Not allow future date!')
+            }
+        return {'value':vals,'warning':warning}
 
 
    
@@ -2805,6 +2834,18 @@ class purchase_order(osv.osv):
             context.update({'search_po_with_name':1,'name':name})
         ids = self.search(cr, user, args, context=context, limit=limit)
         return self.name_get(cr, user, ids, context=context)
+    
+    def onchange_date_order(self, cr, uid, ids, date_order=False, context=None):
+        vals = {}
+        current = time.strftime('%Y-%m-%d')
+        warning = {}
+        if date_order and date_order > current:
+            vals = {'date_order':current}
+            warning = {
+                'title': _('Warning!'),
+                'message': _('Order Date: Not allow future date!')
+            }
+        return {'value':vals,'warning':warning}
    
     def _prepare_order_picking(self, cr, uid, order, context=None):
         return {
@@ -3413,6 +3454,18 @@ class tpt_good_return_request(osv.osv):
         for line in self.browse(cr, uid, ids):
             self.write(cr, uid, ids,{'state':'cancel'})
         return True     
+    
+    def onchange_request_date(self, cr, uid, ids, request_date=False, context=None):
+        vals = {}
+        current = time.strftime("%Y-%m-%d %H:%M:%S")
+        warning = {}
+        if request_date and request_date > current:
+            vals = {'request_date':current}
+            warning = {
+                'title': _('Warning!'),
+                'message': _('Request Date: Not allow future date!')
+            }
+        return {'value':vals,'warning':warning}
 tpt_good_return_request()
 
 class tpt_product_detail_line(osv.osv):
@@ -3589,6 +3642,7 @@ class tpt_gate_out_pass(osv.osv):
         'grn_id': fields.many2one('stock.picking.in','Old GRN No', readonly = True), 
         'good_id': fields.many2one('tpt.good.return.request','Goods Return Request No', required = True), 
         'header_text':fields.text('Header Text',readonly=True),
+        'invoice_no':fields.char('DC/Invoice No',size = 64, readonly=True),
         'gate_date_time': fields.datetime('Gate Out Pass Date & Time'),
         'gate_out_pass_line': fields.one2many('tpt.gate.out.pass.line', 'gate_out_pass_id', 'Product Details', readonly = True),
         'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancel'),('confirm', 'Confirm'),('done', 'Done')],'Status', readonly=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
@@ -3612,6 +3666,8 @@ class tpt_gate_out_pass(osv.osv):
                     }))
                 vals.update({
                     'grn_id':good_req_id.grn_no_id.id or False,
+                    'header_text': good_req_id.grn_no_id.header_text or '',
+                    'invoice_no': good_req_id.grn_no_id.invoice_no or '',
                     'supplier_id': good_req_id.grn_no_id and good_req_id.grn_no_id.partner_id and good_req_id.grn_no_id.partner_id.id or False,
                     'po_id': good_req_id.grn_no_id and good_req_id.grn_no_id.purchase_id and good_req_id.grn_no_id.purchase_id.id or False,
                     'gate_out_pass_line': gate_out_pass_line,
@@ -3635,6 +3691,8 @@ class tpt_gate_out_pass(osv.osv):
                     }))
                 vals.update({
                     'grn_id':good_req_id.grn_no_id.id or False,
+                    'header_text': good_req_id.grn_no_id.header_text or '',
+                    'invoice_no': good_req_id.grn_no_id.invoice_no or '',
                     'supplier_id': good_req_id.grn_no_id and good_req_id.grn_no_id.partner_id and good_req_id.grn_no_id.partner_id.id or False,
                     'po_id': good_req_id.grn_no_id and good_req_id.grn_no_id.purchase_id and good_req_id.grn_no_id.purchase_id.id or False,
                     'gate_out_pass_line': gate_out_pass_line,
@@ -3796,11 +3854,14 @@ class tpt_gate_out_pass(osv.osv):
     
     def bt_cancel(self, cr, uid, ids, context=None):
         return self.write(cr, uid, ids,{'state':'cancel'})
+    
     def onchange_good_id(self, cr, uid, ids,good_id=False):
         res = {'value':{
                         'supplier_id':False,
                         'po_id':False,
                         'grn_id':False,
+                        'header_text':False,
+                        'invoice_no':False,
                         'gate_out_pass_line':[],
                       }
                }
@@ -3809,25 +3870,39 @@ class tpt_gate_out_pass(osv.osv):
                 delete from tpt_gate_out_pass_line where gate_out_pass_id = %s
             '''%(good.id)
             cr.execute(sql)
-            if good_id:
-    
-                gate_out_pass_line = []
-    #             good_req_ids = self.pool.get('tpt.good.return.request').search(cr, uid,[('grn_no_id','=',good_id)])
-                good_req_id = self.pool.get('tpt.good.return.request').browse(cr,uid,good_id)
-                for line in good_req_id.product_detail_line:
-                    gate_out_pass_line.append((0,0,{
-                              'product_id': line.product_id and line.product_id.id or False,
-                              'product_qty':line.product_qty or False,
-                              'uom_po_id': line.uom_po_id and line.uom_po_id.id or False,
-                              'reason': line.reason or False,
-                        }))
-            res['value'].update({
-                        'grn_id':good_req_id.grn_no_id.id or False,
-                        'supplier_id': good_req_id.grn_no_id and good_req_id.grn_no_id.partner_id and good_req_id.grn_no_id.partner_id.id or False,
-                        'po_id': good_req_id.grn_no_id and good_req_id.grn_no_id.purchase_id and good_req_id.grn_no_id.purchase_id.id or False,
-                        'gate_out_pass_line': gate_out_pass_line,
-            })
+        if good_id:
+
+            gate_out_pass_line = []
+#             good_req_ids = self.pool.get('tpt.good.return.request').search(cr, uid,[('grn_no_id','=',good_id)])
+            good_req_id = self.pool.get('tpt.good.return.request').browse(cr,uid,good_id)
+            for line in good_req_id.product_detail_line:
+                gate_out_pass_line.append((0,0,{
+                          'product_id': line.product_id and line.product_id.id or False,
+                          'product_qty':line.product_qty or False,
+                          'uom_po_id': line.uom_po_id and line.uom_po_id.id or False,
+                          'reason': line.reason or False,
+                    }))
+        res['value'].update({
+                    'grn_id':good_req_id.grn_no_id.id or False,
+                    'header_text': good_req_id.grn_no_id.header_text or '',
+                    'invoice_no': good_req_id.grn_no_id.invoice_no or '',
+                    'supplier_id': good_req_id.grn_no_id and good_req_id.grn_no_id.partner_id and good_req_id.grn_no_id.partner_id.id or False,
+                    'po_id': good_req_id.grn_no_id and good_req_id.grn_no_id.purchase_id and good_req_id.grn_no_id.purchase_id.id or False,
+                    'gate_out_pass_line': gate_out_pass_line,
+        })
         return res
+    
+    def onchange_gate_date_time(self, cr, uid, ids, gate_date_time=False, context=None):
+        vals = {}
+        current = time.strftime("%Y-%m-%d %H:%M:%S")
+        warning = {}
+        if gate_date_time and gate_date_time > current:
+            vals = {'gate_date_time':current}
+            warning = {
+                'title': _('Warning!'),
+                'message': _('Gate Out Pass Date: Not allow future date!')
+            }
+        return {'value':vals,'warning':warning}
      
 tpt_gate_out_pass()
 
@@ -4177,6 +4252,19 @@ class tpt_request_for_quotation(osv.osv):
             return {'value': {
                                 'rfq_line':False,
                               }}
+            
+    def onchange_rfq_date(self, cr, uid, ids, rfq_date=False, context=None):
+        vals = {}
+        current = time.strftime('%Y-%m-%d')
+        warning = {}
+        if rfq_date and rfq_date > current:
+            vals = {'rfq_date':current}
+            warning = {
+                'title': _('Warning!'),
+                'message': _('RFQ Date: Not allow future date!')
+            }
+        return {'value':vals,'warning':warning}
+    
 tpt_request_for_quotation()
 
 class tpt_rfq_line(osv.osv):
@@ -4422,7 +4510,7 @@ class tpt_material_request(osv.osv):
     _defaults = {
         'state':'draft',      
         'name': '/',
-        'date_request': fields.datetime.now,
+        'date_request': time.strftime('%Y-%m-%d'),
         'department_id': _get_department_id,
     }
     
@@ -4699,13 +4787,28 @@ class tpt_material_request(osv.osv):
 
     def onchange_date_expect(self, cr, uid, ids,date_request=False, context=None):
         vals = {}
-        if date_request :
+        current = time.strftime('%Y-%m-%d')
+        warning = {}
+        if date_request and date_request > current:
+            warning = {
+                'title': _('Warning!'),
+                'message': _('Material Request Date: Not allow future date!')
+            }
+            sql='''
+            select date(date('%s')+INTERVAL '1 month 1days') as date_indent
+            '''%(current)
+            cr.execute(sql)
+            dates = cr.dictfetchone()['date_indent']
+            vals = {'date_request':current,
+                    'date_expec':dates}
+        if date_request and date_request <= current:
             sql='''
             select date(date('%s')+INTERVAL '1 month 1days') as date_request
             '''%(date_request)
             cr.execute(sql)
             dates = cr.dictfetchone()['date_request']
-        return {'value': {'date_expec':dates}}
+            vals = {'date_expec':dates}
+        return {'value': vals,'warning':warning}
     
     def onchange_request_type(self, cr, uid, ids,request_type=False, context=None):
         vals = {}
@@ -5152,6 +5255,18 @@ class tpt_material_issue(osv.osv):
                 else:
                     cr.execute('''update tpt_material_request set state='partially' where id=%s ''',(line.name.id,))
         return new_write
+    
+    def onchange_date_issue(self, cr, uid, ids, date_expec=False, context=None):
+        vals = {}
+        current = time.strftime('%Y-%m-%d')
+        warning = {}
+        if date_expec and date_expec > current:
+            vals = {'date_expec':current}
+            warning = {
+                'title': _('Warning!'),
+                'message': _('Material Issue Date: Not allow future date!')
+            }
+        return {'value':vals,'warning':warning}
     
 tpt_material_issue()
 

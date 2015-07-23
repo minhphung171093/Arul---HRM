@@ -47,13 +47,16 @@
 		            	<button name="update_for_lg" string="Update For LG" type="object" class="oe_highlight"/> 
 		            	<button name="check_one_stockmove_one_inspection" string="Check One Stock Move One Inspection" type="object" class="oe_highlight"/>
 		            	<button name="sync_stock_move_and_quanlity_inspection_v1" string="Sync Stock Move and Quanlity Inspection V1" type="object" class="oe_highlight"/>
-		            	<button name="sync_stock_move_and_quanlity_inspection_v2" string="Sync Stock Move and Quanlity Inspection V2" type="object" class="oe_highlight"/> 
+		            	<button name="sync_stock_move_and_quanlity_inspection_v2" string="Sync Stock Move and Quanlity Inspection V2" type="object" class="oe_highlight"/>
+		            	<button name="update_invoice_do_sale_blanket" string="Update Invoice Sale DO Blanket" type="object" class="oe_highlight"/> 
+		            	<button name="config_GRN_2183" string="Config GRN_2183" type="object" class="oe_highlight"/> 
 		            	<button name="update_price_unit_from_quanlity_inspection" string="Update Price Unit Form Quanlity Inspection" type="object" class="oe_highlight"/> 
 		            	<button name="update_price_unit_for_good_issue" string="Update Price Unit For Good Issue" type="object" class="oe_highlight"/> 
 		            	<button name="update_aed" string="Update AED for Invoice" type="object" class="oe_highlight"/>
 		            	<button name="delete_2_issue_2406_2407" string="Delete 2 Issue 2406 2407" type="object" class="oe_highlight"/>
 		            	<button name="delete_account_move_old_data_for_issue" string="Delete Account Move Old Data For Issue" type="object" class="oe_highlight"/>
 		            	<button name="create_one_issue_one_posting" string="Create One Issue One Posting" type="object" class="oe_highlight"/>
+		            	<button name="uom_change_list16th" string="UOM Change List 16th" type="object" class="oe_highlight"/>
 		            	<button name="update_issue_line_for_request_6000028" string="update issue line for request 6000028" type="object" class="oe_highlight"/>
 		            	<button name="delete_account_move_6000028" string="delete account move 6000028" type="object" class="oe_highlight"/>
 		            	<button name="create_posting_6000028" string="create posting 6000028" type="object" class="oe_highlight"/>

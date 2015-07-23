@@ -512,5 +512,9 @@
 		    									ref('green_erp_arulmani_hrm.group_vvti_hrm_payroll_controller')])]" />
 		</record>
 		
+		<menuitem action="action_tpt_bank_reconciliation"
+            id="menu_action_tpt_bank_reconciliation"
+            parent="menu_tpt_accounting" sequence="25"/>
+		
     </data>
 </openerp>

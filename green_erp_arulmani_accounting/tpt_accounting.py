@@ -700,6 +700,7 @@ class account_invoice(osv.osv):
     _columns = {
         'bill_number': fields.char('Bill Number', size=1024),
         'bill_date': fields.date('Bill Date'),
+        'cost_center_id':fields.many2one('tpt.cost.center','Cost Center'),
     }
     def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
         if context is None:
@@ -2917,6 +2918,7 @@ class account_voucher(osv.osv):
         'name': fields.char( 'Journal no.',size = 256),
         'memo':fields.char('Memo', size=256, readonly=True, states={'draft':[('readonly',False)]}),
         'cheque_date': fields.date('Cheque Date'),
+        'reconciliation_date': fields.date('Reconciliation Date'),
         'cheque_no': fields.char('Cheque No'),
         'sum_amount': fields.float('Amount'),
         'type_trans':fields.selection([
@@ -2951,7 +2953,7 @@ class account_voucher(osv.osv):
         'tpt_currency_amount':fields.float('Paid Amount'),
         'payee':fields.char('Payee', size=1024),
         'employee_id':fields.many2one('hr.employee','Employee'),
-        'cost_center_id':fields.many2one('tpt.cost.center','Cost Center')
+        'cost_center_id':fields.many2one('tpt.cost.center','Cost Center'),
         }
     
     
@@ -3040,20 +3042,31 @@ class account_voucher(osv.osv):
         if context is None:
             context = {}
         vals = {}
+        current = time.strftime('%Y-%m-%d')
+        warning = {}
+        if date and date > current:
+            vals.update({'date':current})
+            warning = {
+                'title': _('Warning!'),
+                'message': _('Date: Not allow future date!')
+            }
         if type in ['receipt','payment']:
-            vals = {
+            vals.update({
                 'amount': 0,
                 'tpt_amount': 0,
-            }
+            })
             if tpt_currency_id and tpt_currency_amount and date:
-                context.update({'date': date})
+                if date > current:
+                    context.update({'date': current})
+                else:
+                    context.update({'date': date})
 #                 context.update({'date': time.strftime('%Y-%m-%d')})
                 voucher_rate = self.pool.get('res.currency').read(cr, uid, tpt_currency_id, ['rate'], context=context)['rate']
-                vals = {
+                vals.update({
                     'amount': tpt_currency_amount/voucher_rate,
                     'tpt_amount': tpt_currency_amount/voucher_rate,
-                }
-        return {'value': vals}
+                })
+        return {'value': vals,'warning':warning}
     
     def create(self, cr, uid, vals, context=None):
         if vals.get('name','/')=='/':
@@ -3801,6 +3814,49 @@ class account_voucher(osv.osv):
         if context.get('tpt_remove_dr_cr',False):
             res['value']['line_dr_ids']=False
             res['value']['line_cr_ids']=False
+        return res
+    
+    def onchange_date(self, cr, uid, ids, date, currency_id, payment_rate_currency_id, amount, company_id, context=None):
+        """
+        @param date: latest value from user input for field date
+        @param args: other arguments
+        @param context: context arguments, like lang, time zone
+        @return: Returns a dict which contains new values, and context
+        """
+        if context is None:
+            context ={}
+        res = {'value': {},'warning':{}}
+        vals = {}
+        current = time.strftime('%Y-%m-%d')
+        warning = {}
+        if date and date > current:
+            vals.update({'date':current})
+            warning = {
+                'title': _('Warning!'),
+                'message': _('Date: Not allow future date!')
+            }
+            res.update({'value':vals,'warning':warning})
+        
+        
+        #set the period of the voucher
+        period_pool = self.pool.get('account.period')
+        currency_obj = self.pool.get('res.currency')
+        ctx = context.copy()
+        ctx.update({'company_id': company_id, 'account_period_prefer_normal': True})
+        voucher_currency_id = currency_id or self.pool.get('res.company').browse(cr, uid, company_id, context=ctx).currency_id.id
+        pids = period_pool.find(cr, uid, date, context=ctx)
+        if pids:
+            res['value'].update({'period_id':pids[0]})
+        if payment_rate_currency_id:
+            ctx.update({'date': date})
+            payment_rate = 1.0
+            if payment_rate_currency_id != currency_id:
+                tmp = currency_obj.browse(cr, uid, payment_rate_currency_id, context=ctx).rate
+                payment_rate = tmp / currency_obj.browse(cr, uid, voucher_currency_id, context=ctx).rate
+            vals = self.onchange_payment_rate_currency(cr, uid, ids, voucher_currency_id, payment_rate, payment_rate_currency_id, date, amount, company_id, context=context)
+            vals['value'].update({'payment_rate': payment_rate})
+            for key in vals.keys():
+                res[key].update(vals[key])
         return res
     
 #          
@@ -5133,6 +5189,18 @@ class account_move(osv.osv):
         'material_issue_id': fields.many2one('tpt.material.issue','Material Issue',ondelete='restrict'), 
                                   
                 }
+    
+    def onchange_tpt_date(self, cr, uid, ids, date=False, context=None):
+        vals = {}
+        current = time.strftime('%Y-%m-%d')
+        warning = {}
+        if date and date > current:
+            vals = {'date':current}
+            warning = {
+                'title': _('Warning!'),
+                'message': _('Date: Not allow future date!')
+            }
+        return {'value':vals,'warning':warning}
 account_move()
 
 class tpt_activities(osv.osv):
@@ -5473,3 +5541,77 @@ class account_move(osv.osv):
     def write(self, cr, uid,ids, vals, context=None):
         return super(account_move, self).write(cr,1,ids,vals,context) 
 account_move()
+
+class tpt_bank_reconciliation(osv.osv):
+    _name = 'tpt.bank.reconciliation'
+    _columns = {
+        'name': fields.many2one('account.account', 'Bank GL Account', required=True, states={ 'done':[('readonly', True)]}),
+        'reconciliation_line': fields.one2many('tpt.bank.reconciliation.line', 'bank_reconciliation_id', 'Line', states={ 'done':[('readonly', True)]}),
+        'state':fields.selection([('draft', 'Draft'),('done', 'Done')],'Status', readonly=True),
+    }
+    _defaults = {
+        'state': 'draft',
+    }
+
+    def onchange_account(self, cr, uid, ids, account_id=False, context=None):
+        if context is None:
+            context={}
+        vals = {}
+        if ids:
+            cr.execute(''' delete from tpt_bank_reconciliation_line where bank_reconciliation_id in %s ''',(tuple(ids),))
+        if account_id:
+            voucher_obj = self.pool.get('account.voucher')
+            voucher_ids = voucher_obj.search(cr, uid, [('account_id','=',account_id),('reconciliation_date','=',False)])
+            reconciliation_line = []
+            for voucher in voucher_obj.browse(cr, uid, voucher_ids):
+                doc_type = ''
+                if voucher.journal_id.type=='bank':
+                    if not voucher.tpt_sup_reconcile and voucher.type == 'payment':
+                        doc_type='Supplier Payments'
+                    if not voucher.tpt_sup_reconcile and voucher.type == 'receipt':
+                        doc_type='Customer Payments'
+                    if voucher.type_trans:
+                        doc_type='Bank Transaction'
+                reconciliation_line.append((0,0,{
+                    'partner_id': voucher.partner_id and voucher.partner_id.id or False,
+                    'name': voucher.name,
+                    'doc_type': doc_type,
+                    'reference': voucher.reference,
+                    'date': voucher.date,
+                    'cheque_no': voucher.cheque_no,
+                    'cheque_date': voucher.cheque_date,
+                    'account_id': voucher.account_id and voucher.account_id.id or False,
+                    'amount': voucher.amount,
+                    'voucher_id': voucher.id,
+                }))
+            vals = {'reconciliation_line':reconciliation_line}
+        return {'value': vals}
+
+    def bt_confirm(self, cr, uid, ids, context=None):
+        for bank_reconciliation in self.browse(cr, uid, ids):
+            for line in bank_reconciliation.reconciliation_line:
+                if line.reconciliation_date:
+                    cr.execute(''' update account_voucher set reconciliation_date=%s where id=%s ''',(line.reconciliation_date,line.voucher_id.id,))
+        return self.write(cr, uid, ids,{'state':'done'})
+    
+tpt_bank_reconciliation()
+
+class tpt_bank_reconciliation_line(osv.osv):
+    _name = 'tpt.bank.reconciliation.line'
+    _columns = {
+        'partner_id': fields.many2one('res.partner', 'Customer/Verdor'),
+        'name': fields.char('Voucher No', size=1024),
+        'doc_type': fields.char('Document Type', size=1024),
+        'reference': fields.char('Payment Ref', size=1024),
+        'date': fields.date('Payment Date'),
+        'cheque_no': fields.char('Cheque No', size=1024),
+        'cheque_date': fields.date('Cheque Date'),
+        'reconciliation_date': fields.date('Reconciliation Date'),
+        'account_id': fields.many2one('account.account', 'Bank GL Account'),
+        'voucher_id': fields.many2one('account.voucher', 'Voucher'),
+        'amount': fields.float('Payment Amount'),
+        'bank_reconciliation_id': fields.many2one('tpt.bank.reconciliation', 'Bank Reconciliation', ondelete='cascade'),
+    }
+    
+tpt_bank_reconciliation_line()
+
