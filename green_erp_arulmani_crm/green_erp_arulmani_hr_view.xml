@@ -77,7 +77,7 @@
             	<xpath expr="//form/sheet/notebook/page[@string='Public Information']/group/group[@string='Position']" position="after">
                   	<group>
 	                    <field name="plant_id" options="{'create': false, 'create_edit': false}"/>
-	                    <field name="date_of_joining"/>
+	                    <field name="date_of_joining" required='1'/>
 	                    <field name="date_of_resignation" />
 	                </group>
                 </xpath>

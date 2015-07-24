@@ -7289,7 +7289,7 @@ class arul_hr_monthly_shift_schedule(osv.osv):
               'shift_group_id': fields.many2one('shift.group','Shift Group'),
               'employee_id':fields.many2one('hr.employee','Employee', required = True),
               'monthly_work_id':fields.many2one('arul.hr.monthly.work.schedule','Monthly Shift Schedule'),
-              'day_1': fields.many2one('arul.hr.capture.work.shift','1',required = True),
+              'day_1': fields.many2one('arul.hr.capture.work.shift','1'),
               'day_2': fields.many2one('arul.hr.capture.work.shift','2'),
               'day_3': fields.many2one('arul.hr.capture.work.shift','3'),
               'day_4': fields.many2one('arul.hr.capture.work.shift','4'),
@@ -8094,6 +8094,22 @@ class tpt_time_leave_evaluation(osv.osv):
             res.append((record['id'], name))
         return res   
     def bt_confirm(self, cr, uid, ids, context=None):
+        return self.write(cr, uid, ids,{'state':'done'}) 
+    def tpt_submit_evaluate(self, cr, uid, ids, context=None):
+        for sub in self.browse(cr, uid, ids, context=context):
+            res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
+                                                'green_erp_arulmani_hrm', 'alert_time_leave_form_view')
+            return {
+                                        'name': 'Alert Message',
+                                        'view_type': 'form',
+                                        'view_mode': 'form',
+                                        'view_id': res[1],
+                                        'res_model': 'time.leave.evalv',
+                                        'domain': [],
+                                        'context': {'default_message':'Time Leave Evaluation','time_id':sub.id},
+                                        'type': 'ir.actions.act_window',
+                                        'target': 'new',
+                }
         return self.write(cr, uid, ids,{'state':'done'}) 
     def submit_evaluate(self, cr, uid, ids, context=None):
         monthly_shift_obj = self.pool.get('arul.hr.monthly.shift.schedule')

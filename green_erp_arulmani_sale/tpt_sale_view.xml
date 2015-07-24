@@ -436,7 +436,7 @@
 								<field name="from_district"/>
 								<field name="to_place"/>
 								<field name="to_district"/>
-								<field name="name" required = "1" domain="[('state','!=','draft')]" options="{'create': false, 'create_edit': false}"/>
+								<field name="name" required = "1" domain="[('sale_id','!=',False),('state','!=','draft')]" options="{'create': false, 'create_edit': false}"/>
 								<field name="date"/>
 		                	</group>
 		                	<group string="Consignor's Details">
