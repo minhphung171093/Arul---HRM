@@ -3671,6 +3671,25 @@ class arul_hr_audit_shift_time(osv.osv):
                                     'type': 'ir.actions.act_window',
                                     'target': 'new',
                                 }
+                if  shift_count==0.5 and line.planned_work_shift_id.code !='W':
+                    permission_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','permission'),('date','=',line.work_date),('employee_id','=',line.employee_id.id)])
+                    on_duty_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','on_duty'),('from_date','<=',line.work_date),('to_date','>=',line.work_date),('employee_id','=',line.employee_id.id)])
+                    leave_detail_ids = self.pool.get('arul.hr.employee.leave.details').search(cr, uid, [('date_from','<=',line.work_date),('date_to','>=',line.work_date),('employee_id','=',line.employee_id.id),('state','=','done')])
+            
+                    if not permission_ids and not on_duty_ids and not leave_detail_ids:
+                        res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
+                                                'green_erp_arulmani_hrm', 'alert_permission_form_view')
+                        return {
+                                        'name': 'Alert Message',
+                                        'view_type': 'form',
+                                        'view_mode': 'form',
+                                        'view_id': res[1],
+                                        'res_model': 'alert.form',
+                                        'domain': [],
+                                        'context': {'default_message':'Insufficient Hours, Please Create any one of the following type: Permission/OnDuty/Leave','audit_id':line.id},
+                                        'type': 'ir.actions.act_window',
+                                        'target': 'new',
+                                    }
                 if shift_in > shift_out:
                     time_total = 24-shift_in + shift_out
                 else:
@@ -4433,15 +4452,15 @@ class arul_hr_employee_leave_details(osv.osv):
             if vals['date_from'] == vals['date_to']:
                 emp_leave_count = 0
                 sql = '''
-                        select COUNT(id)  from arul_hr_employee_leave_details where employee_id = %s 
+                        select case when count(*)>=1 then count(*) else 0 end leave_count  from arul_hr_employee_leave_details where employee_id = %s 
                         and date_to = '%s' and haft_day_leave = True and days_total=0.5 and leave_type_id in 
-                        (select id from arul_hr_leave_types where code in ('CL','SL','C.Off'))
+                        (select id from arul_hr_leave_types where code in ('CL','SL','C.Off')) and state='done'
                     '''%(vals['employee_id'],vals['date_to'])
                 cr.execute(sql)
                     
                 a1 = cr.fetchone()
                 emp_leave_count = a1[0]
-                emp_leave_count = emp_leave_count - 1
+                #emp_leave_count = emp_leave_count - 1
                 
                 sql = '''   select id from arul_hr_leave_types where code ='CL'  '''
                 cr.execute(sql)                    
@@ -4771,6 +4790,7 @@ class arul_hr_employee_leave_details(osv.osv):
         return True  
     def cancel_leave_request(self, cr, uid, ids, context=None):
         date_now = time.strftime('%Y-%m-%d')
+        time_evalv_obj = self.pool.get('tpt.time.leave.evaluation')
         for line in self.browse(cr, uid, ids):
             #TPT-Commented By BalamuruganPurushothaman ON 11/04/2015 - TO AVOID THROW THIS WARNING
             #if line.date_from < date_now:
@@ -4784,7 +4804,7 @@ class arul_hr_employee_leave_details(osv.osv):
                 
             if line.employee_id.department_id and line.employee_id.department_id.primary_auditor_id and line.employee_id.department_id.primary_auditor_id.id==uid \
             or p:
-                #continue
+                #continue 
                 if line.date_from: 
                     month = line.date_from[5:7]
                     year = line.date_from[:4]
@@ -7289,7 +7309,7 @@ class arul_hr_monthly_shift_schedule(osv.osv):
               'shift_group_id': fields.many2one('shift.group','Shift Group'),
               'employee_id':fields.many2one('hr.employee','Employee', required = True),
               'monthly_work_id':fields.many2one('arul.hr.monthly.work.schedule','Monthly Shift Schedule'),
-              'day_1': fields.many2one('arul.hr.capture.work.shift','1',required = True),
+              'day_1': fields.many2one('arul.hr.capture.work.shift','1'),
               'day_2': fields.many2one('arul.hr.capture.work.shift','2'),
               'day_3': fields.many2one('arul.hr.capture.work.shift','3'),
               'day_4': fields.many2one('arul.hr.capture.work.shift','4'),
@@ -8094,6 +8114,22 @@ class tpt_time_leave_evaluation(osv.osv):
             res.append((record['id'], name))
         return res   
     def bt_confirm(self, cr, uid, ids, context=None):
+        return self.write(cr, uid, ids,{'state':'done'}) 
+    def tpt_submit_evaluate(self, cr, uid, ids, context=None):
+        for sub in self.browse(cr, uid, ids, context=context):
+            res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
+                                                'green_erp_arulmani_hrm', 'alert_time_leave_form_view')
+            return {
+                                        'name': 'Alert Message',
+                                        'view_type': 'form',
+                                        'view_mode': 'form',
+                                        'view_id': res[1],
+                                        'res_model': 'time.leave.evalv',
+                                        'domain': [],
+                                        'context': {'default_message':'Time Leave Evaluation','time_id':sub.id},
+                                        'type': 'ir.actions.act_window',
+                                        'target': 'new',
+                }
         return self.write(cr, uid, ids,{'state':'done'}) 
     def submit_evaluate(self, cr, uid, ids, context=None):
         monthly_shift_obj = self.pool.get('arul.hr.monthly.shift.schedule')
