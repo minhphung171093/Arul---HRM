@@ -4935,6 +4935,7 @@ class tpt_material_issue(osv.osv):
         'flag': fields.boolean('Flag'),
         'again': fields.boolean('Create again'),
         'april': fields.boolean('Create again'), # 3 issue 12, 14, 15
+        'may_780': fields.boolean('Issue 780'), # issue 780, update lai dest location cua stock move tu Store/Spare thanh Production Line/Raw material 
                 }
     _defaults = {
         'flag': False,
