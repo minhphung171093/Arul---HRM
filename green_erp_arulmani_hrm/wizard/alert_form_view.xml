@@ -149,9 +149,9 @@
 	        <field name="arch" type="xml">
 	            <form string="Alert" version="7.0">
 	            
-	            	 <label string=From Date"/> 
+	            	 <label string="From Date"/> 
 	                 <field name='from_date' />
-	                 <label string=From Date"/>
+	                 <label string="From Date"/>
 	                 <field name='to_date' />
 	              
 	                <footer>
