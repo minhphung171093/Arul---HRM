@@ -1541,8 +1541,8 @@ class stock_production_lot(osv.osv):
     def write(self, cr, uid, ids, vals, context=None):
         batch = self.pool.get('stock.production.lot').browse(cr, uid, ids[0])
         stock_available= batch.stock_available        
-        if stock_available < 1:
-                raise osv.except_osv(_('Warning!'),_('Not Allowed to Edit Sold Batch'))
+        #if stock_available < 1:
+                #raise osv.except_osv(_('Warning!'),_('Not Allowed to Edit Sold Batch'))
         return super(stock_production_lot, self).write(cr, uid,ids, vals, context)
     
     def init(self, cr):
