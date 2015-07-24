@@ -754,7 +754,7 @@
 		                    		<tree create='false' edit='false'>
 		                    			<field name="num_of_month" invisible="1"/>
 		                    			<field name="employee_id"/>
-		                    			<field name="day_1"/>
+		                    			<field name="day_1" required='1'/>
 	                    				<field name="day_2"/>
 	                    				<field name="day_3"/>
 	                    				<field name="day_4"/>

@@ -100,7 +100,7 @@ class hr_employee(osv.osv):
     _columns = {
                 'employee_id': fields.char('Employee ID',size=128,readonly=True,store=True),
                 'plant_id' : fields.many2one('hr.plant', 'Plant',ondelete='restrict'),
-                'date_of_joining' : fields.date('Date Of Joining', required=True),  
+                'date_of_joining' : fields.date('Date Of Joining'),  
                 'age_in_years': fields.integer('Age In Years'),
                 'age_in_yrs': fields.function(_age, string='Age in Yrs', multi='sums', help="Age."),
                 'place_of_birth': fields.many2one('res.country.state','State Of Birth',ondelete='restrict'),

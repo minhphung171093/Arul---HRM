@@ -7289,7 +7289,7 @@ class arul_hr_monthly_shift_schedule(osv.osv):
               'shift_group_id': fields.many2one('shift.group','Shift Group'),
               'employee_id':fields.many2one('hr.employee','Employee', required = True),
               'monthly_work_id':fields.many2one('arul.hr.monthly.work.schedule','Monthly Shift Schedule'),
-              'day_1': fields.many2one('arul.hr.capture.work.shift','1',required = True),
+              'day_1': fields.many2one('arul.hr.capture.work.shift','1'),
               'day_2': fields.many2one('arul.hr.capture.work.shift','2'),
               'day_3': fields.many2one('arul.hr.capture.work.shift','3'),
               'day_4': fields.many2one('arul.hr.capture.work.shift','4'),
