@@ -3671,6 +3671,25 @@ class arul_hr_audit_shift_time(osv.osv):
                                     'type': 'ir.actions.act_window',
                                     'target': 'new',
                                 }
+                if  shift_count==0.5 and line.planned_work_shift_id.code !='W':
+                    permission_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','permission'),('date','=',line.work_date),('employee_id','=',line.employee_id.id)])
+                    on_duty_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','on_duty'),('from_date','<=',line.work_date),('to_date','>=',line.work_date),('employee_id','=',line.employee_id.id)])
+                    leave_detail_ids = self.pool.get('arul.hr.employee.leave.details').search(cr, uid, [('date_from','<=',line.work_date),('date_to','>=',line.work_date),('employee_id','=',line.employee_id.id),('state','=','done')])
+            
+                    if not permission_ids and not on_duty_ids and not leave_detail_ids:
+                        res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
+                                                'green_erp_arulmani_hrm', 'alert_permission_form_view')
+                        return {
+                                        'name': 'Alert Message',
+                                        'view_type': 'form',
+                                        'view_mode': 'form',
+                                        'view_id': res[1],
+                                        'res_model': 'alert.form',
+                                        'domain': [],
+                                        'context': {'default_message':'Insufficient Hours, Please Create any one of the following type: Permission/OnDuty/Leave','audit_id':line.id},
+                                        'type': 'ir.actions.act_window',
+                                        'target': 'new',
+                                    }
                 if shift_in > shift_out:
                     time_total = 24-shift_in + shift_out
                 else:
