@@ -151,7 +151,7 @@
 	            
 	            	 <label string="From Date"/> 
 	                 <field name='from_date' />
-	                 <label string="From Date"/>
+	                 <label string="To Date"/>
 	                 <field name='to_date' />
 	              
 	                <footer>
