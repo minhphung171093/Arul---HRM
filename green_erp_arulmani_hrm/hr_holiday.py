@@ -4433,15 +4433,15 @@ class arul_hr_employee_leave_details(osv.osv):
             if vals['date_from'] == vals['date_to']:
                 emp_leave_count = 0
                 sql = '''
-                        select COUNT(id)  from arul_hr_employee_leave_details where employee_id = %s 
+                        select case when count(*)>=1 then count(*) else 0 end leave_count  from arul_hr_employee_leave_details where employee_id = %s 
                         and date_to = '%s' and haft_day_leave = True and days_total=0.5 and leave_type_id in 
-                        (select id from arul_hr_leave_types where code in ('CL','SL','C.Off'))
+                        (select id from arul_hr_leave_types where code in ('CL','SL','C.Off')) and state='done'
                     '''%(vals['employee_id'],vals['date_to'])
                 cr.execute(sql)
                     
                 a1 = cr.fetchone()
                 emp_leave_count = a1[0]
-                emp_leave_count = emp_leave_count - 1
+                #emp_leave_count = emp_leave_count - 1
                 
                 sql = '''   select id from arul_hr_leave_types where code ='CL'  '''
                 cr.execute(sql)                    
