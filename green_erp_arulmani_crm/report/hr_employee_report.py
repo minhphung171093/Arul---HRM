@@ -62,13 +62,31 @@ class Parser(report_sxw.rml_parse):
         resource_obj = self.pool.get('resource.resource')
         emp_obj = self.pool.get('hr.employee')
         if active_selection=='active':
-            emp_ids = resource_obj.search(self.cr, self.uid, [('active','=', True)])
+            #emp_ids = resource_obj.search(self.cr, self.uid, [('active','=', True)])
+            sql = '''
+            select id from hr_employee where resource_id in (select id from resource_resource where active in ('t'))
+            '''
+            self.cr.execute(sql)
+            emp_ids = self.cr.fetchall()
         elif active_selection=='inactive':
-            emp_ids = resource_obj.search(self.cr, self.uid, [('active','=',False)])
+            #emp_ids = resource_obj.search(self.cr, self.uid, [('active','=',False)])
+            sql = '''
+            select id from hr_employee where resource_id in (select id from resource_resource where active in ('f'))
+            '''
+            self.cr.execute(sql)
+            emp_ids = self.cr.fetchall()
         else:
-            emp_ids = resource_obj.search(self.cr, self.uid, [])
+            #emp_ids = resource_obj.search(self.cr, self.uid, [])
+            sql = '''
+            select id from hr_employee where resource_id in (select id from resource_resource where active in ('t','f'))
+            '''
+            self.cr.execute(sql)
             
-        for emp in emp_obj.browse(self.cr, self.uid, emp_ids):
+            emp_ids = self.cr.fetchall()
+            
+        employee_ids = emp_obj.search(self.cr, self.uid, [('id','in',emp_ids)])
+            
+        for emp in emp_obj.browse(self.cr, self.uid, employee_ids):
             fa = ''
             mobile = ''
             comu_add = (emp.street or '')+', '+(emp.street2 or '')+', '+(emp.city or '')+', '+(emp.state_id and emp.state_id.name or '')+', '+(emp.zip or '')+', '+(emp.country_id and emp.country_id.name or '') 
