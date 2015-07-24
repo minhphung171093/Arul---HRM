@@ -4771,6 +4771,7 @@ class arul_hr_employee_leave_details(osv.osv):
         return True  
     def cancel_leave_request(self, cr, uid, ids, context=None):
         date_now = time.strftime('%Y-%m-%d')
+        time_evalv_obj = self.pool.get('tpt.time.leave.evaluation')
         for line in self.browse(cr, uid, ids):
             #TPT-Commented By BalamuruganPurushothaman ON 11/04/2015 - TO AVOID THROW THIS WARNING
             #if line.date_from < date_now:
@@ -4784,7 +4785,7 @@ class arul_hr_employee_leave_details(osv.osv):
                 
             if line.employee_id.department_id and line.employee_id.department_id.primary_auditor_id and line.employee_id.department_id.primary_auditor_id.id==uid \
             or p:
-                #continue
+                #continue 
                 if line.date_from: 
                     month = line.date_from[5:7]
                     year = line.date_from[:4]
