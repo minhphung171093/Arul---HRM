@@ -8120,7 +8120,7 @@ class tpt_time_leave_evaluation(osv.osv):
             res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
                                                 'green_erp_arulmani_hrm', 'alert_time_leave_form_view')
             return {
-                                        'name': 'Alert Message',
+                                        'name': 'Run Time Leave Evaluation for Given Period',
                                         'view_type': 'form',
                                         'view_mode': 'form',
                                         'view_id': res[1],
