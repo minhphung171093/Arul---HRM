@@ -45,6 +45,7 @@ class Parser(report_sxw.rml_parse):
             'get_tcs_tax': self.get_tcs_tax,
             'get_order_type': self.get_order_type,
             'convert_date': self.convert_date,
+            'decimal_convert': self.decimal_convert,
 #             'get_sale_line': self.get_sale_line,
         })
         
@@ -77,9 +78,10 @@ class Parser(report_sxw.rml_parse):
         state_id = wizard_data['state_id']
         customer_id = wizard_data['customer_id']
         city = wizard_data['city']
-        name_consignee_id = wizard_data['name_consignee_id']
         
+        name_consignee_id = wizard_data['name_consignee_id']
         invoice_obj = self.pool.get('account.invoice.line')
+        
         sql = '''
             select il.id from account_invoice_line il
             join account_invoice i on (i.id=il.invoice_id)
@@ -104,7 +106,7 @@ class Parser(report_sxw.rml_parse):
         if city:
            str = " and UPPER(btrim(p.city))=UPPER(btrim('%s'))"%(city)
            sql = sql+str
-        sql=sql+" order by i.vvt_number"
+        sql=sql+" order by i.vvt_number"       
         
         self.cr.execute(sql)
         invoice_ids = [r[0] for r in self.cr.fetchall()]
@@ -147,6 +149,10 @@ class Parser(report_sxw.rml_parse):
         if 'TCS' in tax.name:
             amount = tax.amount
         return round(amount*untax/100,2)
+    
+    def decimal_convert(self, amount):       
+            decamount = format(amount, '.3f')
+            return decamount
         
     
 #     def get_sale_line(self,invoice):
@@ -157,4 +163,3 @@ class Parser(report_sxw.rml_parse):
         
     
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
-

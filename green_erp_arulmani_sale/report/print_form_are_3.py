@@ -10,6 +10,7 @@ from openerp import pooler
 from openerp.osv import osv
 from openerp.tools.translate import _
 import random
+import locale
 DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
 DATE_FORMAT = "%Y-%m-%d"
 
@@ -26,7 +27,38 @@ class Parser(report_sxw.rml_parse):
             'get_date': self.get_date,
             'get_amount': self.get_amount,
             'get_copy':self.get_copy,
+            'get_arename':self.get_arename,
+            'get_hy':self.get_hy,
+            'get_amt':self.get_amt,
+            'get_edamt':self.get_edamt,
         })
+    def get_amt(self,value=False):
+        locale.setlocale(locale.LC_NUMERIC, "en_IN")
+        inr_comma_format = locale.format("%.0f", value, grouping=True)
+        return inr_comma_format
+    def get_edamt(self,inv_id,ed_amt):
+        #value = float(value)
+        sql = ''' 
+        select quantity,price_unit from account_invoice_line where invoice_id=%s
+        '''%inv_id
+        self.cr.execute(sql)   
+        for k in self.cr.fetchall():
+            qty=k[0]
+            unit_price=k[1]     
+        amt = qty * unit_price * ed_amt / 100     
+        
+        locale.setlocale(locale.LC_NUMERIC, "en_IN")
+        inr_comma_format = locale.format("%.0f", amt, grouping=True)
+        return inr_comma_format
+    def get_arename(self,name):
+        name = name[13:16]    
+        #raise osv.except_osv(_('Warning!%s'),_(name))        
+        return name
+    def get_hy(self,no):
+        if no>0:
+            return no
+        else:    
+            return '-'
     def get_copy(self,is_original,is_duplicate,is_triplicate,is_quadruplicate):
         type = ''
         if is_original is True:

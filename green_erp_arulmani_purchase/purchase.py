@@ -1165,7 +1165,7 @@ class tpt_gate_in_pass(osv.osv):
             gate_in_pass_line = []
             for line in po.order_line:
                 gate_in_pass_line.append({
-                            'po_indent_no': po.po_indent_no and po.po_indent_no.id or False,
+                            'po_indent_no': line.po_indent_no and line.po_indent_no.id or False,
                           'product_id': line.product_id and line.product_id.id or False,
                           'product_qty':line.product_qty or False,
                           'uom_po_id': line.product_uom and line.product_uom.id or False,
@@ -3443,7 +3443,7 @@ class tpt_quanlity_inspection(osv.osv):
     
     _columns = {
         'name' : fields.many2one('stock.picking.in','GRN No',required = True,readonly = True,states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'need_inspec_id':fields.many2one('stock.move','Need Inspec',states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'need_inspec_id':fields.many2one('stock.move','Need Inspec',ondelete='restrict',states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'date':fields.datetime('Create Date',readonly = True,states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'supplier_id':fields.many2one('res.partner','Supplier',required = True,readonly = True,states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'product_id': fields.many2one('product.product', 'Product',required = True,readonly = True,states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
@@ -3535,6 +3535,12 @@ class tpt_quanlity_inspection(osv.osv):
             move_id = move_obj.create(cr,uid,rs)
             move_obj.action_done(cr, uid, [move_id])
         return self.write(cr, uid, ids, {'state':'cancel'})
+    
+    def create(self, cr, uid, vals, context=None):
+        return super(tpt_quanlity_inspection, self).create(cr,1, vals, context)
+    
+    def write(self, cr, uid,ids, vals, context=None):
+        return super(tpt_quanlity_inspection, self).write(cr,1,ids,vals,context) 
 
 #     def onchange_grn_no(self, cr, uid, ids,name=False, context=None):
 #         vals = {}
@@ -3583,7 +3589,7 @@ class tpt_gate_out_pass(osv.osv):
         'grn_id': fields.many2one('stock.picking.in','Old GRN No', readonly = True), 
         'good_id': fields.many2one('tpt.good.return.request','Goods Return Request No', required = True), 
         'header_text':fields.text('Header Text',readonly=True),
-        'gate_date_time': fields.datetime('Gate Out Pass Date & Time', readonly = True),
+        'gate_date_time': fields.datetime('Gate Out Pass Date & Time'),
         'gate_out_pass_line': fields.one2many('tpt.gate.out.pass.line', 'gate_out_pass_id', 'Product Details', readonly = True),
         'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancel'),('confirm', 'Confirm'),('done', 'Done')],'Status', readonly=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
                 }
@@ -4420,6 +4426,23 @@ class tpt_material_request(osv.osv):
         'department_id': _get_department_id,
     }
     
+    def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
+        if context is None:
+            context = {}
+        if context.get('search_material_request_with_name', False):
+            name = context.get('name')
+            material_requests = self.search(cr, uid, [('name','like',name)])
+            args += [('id','in',material_requests)]
+        return super(tpt_material_request, self).search(cr, uid, args, offset=offset, limit=limit, order=order, context=context, count=count)
+    
+    def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
+        if context is None:
+            context = {}
+        if name:
+            context.update({'search_material_request_with_name':1,'name':name})
+        ids = self.search(cr, user, args, context=context, limit=limit)
+        return self.name_get(cr, user, ids, context=context)
+    
     def bt_load_norm(self, cr, uid, ids, context=None):
         res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
                                         'green_erp_arulmani_purchase', 'load_line_from_norm_form_view')
@@ -4852,7 +4875,17 @@ class tpt_material_request_line(osv.osv):
         'request_type':fields.selection([('production', 'Production'),('normal', 'Normal'),('main', 'Maintenance')],'Request Type'),
         'prodlot_id': fields.many2one('stock.production.lot', 'Batch No'),
         'bin': fields.related('product_id','bin_location',type='char',string='Bin Location',readonly=True),
+        'date_request_relate': fields.related('material_request_id','date_request',type='date',string='Material Request Date'),
+        'date_expect_relate': fields.related('material_request_id','date_expec',type='date',string='Expected Date'),
+        'department_relate': fields.related('material_request_id','department_id',type='many2one', relation='hr.department',string='Department'),
+        'section_relate': fields.related('material_request_id','section_id',type='many2one', relation='arul.hr.section',string='Section'),
+        'requisitioner_relate': fields.related('material_request_id','requisitioner',type='many2one', relation='hr.employee',string='Requisitioner'),
+        'raise_relate': fields.related('material_request_id','create_uid',type='many2one', relation='res.users',string='Request Raised By'),
+        'state_relate':fields.related('material_request_id', 'state' ,type = 'selection',selection=[('draft', 'Draft'),('done', 'Approve'),('partially', 'Partially Issued'),('closed', 'Closed')], string='State'),
+        'pending_qty': fields.float('Pending Qty'),       
                 }
+    
+    
     def onchange_product_id(self, cr, uid, ids,product_id=False, context=None):
         res = {'value':{
                     'dec_material': False,
@@ -4900,6 +4933,9 @@ class tpt_material_issue(osv.osv):
         'doc_no': fields.char('Document Number', size = 1024,readonly = True),
         'cost_center_id': fields.many2one('tpt.cost.center','Cost center',states={'done':[('readonly', True)]}),
         'flag': fields.boolean('Flag'),
+        'again': fields.boolean('Create again'),
+        'april': fields.boolean('Create again'), # 3 issue 12, 14, 15
+        'may_780': fields.boolean('Issue 780'), # issue 780, update lai dest location cua stock move tu Store/Spare thanh Production Line/Raw material 
                 }
     _defaults = {
         'flag': False,
@@ -5142,9 +5178,16 @@ class tpt_material_issue_line(osv.osv):
             '''%(vals['request_line_id'])
             cr.execute(sql)
             kq = cr.fetchone()[0]
-            if 'request_line_id' in vals and (vals['product_uom_qty']-kq) < vals['product_isu_qty']:
+            if 'request_line_id' in vals and (vals['product_uom_qty']-kq) < vals['product_isu_qty'] and not context.get('create_issue_again',False):
                 raise osv.except_osv(_('Warning!'),_('Quantity must be less than Material Request quantity!'))
         new_id = super(tpt_material_issue_line, self).create(cr, uid, vals, context)
+        if not context.get('create_issue_again',False):
+            issue_line = self.browse(cr,uid, new_id)
+            kq2 = issue_line.product_uom_qty - (kq + issue_line.product_isu_qty)
+            sql = '''
+                update tpt_material_request_line set pending_qty = %s where id = %s
+            '''%(kq2, issue_line.request_line_id.id)
+            cr.execute(sql)
         if 'product_isu_qty' in vals:
             if (vals['product_isu_qty'] < 0):
                 raise osv.except_osv(_('Warning!'),_('Issue Quantity is not allowed as negative values'))
@@ -5166,6 +5209,11 @@ class tpt_material_issue_line(osv.osv):
             kq = cr.fetchone()[0]
             if (line.product_uom_qty-kq) < line.product_isu_qty:
                 raise osv.except_osv(_('Warning!'),_('Quantity must be less than Material Request quantity!'))
+            kq2 = line.product_uom_qty - (kq + line.product_isu_qty)
+            sql = '''
+                update tpt_material_request_line set pending_qty = %s where id = %s
+            '''%(kq2, issue_line.request_line_id.id)
+            cr.execute(sql)
         return new_write
 tpt_material_issue_line()
 

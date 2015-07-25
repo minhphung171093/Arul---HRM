@@ -150,6 +150,8 @@ class arul_hr_employee_action_history(osv.osv):
         'note': fields.text('Note'),
         'department_from_id': fields.many2one('hr.department','Department From',ondelete='restrict'),
         'department_to_id': fields.many2one('hr.department','Department To',ondelete='restrict'),
+        'section_from_id': fields.many2one('arul.hr.section','Section From',ondelete='restrict'),
+        'section_to_id': fields.many2one('arul.hr.section','Section To',ondelete='restrict'),
         'designation_from_id':fields.many2one('hr.job','Designation From',ondelete='restrict'),
         'designation_to_id':fields.many2one('hr.job','Designation To',ondelete='restrict'),
         'employee_category_id':fields.many2one('vsis.hr.employee.category','Employee Category',ondelete='restrict'),
@@ -268,6 +270,7 @@ class arul_hr_employee_action_history(osv.osv):
             vals = {'employee_category_id':emp.employee_category_id.id,
                     'sub_category_id':emp.employee_sub_category_id.id,
                     'department_from_id':emp.department_id.id,
+                    'section_from_id':emp.section_id.id,
                     'designation_from_id':emp.job_id.id,                   
 #                     'payroll_area_id':emp.payroll_area_id.id,
                     }
@@ -396,20 +399,21 @@ class arul_hr_employee_action_history(osv.osv):
             action_history = self.browse(cr, uid, new_id)
             self.pool.get('hr.employee').write(cr, uid, [action_history.employee_id.id], {#'employee_category_id': action_history.employee_category_id and action_history.employee_category_id.id or False,
                                                                                           #'employee_sub_category_id': action_history.sub_category_id and action_history.sub_category_id.id or False,
-                                                                                          'employee_category_id': action_history.employee_category_to_id and action_history.employee_category_to_id.id or False,
-                                                                                          'employee_sub_category_id': action_history.sub_category_to_id and action_history.sub_category_to_id.id or False,
+                                               'employee_category_id': action_history.employee_category_to_id and action_history.employee_category_to_id.id or False,
+                                               'employee_sub_category_id': action_history.sub_category_to_id and action_history.sub_category_to_id.id or False,
                                                                                          
                                                                                           
-                                                                                          'job_id': action_history.designation_to_id.id and action_history.designation_to_id.id or action_history.designation_from_id.id,
-                                                                                          'department_id': action_history.department_to_id.id and action_history.department_to_id.id or action_history.department_from_id.id},
+                                               'job_id': action_history.designation_to_id.id and action_history.designation_to_id.id or action_history.designation_from_id.id,
+                                               'department_id': action_history.department_to_id.id and action_history.department_to_id.id or action_history.department_from_id.id,
+                                               'section_id': action_history.section_to_id.id and action_history.section_to_id.id or action_history.section_from_id.id},
                                                                                           )
             emp_attendence_obj = self.pool.get('arul.hr.employee.attendence.details')
             employee_ids = emp_attendence_obj.search(cr, uid, [('employee_id','=',action_history.employee_id.id)])
             emp_attendence_obj.write(cr,uid,employee_ids, {
-                                                          'employee_category_id':action_history.employee_id.employee_category_id and action_history.employee_id.employee_category_id.id or False,
-                                                          'sub_category_id':action_history.employee_id.employee_sub_category_id and action_history.employee_id.employee_sub_category_id.id or False,
-                                                          'department_id':action_history.employee_id.department_id and action_history.employee_id.department_id.id or False,
-                                                          'designation_id':action_history.employee_id.job_id and action_history.employee_id.job_id.id or False,
+                                                          'employee_category_id':action_history.employee_category_to_id and action_history.employee_category_to_id.id or False,
+                                                          'sub_category_id':action_history.sub_category_to_id and action_history.sub_category_to_id.id or False,
+                                                          'department_id':action_history.department_to_id.id and action_history.department_to_id.id or action_history.department_from_id.id,
+                                                          'designation_id':action_history.designation_to_id.id and action_history.designation_to_id.id or action_history.designation_from_id.id,
                                                           }) 
             
         if context.get('create_transfer_employee'):
@@ -1168,7 +1172,7 @@ class meals_details(osv.osv):
         'employee_amt' : fields.function(evaluate_amt,digits=(16,2),type='float',string='Employee Amt',multi='sum',store=True), 
         'free_cost_1' : fields.many2one('food.subsidy', 'Free Cost 1',ondelete='restrict'),
         'free_cost_2' : fields.many2one('food.subsidy', 'Free Cost 2',ondelete='restrict'),
-        'meals_id': fields.many2one('meals.deduction','Meal Deduction',ondelete='restrict'),
+        'meals_id': fields.many2one('meals.deduction','Meal Deduction',ondelete='cascade'),
     }
     
 meals_details()

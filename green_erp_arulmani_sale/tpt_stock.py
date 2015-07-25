@@ -17,7 +17,7 @@ class stock_picking(osv.osv):
         'cons_loca':fields.many2one('res.partner','Consignee Location',readonly = True),
         'warehouse':fields.many2one('stock.location','Warehouse'),
         'transporter':fields.char('Transporter Name', size = 64),
-        'reason_mgnt_confirm':fields.char('Reason For Management Confirmation', size = 64),
+        'reason_mgnt_confirm':fields.char('Reason For Management Confirmation', size = 1024),
         'truck':fields.char('Truck Number', size = 64),
         'remarks':fields.text('Remarks'),
         'doc_status':fields.selection([('draft','Drafted'),
@@ -34,6 +34,8 @@ class stock_picking(osv.osv):
 #         'location_sour_id': fields.many2one('stock.location', 'Source Location'),
         'street3':fields.char('Street3',size=128),
         'order_type':fields.selection([('domestic','Domestic'),('export','Export')],'Order Type' ),
+        'description':fields.char('Description', size = 50, readonly = True),
+        'item_text':fields.text('Item Text'),
                 }
     
     _defaults = {
@@ -1200,6 +1202,7 @@ class account_invoice(osv.osv):
         'disc_goods': fields.text('Discription Of Goods', size = 1024, readonly=True, states={'draft':[('readonly',False)]}),
         'final_desti': fields.char('Final Destination', size = 1024, readonly=True, states={'draft':[('readonly',False)]}),
         'agency_comm': fields.char('Agency Commission', size = 1024),
+        'epcg_no': fields.char('EPCG License No', size = 1024),
         #TPT
         'street3':fields.char('Street3',size=128),
         'fsh_grade':fields.char('FSH Grade',size=128),
@@ -1437,4 +1440,12 @@ class product_product(osv.osv):
        return self.name_get(cr, user, ids, context=context)
    
 product_product()
-
+class stock_partial_picking_line(osv.osv_memory):
+    _inherit = "stock.partial.picking.line"
+    _columns = {
+        'description':fields.char('Description', size = 50,readonly=True),
+        'item_text':fields.text('Item Text'),
+#         'description':fields.related('move_id', 'description',type = 'char', string='Description'),
+#         'item_text':fields.related('move_id', 'item_text',type = 'text', string='Item Text'),
+     } 
+stock_partial_picking_line()

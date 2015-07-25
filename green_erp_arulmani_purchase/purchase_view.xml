@@ -76,7 +76,7 @@
 	            <form string="Purchase Indent" version="7.0">   
 	             <header>
 	            		<button name="bt_approve" states='draft' string="Confirm" type="object" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin,green_erp_arulmani_purchase.group_vvti_hrm_plant_mm_user"/>
-	                    <button name="bt_cancel" states='draft, done' string="Cancel" type="object" class="oe_highlight" /> 
+	                    <button name="bt_cancel" states='draft, done' string="Cancel" type="object" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin,green_erp_arulmani_purchase.group_vvti_hrm_plant_mm_user"/> 
 	                    <field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
 	            </header>    
 	            	<sheet>
@@ -155,7 +155,7 @@
         <menuitem action="action_view_tpt_purchase_indent_form"
             id="menu_action_view_tpt_purchase_indent_form"
             parent="purchase.menu_procurement_management" sequence="11"
-            groups="green_erp_arulmani_purchase.group_vvti_purchase_user,green_erp_arulmani_purchase.group_vvti_hrm_plant_mm_user,green_erp_arulmani_sale.group_vvti_marketing_user"/>
+            groups="green_erp_arulmani_purchase.group_vvti_purchase_user,green_erp_arulmani_purchase.group_vvti_hrm_plant_mm_user,green_erp_arulmani_sale.group_vvti_marketing_user,green_erp_arulmani_hrm.group_vvti_hrm_hr_user,green_erp_arulmani_hrm.group_vvti_hrm_time_user,green_erp_arulmani_crm.group_qc_user"/>
             
 	   	<record id="view_tpt_purchase_indent_line_tree" model="ir.ui.view">
 			<field name="name">tpt.purchase.indent.line.tree</field>
@@ -193,8 +193,8 @@
             <field name="arch" type="xml">
 	            <form string="Indent Release - By Store" version="7.0" edit = 'false' delete = 'false' create = 'false' >   
 	             <header>
-	            		<button name="bt_approve" states='draft,confirm' string="Store Approve" type="object" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_store_mgr"/>
-	                    <button name="%(action_reject_pur_line_form)d" states='draft,confirm' string="Store Reject" type="action" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_store_mgr"/> 
+	            		<button name="bt_approve" states='draft,confirm' string="Store Approve" type="object" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_store_mgr,green_erp_arulmani_purchase.group_vvti_purchase_store_gm"/>
+	                    <button name="%(action_reject_pur_line_form)d" states='draft,confirm' string="Store Reject" type="action" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_store_mgr,green_erp_arulmani_purchase.group_vvti_purchase_store_gm"/> 
 	                    <field name="state" widget="statusbar" statusbar_visible="confirm,+,x"/>
 	            </header>  
 	            <sheet> 
@@ -382,7 +382,8 @@
         </record>
          <menuitem action="action_view_tpt_purchase_indent_line_details_form"
             id="menu_action_view_tpt_purchase_indent_line_details_form"
-            parent="purchase.menu_procurement_management" sequence="15"/>
+            parent="purchase.menu_procurement_management" sequence="15"
+            groups="green_erp_arulmani_purchase.group_vvti_purchase_store_key_user,green_erp_arulmani_purchase.group_vvti_purchase_store_mgr"/>
 
 	   	<record id="view_tpt_purchase_indent_line_tree_hod" model="ir.ui.view">
 			<field name="name">tpt.purchase.indent.line.tree</field>
@@ -420,8 +421,8 @@
             <field name="arch" type="xml">
 	            <form string="Indent Release - By HOD" version="7.0"  delete = 'false' create = 'false' >   
 	             <header>
-	            		<button name="bt_approve" states='+' string="HOD Approve" type="object" class="oe_highlight" groups="green_erp_arulmani_hrm.group_vvti_unit_user"/>
-	                    <button name="%(action_reject_pur_line_form)d" states='+' string="HOD Reject" type="action" class="oe_highlight" groups="green_erp_arulmani_hrm.group_vvti_unit_user"/> 
+	            		<button name="bt_approve" states='+' string="HOD Approve" type="object" class="oe_highlight"/>
+	                    <button name="%(action_reject_pur_line_form)d" states='+' string="HOD Reject" type="action" class="oe_highlight"/> 
 	                    <field name="state" widget="statusbar" statusbar_visible="confirm,+,x"/>
 	            </header>  
 	            <sheet> 
@@ -518,6 +519,7 @@
             <field name="value" eval="'ir.actions.act_window,' + str(ref('action_aprove_or_reject_pur_line_form'))" />
             <field name="key">action</field>
             <field name="model">tpt.purchase.product</field>
+            <field name="groups_id" eval="[(6,0, [ref('group_vvti_purchase_store_mgr'), ref('group_vvti_purchase_store_gm')])]"/>
         </record>
 
 	   	<record id="view_tpt_pr_list_tree" model="ir.ui.view">
@@ -670,25 +672,26 @@
 	            </xpath> 
 	            <xpath expr="//form/header/button[@name='action_cancel_draft']" position="replace">
 	            	<button name="action_cancel_draft" states="cancel,sent,confirmed,head" string="Set to Draft" type="object" groups="green_erp_arulmani_purchase.group_vvti_purchase_mgr,green_erp_arulmani_purchase.group_vvti_purchase_gm"/>
-	            	<button name="action_cancel_draft" states="gm" string="Set to Draft" type="object" groups="green_erp_arulmani_purchase.group_vvti_purchase_gm"/>
+	            	<button name="action_cancel_draft" states="gm" string="Set to Draft" type="object" groups="green_erp_arulmani_purchase.group_vvti_purchase_gm,green_erp_arulmani_purchase.group_vvti_purchase_mgr"/>
 	            </xpath> 
             
 				<xpath expr="//form/header/button[@name='purchase_confirm']" position="replace">
 					
-					<button name="print_quotation" states="md" string="Print PO" type="object"  class="oe_highlight" groups="base.group_user"/>
+					<button name="print_quotation" states="md" string="Print PO" type="object"  class="oe_highlight"/>
 					
 					<button name="purchase_draft_head" states="draft" string="Purchase Head Approval" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin,green_erp_arulmani_purchase.group_vvti_purchase_mgr"/>
 					<button name="purchase_head_gm" states="head" string="GM Approval" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin,green_erp_arulmani_purchase.group_vvti_purchase_gm"/>
 					<!--<button name="purchase_gm_amendement" states="gm" string="Amendement" class="oe_highlight"/>-->
-					<button name="purchase_md_amendement" states="md" string="Amendement" class="oe_highlight"/>
+					<button name="purchase_md_amendement" states="md" string="Amendement" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_user"/>
 					<!--<button name="purchase_head_amendement" states="head" string="Amendement" class="oe_highlight"/>-->
 					<button name="purchase_amendement_head" states="amendement" string="Purchase Head Approval" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin,green_erp_arulmani_purchase.group_vvti_purchase_mgr"/>
 					<button name="purchase_gm_confirmed" states="gm" string="MD Approval" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin"/>
 					<button name="purchase_md_confirmed" attrs="{'invisible':['|',('state','!=','md'),('po_document_type','=','service')]}" string="Create GRN" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin,green_erp_arulmani_purchase.group_vvti_purchase_store_mgr"/>
-					<button name="bt_purchase_done" attrs="{'invisible':['|',('state','!=','md'),('po_document_type','!=','service')]}" string="Service Confirm" type='object' class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin,green_erp_arulmani_purchase.group_vvti_purchase_store_mgr,green_erp_arulmani_accounting.group_vvti_accounting_admin"/>
+					<button name="bt_purchase_done" attrs="{'invisible':['|',('state','!=','md'),('po_document_type','!=','service')]}" string="Service Confirm" type='object' class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin,green_erp_arulmani_purchase.group_vvti_purchase_store_mgr,green_erp_arulmani_accounting.group_vvti_accounting_admin,green_erp_arulmani_purchase.group_vvti_purchase_user"/>
 				</xpath>  
 				<xpath expr="//form/header/button[@name='view_picking']" position="attributes">
 					<attribute name='string'>View GRN</attribute>
+					<attribute name='groups'>green_erp_arulmani_purchase.group_vvti_purchase_store_user</attribute>
 				</xpath>
             	<xpath expr="//field[@name='partner_id']" position="before">
             		
@@ -812,6 +815,14 @@
 				
 				<xpath expr="//field[@name='amount_total']" position="after">
 					<field name="amount_total_inr" readonly="1" class="oe_subtotal_footer_separator" widget="monetary" attrs="{'invisible': [('amount_total','=','amount_total_inr')]}"/>
+				</xpath>
+				
+				<xpath expr="//button[@name='purchase_cancel']" position="attributes">
+					<attribute name='groups'>green_erp_arulmani_purchase.group_vvti_purchase_mgr,green_erp_arulmani_purchase.group_vvti_purchase_user</attribute>
+				</xpath>
+				
+				<xpath expr="//button[@name='action_cancel']" position="attributes">
+					<attribute name='groups'>green_erp_arulmani_purchase.group_vvti_purchase_user</attribute>
 				</xpath>
 				
 			</field>
@@ -1038,8 +1049,8 @@
             <field name="arch" type="xml">
 	            <form string="Gate In Pass" version="7.0">   
 	            	<header>
-			            	<button name="bt_approve" states='draft' string="Approve" type="object" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_user"/>
-		                    <button name="bt_cancel" states='draft' string="Cancel" type="object" class="oe_highlight" />
+			            	<button name="bt_approve" states='draft' string="Approve" type="object" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_store_user"/>
+		                    <button name="bt_cancel" states='draft' string="Cancel" type="object" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_store_user"/>
 		                    <field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
 			        </header>
 	            	<sheet>
@@ -1084,7 +1095,7 @@
         <menuitem action="action_view_tpt_gate_in_pass_tree"
             id="menu_action_view_tpt_gate_in_pass_tree"
             parent="purchase.menu_procurement_management" sequence="20"
-            groups="green_erp_arulmani_purchase.group_vvti_purchase_user,green_erp_arulmani_purchase.group_vvti_purchase_store_user"/>
+            groups="green_erp_arulmani_purchase.group_vvti_purchase_store_user"/>
 
 
     <record id="view_tpt_purchase_quotation_tree" model="ir.ui.view">
@@ -1113,8 +1124,8 @@
             <field name="arch" type="xml">
 	            <form string="Purchase Quotation" version="7.0">
 	            <header>
-	            		<button name = "bt_tick_mark" attrs="{'invisible': ['|',('quotation_cate','=','multiple'),('state','!=','draft')]}" icon = "STOCK_APPLY" string="Approve" type="object" />
-						<button name = "bt_cross_mark" confirm = "Do you want to cancel the Quotation ?" icon = "STOCK_CANCEL" states = "draft" string="Cancel" type="object" /> 
+	            		<button name = "bt_tick_mark" attrs="{'invisible': ['|',('quotation_cate','=','multiple'),('state','!=','draft')]}" icon = "STOCK_APPLY" string="Approve" type="object" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin,green_erp_arulmani_purchase.group_vvti_purchase_user"/>
+						<button name = "bt_cross_mark" confirm = "Do you want to cancel the Quotation ?" icon = "STOCK_CANCEL" states = "draft" string="Cancel" type="object" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin,green_erp_arulmani_purchase.group_vvti_purchase_user"/> 
 	                    
 	                    <button name = "bt_copy_quote" states='done' string="Copy Quotation" type="object" />
 	                    <field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
@@ -1257,7 +1268,8 @@
         
         <menuitem action="action_view_tpt_good_return_request"
             id="menu_action_view_tpt_good_return_request"
-            parent="purchase.menu_procurement_management" sequence="30"/>
+            parent="purchase.menu_procurement_management" sequence="30"
+            groups="green_erp_arulmani_purchase.group_vvti_purchase_user"/>
        
 		<record id="view_tpt_purchase_chart_tree" model="ir.ui.view">
 			<field name="name">tpt.comparison.chart.tree</field>
@@ -1479,7 +1491,7 @@
         <menuitem action="action_view_tpt_quanlity_inspection_spares_form"
             id="menu_action_view_tpt_quanlity_inspection_spares_form"
             parent="purchase.menu_procurement_management" sequence="29"
-            groups="green_erp_arulmani_purchase.group_vvti_purchase_store_user"/>
+            groups="green_erp_arulmani_purchase.group_vvti_purchase_store_user,green_erp_arulmani_purchase.group_vvti_purchase_user"/>
             
        <record id="view_tpt_quanlity_inspection_raw_form" model="ir.ui.view">
             <field name="name">tpt.quanlity.inspection.raw.form</field>
@@ -1546,7 +1558,7 @@
         <menuitem action="action_view_tpt_quanlity_inspection_raw_form"
             id="menu_action_view_tpt_quanlity_inspection_raw_form"
             parent="purchase.menu_procurement_management" sequence="29"
-            groups="green_erp_arulmani_crm.group_qc_user"/> 
+            groups="green_erp_arulmani_crm.group_qc_user,green_erp_arulmani_purchase.group_vvti_purchase_user"/> 
             
         <record id="view_tpt_gate_out_pass_tree" model="ir.ui.view">
 			<field name="name">tpt.gate.out.pass.tree</field>
@@ -1611,7 +1623,8 @@
         
         <menuitem action="action_view_tpt_gate_out_pass_tree"
             id="menu_action_view_tpt_gate_out_pass_tree"
-            parent="purchase.menu_procurement_management" sequence="32"/>
+            parent="purchase.menu_procurement_management" sequence="32"
+            groups="base.user_root,green_erp_arulmani_purchase.group_vvti_purchase_store_user"/>
 		
 		<record id="purchase.purchase_form_action" model="ir.actions.act_window">
             <field name="name">Purchase Orders</field>
@@ -1693,7 +1706,7 @@
 	            			<field name="active"/>
 	            		</group>
 	            		<notebook>
-							<page string = "Vendor Sub Group">
+							<page string = "Vendor Sub Group" groups="base.user_root">
 								<field name="vendor_sub_line" nolabel='1'>
 									<tree editable='bottom'>
 										<field name="name"/>
@@ -1719,7 +1732,7 @@
         <menuitem action="action_view_tpt_vendor_group_form"
             id="menu_action_view_tpt_vendor_group_form"
             parent="purchase.menu_procurement_management" sequence="300"
-            groups="green_erp_arulmani_purchase.group_vvti_purchase_key_user"/>
+            groups="green_erp_arulmani_purchase.group_vvti_purchase_key_user,green_erp_arulmani_purchase.group_vvti_purchase_user"/>
 
 		<record id="view_tpt_vendor_sub_group_tree" model="ir.ui.view">
 			<field name="name">tpt.vendor.sub.group.tree</field>
@@ -1758,10 +1771,14 @@
             <field name="view_id" ref="view_tpt_vendor_sub_group_tree"/>
         </record>
         
-        <menuitem action="action_view_tpt_vendor_sub_group_form"
+        <!--<menuitem action="action_view_tpt_vendor_sub_group_form"
             id="menu_action_view_tpt_vendor_sub_group_form"
             parent="purchase.menu_procurement_management" sequence="400"
-            groups="green_erp_arulmani_purchase.group_vvti_purchase_key_user"/>
+            groups="green_erp_arulmani_purchase.group_vvti_purchase_key_user,green_erp_arulmani_purchase.group_vvti_purchase_user"/>-->
+            
+        <menuitem action="action_view_tpt_vendor_sub_group_form"
+            id="menu_action_view_tpt_vendor_sub_group_form"
+            parent="purchase.menu_procurement_management" sequence="400" groups="base.user_root"/>
             
         <record id="view_tpt_quality_parameters_tree" model="ir.ui.view">
 			<field name="name">tpt.quality.parameters.tree</field>
@@ -1802,7 +1819,8 @@
         
         <menuitem action="action_view_tpt_quality_parameters_form"
             id="menu_action_view_tpt_quality_parameters_form"
-            parent="purchase.menu_procurement_management" sequence="500"/>
+            parent="purchase.menu_procurement_management" sequence="500"
+            groups="green_erp_arulmani_crm.group_qc_user"/>
         
         <record id="view_tpt_request_for_quotation_tree" model="ir.ui.view">
 			<field name="name">tpt.request.for.quotation.tree</field>
@@ -2293,6 +2311,108 @@
             id="menu_action_view_tpt_purchase_order_line_form"
             parent="purchase.menu_procurement_management" sequence="11" 
             groups="green_erp_arulmani_hrm.group_vvti_hrm_hr_user,green_erp_arulmani_sale.group_vvti_sale_user"/>
+            
+          
+        <record id="view_tpt_material_request_line_tree" model="ir.ui.view">
+			<field name="name">tpt.material.request.line.tree</field>
+			<field name="model">tpt.material.request.line</field>
+			<field name="arch" type="xml">
+				<tree string="Material Request – Line Details" edit = 'false' delete = 'false' create = 'false' >
+						<field name="material_request_id" string="Material Request No"/>
+						<field name="date_request_relate"/> 
+						<field name="date_expect_relate"/> 
+						<field name="department_relate"/> 
+						<field name="section_relate"/> 
+						<field name="requisitioner_relate"/> 
+						<field name="raise_relate"/> 
+						<field name="product_id"/> 
+						<field name="dec_material"/> 
+						<field name="uom_po_id"/> 
+						<field name="product_uom_qty"/> 
+						<field name="on_hand_qty"/> 
+						<field name="pending_qty"/>
+						<field name="bin"/> 
+						<field name="state_relate"/> 
+				</tree>
+			</field>
+		</record>       
+        
+        <record id="view_tpt_material_request_line_form" model="ir.ui.view">
+            <field name="name">tpt.material.request.line.form</field>
+            <field name="model">tpt.material.request.line</field>
+            <field name="arch" type="xml">
+	            <form string="Material Request – Line Details" version="7.0" edit = 'false' delete = 'false' create = 'false' >   
+	            <sheet> 
+	            	<group col="4" colspan="2"> 
+	            		<field name="material_request_id" string="Material Request No"/>
+						<field name="date_request_relate"/> 
+						<field name="date_expect_relate"/> 
+						<field name="department_relate"/> 
+						<field name="section_relate"/> 
+						<field name="requisitioner_relate"/> 
+						<field name="raise_relate"/> 
+						<field name="product_id"/> 
+						<field name="dec_material"/> 
+						<field name="uom_po_id"/> 
+						<field name="product_uom_qty"/> 
+						<field name="on_hand_qty"/> 
+						<field name="pending_qty"/> 
+						<field name="bin"/> 
+						<field name="state_relate"/>  
+					</group>
+				</sheet>  
+		       </form>
+			</field>
+		</record>
+		
+		<record id="view_tpt_material_request_line_search_vew" model="ir.ui.view">
+			<field name="name">tpt.material.request.line.search</field>
+			<field name="model">tpt.material.request.line</field>
+			<field name="arch" type="xml">
+				<search string="Material Request – Line Details">
+					<field name="material_request_id"/>	
+					<field name="requisitioner_relate"/>
+					<field name="product_id"/>
+					<field name="dec_material"/>
+					<filter string="Draft" name="draft" icon="terp-personal" domain="[('state_relate','=','draft')]" context="{}"/>
+        			<filter string="Approve" name="done" icon="terp-personal" domain="[('state_relate','=','done')]" context="{}"/>
+        			<filter string="Closed" name="closed" icon="terp-personal" domain="[('state_relate','=','closed')]" context="{}"/>
+        			<filter string="Partially Issued" name="partially" icon="terp-personal" domain="[('state_relate','=','partially')]" context="{}"/>
+        			<group expand="0" string="Group By...">
+                        <filter string='Status' icon="terp-stock_symbol-selection" domain="[]" context="{'group_by' : 'state'}"/>
+                    </group>		
+				</search>
+			</field>
+		</record>
+		
+		<record id="action_view_tpt_material_request_line_form" model="ir.actions.act_window">
+            <field name="name">Material Request – Line Details</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.material.request.line</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="context">{'search_default_draft':1, 'search_default_done':1, 'search_default_partially':1}</field>
+            <field name="domain">[]</field>
+            <field name="search_view_id" ref="view_tpt_material_request_line_search_vew"/>
+            <field name="view_id" ref="view_tpt_material_request_line_tree"/>
+        </record>
+       <record id="action_view_tpt_material_request_line_form1" model="ir.actions.act_window.view">
+            <field eval="0" name="sequence"/>
+            <field name="view_mode">tree</field>
+            <field name="view_id" ref="view_tpt_material_request_line_tree"/>
+            <field name="act_window_id" ref="action_view_tpt_material_request_line_form"/>
+        </record>
+        <record id="action_view_tpt_material_request_line_form2" model="ir.actions.act_window.view">
+            <field eval="1" name="sequence"/>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="view_tpt_material_request_line_form"/>
+            <field name="act_window_id" ref="action_view_tpt_material_request_line_form"/>
+        </record>  
+          
+            
+        <menuitem action="action_view_tpt_material_request_line_form"
+            id="menu_action_view_tpt_material_request_line_form"
+            parent="purchase.menu_procurement_management" sequence="21"/>
         
     </data>
 </openerp>

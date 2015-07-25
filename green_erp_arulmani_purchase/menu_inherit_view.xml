@@ -18,13 +18,13 @@
             
         <menuitem name="Purchases"
             id="base.menu_purchase_root"
-            groups="green_erp_arulmani_purchase.group_vvti_purchase_store_user,green_erp_arulmani_purchase.group_vvti_hrm_plant_mm_user,green_erp_arulmani_crm.group_qc_user,green_erp_arulmani_sale.group_vvti_marketing_user"
+            groups="green_erp_arulmani_purchase.group_vvti_purchase_store_user,green_erp_arulmani_purchase.group_vvti_hrm_plant_mm_user,green_erp_arulmani_crm.group_qc_user,green_erp_arulmani_sale.group_vvti_marketing_user,green_erp_arulmani_hrm.group_vvti_hrm_hr_user,green_erp_arulmani_hrm.group_vvti_hrm_time_user,green_erp_arulmani_hrm.group_vvti_hrm_plant_hr_user"
             sequence="60"/>
             
         <menuitem action="purchase.purchase_form_action"
         	id="purchase.menu_purchase_form_action"
         	parent="purchase.menu_procurement_management" sequence="6"
-        	groups="green_erp_arulmani_purchase.group_vvti_purchase_user,green_erp_arulmani_purchase.group_vvti_purchase_gm,green_erp_arulmani_sale.group_vvti_marketing_user"/>
+        	groups="green_erp_arulmani_purchase.group_vvti_purchase_user,green_erp_arulmani_purchase.group_vvti_purchase_gm,green_erp_arulmani_sale.group_vvti_marketing_user,green_erp_arulmani_sale.group_vvti_marketing_user,green_erp_arulmani_hrm.group_vvti_hrm_hr_user,green_erp_arulmani_hrm.group_vvti_hrm_time_user,green_erp_arulmani_hrm.group_vvti_hrm_plant_hr_user"/>
         	
         <record model="ir.ui.menu" id="stock.menu_action_picking_tree6">
 	    	<field name="groups_id" eval="[(6, 0,[ref('green_erp_arulmani_purchase.group_vvti_purchase_key_user'),ref('green_erp_arulmani_purchase.group_vvti_purchase_store_user'),ref('green_erp_arulmani_sale.group_vvti_sale_manager')])]"/>
@@ -51,6 +51,38 @@
             id="menu_action_grn_line_details"
             parent="stock.menu_stock_warehouse_mgmt"
             sequence="2"/>
+            
+        <record model="ir.ui.menu" id="purchase.menu_procurement_management_invoice">
+	    	<field name="groups_id" eval="[(6, 0,[ref('base.user_root')])]"/>
+		</record>
+		
+		<record model="ir.ui.menu" id="purchase.menu_procurement_partner_contact_form"> 
+	    	<field name="groups_id" eval="[(4, ref('green_erp_arulmani_purchase.group_vvti_hrm_plant_mm_user')),
+	    									(4, ref('green_erp_arulmani_crm.group_qc_user')),
+	    									(4, ref('green_erp_arulmani_purchase.group_vvti_purchase_user')),
+	    									(4, ref('green_erp_arulmani_purchase.group_vvti_purchase_store_user'))]"/>
+		</record>
         
+        <record model="ir.ui.menu" id="account.menu_action_payment_term_form">
+		    <field name="groups_id" eval="[(4, ref('green_erp_arulmani_purchase.group_vvti_purchase_user'))]" />
+		</record>
+		
+		<record model="ir.ui.menu" id="base.menu_crm_config_lead">
+		    <field name="groups_id" eval="[(4, ref('green_erp_arulmani_purchase.group_vvti_purchase_user'))]" />
+		</record>
+		
+		<record model="ir.ui.menu" id="crm.menu_crm_payment_mode_act">
+		    <field name="groups_id" eval="[(4, ref('green_erp_arulmani_purchase.group_vvti_purchase_user'))]" />
+		</record>
+		
+		<report auto="False" id="purchase.report_purchase_quotation" model="purchase.order" 
+                name="purchase.quotation" rml="purchase/report/request_quotation.rml"
+                string="Request for Quotation"
+                groups="base.user_root"/>
+        <report auto="False" id="purchase.report_purchase_order" model="purchase.order"
+                name="purchase.order" rml="purchase/report/order.rml"
+                usage="default" string="Purchase Order"
+                groups="base.user_root"/>
+                
     </data>
 </openerp>

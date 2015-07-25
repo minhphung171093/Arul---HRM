@@ -78,10 +78,11 @@
 		                			<field name="date"/>
 		                			<field name="document_no"/>
 		                			<field name="reference"/>
+		                			<field name="sale_order_no"/>		                			
 		                	       	<field name="invoice_no"/>
+		                	       	<field name="narration"/>
 		                			<field name="bill_no"/>
-		                			<field name="bill_date"/>
-		                			<field name="narration"/>
+		                			<field name="bill_date"/>		                			
 		                			<field name="cheque_no"/>
 		                			<field name="cheque_date"/>
 		                			<field name="debit"/>
