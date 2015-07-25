@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+	    <record id="ed_type_form_view" model="ir.ui.view">
+	        <field name="name">ed.type.pop.up</field>
+	        <field name="model">ed.type.pop.up</field>
+	        <field eval="20" name="priority"/>
+	        <field name="arch" type="xml">
+	            <form string="Post ED" version="7.0">
+	            <h1>
+	                <field name="message"  nolabel="1" />
+	            </h1>
+	            <group>
+	            	<field name="ed_type" />
+	            	<field name="invoice_id" invisible = '1'/>
+	            </group>
+	                <footer>
+	                    <button name="tick_ok" type='object' string="OK" class="oe_highlight"/>
+	                    or
+	                    <button string="Cancel" class="oe_highlight" special="cancel" />
+	                </footer>
+	            </form>
+	        </field>
+    	</record>
+	    
+    </data>
+</openerp>
+

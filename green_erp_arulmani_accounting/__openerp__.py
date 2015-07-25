@@ -43,6 +43,7 @@
         'wizard/account_report_common_view.xml',
         'wizard/review_posting_view.xml',
         'wizard/service_tax_register_view.xml',
+        'wizard/ed_type_pop_up_view.xml',
         'tpt_accounting_sequence.xml',
         'auto_posting_schedule.xml',
         'report/daily_sale_report_view.xml',
