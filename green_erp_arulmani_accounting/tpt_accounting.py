@@ -4725,7 +4725,7 @@ class tpt_hr_payroll_approve_reject(osv.osv):
                 value_s1={
                     'journal_id':journal.id,
                     'period_id':period_id.id ,
-                    'date': time.strftime('%Y-%m-%d'),
+                    'date': line.post_date,#time.strftime('%Y-%m-%d'),
                     'line_id': journal_s1_line,
                     'doc_type':'payroll'
                     }
@@ -4880,7 +4880,7 @@ class tpt_hr_payroll_approve_reject(osv.osv):
                 value_s2={
                     'journal_id':journal.id,
                     'period_id':period_id.id ,
-                    'date': time.strftime('%Y-%m-%d'),
+                    'date': line.post_date,#time.strftime('%Y-%m-%d'),
                     'line_id': journal_s2_line,
                     'doc_type':'staff_payroll'
                     }
@@ -5035,7 +5035,7 @@ class tpt_hr_payroll_approve_reject(osv.osv):
                 value_s3={
                     'journal_id':journal.id,
                     'period_id':period_id.id ,
-                    'date': time.strftime('%Y-%m-%d'),
+                    'date': line.post_date,#time.strftime('%Y-%m-%d'),
                     'line_id': journal_s3_line,
                     'doc_type':'worker_payroll'
                     }

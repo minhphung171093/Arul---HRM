@@ -682,6 +682,7 @@ class tpt_hr_payroll_approve_reject(osv.osv):
          'year': fields.selection([(num, str(num)) for num in range(1951, 2026)], 'Year', required = True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
          'month': fields.selection([('1', 'January'),('2', 'February'), ('3', 'March'), ('4','April'), ('5','May'), ('6','June'), ('7','July'), ('8','August'), ('9','September'), ('10','October'), ('11','November'), ('12','December')], 'Month',required = True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
          'state':fields.selection([('draft', 'New'),('cancel', 'Reject'),('done', 'Approved')],'Status', readonly=True),
+         'post_date': fields.date('Posting Date',required=True),
          'create_date': fields.datetime('Created Date',readonly = True),
          'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
     }
