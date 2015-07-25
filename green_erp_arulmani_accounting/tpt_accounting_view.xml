@@ -164,6 +164,10 @@
 				<xpath expr="//field[@name='date_invoice']" position="after">
 					<field name='bill_number'/>
 					<field name='bill_date'/>
+					<field name='flag_bt_ed' invisible = '1'/>
+				</xpath>
+				<xpath expr="//button[@name='invoice_open']" position="after">
+					 <button name="bt_post_ed" type="object" string="Post ED" attrs="{'invisible':[('flag_bt_ed','=',False)]}" groups="green_erp_arulmani_accounting.group_vvti_accounting_user"/>
 				</xpath>
 				<xpath expr="//field[@name='partner_id']" position="attributes">
 					<attribute name='string'>Vendor</attribute>
@@ -2767,7 +2771,60 @@
 							<field name="journal_vouchers"/>
 							<field name="production_declaration"/>
 							<field name="payroll"/>
-s						</group>
+						</group>
+					</sheet>
+		         </form>
+			</field>
+		</record>
+		
+	  <record id="view_tpt_ed_invoice_positing_tree" model="ir.ui.view">
+			<field name="name">tpt.ed.invoice.positing.tree</field>
+			<field name="model">tpt.ed.invoice.positing</field>
+			<field name="arch" type="xml">
+				<tree string="ED Invoice Posting">
+						<field name="name"/>
+						<field name="ed_type"/>
+						<field name="supplier_id" options="{'create': false, 'create_edit': false}" />
+						<field name="date"/>
+						<field name="invoice_id" options="{'create': false, 'create_edit': false}" />
+						<field name="created_on"  />
+						<field name="create_uid" options="{'create': false, 'create_edit': false}" />
+						<field name="state"/>
+				</tree>
+			</field>
+	  </record>
+	  
+	  <record id="view_tpt_ed_invoice_positing_form" model="ir.ui.view">
+            <field name="name">tpt.ed.invoice.positing.form</field>
+            <field name="model">tpt.ed.invoice.positing</field>
+            <field name="arch" type="xml">
+	            <form string="ED Invoice Posting" version="7.0" create = 'false'>   
+	            <header>
+	            		<button name="bt_validate" states='draft' string="Validate" type="object" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin,green_erp_arulmani_purchase.group_vvti_hrm_plant_mm_user"/>
+	                    <field name="state" widget="statusbar" statusbar_visible="draft,posted" statusbar_colors='{"posted":"blue"}'/>
+	            </header> 
+	            	<sheet>
+						<group col="4" colspan="2">
+							<field name="name"/>
+							<field name="ed_type"/>
+							<field name="supplier_id" options="{'create': false, 'create_edit': false}" />
+							<field name="date"/>
+							<field name="invoice_id" options="{'create': false, 'create_edit': false}" />
+							<field name="created_on"  />
+							<field name="create_uid" options="{'create': false, 'create_edit': false}" />
+						</group>
+						<notebook>
+							<page string = "ED Invoice Posting - Line Tab">
+								<field name="tpt_ed_invoice_positing_line" nolabel='1'>
+									<tree editable='bottom' create = 'false'>
+										<field name="gl_account_id" options="{'create': false, 'create_edit': false}" />
+										<field name="gl_desc" />
+										<field name="debit" sum = 'Total'/>
+										<field name="credit" sum = 'Total'/>
+									</tree>
+								</field>
+							</page>
+						</notebook>
 		         	</sheet>
 		         </form>
 			</field>
@@ -2786,6 +2843,20 @@ s						</group>
             id="menu_action_tpt_auto_posting_form_view"
             parent="menu_tpt_accounting" sequence="20"
             groups="base.user_root"/>
+		
+		<record id="action_view_tpt_ed_invoice_positing_form" model="ir.actions.act_window">
+            <field name="name">ED Invoice Posting</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.ed.invoice.positing</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="domain">[]</field>
+            <field name="view_id" ref="view_tpt_ed_invoice_positing_tree"/>
+        </record>
+        
+        <menuitem action="action_view_tpt_ed_invoice_positing_form"
+            id="menu_action_view_tpt_ed_invoice_positing_form"
+            parent="green_erp_arulmani_accounting.menu_tpt_accounting" sequence="10" />
 	  
     </data>
 </openerp>
