@@ -2486,7 +2486,7 @@ class tpt_update_stock_move_report(osv.osv):
             cr.execute(sql)
             sql = '''
                 delete from account_move where ref = 'VVTi/GRN/00002183'
-            '''%(num)
+            '''
             cr.execute(sql)
             sql='''
                 select id from tpt_quanlity_inspection where need_inspec_id in (select id from stock_move where picking_id = %s)
