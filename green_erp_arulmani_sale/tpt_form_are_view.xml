@@ -8,8 +8,6 @@
 				<tree string="Form A.R.E - 1">
 						<field name="name"/>
 						<field name="date"/>
-						<field name="commisionarate_id"/>
-						<field name="consignment_to"/>
 						<field name="invoice_no_id"/>
 						<field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
 				</tree>
@@ -39,6 +37,7 @@
 							<newline/>
 							<field name="invoice_no_id"  domain="[('sale_id','!=',False)]" options="{'create': false, 'create_edit': false}" />
 							<field name="excise_duty_id" />
+							<field name="description_goods" />
 							<field name="remarks" />
 							<!-- <field name="consignment_to" options="{'create': false, 'create_edit': false}"/> 
 							<field name="commisionarate_id" options="{'create': false, 'create_edit': false}"/>-->
@@ -163,10 +162,8 @@
 				<tree string="Form A.R.E - 3">
 						<field name="name"/>
 						<field name="date"/>
-						<field name="division_from"/>
-						<field name="division_to"/>
-						<field name="warehouse_from_id"/>
-						<field name="warehouse_to_id"/>
+						<field name="invoice_no_id"/>
+						
 				</tree>
 			</field>
 		</record>      

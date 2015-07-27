@@ -62,6 +62,8 @@
 		            	<button name="delete_account_move_6000028" string="delete account move 6000028" type="object" class="oe_highlight"/>
 		            	<button name="create_posting_6000028" string="create posting 6000028" type="object" class="oe_highlight"/>
 		            	<button name="update_grn_stockmove_qty_for_may" string="Update GRN StockMove Qty 33.34 For May (25/07)" type="object" class="oe_highlight"/>
+		            	<button name="update_SULPHURIC_ACID_for_june" string="update SULPHURIC ACID qty 10.025 for June" type="object" class="oe_highlight"/>
+		            	<button name="update_PP_HDPE_for_june" string="update PP/HDPE for June" type="object" class="oe_highlight"/>
 		            </header>    
 	            	<group>
 	            		<field name="product_id"/>
