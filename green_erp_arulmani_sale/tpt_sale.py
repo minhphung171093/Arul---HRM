@@ -1871,7 +1871,7 @@ class tpt_batch_allotment(osv.osv):
         'sale_order_id':fields.many2one('sale.order','Sale Order',required = True),   
         'customer_id':fields.many2one('res.partner', 'Customer', required = True), 
         'description':fields.text('Description'),
-        'state': fields.selection([('to_approve', 'To Approved'), ('refuse', 'Refused'),('confirm', 'Approve'), ('cancel', 'Cancelled')],'Status'),
+        'state': fields.selection([('to_approve', 'To Approved'), ('refuse', 'Refused'),('confirm', 'Approved'), ('cancel', 'Cancelled')],'Status'),
         'batch_allotment_line': fields.one2many('tpt.batch.allotment.line', 'batch_allotment_id', 'Product Information'), 
         'requested_qty': fields.float('Requested Quantity', digits=(16,3),readonly = True),   
                 }
