@@ -2763,6 +2763,24 @@ class tpt_update_stock_move_report(osv.osv):
         cr.execute(sql)
         
         return self.write(cr, uid, ids, {'result':'update SULPHURIC ACID qty 10.025 for June Done'}) 
+    
+    def update_PP_HDPE_for_june(self, cr, uid, ids, context=None):
+        sql = '''
+            delete from stock_inventory_move_rel where inventory_id in (165,166,175,177)
+        '''
+        cr.execute(sql)
+        
+        sql = '''
+            delete from stock_move where id in (34593, 34811, 39229, 39540)
+        '''
+        cr.execute(sql)
+        
+        sql = '''
+            delete from stock_inventory where id in (165,166,175,177)
+        '''
+        cr.execute(sql)
+        
+        return self.write(cr, uid, ids, {'result':'update PP/HDPE for June Done'}) 
 tpt_update_stock_move_report()
 
 
