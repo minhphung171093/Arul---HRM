@@ -252,7 +252,7 @@
 				</xpath>
 				
 				<xpath expr="//field[@name='currency_id']" position="attributes">
-					<attribute name="readonly">0</attribute>
+					<attribute name="readonly">1</attribute>
 				</xpath>  
 				<xpath expr="//field[@name='account_id']" position="replace">
 					<field name="account_id" required = "0" invisible = "1"/>
@@ -304,13 +304,26 @@
 					<attribute name="invisible">1</attribute>
 				</xpath>
 				
+				<xpath expr="//form/sheet/notebook/page[@string='Invoice Lines']/field/tree/field[@name='name']"  position="attributes">
+					<attribute name="readonly">1</attribute>
+				</xpath>
+				<xpath expr="//form/sheet/notebook/page[@string='Invoice Lines']/field/tree/field[@name='quantity']"  position="attributes">
+					<attribute name="readonly">1</attribute>
+				</xpath>
+				<xpath expr="//form/sheet/notebook/page[@string='Invoice Lines']/field/tree/field[@name='price_unit']"  position="attributes">
+					<attribute name="readonly">1</attribute>
+				</xpath>
+				<xpath expr="//form/sheet/notebook/page[@string='Invoice Lines']/field/tree/field[@name='uos_id']"  position="attributes">
+					<attribute name="readonly">1</attribute>
+				</xpath>
+				
 				<xpath expr="//form/sheet/notebook/page[@string='Invoice Lines']/field/tree/field[@name='price_subtotal']"  position="replace">
 					<field name="amount_basic"/>
 					<field name="amount_ed"/>
 					<field name="price_subtotal" string ="SubTotal"/>
-					<field name="freight" />
-					<field name="insurance" />
-					<field name="others" />
+					<field name="freight" readonly='1'/>
+					<field name="insurance" readonly='1'/>
+					<field name="others" readonly='1'/>
 				</xpath>
 				
 				<xpath expr="//field[@name='amount_total']" position="after">
