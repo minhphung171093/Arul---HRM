@@ -2933,6 +2933,7 @@ class tpt_update_stock_move_report(osv.osv):
                     'line_id': journal_line,
                     'doc_type':'grn',
                     'grn_id':line.id,
+                    'ref': line.name,
                     }
                 new_jour_id = account_move_obj.create(cr,uid,value)
         return self.write(cr, uid, ids, {'result':'Create all GRN posting Done'}) 
