@@ -571,7 +571,8 @@ class stock_picking(osv.osv):
                         'period_id':period_id.id ,
                         'date': date_period,
                         'line_id': journal_line,
-                        'doc_type':'grn'
+                        'doc_type':'grn',
+                        'grn_id':line.id
                         }
                     new_jour_id = account_move_obj.create(cr,uid,value)
             if 'state' in vals and line.type == 'out' and line.state=='done':
@@ -5131,6 +5132,7 @@ class account_move(osv.osv):
                                   ('freight', 'Freight Invoice'),
                                   ('worker_payroll', 'Workers Payroll')],'Document Type'),  
         'material_issue_id': fields.many2one('tpt.material.issue','Material Issue',ondelete='restrict'), 
+        'grn_id': fields.many2one('stock.picking','GRN',ondelete='restrict'), 
                                   
                 }
 account_move()
