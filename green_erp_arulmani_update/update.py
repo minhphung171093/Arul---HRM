@@ -2841,22 +2841,18 @@ class tpt_update_stock_move_report(osv.osv):
         
                 if 'state' in vals and line.state=='done':
                     for mat in line.move_lines2:
-                        avg_cost_ids = avg_cost_obj.search(cr, uid, [('product_id','=',mat.product_id.id),('warehouse_id','=',line.location_src_id.id)])
-                        if avg_cost_ids:
-                            avg_cost_id = avg_cost_obj.browse(cr, uid, avg_cost_ids[0])
-                            unit = avg_cost_id.avg_cost
-                            cost = unit * mat.product_qty
-                            price += cost
-                            if cost:
-                                if mat.product_id.purchase_acc_id:
-                                    journal_line.append((0,0,{
-                                                    'name':mat.product_id.code, 
-                                                    'account_id': mat.product_id.purchase_acc_id and mat.product_id.purchase_acc_id.id,
-                                                    'debit':cost,
-                                                    'credit':0,
-                                                   }))
-                                else:
-                                    raise osv.except_osv(_('Warning!'),_("Purchase GL Account is not configured for Product '%s'! Please configured it!")%(mat.product_id.code))
+                        cost = mat.price_unit * mat.product_qty
+                        price += cost
+                        if cost:
+                            if mat.product_id.purchase_acc_id:
+                                journal_line.append((0,0,{
+                                                'name':mat.product_id.code, 
+                                                'account_id': mat.product_id.purchase_acc_id and mat.product_id.purchase_acc_id.id,
+                                                'debit':cost,
+                                                'credit':0,
+                                               }))
+                            else:
+                                raise osv.except_osv(_('Warning!'),_("Purchase GL Account is not configured for Product '%s'! Please configured it!")%(mat.product_id.code))
                     for act in line.bom_id.activities_line:
                         if act.activities_id.act_acc_id:
                             credit += act.product_cost
@@ -2883,8 +2879,9 @@ class tpt_update_stock_move_report(osv.osv):
                                 'journal_id':journal_ids[0],
                                 'period_id':period_id.id ,
                                 'doc_type':'product',
-                                'date': time.strftime('%Y-%m-%d'),
+                                'date': line.date_planned,
                                 'line_id': journal_line,
+                                'product_dec': line.id
                             }
                     new_jour_id = account_move_obj.create(cr,uid,value)
                     sql = '''
@@ -2892,6 +2889,59 @@ class tpt_update_stock_move_report(osv.osv):
                     '''%(credit,line.id)
                     cr.execute(sql)
         return self.write(cr, uid, ids, {'result':'create_one_production_one_posting Done'}) 
+    
+    def config_GRN_1155(self, cr, uid, ids, context=None):
+        invoice_obj = self.pool.get('account.invoice')
+        inspec_obj = self.pool.get('tpt.quanlity.inspection')
+        picking_obj = self.pool.get('stock.picking')
+        move_obj = self.pool.get('account.move')
+        sql = '''
+            select id from stock_picking where name = 'VVTi/GRN/00001155'
+        '''
+        cr.execute(sql)
+        num = cr.fetchone()[0]
+        if num:
+            sql='''
+                select id from account_invoice where grn_no = %s
+            '''%(num)
+            cr.execute(sql)
+            inv_id = cr.fetchone()[0]
+            invoice_id = invoice_obj.browse(cr, uid, inv_id)
+            move_obj.button_cancel(cr, uid, [invoice_id.move_id.id])
+            cr.execute(''' delete from account_move_line where move_id = %s''',(invoice_id.move_id.id,))
+            cr.execute(''' delete from account_invoice_line where invoice_id = %s''',(invoice_id.id,))
+            cr.execute(''' delete from account_invoice where id = %s''',(invoice_id.id,))
+            cr.execute(''' delete from account_move where id = %s''',(invoice_id.move_id.id,))
+            
+            sql = '''
+                delete from account_move_line where left(name,17)=(select name from stock_picking where id = %s)
+            '''%(num)
+            cr.execute(sql)
+            sql = '''
+                delete from account_move where ref = 'VVTi/GRN/00001155'
+            '''
+            cr.execute(sql)
+            sql='''
+                select id from tpt_quanlity_inspection where need_inspec_id in (select id from stock_move where picking_id = %s)
+            '''%(num)
+            cr.execute(sql)
+            inspec_ids = [row[0] for row in cr.fetchall()]
+            if inspec_ids:
+                for move in inspec_ids:
+                    sql='''
+                        select id from stock_move where inspec_id = %s
+                    '''%(move)
+                    cr.execute(sql)
+                    move_ids = [row[0] for row in cr.fetchall()]
+                    if move_ids:
+                        cr.execute('delete from stock_move where id in %s',(tuple(move_ids),))
+                cr.execute('delete from tpt_quanlity_inspection where id in %s',(tuple(inspec_ids),))
+            cr.execute(''' update stock_picking set invoice_state ='2binvoiced' where id = %s''',(num,))
+            picking_obj.action_revert_done(cr, uid, [num], context)
+            picking_obj.action_cancel(cr, uid, [num], context)
+
+        
+        return self.write(cr, uid, ids, {'result':'config_GRN_1155 Done'})  
 tpt_update_stock_move_report()
 
 
