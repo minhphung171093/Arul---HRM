@@ -3025,6 +3025,11 @@ class tpt_update_stock_move_report(osv.osv):
         '''
         cr.execute(sql)
         
+        sql = '''
+            update tpt_quanlity_inspection set qty_approve = 16.025, remaining_qty = 0 where id = 1558 
+        '''
+        cr.execute(sql)
+        
         return self.write(cr, uid, ids, {'result':'update SULPHURIC ACID qty 6.00 for June Done'}) 
 tpt_update_stock_move_report()
 
