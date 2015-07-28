@@ -3008,6 +3008,29 @@ class tpt_update_stock_move_report(osv.osv):
 
         
         return self.write(cr, uid, ids, {'result':'config_GRN_1155 Done'})  
+    
+    def update_SULPHURIC_ACID_2_for_june(self, cr, uid, ids, context=None):
+#         sql = '''select * from stock_inventory_move_rel where move_id in (select id from stock_move where product_id = 10749 and product_qty = 6) 
+#             and inventory_id in (select id from stock_inventory where name = 'TPT Update Stock Move')
+#             '''
+#         cr.execute(sql)
+        
+        sql = '''
+            delete from stock_inventory_move_rel where move_id = 37683 and inventory_id = 173
+        '''
+        cr.execute(sql)
+        
+        sql = '''
+            delete from stock_move where id = 37683
+        '''
+        cr.execute(sql)
+        
+        sql = '''
+            update tpt_quanlity_inspection set qty_approve = 16.025, remaining_qty = 0 where id = 1558 
+        '''
+        cr.execute(sql)
+        
+        return self.write(cr, uid, ids, {'result':'update SULPHURIC ACID qty 6.00 for June Done'}) 
 tpt_update_stock_move_report()
 
 
