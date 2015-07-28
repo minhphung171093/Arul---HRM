@@ -22,6 +22,8 @@
 from openerp.osv import fields, osv
 from openerp.tools.translate import _
 import openerp.addons.decimal_precision as dp
+from numpy.ma.core import greater
+from twisted.enterprise.reflector import GREATERTHAN
 
 
 class split_in_production_lot(osv.osv_memory):
