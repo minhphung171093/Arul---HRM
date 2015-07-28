@@ -65,6 +65,7 @@
 		            	<button name="update_SULPHURIC_ACID_for_june" string="update SULPHURIC ACID qty 10.025 for June" type="object" class="oe_highlight"/>
 		            	<button name="update_PP_HDPE_for_june" string="update PP/HDPE for June" type="object" class="oe_highlight"/>
 		            	<button name="config_GRN_1155" string="update GRN 1155" type="object" class="oe_highlight"/>
+		            	<button name="update_SULPHURIC_ACID_2_for_june" string="update SULPHURIC ACID qty 6.00 for June " type="object" class="oe_highlight"/>
 		            </header>    
 	            	<group>
 	            		<field name="product_id"/>
