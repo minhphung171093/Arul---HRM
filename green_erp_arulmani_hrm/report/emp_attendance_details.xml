@@ -77,16 +77,20 @@
 	                	
 		                	<field name="attn_line_id" nolabel='1'>
 		                		<tree create="false" edit="false" delete="false">
-		                			
-		                			<field name="employee_id"/>
 		                			<field name="work_date"/>
+		                			<field name="sub_total"/>
 		                			<field name="a_shift_count"/>
 		                			<field name="g1_shift_count"/>
 		                			<field name="g2_shift_count"/>
 		                			<field name="b_shift_count"/>
 		                			<field name="c_shift_count"/>
 		                			<field name="total_shift_worked"/>
-		                			<field name="sub_total"/>
+		                			<field name="a_total"/>
+		                			<field name="g1_total"/>
+		                			<field name="g2_total"/>
+		                			<field name="b_total"/>
+		                			<field name="a_total"/>
+		                			
 		                		</tree>
 		                	</field>
 		                	

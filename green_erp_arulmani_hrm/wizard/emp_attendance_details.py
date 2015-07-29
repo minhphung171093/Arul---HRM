@@ -51,6 +51,12 @@ class emp_attendance_line(osv.osv_memory):
         'c_shift_count': fields.float('C'),
         'total_shift_worked': fields.float('Total'),
         'sub_total': fields.char('', size = 1024),
+        'a_total': fields.float('A1'),
+        'g1_total': fields.float('G1-1'),
+        'g2_total': fields.float('G2-1'),
+        'b_total': fields.float('B1'),
+        'c_total': fields.float('C1'),
+        'total_shift': fields.float('Total1'),
         
     }
 
@@ -68,22 +74,56 @@ class emp_attendance_details(osv.osv_memory):
     
     def print_report(self, cr, uid, ids, context=None):
         
+        def get_a_total(get_move_ids):
+            a_total = 0.0
+            for move in get_move_ids:
+                a_total += move['a_shift_count']    
+            return a_total
+        def get_g1_total(get_move_ids):
+            a_total = 0.0
+            for move in get_move_ids:
+                a_total += move['g1_shift_count']    
+            return a_total
+        def get_g2_total(get_move_ids):
+            a_total = 0.0
+            for move in get_move_ids:
+                a_total += move['g2_shift_count']    
+            return a_total
+        def get_b_total(get_move_ids):
+            a_total = 0.0
+            for move in get_move_ids:
+                a_total += move['b_shift_count']    
+            return a_total
+        def get_c_total(get_move_ids):
+            a_total = 0.0
+            for move in get_move_ids:
+                a_total += move['c_shift_count']    
+            return a_total
+        def get_c_total(get_move_ids):
+            a_total = 0.0
+            for move in get_move_ids:
+                a_total += move['c_shift_count']    
+            return a_total
         def get_move_ids(o):
             account_voucher_obj = self.pool.get('arul.hr.punch.in.out.time')
             move_lines = []
             date_arr = []
             date_from = o.date_from
             date_to = o.date_to
-            emp_id = o.employee_id
+            emp = o.employee_id
             emp_categ = o.employee_categ_id
             
             sql = '''
-            select emp.employee_id,io.work_date 
+            select emp.employee_id employee_id,io.work_date work_date, 
+            io.a_shift_count1 a_shift_count, io.g1_shift_count1 g1_shift_count, io.g2_shift_count1 g2_shift_count, 
+            io.b_shift_count1 b_shift_count,io.c_shift_count1 c_shift_count, 
+            io.total_shift_worked1 total_shift_worked
                             from arul_hr_punch_in_out_time io
                             inner join hr_employee emp on io.employee_id=emp.id
-                            where io.work_date between %s and %s
+                            where io.work_date between '%s' and '%s'
                             and io.employee_id=%s
-            '''%(date_from, date_to, emp_id)
+            order by io.work_date
+            '''%(date_from, date_to, emp.id)
             
             cr.execute(sql)
             res = cr.dictfetchall()
@@ -103,21 +143,27 @@ class emp_attendance_details(osv.osv_memory):
         }))
         for seq, line in enumerate(get_move_ids(cb)):
             attn_line.append((0,0,{
-            'date': line.move_id and line.move_id.date or '',
-                'employee_id': line.employee_id and line.employee_id.employee_id or '',    
-                'work_date': line.work_date or '',  
-                'a_shift_count': line.a_shift_count1 or '',  
-                'g1_shift_count': line.g1_shift_count1 or '',  
-                'g2_shift_count': line.g2_shift_count1 or '',  
-                'b_shift_count': line.b_shift_count1 or '',  
-                'c_shift_count': line.c_shift_count1 or '',  
-                'total_shift_worked': line.total_shift_worked1 or '',  
-                'sub_total': 'Days Total',
+                #'date': line.header_id and line.header_id.date or '',
+                'employee_id': line['employee_id'],#line.employee_id or '',    
+                'work_date': line['work_date'],  
+                'a_shift_count': line['a_shift_count'] or '',  
+                'g1_shift_count': line['g1_shift_count'] or '',  
+                'g2_shift_count': line['g2_shift_count'] or '',  
+                'b_shift_count': line['b_shift_count'] or '',  
+                'c_shift_count': line['c_shift_count'] or '',  
+                'total_shift_worked': line['total_shift_worked'] or '',  
+                
                 
             }))
         attn_line.append((0,0,{
             #'voucher_id': False,
             'sub_total': 'Days Total',
+            'a_total': get_a_total(get_move_ids(cb)),
+            'g1_total': get_g1_total(get_move_ids(cb)),
+            'g2_total': get_g2_total(get_move_ids(cb)),
+            'b_total': get_b_total(get_move_ids(cb)),
+            'total_shift': get_a_total(get_move_ids(cb)),
+            'g2_total': get_a_total(get_move_ids(cb)),
             
             'date':False,
             'desc':False,

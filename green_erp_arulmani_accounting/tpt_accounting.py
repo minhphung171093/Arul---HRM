@@ -605,7 +605,7 @@ class stock_picking(osv.osv):
                             if sale_id:
                                 sql = '''
                                     select id from tpt_batch_allotment where sale_order_id = %s and state='confirm'
-                                '''%(sale_id)
+                                '''%(sale_id) #TPT-By BalamuruganPurushothaman ON 29/07/2015 - TO TAKE CONFIRMED BATCH ALLOTMENT ONLY NOT IN CANCEL STATE
                                 cr.execute(sql)
                                 allot_ids = cr.dictfetchone()
                                 if allot_ids:
