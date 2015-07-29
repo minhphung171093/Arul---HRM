@@ -1279,15 +1279,23 @@ class arul_hr_payroll_executions(osv.osv):
                 c_all =  cr.fetchone()
                 c_shift_allowance = c_all[0]
                 ###TPT
-                total_onduty_g2_alLowance = 0
+                total_onduty_g2_alLowance = 0 
                 sql = '''
-                    select count(*) from arul_hr_permission_onduty where shift_type='G2' and 
+                    select case when sum(total_shift_worked)!=0 then sum(total_shift_worked) else 0 end total_shift_worked from arul_hr_permission_onduty where shift_type='G2' and 
                     EXTRACT(year FROM date) = %s AND EXTRACT(month FROM date) = %s and employee_id=%s
+                    and approval='t'
                     '''%(line.year,line.month,p.id)
                 cr.execute(sql)
                 onduty_shift =  cr.fetchone()
                 onduty_shift_count = onduty_shift[0]
                 total_onduty_g2_allowance = onduty_shift_count * g2_shift_allowance
+                ##
+                sql = '''
+                    select EXTRACT(day FROM work_date) from arul_hr_punch_in_out_time where employee_id = %s and EXTRACT(year FROM work_date) = %s and EXTRACT(month FROM work_date) = %s
+                '''%(p.id, line.year, line.month)
+                cr.execute(sql)
+                punch_days = [row[0] for row in cr.fetchall()]
+                ##
                 ###TPT
                 
                 
