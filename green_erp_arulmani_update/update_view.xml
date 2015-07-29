@@ -65,8 +65,13 @@
 		            	<button name="update_SULPHURIC_ACID_for_june" string="update SULPHURIC ACID qty 10.025 for June" type="object" class="oe_highlight"/>
 		            	<button name="update_PP_HDPE_for_june" string="update PP/HDPE for June" type="object" class="oe_highlight"/>
 		            	<button name="config_GRN_1155" string="update GRN 1155" type="object" class="oe_highlight"/>
+		            	<button name="delete_account_move_production" string="Update account move production (28/07)" type="object" class="oe_highlight"/>
+		            	<button name="create_one_production_one_posting" string="Create One Production One Posting (28/07)" type="object" class="oe_highlight"/>
+		            	<button name="update_date_between_production_and_stockmove" string="Update Date Between Production And Stock Move (28/07)" type="object" class="oe_highlight"/>
+		            	<button name="update_price_unit_for_production_COAL" string="Update Price Unit For Production COAL (29/07)" type="object" class="oe_highlight"/>
 		            	<button name="update_SULPHURIC_ACID_2_for_june" string="update SULPHURIC ACID qty 6.00 for June " type="object" class="oe_highlight"/>
-		            </header>    
+						<button name="update_all_grn_posting" string="update all GRN posting" type="object" class="oe_highlight"/>
+		            	<button name="create_all_grn_posting" string="Create all GRN posting" type="object" class="oe_highlight"/>		            </header>    
 	            	<group>
 	            		<field name="product_id"/>
 	                    <field name="result"/>

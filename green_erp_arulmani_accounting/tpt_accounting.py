@@ -570,7 +570,9 @@ class stock_picking(osv.osv):
                         'period_id':period_id.id ,
                         'date': date_period,
                         'line_id': journal_line,
-                        'doc_type':'grn'
+                        'doc_type':'grn',
+                        'grn_id':line.id,
+                        'ref': line.name,
                         }
                     new_jour_id = account_move_obj.create(cr,uid,value)
             if 'state' in vals and line.type == 'out' and line.state=='done':
@@ -626,7 +628,12 @@ class stock_picking(osv.osv):
                                         '''%(allot_line_id)
                                         cr.execute(sql)
                         
-                        debit += p.sale_line_id and p.sale_line_id.price_unit * p.product_qty or 0
+                        #TPT START By BalamuruganPurushothaman ON 28/07/2015 - TO SET COST PRICE OF FINISHED PRODUCT IN JOURNAL POSTING INSTEAD OF SALES PROCE WHILE DO CONFIRM PROCESS
+                        #debit += p.sale_line_id and p.sale_line_id.price_unit * p.product_qty or 0  ##TPT COMMENTED
+                        product = self.pool.get('product.product').browse(cr, uid, p.product_id.id)
+                        debit += product.standard_price and product.standard_price * p.product_qty or 0
+                        #TPT END
+                        
                         #product_name = p.product_id.name    # TPT - COMMENTED By BalamuruganPurushothaman ON 20/06/2015 
                         product_name = p.product_id.default_code # TPT - Added By BalamuruganPurushothaman ON 20/06/2015 fto get GL code with respect to Product Code
                         product_id = p.product_id.id
@@ -665,7 +672,8 @@ class stock_picking(osv.osv):
                         'period_id':period_id.id ,
                         'date': date_period,
                         'line_id': journal_line,
-                        'doc_type':'do'
+                        'doc_type':'do',
+                        'ref': line.name,
                         }
                     new_jour_id = account_move_obj.create(cr,uid,value)
 #                     if so_id:
@@ -5315,6 +5323,8 @@ class account_move(osv.osv):
                                   ('worker_payroll', 'Workers Payroll')],'Document Type'),  
         'material_issue_id': fields.many2one('tpt.material.issue','Material Issue',ondelete='restrict'), 
         'ed_invoice_id': fields.many2one('tpt.ed.invoice.positing','ED Invoice Posting',ondelete='restrict'),                           
+        'grn_id': fields.many2one('stock.picking','GRN',ondelete='restrict'), 
+        'product_dec': fields.many2one('mrp.production','Production',ondelete='restrict'),                        
                 }
     
     def onchange_tpt_date(self, cr, uid, ids, date=False, context=None):
