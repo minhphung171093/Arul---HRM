@@ -154,14 +154,12 @@
 	            
             <menuitem action="action_tpt_cost_center_form"
 	            id="menu_action_tpt_cost_center_form"
-	            parent="menu_vvti_hr_global_master" sequence="15"/>
-	            
-	            
+	            parent="menu_vvti_hr_global_master" sequence="15"/>     
 	    <menuitem id="green_erp_arulmani_crm.menu_list_employee_report"
 	    	name="List Employee Report"
 	    	action="green_erp_arulmani_crm.action_list_employee_report"
-	    	parent="hr.menu_hr_main" sequence="22"/>
-	    	
+	    	parent="hr.menu_hr_main" sequence="34"/>
+	    
 	    <menuitem action="action_time_evaluation_report"
             id="menu_action_time_evaluation_report"
             parent="menu_hr_leave_management" sequence="35"
@@ -173,6 +171,7 @@
         <menuitem action="action_time_data_report"
             id="menu_action_time_data_check"
             parent="menu_hr_leave_management" sequence="37"/>  
+        
             
     </data>
 </openerp>

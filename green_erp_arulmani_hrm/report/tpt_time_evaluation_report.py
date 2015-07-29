@@ -122,8 +122,8 @@ class Parser(report_sxw.rml_parse):
 
             ####### TPT - TEMP FIX FOR ON DUTY COUNT
             sql = '''
-                    select count(*) from arul_hr_permission_onduty where shift_type='G2' and 
-                    EXTRACT(year FROM date) = %s AND EXTRACT(month FROM date) = %s and employee_id=%s
+                    select case when sum(total_shift_worked)!=0 then sum(total_shift_worked) else 0 end total_shift_worked from arul_hr_permission_onduty where shift_type='G2' and 
+                    EXTRACT(year FROM date) = %s AND EXTRACT(month FROM date) = %s and employee_id=%s and approval='t'
                     '''%(int(year), int(month),employee.id)
             self.cr.execute(sql)
             onduty_shift =  self.cr.fetchone()

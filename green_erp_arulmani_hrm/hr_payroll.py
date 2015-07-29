@@ -1279,15 +1279,23 @@ class arul_hr_payroll_executions(osv.osv):
                 c_all =  cr.fetchone()
                 c_shift_allowance = c_all[0]
                 ###TPT
-                total_onduty_g2_alLowance = 0
+                total_onduty_g2_alLowance = 0 
                 sql = '''
-                    select count(*) from arul_hr_permission_onduty where shift_type='G2' and 
+                    select case when sum(total_shift_worked)!=0 then sum(total_shift_worked) else 0 end total_shift_worked from arul_hr_permission_onduty where shift_type='G2' and 
                     EXTRACT(year FROM date) = %s AND EXTRACT(month FROM date) = %s and employee_id=%s
+                    and approval='t'
                     '''%(line.year,line.month,p.id)
                 cr.execute(sql)
                 onduty_shift =  cr.fetchone()
                 onduty_shift_count = onduty_shift[0]
                 total_onduty_g2_allowance = onduty_shift_count * g2_shift_allowance
+                ##
+                sql = '''
+                    select EXTRACT(day FROM work_date) from arul_hr_punch_in_out_time where employee_id = %s and EXTRACT(year FROM work_date) = %s and EXTRACT(month FROM work_date) = %s
+                '''%(p.id, line.year, line.month)
+                cr.execute(sql)
+                punch_days = [row[0] for row in cr.fetchall()]
+                ##
                 ###TPT
                 
                 
@@ -1479,6 +1487,7 @@ class arul_hr_payroll_executions(osv.osv):
 #                                 lwf = other_deductions_id.float
 
                         fd += total_fd
+                        fd = round(fd,0)
 			#TPT
                         #total_deduction = pfd + pd + vpfd + esid + fd + ld + ind +  pt + lwf 
                         #total_deduction = pd  + esid + fd + ld + ind +  pt + lwf
@@ -1684,14 +1693,14 @@ class arul_hr_payroll_executions(osv.osv):
             
             
             
-			net_basic = basic - (basic / calendar_days) * total_no_of_leave
-			net_da = da - (da / calendar_days) * total_no_of_leave 
-			net_c = c - (c / calendar_days) * total_no_of_leave
-			net_hra = hra - (hra / calendar_days) * total_no_of_leave
-			net_ea = ea - (ea / calendar_days) * total_no_of_leave
-			net_aa = aa - (aa / calendar_days) * total_no_of_leave
-			net_la = la - (la / calendar_days) * total_no_of_leave
-			net_oa = oa - (oa / calendar_days) * total_no_of_leave
+			net_basic = round(basic - (basic / calendar_days) * total_no_of_leave,0)
+			net_da = round(da - (da / calendar_days) * total_no_of_leave, 0)
+			net_c = round(c - (c / calendar_days) * total_no_of_leave, 0)
+			net_hra = round(hra - (hra / calendar_days) * total_no_of_leave, 0)
+			net_ea = round(ea - (ea / calendar_days) * total_no_of_leave, 0)
+			net_aa = round(aa - (aa / calendar_days) * total_no_of_leave, 0)
+			net_la = round(la - (la / calendar_days) * total_no_of_leave, 0)
+			net_oa = round(oa - (oa / calendar_days) * total_no_of_leave, 0)
             
             
 
@@ -1985,7 +1994,8 @@ class arul_hr_payroll_executions(osv.osv):
 #                             if other_deductions_id.deduction_parameters_id.code == 'LWF':
 #                                 lwf = other_deductions_id.float
                                 
-                        fd += total_fd                       
+                        fd += total_fd     
+                        fd = round(fd,0)                  
                         #total_deduction = pfd + pd + vpfd + esid + fd + ld + ind +  pt + lwf 
                         #total_deduction = pfd + pd  + esid + fd + ld + ind +  pt + lwf # PREV
                         total_deduction = pfd + pd  + esid + fd + ld + ind +  pt + lwf + i_lic_prem + i_others + l_vvti_loan + l_lic_hfl + l_hdfc + l_tmb + l_sbt + l_others + it_deduction
@@ -2178,14 +2188,14 @@ class arul_hr_payroll_executions(osv.osv):
                         #spa = spa / (calendar_days - 4 - special_holidays) * total_days
                         #total_no_of_leave = total_lop + total_esi
 			
-                        net_basic = basic - (basic / calendar_days) * total_no_of_leave
-                        net_da = da - (da / calendar_days) * total_no_of_leave 
-                        net_c = c - (c / calendar_days) * total_no_of_leave
-                        net_hra = hra - (hra / calendar_days) * total_no_of_leave
-                        net_ea = ea - (ea / calendar_days) * total_no_of_leave
-                        net_aa = aa - (aa / calendar_days) * total_no_of_leave
-                        net_la = la - (la / calendar_days) * total_no_of_leave
-                        net_oa = oa - (oa / calendar_days) * total_no_of_leave
+                        net_basic = round(basic - (basic / calendar_days) * total_no_of_leave, 0)
+                        net_da = round(da - (da / calendar_days) * total_no_of_leave, 0)
+                        net_c = round(c - (c / calendar_days) * total_no_of_leave, 0)
+                        net_hra = round(hra - (hra / calendar_days) * total_no_of_leave, 0)
+                        net_ea = round(ea - (ea / calendar_days) * total_no_of_leave, 0)
+                        net_aa = round(aa - (aa / calendar_days) * total_no_of_leave, 0)
+                        net_la = round(la - (la / calendar_days) * total_no_of_leave, 0)
+                        net_oa = round(oa - (oa / calendar_days) * total_no_of_leave, 0)
             
             
                         total_earning =  net_basic + net_da + net_c + net_hra + net_ea + net_aa + net_la + net_oa + fa + spa + pc + cre + sha + lta + med
@@ -2493,7 +2503,7 @@ class arul_hr_payroll_executions(osv.osv):
 #                                 lwf = other_deductions_id.float
                         
                         fd += total_fd        
-                        
+                        fd = round(fd,0)
                         #total_deduction = pfd + pd + vpfd + esid + fd + ld + ind +  pt + lwf
                         #total_deduction = pfd + pd + esid + fd + ld + ind +  pt + lwf
                         total_deduction = pfd + pd + esid + fd + ld + ind +  pt + lwf + i_lic_prem + i_others + l_vvti_loan + l_lic_hfl + l_hdfc + l_tmb + l_sbt + l_others + it_deduction
@@ -2700,14 +2710,14 @@ class arul_hr_payroll_executions(osv.osv):
                         #
                         #total_no_of_leave = total_lop + total_esi
 			            
-                        net_basic = basic - (basic / s3_working_days) * total_no_of_leave
-                        net_da = da - (da / s3_working_days) * total_no_of_leave 
-                        net_c = c - (c / s3_working_days) * total_no_of_leave
-                        net_hra = hra - (hra / s3_working_days) * total_no_of_leave
-                        net_ea = ea - (ea / s3_working_days) * total_no_of_leave
-                        net_aa = aa - (aa / s3_working_days) * total_no_of_leave
-                        net_la = la - (la / s3_working_days) * total_no_of_leave
-                        net_oa = oa - (oa / s3_working_days) * total_no_of_leave
+                        net_basic = round(basic - (basic / s3_working_days) * total_no_of_leave, 0)
+                        net_da = round(da - (da / s3_working_days) * total_no_of_leave, 0)
+                        net_c = round(c - (c / s3_working_days) * total_no_of_leave, 0)
+                        net_hra = round(hra - (hra / s3_working_days) * total_no_of_leave, 0)
+                        net_ea = round(ea - (ea / s3_working_days) * total_no_of_leave,0)
+                        net_aa = round(aa - (aa / s3_working_days) * total_no_of_leave, 0)
+                        net_la = round(la - (la / s3_working_days) * total_no_of_leave, 0)
+                        net_oa = round(oa - (oa / s3_working_days) * total_no_of_leave, 0)
 
                         total_earning =  net_basic + net_da + net_c + net_hra + net_ea + net_aa + net_la + net_oa + fa + spa + pc + cre + sha + lta + med + ma
                         gross_sal =  net_basic + net_da + net_c + net_hra + net_ea + net_aa + net_la + net_oa + fa + spa + pc + cre + sha + lta + med + ma

@@ -680,11 +680,31 @@ class stock_picking(osv.osv):
         for picking in self.browse(cr, uid, ids, context):
             for line in picking.move_lines:
                 if self.has_valuation_moves(cr, uid, line):
-                    raise osv.except_osv(
-                        _('Error'),
-                        _('Line %s has valuation moves (%s). \
-                            Remove them first') % (line.name,
-                                                   line.picking_id.name))
+                    account_ids = self.has_valuation_moves(cr, uid, line)
+                    cr.execute("delete from account_move_line where move_id in %s",(tuple(account_ids),))
+                    cr.execute("delete from account_move where id in %s",(tuple(account_ids),))
+                    sql='''
+                        select id from tpt_quanlity_inspection where need_inspec_id in (select id from stock_move where picking_id = %s)
+                    '''%(picking.id)
+                    cr.execute(sql)
+                    inspec_ids = [row[0] for row in cr.fetchall()]
+                    if inspec_ids:
+                        for move in inspec_ids:
+                            sql='''
+                                select id from stock_move where inspec_id = %s
+                            '''%(move)
+                            cr.execute(sql)
+                            move_ids = [row[0] for row in cr.fetchall()]
+                            if move_ids:
+                                cr.execute('delete from stock_move where id in %s',(tuple(move_ids),))
+                        cr.execute('delete from tpt_quanlity_inspection where id in %s',(tuple(inspec_ids),))
+#                     raise osv.except_osv(
+#                         _('Error'),
+#                         _('Line %s has valuation moves (%s). \
+#                             Remove them first') % (line.name,
+#                                                    line.picking_id.name))
+                    
+                    
                 line.write({'state': 'draft'})
             self.write(cr, uid, [picking.id], {'state': 'draft','invoice_state':'2binvoiced'})
             wf_service = netsvc.LocalService("workflow")

@@ -571,8 +571,7 @@ class stock_picking(osv.osv):
                         'period_id':period_id.id ,
                         'date': date_period,
                         'line_id': journal_line,
-                        'doc_type':'grn',
-                        'ref': line.name,
+                        'doc_type':'grn'
                         }
                     new_jour_id = account_move_obj.create(cr,uid,value)
             if 'state' in vals and line.type == 'out' and line.state=='done':
@@ -605,8 +604,8 @@ class stock_picking(osv.osv):
                             used_qty = p.product_qty or 0
                             if sale_id:
                                 sql = '''
-                                    select id from tpt_batch_allotment where sale_order_id = %s
-                                '''%(sale_id)
+                                    select id from tpt_batch_allotment where sale_order_id = %s and state='confirm'
+                                '''%(sale_id) #TPT-By BalamuruganPurushothaman ON 29/07/2015 - TO TAKE CONFIRMED BATCH ALLOTMENT ONLY NOT IN CANCEL STATE
                                 cr.execute(sql)
                                 allot_ids = cr.dictfetchone()
                                 if allot_ids:
@@ -628,7 +627,12 @@ class stock_picking(osv.osv):
                                         '''%(allot_line_id)
                                         cr.execute(sql)
                         
-                        debit += p.sale_line_id and p.sale_line_id.price_unit * p.product_qty or 0
+                        #TPT START By BalamuruganPurushothaman ON 28/07/2015 - TO SET COST PRICE OF FINISHED PRODUCT IN JOURNAL POSTING INSTEAD OF SALES PROCE WHILE DO CONFIRM PROCESS
+                        #debit += p.sale_line_id and p.sale_line_id.price_unit * p.product_qty or 0  ##TPT COMMENTED
+                        product = self.pool.get('product.product').browse(cr, uid, p.product_id.id)
+                        debit += product.standard_price and product.standard_price * p.product_qty or 0
+                        #TPT END
+                        
                         #product_name = p.product_id.name    # TPT - COMMENTED By BalamuruganPurushothaman ON 20/06/2015 
                         product_name = p.product_id.default_code # TPT - Added By BalamuruganPurushothaman ON 20/06/2015 fto get GL code with respect to Product Code
                         product_id = p.product_id.id
@@ -667,8 +671,7 @@ class stock_picking(osv.osv):
                         'period_id':period_id.id ,
                         'date': date_period,
                         'line_id': journal_line,
-                        'doc_type':'do',
-                        'ref': line.name,
+                        'doc_type':'do'
                         }
                     new_jour_id = account_move_obj.create(cr,uid,value)
 #                     if so_id:
@@ -5133,7 +5136,7 @@ class account_move(osv.osv):
                                   ('freight', 'Freight Invoice'),
                                   ('worker_payroll', 'Workers Payroll')],'Document Type'),  
         'material_issue_id': fields.many2one('tpt.material.issue','Material Issue',ondelete='restrict'), 
-        'product_dec': fields.many2one('mrp.production','Production',ondelete='restrict'),                        
+                                  
                 }
 account_move()
 

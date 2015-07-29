@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+		<record id="emp_attn_report_view" model="ir.ui.view">
+	        <field name="name">emp.attendance.details.view</field>
+	        <field name="model">emp.attendance.details</field>
+	        <field name="arch" type="xml">
+	            <form string="Emp Attn Report" version="7.0">
+	            	<group>
+	                <field name="date_from" />
+	                <field name="date_to" />
+	                <field name="employee_id" />
+	                <field name="employee_categ_id" />
+	                </group>
+	                <footer>
+	                    <button name="print_report" type='object' string="OK" class="oe_highlight"/>
+	                    or
+	                    <button string="Cancel" class="oe_highlight" special="cancel" />
+	                </footer>
+	            </form>
+	        </field>
+    	</record>
+
+	    <record model="ir.actions.act_window" id="action_emp_attn_report_view">
+	        <field name="name">Employee Attendance Verification Report</field>
+	        <field name="res_model">emp.attendance.details</field>
+	        <field name="view_type">form</field>
+	        <field name="view_mode">form</field>
+	        <field name="view_id" ref="emp_attn_report_view" />
+	        <field name="target">new</field>
+	    </record>
+	    
+	    
+        <menuitem action="action_emp_attn_report_view"
+            id="menu_action_emp_attn_report_view"
+            parent="menu_hr_payroll_management" sequence="101"
+            groups="group_vvti_hrm_payroll_controller,group_vvti_hrm_hr_user" /> 
+  
+    </data>
+</openerp>
+
