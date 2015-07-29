@@ -51,13 +51,7 @@ class emp_attendance_line(osv.osv_memory):
         'c_shift_count': fields.float('C'),
         'total_shift_worked': fields.float('Total'),
         'sub_total': fields.char('', size = 1024),
-        'a_total': fields.float('A1'),
-        'g1_total': fields.float('G1-1'),
-        'g2_total': fields.float('G2-1'),
-        'b_total': fields.float('B1'),
-        'c_total': fields.float('C1'),
-        'total_shift': fields.float('Total1'),
-        
+  
     }
 
 emp_attendance_line()
@@ -80,29 +74,29 @@ class emp_attendance_details(osv.osv_memory):
                 a_total += move['a_shift_count']    
             return a_total
         def get_g1_total(get_move_ids):
-            a_total = 0.0
+            g1_total = 0.0
             for move in get_move_ids:
-                a_total += move['g1_shift_count']    
-            return a_total
+                g1_total += move['g1_shift_count']    
+            return g1_total
         def get_g2_total(get_move_ids):
-            a_total = 0.0
+            g2_total = 0.0
             for move in get_move_ids:
-                a_total += move['g2_shift_count']    
-            return a_total
+                g2_total += move['g2_shift_count']    
+            return g2_total
         def get_b_total(get_move_ids):
-            a_total = 0.0
+            b_total = 0.0
             for move in get_move_ids:
-                a_total += move['b_shift_count']    
-            return a_total
+                b_total += move['b_shift_count']    
+            return b_total
         def get_c_total(get_move_ids):
+            b_total = 0.0
+            for move in get_move_ids:
+                b_total += move['c_shift_count']    
+            return b_total
+        def get_total_shift_worked(get_move_ids):
             a_total = 0.0
             for move in get_move_ids:
-                a_total += move['c_shift_count']    
-            return a_total
-        def get_c_total(get_move_ids):
-            a_total = 0.0
-            for move in get_move_ids:
-                a_total += move['c_shift_count']    
+                a_total += move['total_shift_worked']    
             return a_total
         def get_move_ids(o):
             account_voucher_obj = self.pool.get('arul.hr.punch.in.out.time')
@@ -158,12 +152,13 @@ class emp_attendance_details(osv.osv_memory):
         attn_line.append((0,0,{
             #'voucher_id': False,
             'sub_total': 'Days Total',
-            'a_total': get_a_total(get_move_ids(cb)),
-            'g1_total': get_g1_total(get_move_ids(cb)),
-            'g2_total': get_g2_total(get_move_ids(cb)),
-            'b_total': get_b_total(get_move_ids(cb)),
-            'total_shift': get_a_total(get_move_ids(cb)),
-            'g2_total': get_a_total(get_move_ids(cb)),
+            'a_shift_count': get_a_total(get_move_ids(cb)),
+            'g1_shift_count': get_g1_total(get_move_ids(cb)),
+            'g2_shift_count': get_g2_total(get_move_ids(cb)),
+            'b_shift_count': get_b_total(get_move_ids(cb)),
+            'c_shift_count': get_c_total(get_move_ids(cb)),
+            'total_shift_worked': get_total_shift_worked(get_move_ids(cb)),
+            
             
             'date':False,
             'desc':False,

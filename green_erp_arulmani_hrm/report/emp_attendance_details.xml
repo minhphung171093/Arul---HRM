@@ -85,11 +85,6 @@
 		                			<field name="b_shift_count"/>
 		                			<field name="c_shift_count"/>
 		                			<field name="total_shift_worked"/>
-		                			<field name="a_total"/>
-		                			<field name="g1_total"/>
-		                			<field name="g2_total"/>
-		                			<field name="b_total"/>
-		                			<field name="a_total"/>
 		                			
 		                		</tree>
 		                	</field>
