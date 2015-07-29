@@ -2512,7 +2512,6 @@ class tpt_update_stock_move_report(osv.osv):
                             and  (action_taken = 'direct'
                             or inspec_id is not null 
                             or issue_id is not null
-                            or (st.id in (select move_id from stock_inventory_move_rel))
                             and id not in (select id
                                 from stock_move where product_id = %s and state = 'done' and issue_id is null 
                                 and picking_id is null and inspec_id is null and location_id = %s 
@@ -2548,6 +2547,61 @@ class tpt_update_stock_move_report(osv.osv):
                     
                         
         return self.write(cr, uid, ids, {'result':'update_price_unit_for_good_issue Done'})  
+    
+    def update_price_unit_for_production_COAL(self, cr, uid, ids, context=None):
+        stock_move = []
+        parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+        locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw Material','Raw Materials','Raw material']),('location_id','=',parent_ids[0])])
+        sql = '''
+            select id, inspec_id, picking_id, issue_id, product_qty, price_unit, product_id, date
+                        from stock_move
+                        where state='done' and product_id in (select id from product_product where default_code = 'M0501060001')
+                            and location_dest_id != location_id
+                            and  (action_taken = 'direct'
+                            or inspec_id is not null 
+                            or issue_id is not null
+                            or (location_id = %s and id in (select move_id from mrp_production_move_ids))
+                    )order by to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD'), inspec_id, picking_id, issue_id
+        '''%(locat_ids[0])
+        cr.execute(sql)
+        for move in cr.dictfetchall():
+            if move['issue_id']:
+                qty = 0
+                value = 0
+                for line in stock_move:
+                    qty += line[2]['quantity'] 
+                    value += line[2]['price']
+                price = qty and value/qty or 0
+                sql = '''
+                    update stock_move set price_unit = %s where id = %s
+                '''%(price, move['id'])
+                cr.execute(sql)
+                stock_move.append((0,0,{
+                                        'quantity': -move['product_qty'],
+                                        'price': -(move['product_qty']*price),
+                                        }))
+            elif not move['issue_id'] and not move['picking_id'] and not move['inspec_id']:
+                qty = 0
+                value = 0
+                for line in stock_move:
+                    qty += line[2]['quantity'] 
+                    value += line[2]['price']
+                price = qty and value/qty or 0
+                sql = '''
+                    update stock_move set price_unit = %s where id = %s
+                '''%(price, move['id'])
+                cr.execute(sql)
+                stock_move.append((0,0,{
+                                        'quantity': -move['product_qty'],
+                                        'price': -(move['product_qty']*price),
+                                        }))
+            else:
+                stock_move.append((0,0,{
+                                        'quantity': move['product_qty'],
+                                        'price': move['product_qty']*move['price_unit'],
+                                        }))
+            
+        return self.write(cr, uid, ids, {'result':'update_price_unit_for_production_COAL Done'}) 
     
     def update_issue_line_for_request_6000028 (self, cr, uid, ids, context=None):
         sql = '''
@@ -2781,6 +2835,133 @@ class tpt_update_stock_move_report(osv.osv):
         cr.execute(sql)
         
         return self.write(cr, uid, ids, {'result':'update PP/HDPE for June Done'}) 
+    
+    def delete_account_move_production(self, cr, uid, ids, context=None):
+        sql = '''
+            delete from account_move_line where move_id in (select id from account_move where doc_type = 'product')
+        '''
+        cr.execute(sql)
+        
+        sql = '''
+            delete from account_move where doc_type = 'product'
+        '''
+        cr.execute(sql)
+        
+        return self.write(cr, uid, ids, {'result':'delete_account_move_production Done'}) 
+    
+    def delete_account_move_production(self, cr, uid, ids, context=None):
+        sql = '''
+            delete from account_move_line where move_id in (select id from account_move where doc_type = 'product')
+        '''
+        cr.execute(sql)
+        
+        sql = '''
+            delete from account_move where doc_type = 'product'
+        '''
+        cr.execute(sql)
+        
+        return self.write(cr, uid, ids, {'result':'delete_account_move_production Done'}) 
+    
+    def create_one_production_one_posting(self, cr, uid, ids, context=None):
+        production_obj = self.pool.get('mrp.production')
+        account_move_obj = self.pool.get('account.move')
+        period_obj = self.pool.get('account.period')
+        journal_obj = self.pool.get('account.journal')
+        avg_cost_obj = self.pool.get('tpt.product.avg.cost')
+        journal_line = []
+        credit = 0
+        price = 0
+        sql = '''
+            select id from mrp_production where state = 'done' and id not in (select product_dec from account_move where doc_type = 'product' and product_dec is not null) limit 150
+        '''
+        cr.execute(sql)
+        production_ids = [r[0] for r in cr.fetchall()]
+        dem = 1
+        if not production_ids:
+            self.write(cr, uid, ids, {'result':'create_one_production_one_posting Done'}) 
+        for line in production_obj.browse(cr,uid,production_ids):
+            sql = '''
+                    select id from account_journal
+            '''
+            cr.execute(sql)
+            journal_ids = [r[0] for r in cr.fetchall()]
+            date_period = line.date_planned,
+            sql = '''
+                select id from account_period where '%s' between date_start and date_stop
+            '''%(date_period)
+            cr.execute(sql)
+            period_ids = [r[0] for r in cr.fetchall()]
+            
+            if not period_ids:
+                raise osv.except_osv(_('Warning!'),_('Period is not null, please configure it in Period master !'))
+            for period_id in period_obj.browse(cr,uid,period_ids):
+        
+                if line.state=='done':
+                    for mat in line.move_lines2:
+                        cost = mat.price_unit * mat.product_qty
+                        price += cost
+                        if cost:
+                            if mat.product_id.purchase_acc_id:
+                                journal_line.append((0,0,{
+                                                'name':mat.product_id.code, 
+                                                'account_id': mat.product_id.purchase_acc_id and mat.product_id.purchase_acc_id.id,
+                                                'debit':cost,
+                                                'credit':0,
+                                               }))
+                            else:
+                                raise osv.except_osv(_('Warning!'),_("Purchase GL Account is not configured for Product '%s'! Please configured it!")%(mat.product_id.code))
+                    for act in line.bom_id.activities_line:
+                        if act.activities_id.act_acc_id:
+                            credit += act.product_cost
+                            journal_line.append((0,0,{
+                                                    'name':act.activities_id.code, 
+                                                    'account_id': act.activities_id.act_acc_id and act.activities_id.act_acc_id.id,
+                                                    'debit':act.product_cost or 0,
+                                                    'credit':0,
+                                                   }))
+                        else:
+                            raise osv.except_osv(_('Warning!'),_("Activity Account is not configured for Activity '%s'! Please configured it!")%(act.activities_id.code))
+                    credit += price
+                    if credit:
+                        if line.product_id.product_asset_acc_id:
+                            journal_line.append((0,0,{
+                                                    'name':line.product_id.code, 
+                                                    'account_id': line.product_id.product_asset_acc_id and line.product_id.product_asset_acc_id.id,
+                                                    'debit': 0,
+                                                    'credit':credit ,
+                                                   }))
+                        else:
+                            raise osv.except_osv(_('Warning!'),_("Product Asset Account is not configured for Product '%s'! Please configured it!")%(line.product_id.code))
+            value={
+                        'journal_id':journal_ids[0],
+                        'period_id':period_id.id ,
+                        'doc_type':'product',
+                        'date': line.date_planned,
+                        'line_id': journal_line,
+                        'product_dec': line.id,
+                    }
+            new_jour_id = account_move_obj.create(cr,uid,value)
+            print 'Phuoc: ', dem, line.id
+            dem += 1
+            sql = '''
+                update mrp_production set produce_cost = %s where id=%s 
+            '''%(credit,line.id)
+            cr.execute(sql)
+        return self.write(cr, uid, ids, {'result':'create_one_production_one_posting Remaining'}) 
+    
+    def update_date_between_production_and_stockmove(self, cr, uid, ids, context=None):
+        sql = '''
+            select production_id from mrp_production_move_ids where production_id is not null
+        '''
+        cr.execute(sql)
+        production_ids = cr.fetchall()
+        cr.execute("select id, date_planned from mrp_production where id in %s",(tuple(production_ids),))
+        for production in cr.dictfetchall():
+            sql = '''
+                update stock_move set date = '%s' where id in (select move_id from mrp_production_move_ids where production_id = %s)
+            '''%(production['date_planned'], production['id'])
+            cr.execute(sql)
+        return self.write(cr, uid, ids, {'result':'update_date_between_production_and_stockmove Done'})  
     
     def config_GRN_1155(self, cr, uid, ids, context=None):
         invoice_obj = self.pool.get('account.invoice')
