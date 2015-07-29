@@ -42,6 +42,15 @@ class emp_attendance_line(osv.osv_memory):
     _name = "emp.attendance.line"
     _columns = {
         'header_id': fields.many2one('tpt.emp.attendance', 'Emp Attn Header', ondelete='cascade'),
+        'employee_id': fields.char('Employee ID', size = 1024),
+        'work_date': fields.date('Work Date'), 
+        'a_shift_count': fields.float('A'),
+        'g1_shift_count': fields.float('G1'),
+        'g2_shift_count': fields.float('G2'),
+        'b_shift_count': fields.float('B'),
+        'c_shift_count': fields.float('C'),
+        'total_shift_worked': fields.float('Total'),
+        'sub_total': fields.char('', size = 1024),
         
     }
 
@@ -60,14 +69,27 @@ class emp_attendance_details(osv.osv_memory):
     def print_report(self, cr, uid, ids, context=None):
         
         def get_move_ids(o):
-            account_voucher_obj = self.pool.get('account.voucher')
+            account_voucher_obj = self.pool.get('arul.hr.punch.in.out.time')
             move_lines = []
             date_arr = []
             date_from = o.date_from
             date_to = o.date_to
-            emp = o.employee_id
+            emp_id = o.employee_id
             emp_categ = o.employee_categ_id
-            return []    
+            
+            sql = '''
+            select emp.employee_id,io.work_date 
+                            from arul_hr_punch_in_out_time io
+                            inner join hr_employee emp on io.employee_id=emp.id
+                            where io.work_date between %s and %s
+                            and io.employee_id=%s
+            '''%(date_from, date_to, emp_id)
+            
+            cr.execute(sql)
+            res = cr.dictfetchall()
+            return res
+                    
+            #return []    
         ###
         cr.execute('delete from tpt_emp_attendance')
         cb_obj = self.pool.get('tpt.emp.attendance')
@@ -81,12 +103,21 @@ class emp_attendance_details(osv.osv_memory):
         }))
         for seq, line in enumerate(get_move_ids(cb)):
             attn_line.append((0,0,{
-                
+            'date': line.move_id and line.move_id.date or '',
+                'employee_id': line.employee_id and line.employee_id.employee_id or '',    
+                'work_date': line.work_date or '',  
+                'a_shift_count': line.a_shift_count1 or '',  
+                'g1_shift_count': line.g1_shift_count1 or '',  
+                'g2_shift_count': line.g2_shift_count1 or '',  
+                'b_shift_count': line.b_shift_count1 or '',  
+                'c_shift_count': line.c_shift_count1 or '',  
+                'total_shift_worked': line.total_shift_worked1 or '',  
+                'sub_total': 'Days Total',
                 
             }))
         attn_line.append((0,0,{
-            'voucher_id': False,
-            'opening_balance': 'Days Total',
+            #'voucher_id': False,
+            'sub_total': 'Days Total',
             
             'date':False,
             'desc':False,
