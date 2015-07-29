@@ -973,7 +973,7 @@ class stock_movement_analysis(osv.osv_memory):
                 if phuoc['doc_type']=='good':
                     qty = 0
                     value = 0
-                    opening_stock = get_opening_stock(stock,line.id)
+                    opening_stock = get_opening_stock(stock,line.id)-get_qty_opening_chuaro(stock, line.id)
                     opening_stock_value = get_opening_stock_value(stock,line.id)
                     for l in stock_in_out_line:
                         qty += l[2]['transaction_quantity'] 
