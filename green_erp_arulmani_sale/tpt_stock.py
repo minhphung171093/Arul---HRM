@@ -680,11 +680,16 @@ class stock_picking(osv.osv):
         for picking in self.browse(cr, uid, ids, context):
             for line in picking.move_lines:
                 if self.has_valuation_moves(cr, uid, line):
-                    raise osv.except_osv(
-                        _('Error'),
-                        _('Line %s has valuation moves (%s). \
-                            Remove them first') % (line.name,
-                                                   line.picking_id.name))
+                    account_ids = self.has_valuation_moves(cr, uid, line)
+                    cr.execute("delete from account_move_line where move_id in %s",(tuple(account_ids),))
+                    cr.execute("delete from account_move where id in %s",(tuple(account_ids),))
+#                     raise osv.except_osv(
+#                         _('Error'),
+#                         _('Line %s has valuation moves (%s). \
+#                             Remove them first') % (line.name,
+#                                                    line.picking_id.name))
+                    
+                    
                 line.write({'state': 'draft'})
             self.write(cr, uid, [picking.id], {'state': 'draft','invoice_state':'2binvoiced'})
             wf_service = netsvc.LocalService("workflow")
