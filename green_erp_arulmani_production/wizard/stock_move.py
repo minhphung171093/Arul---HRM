@@ -66,7 +66,7 @@ class split_in_production_lot(osv.osv_memory):
                     quantity_rest -= quantity
                     uos_qty = quantity / move_qty * move.product_uos_qty
                     uos_qty_rest = quantity_rest / move_qty * move.product_uos_qty
-                    if quantity_rest < 0:
+                    if round(quantity_rest,3) < 0:
                         quantity_rest = quantity
                         self.pool.get('stock.move').log(cr, uid, move.id, _('Unable to assign all lots to this move!'))
                         return False
@@ -76,13 +76,13 @@ class split_in_production_lot(osv.osv_memory):
                         'product_uos_qty': uos_qty,
                         'state': move.state
                     }
-                    if quantity_rest > 0:
+                    if round(quantity_rest,3) > 0:
                         current_move = move_obj.copy(cr, uid, move.id, default_val, context=context)
                         if inventory_id and current_move:
                             inventory_obj.write(cr, uid, inventory_id, {'move_ids': [(4, current_move)]}, context=context)
                         new_move.append(current_move)
 
-                    if quantity_rest == 0:
+                    if round(quantity_rest,3) == 0:
                         current_move = move.id
                     prodlot_id = False
                     if data.use_exist:
@@ -96,7 +96,7 @@ class split_in_production_lot(osv.osv_memory):
                     move_obj.write(cr, uid, [current_move], {'prodlot_id': prodlot_id, 'state':move.state})
 
                     update_val = {}
-                    if quantity_rest > 0:
+                    if round(quantity_rest,3) > 0:
                         update_val['product_qty'] = quantity_rest
                         update_val['product_uos_qty'] = uos_qty_rest
                         update_val['state'] = move.state

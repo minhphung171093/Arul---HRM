@@ -66,6 +66,7 @@
 		            	<button name="create_one_production_one_posting" string="Create One Production One Posting (28/07)" type="object" class="oe_highlight"/>
 		            	<button name="update_date_between_production_and_stockmove" string="Update Date Between Production And Stock Move (28/07)" type="object" class="oe_highlight"/>
 		            	<button name="update_price_unit_for_production_COAL" string="Update Price Unit For Production COAL (28/07)" type="object" class="oe_highlight"/>
+		            	<button name="update_SULPHURIC_ACID_2_for_june" string="update SULPHURIC ACID qty 6.00 for June " type="object" class="oe_highlight"/>
 		            </header>    
 	            	<group>
 	            		<field name="product_id"/>
