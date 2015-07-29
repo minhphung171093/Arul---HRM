@@ -7,4 +7,5 @@ import epf_statement_form
 import esi_statement
 import leave_balance_form
 import time_data_check
+import emp_attendance_details
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

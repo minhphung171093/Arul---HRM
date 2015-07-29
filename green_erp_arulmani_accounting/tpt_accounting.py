@@ -627,7 +627,12 @@ class stock_picking(osv.osv):
                                         '''%(allot_line_id)
                                         cr.execute(sql)
                         
-                        debit += p.sale_line_id and p.sale_line_id.price_unit * p.product_qty or 0
+                        #TPT START By BalamuruganPurushothaman ON 28/07/2015 - TO SET COST PRICE OF FINISHED PRODUCT IN JOURNAL POSTING INSTEAD OF SALES PROCE WHILE DO CONFIRM PROCESS
+                        #debit += p.sale_line_id and p.sale_line_id.price_unit * p.product_qty or 0  ##TPT COMMENTED
+                        product = self.pool.get('product.product').browse(cr, uid, p.product_id.id)
+                        debit += product.standard_price and product.standard_price * p.product_qty or 0
+                        #TPT END
+                        
                         #product_name = p.product_id.name    # TPT - COMMENTED By BalamuruganPurushothaman ON 20/06/2015 
                         product_name = p.product_id.default_code # TPT - Added By BalamuruganPurushothaman ON 20/06/2015 fto get GL code with respect to Product Code
                         product_id = p.product_id.id
