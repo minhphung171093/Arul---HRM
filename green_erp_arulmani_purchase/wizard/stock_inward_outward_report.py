@@ -31,6 +31,24 @@ class tpt_stock_inward_outward(osv.osv):
         'closing_value': fields.float('Closing Value',digits=(16,3)),
     }
     
+#     def bt_update(self, cr, uid, ids, context=None):
+#         for report in self.browse(cr,uid,ids):
+#             for line in report.stock_in_out_line:
+#                 if line.document_type == 'GRN':
+#                     sql = '''
+#                         select id from stock_picking where name = '%s'
+#                     '''%(line.document_no)
+#                     cr.execute(sql)
+#                     picking = cr.dictfetchone()['id']
+#                     sql = '''
+#                         select id, action_taken from stock_move where picking_id = %s
+#                     '''%(picking)
+#                     cr.execute(sql)
+#                     for move in cr.dictfetchall():
+#                         if move['action_taken']=='direct':
+#                             sql = ''
+                    
+    
     def print_xls(self, cr, uid, ids, context=None):
         if context is None:
             context = {}
@@ -94,6 +112,8 @@ class stock_inward_outward_report(osv.osv_memory):
     ]
     
     def print_report(self, cr, uid, ids, context=None):
+        if context is None:
+            context = {}
         stock_obj = self.pool.get('tpt.stock.inward.outward')
         cr.execute('delete from tpt_stock_inward_outward')
         stock = self.browse(cr, uid, ids[0])
@@ -210,6 +230,7 @@ class stock_inward_outward_report(osv.osv_memory):
            categ = product_id.categ_id.cate_name
            opening_stock_value = 0
            freight_cost = 0
+           production_value = 0
            if categ=='raw':
                parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw Material','Raw Materials','Raw material']),('location_id','=',parent_ids[0])])
@@ -238,22 +259,27 @@ class stock_inward_outward_report(osv.osv_memory):
                '''%(locat_ids[0],product_id.id,date_from)
                cr.execute(sql)
                product_isu_qty = cr.fetchone()[0]
-               sql = '''
-                       select case when sum(line_net)!=0 then sum(line_net) else 0 end line_net, product_id from account_invoice_line 
-                       where product_id = %s and invoice_id in (select id from account_invoice where date_invoice < '%s' and sup_inv_id is not null)
-                       group by product_id
-               '''%(product_id.id, date_from)
-               cr.execute(sql)
-               for inventory in cr.dictfetchall():
-                   freight_cost = inventory['line_net'] or 0
 #                sql = '''
-#                    select product_qty, date
-#                     from stock_move where product_id = 10718 and state = 'done' and issue_id is null 
-#                     and picking_id is null and inspec_id is null and location_id = 15 
-#                     and to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') between '2015-04-01' and '2015-04-30' 
-#                     and location_id != location_dest_id
-#                '''
-               opening_stock_value = total_cost-(product_isu_qty)+freight_cost
+#                        select case when sum(line_net)!=0 then sum(line_net) else 0 end line_net, product_id from account_invoice_line 
+#                        where product_id = %s and invoice_id in (select id from account_invoice where date_invoice < '%s' and sup_inv_id is not null)
+#                        group by product_id
+#                '''%(product_id.id, date_from)
+#                cr.execute(sql)
+#                for inventory in cr.dictfetchall():
+#                    freight_cost = inventory['line_net'] or 0
+                   
+               if product_id.default_code == 'M0501060001':
+                   sql = '''
+                       select case when sum(st.price_unit*st.product_qty)!=0 then sum(st.price_unit*st.product_qty) else 0 end total_cost
+                        from stock_move st
+                        where st.state='done' and st.location_id=%s and st.product_id=%s and to_char(date, 'YYYY-MM-DD')<'%s'
+                        and issue_id is null and picking_id is null and inspec_id is null 
+                        and id in (select move_id from mrp_production_move_ids)
+                            
+                   '''%(locat_ids[0],product_id.id,date_from)
+                   cr.execute(sql)
+                   production_value = cr.fetchone()[0]
+               opening_stock_value = total_cost-(product_isu_qty)+freight_cost-production_value
            if categ=='spares':
                parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Spares','Spare','spares']),('location_id','=',parent_ids[0])])
@@ -290,7 +316,20 @@ class stock_inward_outward_report(osv.osv_memory):
                cr.execute(sql)
                for inventory in cr.dictfetchall():
                    freight_cost = inventory['line_net'] or 0
-               opening_stock_value = total_cost-(product_isu_qty)+freight_cost
+            
+               if product_id.default_code == 'M0501060001':
+                   sql = '''
+                       select case when sum(st.price_unit*st.product_qty)!=0 then sum(st.price_unit*st.product_qty) else 0 end total_cost
+                        from stock_move st
+                        where st.state='done' and st.location_id=%s and st.product_id=%s and to_char(date, 'YYYY-MM-DD')<'%s'
+                        and issue_id is null and picking_id is null and inspec_id is null 
+                        and id in (select move_id from mrp_production_move_ids)
+                            
+                   '''%(locat_ids[0],product_id.id,date_from)
+                   cr.execute(sql)
+                   production_value = cr.fetchone()[0]
+                   
+               opening_stock_value = total_cost-(product_isu_qty)+freight_cost-production_value
            return opening_stock_value
         
         def get_detail_lines(o):
@@ -302,14 +341,15 @@ class stock_inward_outward_report(osv.osv_memory):
             parent_ids_spares = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
             locat_ids_spares = self.pool.get('stock.location').search(cr, uid, [('name','in',['Spares','Spare','spares']),('location_id','=',parent_ids_spares[0])])
             sql = '''
-                select * from account_move where doc_type in ('freight', 'good', 'grn', 'product') 
+                select * from account_move where doc_type in ('good', 'grn', 'product') 
+                    and date between '%(date_from)s' and '%(date_to)s'
                     and ( id in (select move_id from account_move_line where (move_id in (select move_id from account_invoice where to_char(date_invoice, 'YYYY-MM-DD') between '%(date_from)s' and '%(date_to)s' and id in (select invoice_id from account_invoice_line where product_id=%(product_id)s)))
                         or (LEFT(name,17) in (select name from stock_picking where id in (select picking_id from stock_move where to_char(date, 'YYYY-MM-DD') between '%(date_from)s' and '%(date_to)s' and product_id=%(product_id)s)))
                     ) or material_issue_id in (select id from tpt_material_issue where date_expec between '%(date_from)s' and '%(date_to)s' and warehouse in (%(location_row_id)s,%(location_spare_id)s) and id in (select material_issue_id from tpt_material_issue_line where product_id=%(product_id)s)) 
                         )
                         or product_dec in (select id from mrp_production where date_planned between '%(date_from)s' and '%(date_to)s' and id in (select production_id from mrp_production_move_ids where move_id in (select id from stock_move where product_id = %(product_id)s and location_id in (%(location_row_id)s,%(location_spare_id)s) ))
                          )
-                         order by date,doc_type = 'grn' desc, id
+                         order by date,doc_type = 'grn' desc, doc_type = 'good' desc, doc_type = 'product' desc, id
             '''%{'date_from':date_from,
                  'date_to':date_to,
                  'product_id':product_id.id,
@@ -929,7 +969,8 @@ class stock_inward_outward_report(osv.osv_memory):
                 'current_material_value':cur,
 #                 'sl_chuaro': sl_chuaro,
             }))
-            
+#         if context.get('update_price_unit_for_production_COAL',False):
+#             return stock_in_out_line
         vals = {
             'name': 'Stock Inward and Outward Details',
             'product_id': stock.product_id.id,

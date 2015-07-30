@@ -2510,14 +2510,15 @@ class tpt_update_stock_move_report(osv.osv):
                         where st.state='done' and st.product_id=%s
                             and st.location_dest_id != st.location_id
                             and  (action_taken = 'direct'
-                            or inspec_id is not null 
+                            or (inspec_id is not null and location_dest_id = %s)
                             or issue_id is not null
+                            or (id in (select move_id from stock_inventory_move_rel where inventory_id != 173))
                             and id not in (select id
                                 from stock_move where product_id = %s and state = 'done' and issue_id is null 
                                 and picking_id is null and inspec_id is null and location_id = %s 
                                 and location_id != location_dest_id)
                     )order by to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD'), inspec_id, picking_id, issue_id
-            '''%(product_id.id, product_id.id, locat_ids[0])
+            '''%(product_id.id, locat_ids[0], product_id.id, locat_ids[0])
             cr.execute(sql)
             for move in cr.dictfetchall():
                 if move['issue_id']:
@@ -2549,20 +2550,30 @@ class tpt_update_stock_move_report(osv.osv):
         return self.write(cr, uid, ids, {'result':'update_price_unit_for_good_issue Done'})  
     
     def update_price_unit_for_production_COAL(self, cr, uid, ids, context=None):
+        if context is None:
+            context = {}
+        
+#         inout_obj = self.pool.get('stock.inward.outward.report')
+#         inout_id = inout_obj.create(cr, uid, {'product_id':10756,'date_from':'2015-01-01','date_to':'2015-12-31'})
+#         context.update({'update_price_unit_for_production_COAL':True})
+#         inout_val = inout_obj.print_report(cr, uid, [inout_id], context)
+#         print inout_val
+        
         stock_move = []
         parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
         locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw Material','Raw Materials','Raw material']),('location_id','=',parent_ids[0])])
         sql = '''
-            select id, inspec_id, picking_id, issue_id, product_qty, price_unit, product_id, date
+            select id, inspec_id, picking_id, issue_id, product_qty, price_unit, location_id, product_id, date
                         from stock_move
                         where state='done' and product_id in (select id from product_product where default_code = 'M0501060001')
                             and location_dest_id != location_id
                             and  (action_taken = 'direct'
-                            or inspec_id is not null 
+                            or (inspec_id is not null and location_dest_id = %s)
                             or issue_id is not null
+                            or (id in (select move_id from stock_inventory_move_rel where inventory_id != 173))
                             or (location_id = %s and id in (select move_id from mrp_production_move_ids))
                     )order by to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD'), inspec_id, picking_id, issue_id
-        '''%(locat_ids[0])
+        '''%(locat_ids[0], locat_ids[0])
         cr.execute(sql)
         for move in cr.dictfetchall():
             if move['issue_id']:
@@ -2580,7 +2591,7 @@ class tpt_update_stock_move_report(osv.osv):
                                         'quantity': -move['product_qty'],
                                         'price': -(move['product_qty']*price),
                                         }))
-            elif not move['issue_id'] and not move['picking_id'] and not move['inspec_id']:
+            elif not move['issue_id'] and not move['picking_id'] and not move['inspec_id'] and move['location_id'] == locat_ids[0]:
                 qty = 0
                 value = 0
                 for line in stock_move:
@@ -2600,6 +2611,19 @@ class tpt_update_stock_move_report(osv.osv):
                                         'quantity': move['product_qty'],
                                         'price': move['product_qty']*move['price_unit'],
                                         }))
+#             sql = '''
+#                    select case when sum(line_net)!=0 then sum(line_net) else 0 end line_net, product_id from account_invoice_line 
+#                    where product_id = %s and invoice_id in (select id from account_invoice where date_invoice = '%s' and sup_inv_id is not null)
+#                    group by product_id
+#                '''%(move['product_id'], move['date'])
+#             cr.execute(sql)
+#             for inventory in cr.dictfetchall():
+#                 freight_cost = inventory['line_net'] or 0
+#             if freight_cost:
+#                 stock_move.append((0,0,{
+#                                         'quantity': 0,
+#                                         'price': freight_cost,
+#                                         }))
             
         return self.write(cr, uid, ids, {'result':'update_price_unit_for_production_COAL Done'}) 
     
@@ -2963,6 +2987,13 @@ class tpt_update_stock_move_report(osv.osv):
             cr.execute(sql)
         return self.write(cr, uid, ids, {'result':'update_date_between_production_and_stockmove Done'})  
     
+    def update_date_between_freight_and_accountmove(self, cr, uid, ids, context=None):
+        sql = '''
+            update account_move set date = (select date_invoice from account_invoice where move_id = account_move.id and sup_inv_id is not null) where doc_type = 'freight'
+        '''
+        cr.execute(sql)
+        return self.write(cr, uid, ids, {'result':'update_date_between_freight_and_accountmove Done'})  
+    
     def config_GRN_1155(self, cr, uid, ids, context=None):
         invoice_obj = self.pool.get('account.invoice')
         inspec_obj = self.pool.get('tpt.quanlity.inspection')
@@ -3053,10 +3084,12 @@ class tpt_update_stock_move_report(osv.osv):
         period_obj = self.pool.get('account.period')
         sql = '''
             select id from stock_picking where type = 'in' and state = 'done' 
-                and id not in (select grn_id from account_move where doc_type='grn' and grn_id is not null) limit 200
+                and id not in (select grn_id from account_move where doc_type='grn' and grn_id is not null) limit 500
         '''
         cr.execute(sql)
         picking_ids = [r[0] for r in cr.fetchall()]
+        if not picking_ids:
+            return self.write(cr, uid, ids, {'result':'Create all GRN posting Done'}) 
         for line in picking_obj.browse(cr,uid,picking_ids):
             debit = 0.0
             credit = 0.0
@@ -3117,7 +3150,7 @@ class tpt_update_stock_move_report(osv.osv):
                     'ref': line.name,
                     }
                 new_jour_id = account_move_obj.create(cr,uid,value)
-        return self.write(cr, uid, ids, {'result':'Create all GRN posting Done'}) 
+        return self.write(cr, uid, ids, {'result':'Create all GRN posting Remaining'}) 
 tpt_update_stock_move_report()
 
 
