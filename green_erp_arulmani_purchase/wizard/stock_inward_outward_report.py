@@ -112,6 +112,8 @@ class stock_inward_outward_report(osv.osv_memory):
     ]
     
     def print_report(self, cr, uid, ids, context=None):
+        if context is None:
+            context = {}
         stock_obj = self.pool.get('tpt.stock.inward.outward')
         cr.execute('delete from tpt_stock_inward_outward')
         stock = self.browse(cr, uid, ids[0])
@@ -961,13 +963,14 @@ class stock_inward_outward_report(osv.osv_memory):
                 'document_no': get_account_move_line(line['id'], line['material_issue_id'], line['product_dec'], line['doc_type']),
                 'gl_document_no': line['name'],
                 'document_type': get_doc_type(line['doc_type']),
-                'transaction_quantity': round(trans_qty,3),
-                'price_unit': round(price,3),
-                'stock_value': round(st_value,3),
-                'current_material_value':round(cur,3),
+                'transaction_quantity': trans_qty,
+                'price_unit': price,
+                'stock_value': st_value,
+                'current_material_value':cur,
 #                 'sl_chuaro': sl_chuaro,
             }))
-            
+#         if context.get('update_price_unit_for_production_COAL',False):
+#             return stock_in_out_line
         vals = {
             'name': 'Stock Inward and Outward Details',
             'product_id': stock.product_id.id,
