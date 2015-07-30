@@ -3084,10 +3084,12 @@ class tpt_update_stock_move_report(osv.osv):
         period_obj = self.pool.get('account.period')
         sql = '''
             select id from stock_picking where type = 'in' and state = 'done' 
-                and id not in (select grn_id from account_move where doc_type='grn' and grn_id is not null) limit 200
+                and id not in (select grn_id from account_move where doc_type='grn' and grn_id is not null) limit 500
         '''
         cr.execute(sql)
         picking_ids = [r[0] for r in cr.fetchall()]
+        if not picking_ids:
+            return self.write(cr, uid, ids, {'result':'Create all GRN posting Done'}) 
         for line in picking_obj.browse(cr,uid,picking_ids):
             debit = 0.0
             credit = 0.0
@@ -3148,7 +3150,7 @@ class tpt_update_stock_move_report(osv.osv):
                     'ref': line.name,
                     }
                 new_jour_id = account_move_obj.create(cr,uid,value)
-        return self.write(cr, uid, ids, {'result':'Create all GRN posting Done'}) 
+        return self.write(cr, uid, ids, {'result':'Create all GRN posting Remaining'}) 
 tpt_update_stock_move_report()
 
 
