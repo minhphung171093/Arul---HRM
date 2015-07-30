@@ -44,6 +44,10 @@ class emp_attendance_line(osv.osv_memory):
         'header_id': fields.many2one('tpt.emp.attendance', 'Emp Attn Header', ondelete='cascade'),
         'employee_id': fields.char('Employee ID', size = 1024),
         'work_date': fields.date('Work Date'), 
+        'planned_shift': fields.char('Planned Shift', size = 1024),
+        'actual_shift': fields.char('Actual Shift', size = 1024),
+        'in_time': fields.float('In'),
+        'out_time': fields.float('Out'),
         'a_shift_count': fields.float('A'),
         'g1_shift_count': fields.float('G1'),
         'g2_shift_count': fields.float('G2'),
@@ -98,6 +102,12 @@ class emp_attendance_details(osv.osv_memory):
             for move in get_move_ids:
                 a_total += move['total_shift_worked']    
             return a_total
+        def get_shift_name(shift_id):
+            work_shift_obj = self.pool.get('arul.hr.capture.work.shift') 
+            #b_work_shift = work_shift_obj.search(cr, uid, [('id','=',shift_id)])
+            work_shift = work_shift_obj.browse(cr,uid,shift_id)
+            shift_name = work_shift.code 
+            return shift_name
         def get_move_ids(o):
             account_voucher_obj = self.pool.get('arul.hr.punch.in.out.time')
             move_lines = []
@@ -108,7 +118,8 @@ class emp_attendance_details(osv.osv_memory):
             emp_categ = o.employee_categ_id
             
             sql = '''
-            select emp.employee_id employee_id,io.work_date work_date, 
+            select emp.employee_id employee_id,io.work_date work_date,io.in_time, io.out_time,
+            io.planned_work_shift_id, io.actual_work_shift_id, 
             io.a_shift_count1 a_shift_count, io.g1_shift_count1 g1_shift_count, io.g2_shift_count1 g2_shift_count, 
             io.b_shift_count1 b_shift_count,io.c_shift_count1 c_shift_count, 
             io.total_shift_worked1 total_shift_worked
@@ -121,6 +132,18 @@ class emp_attendance_details(osv.osv_memory):
             
             cr.execute(sql)
             res = cr.dictfetchall()
+            
+            #===================================================================
+            # sql = '''
+            # select od.date,od.start_time,od.end_time from arul_hr_permission_onduty od
+            # inner join hr_employee emp on od.employee_id=emp.id
+            #     where od.approval='t' and od.date between '%s' and '%s'
+            #     and od.employee_id=%s 
+            # '''%(date_from, date_to, emp.id)
+            # cr.execute(sql)
+            # res = cr.dictfetchall()
+            #===================================================================
+            
             return res
                     
             #return []    
@@ -139,7 +162,11 @@ class emp_attendance_details(osv.osv_memory):
             attn_line.append((0,0,{
                 #'date': line.header_id and line.header_id.date or '',
                 'employee_id': line['employee_id'],#line.employee_id or '',    
-                'work_date': line['work_date'],  
+                'work_date': line['work_date'] ,  
+                'in_time': line['in_time'],  
+                'out_time': line['out_time'],  
+                'planned_shift': get_shift_name(line['planned_work_shift_id']),  
+                'actual_shift': get_shift_name(line['actual_work_shift_id']),  
                 'a_shift_count': line['a_shift_count'] or '',  
                 'g1_shift_count': line['g1_shift_count'] or '',  
                 'g2_shift_count': line['g2_shift_count'] or '',  
@@ -150,8 +177,7 @@ class emp_attendance_details(osv.osv_memory):
                 
             }))
         attn_line.append((0,0,{
-            #'voucher_id': False,
-            'sub_total': 'Days Total',
+            'sub_total': 'Total',
             'a_shift_count': get_a_total(get_move_ids(cb)),
             'g1_shift_count': get_g1_total(get_move_ids(cb)),
             'g2_shift_count': get_g2_total(get_move_ids(cb)),

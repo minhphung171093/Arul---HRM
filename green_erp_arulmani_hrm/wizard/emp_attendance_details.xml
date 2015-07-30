@@ -22,7 +22,7 @@
     	</record>
 
 	    <record model="ir.actions.act_window" id="action_emp_attn_report_view">
-	        <field name="name">Employee Attendance Verification Report</field>
+	        <field name="name">Employee Attendance Report</field>
 	        <field name="res_model">emp.attendance.details</field>
 	        <field name="view_type">form</field>
 	        <field name="view_mode">form</field>
