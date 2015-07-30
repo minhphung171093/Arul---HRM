@@ -5,7 +5,7 @@
 	        <field name="name">emp.attendance.details.view</field>
 	        <field name="model">emp.attendance.details</field>
 	        <field name="arch" type="xml">
-	            <form string="Cash Book Report" version="7.0">
+	            <form string="Emp Attn Report" version="7.0">
 	            	<group>
 	                <field name="date_from" />
 	                <field name="date_to" />
