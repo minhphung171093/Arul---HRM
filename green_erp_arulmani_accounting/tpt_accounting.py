@@ -570,9 +570,7 @@ class stock_picking(osv.osv):
                         'period_id':period_id.id ,
                         'date': date_period,
                         'line_id': journal_line,
-                        'doc_type':'grn',
-                        'grn_id':line.id,
-                        'ref': line.name,
+                        'doc_type':'grn'
                         }
                     new_jour_id = account_move_obj.create(cr,uid,value)
             if 'state' in vals and line.type == 'out' and line.state=='done':
@@ -605,8 +603,8 @@ class stock_picking(osv.osv):
                             used_qty = p.product_qty or 0
                             if sale_id:
                                 sql = '''
-                                    select id from tpt_batch_allotment where sale_order_id = %s
-                                '''%(sale_id)
+                                    select id from tpt_batch_allotment where sale_order_id = %s and state='confirm'
+                                '''%(sale_id) #TPT-By BalamuruganPurushothaman ON 29/07/2015 - TO TAKE CONFIRMED BATCH ALLOTMENT ONLY NOT IN CANCEL STATE
                                 cr.execute(sql)
                                 allot_ids = cr.dictfetchone()
                                 if allot_ids:
@@ -672,8 +670,7 @@ class stock_picking(osv.osv):
                         'period_id':period_id.id ,
                         'date': date_period,
                         'line_id': journal_line,
-                        'doc_type':'do',
-                        'ref': line.name,
+                        'doc_type':'do'
                         }
                     new_jour_id = account_move_obj.create(cr,uid,value)
 #                     if so_id:
