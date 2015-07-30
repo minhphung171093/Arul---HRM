@@ -78,6 +78,10 @@
 		                	<field name="attn_line_id" nolabel='1'>
 		                		<tree create="false" edit="false" delete="false">
 		                			<field name="work_date"/>
+		                			<field name="planned_shift"/>
+		                			<field name="actual_shift"/>
+		                			<field name="in_time" widget="float_time"/>
+		                			<field name="out_time" widget="float_time"/>
 		                			<field name="sub_total"/>
 		                			<field name="a_shift_count"/>
 		                			<field name="g1_shift_count"/>

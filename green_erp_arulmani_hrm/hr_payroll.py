@@ -3089,4 +3089,9 @@ class hr_employee(osv.osv):
 
 hr_employee()
 
-
+class resource_resource(osv.osv):
+    _inherit = "resource.resource"
+    _columns = {   
+        'rfid': fields.char('RFID', size=1024, required = False),   
+    }
+resource_resource()
