@@ -2963,6 +2963,7 @@ class tpt_update_stock_move_report(osv.osv):
                         'date': line.date_planned,
                         'line_id': journal_line,
                         'product_dec': line.id,
+                        'ref': line.name,
                     }
             new_jour_id = account_move_obj.create(cr,uid,value)
             print 'Phuoc: ', dem, line.id
