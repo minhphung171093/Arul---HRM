@@ -1425,6 +1425,18 @@ class arul_hr_payroll_executions(osv.osv):
                     '''%(p.id,line.year,int(line.month))
                     cr.execute(sql)
                     total_fd = cr.dictfetchone()['total_fd']
+                    sql = '''
+                        select case when sum(ptax_amt)!=0 then sum(ptax_amt) else 0 end ptax_amt from tpt_hr_ptax_line pl
+                            inner join tpt_hr_ptax_slab sl on pl.slab_id=sl.id
+                            where %s between sl.from_range and sl.to_range
+                            and ptax_id = 
+                            (select id from tpt_hr_ptax where extract(month from to_date)=%s 
+                            and extract(year from to_date)=%s)
+                        '''%(a, line.month,line.year)
+                    cr.execute(sql)
+                    cr.fetchone()
+                    total_ptax = cr.dictfetchone()['total_fd'] 
+                    
                     if p.employee_category_id and p.employee_category_id.code == 'S1':
                         pfd = 0.0
                         pd = 0.0
@@ -1491,6 +1503,7 @@ class arul_hr_payroll_executions(osv.osv):
 			#TPT
                         #total_deduction = pfd + pd + vpfd + esid + fd + ld + ind +  pt + lwf 
                         #total_deduction = pd  + esid + fd + ld + ind +  pt + lwf
+                        
                         total_deduction = pd  + esid + fd + ld + ind +  pt + lwf + i_lic_prem + i_others + l_vvti_loan + l_lic_hfl + l_hdfc + l_tmb + l_sbt + l_others + it_deduction
                         
                         for _other_deductions_id in payroll_emp_struc_obj.browse(cr,uid,emp_struc_ids[0]).payroll_other_deductions_line:
@@ -1707,6 +1720,9 @@ class arul_hr_payroll_executions(osv.osv):
 			total_earning =  net_basic + net_da + net_c + net_hra + net_ea + net_aa + net_la + net_oa + fa + spa + pc + cre + sha + lta + med
 			gross_sal =  net_basic + net_da + net_c + net_hra + net_ea + net_aa + net_la + net_oa + fa + spa + pc + cre + sha + lta + med
 
+            #tes
+            
+            #
 			#gross_before = basic + c + hra  +spa + ea + oa
 			#if total_no_of_leave: # total_no_of_leave <-> total_lop
                         #    gross_sal = gross_before/calendar_days*(total_days-total_no_of_leave) # total_no_of_leave <-> total_lop
@@ -1726,6 +1742,19 @@ class arul_hr_payroll_executions(osv.osv):
                         vpfd_amount = round(base_amount * vpfd / 100) 	
 			total_deduction += (emp_pf_con_amount + emp_esi_con_amount + emp_lwf_amt + vpfd_amount)            
 			net_sala = gross_sal - total_deduction
+            
+                        sql = '''
+                        select pl.ptax_amt from tpt_hr_ptax_line pl
+                            inner join tpt_hr_ptax_slab sl on pl.slab_id=sl.id
+                            where %s between sl.from_range and sl.to_range
+                            and ptax_id = 
+                            (select id from tpt_hr_ptax where extract(month from to_date)=%s 
+                            and extract(year from to_date)=%s)
+                        '''%(a, line.month,line.year)
+                        cr.execute(sql)
+                        k = cr.fetchone()
+                        if k:
+                            pt = k[0]  
             
 
 
@@ -3095,3 +3124,62 @@ class resource_resource(osv.osv):
         'rfid': fields.char('RFID', size=1024, required = False),   
     }
 resource_resource()
+
+class tpt_hr_ptax(osv.osv):
+    _name = "tpt.hr.ptax"
+    _columns = {   
+        'name': fields.char('Name'), 
+        'ptax_line': fields.one2many('tpt.hr.ptax.line', 'ptax_id', 'PTax Slab'),
+        'from_date': fields.date('From Date'),
+        'to_date': fields.date('To Date'),    
+    }
+    def create(self, cr, uid, vals, context=None):
+        vals.update({'name':'From '+str(vals['from_date'])+ ' to '+str(vals['to_date']),
+                        })
+        return super(tpt_hr_ptax, self).create(cr, uid, vals, context)
+    
+    def write(self, cr, uid, ids, vals, context=None):
+        if 'from_date' in vals or 'to_date' in vals:
+            vals.update({'name':'From '+str(vals['from_date'])+ ' to '+str(vals['to_date']),
+                         })
+        new_write = super(tpt_hr_ptax, self).write(cr, uid,ids, vals, context)
+        return new_write
+tpt_hr_ptax()
+
+class tpt_hr_ptax_line(osv.osv):
+    _name = "tpt.hr.ptax.line"
+    _order = "ptax_amt asc"
+    _columns = {   
+        'ptax_id': fields.many2one('tpt.hr.ptax', 'PTax'),
+        'slab_id':fields.many2one('tpt.hr.ptax.slab','Gross Salary'),
+        'from_range': fields.float('Salary Amt From'),
+        'to_range': fields.float('Salary Amt To'),   
+        'ptax_amt': fields.float('PTax Amount'),  
+    }
+tpt_hr_ptax_line()
+
+class tpt_hr_ptax_slab(osv.osv):
+    _name = "tpt.hr.ptax.slab"
+    _columns = {  
+        'name': fields.char('Name'), 
+        'from_range': fields.float('Salary Amt From'),
+        'to_range': fields.float('Salary Amt To'),   
+    }
+    def create(self, cr, uid, vals, context=None):
+        vals.update({'name':'Between Rs.'+str(vals['from_range'])+ ' to Rs.'+str(vals['to_range']),
+                        })
+        return super(tpt_hr_ptax_slab, self).create(cr, uid, vals, context)
+    
+    def write(self, cr, uid, ids, vals, context=None):
+        ptax_obj = self.pool.get('tpt.hr.ptax.slab') 
+        ptax_obj_id = ptax_obj.browse(cr,uid,ids[0])
+        if 'from_range' in vals:
+            
+            vals.update({'name':'Between Rs.'+str(vals['from_range'])+ ' to Rs.'+str(ptax_obj_id.to_range),
+                         })
+        if 'to_range' in vals:
+            vals.update({'name':'Between Rs.'+str(ptax_obj_id.from_range)+ ' to Rs.'+str(vals['to_range']),
+                         })
+        new_write = super(tpt_hr_ptax_slab, self).write(cr, uid,ids, vals, context)
+        return new_write
+tpt_hr_ptax_slab()
