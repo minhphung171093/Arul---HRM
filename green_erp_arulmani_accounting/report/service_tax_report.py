@@ -47,8 +47,10 @@ class Parser(report_sxw.rml_parse):
             'convert_date': self.convert_date,
             'get_tax_amnt':self.get_tax_amnt,
             'get_tax_desc':self.get_tax_desc,
-            'get_total_openbal':self.get_total_openbal,
-            #'get_total_opbal':self.get_total_opbal,
+            'get_total_openbal':self.get_total_openbal,            
+            'get_tot_closing_bal':self.get_tot_closing_bal,
+            'get_debit_balance':self.get_debit_balance,
+            'get_total_service_tax':self.get_total_service_tax,
 #             'get_sale_line': self.get_sale_line,
         })
         
@@ -67,124 +69,148 @@ class Parser(report_sxw.rml_parse):
         date = datetime.strptime(wizard_data['date_to'], DATE_FORMAT)
         return date.strftime('%d/%m/%Y')
     
-    def get_tax_desc(self,line):        
-        sr_obj = self.pool.get('account.invoice.line')
-        sr = sr_obj.browse(self.cr, self.uid, line)
-        #sr.tax_id
-        taxid = int(sr.tax_id.id)       
-        tx_obj = self.pool.get('account.tax')
-        if taxid:
-            tx = tx_obj.browse(self.cr, self.uid, taxid)        
-            return tx.description or ''
-        else:
-            return ''
     
-    #YuVi      
-    #===========================================================================
-    # def get_tax_amnt(self,line):        
-    #     sr_obj = self.pool.get('account.invoice.line')
-    #     sr = sr_obj.browse(self.cr, self.uid, line)
-    #     taxid = int(sr.tax_id.id)
-    #     tx_obj = self.pool.get('account.tax')
-    #     if taxid:
-    #         tx = tx_obj.browse(self.cr, self.uid, taxid)
-    #         taxamnt = int(tx.amount)
-    #         netamnt = int(sr.line_net)
-    #         amnt = sr.line_net * (tx.amount/100)    
-    #         return amnt or 0.00
-    #     else:
-    #         return 0.00
-    #===========================================================================
-    #YuVi
-    def get_tax_amnt(self,line):
-        lineid = line     
-        sr_obj = self.pool.get('account.invoice.line.tax')
-        sr = sr_obj.browse(self.cr, self.uid, lineid)
-        taxid = int(sr.tax_id.id)
-        tx_obj = self.pool.get('account.tax')
-        tx = tx_obj.browse(self.cr, self.uid, lineid)
-        taxamnt = int(tx.amount)
-        netamnt = int(sr.line_net)
-        amnt = sr.line_net * (tx.amount/100)    
-        return amnt or 0.00
+    def get_tax_desc(self,lineid):        
+        sql = '''
+            select t.description as desc from account_tax t            
+            join account_invoice_line_tax ailt on (ailt.tax_id = t.id)
+            where ailt.invoice_line_id = '%s'
+        '''%(lineid)
+        self.cr.execute(sql)
+        for move in self.cr.dictfetchall():
+             describ = move['desc']             
+             return describ or ''
+    
         
-    
-    
-    #YuVi
-    def get_total_openbal(self,lineid,invdate):
+    def get_tax_amnt(self,line):
+        lineid = line.id
+        linet = line.line_net
+        decamount = 0.00
+        sql = '''
+            select COALESCE(t.amount,0) as taxamnt from account_tax t            
+            join account_invoice_line_tax ailt on (ailt.tax_id = t.id)
+            where ailt.invoice_line_id = '%s'
+        '''%(lineid)
+        self.cr.execute(sql)
+        for move in self.cr.dictfetchall():
+             tax_amnt = move['taxamnt']
+             tot_ser_tax = linet * (tax_amnt/100) #Commented by YuVi on 28/07/15, for roundoff issue
+             #tot_ser_tax = round(linet * (tax_amnt/100),0) #YuVi on 28/07/15, for roundoff issue            
+             return tot_ser_tax or 0.00
+         
+    def get_tot_closing_bal(self):
+        wizard_data = self.localcontext['data']['form']
+        #date_from = wizard_data['date_from']
+        date_to = wizard_data['date_to']
+        accountid = wizard_data['account_id']
+        #acct_id = accountid.id
+        
+        sql = '''
+            select COALESCE(sum(a.taxamt),0) as totamount from( 
+            select case when COALESCE(sum(ail.line_net*(at.amount/100)), 0) = 0 then 0
+            else sum(ail.line_net*(at.amount/100)) end as taxamt,ail.id
+            from account_invoice_line ail
+            join account_invoice ai on (ai.id=ail.invoice_id and ai.type = 'in_invoice')
+            JOIN account_invoice_line_tax ailt on (ailt.invoice_line_id=ail.id)
+            Join account_tax at on (at.id=ailt.tax_id and at.gl_account_id=%s)
+            where at.description ~'STax' and at.amount>0
+            and ai.date_invoice <= '%s'
+            group by ail.id 
+            order by ail.id)a
+        '''%(accountid[0],date_to)
+        self.cr.execute(sql)
+        for move in self.cr.dictfetchall():
+            total = move['totamount']
+            return total or 0.00
+        
+    def get_total_service_tax(self):
+        wizard_data = self.localcontext['data']['form']
+        date_from = wizard_data['date_from']
+        date_to = wizard_data['date_to']
+        accountid = wizard_data['account_id']        
+        
+        sql = '''
+            select COALESCE(sum(a.taxamt),0) as taxamount from( 
+            select case when COALESCE(sum(ail.line_net*(at.amount/100)), 0) = 0 then 0
+            else sum(ail.line_net*(at.amount/100)) end as taxamt,ail.id
+            from account_invoice_line ail
+            join account_invoice ai on (ai.id=ail.invoice_id and ai.type = 'in_invoice')
+            JOIN account_invoice_line_tax ailt on (ailt.invoice_line_id=ail.id)
+            Join account_tax at on (at.id=ailt.tax_id and at.gl_account_id=%s)
+            where at.description ~'STax' and at.amount>0
+            and ai.date_invoice between '%s' and '%s'
+            group by ail.id 
+            order by ail.id)a
+            '''%(accountid[0],date_from,date_to)
+        self.cr.execute(sql)
+        for move in self.cr.dictfetchall():
+            total = move['taxamount']
+            #total = round(total1,0)
+            return total or 0.00
+        
+   
+    def get_total_openbal(self,lineid):
         wizard_data = self.localcontext['data']['form']
         date_from = wizard_data['date_from']
         accountid = wizard_data['account_id']
-        invoice_date = invdate       
+        #invoice_date = invdate       
         line_id = lineid        
         temp_taxamt = 0
         
-        sql = '''
-                select case when COALESCE(sum(ail.line_net*(at.amount/100)), 0) = 0 then 0
-                else sum(ail.line_net*(at.amount/100)) end as taxamt 
-                from account_invoice_line ail
-                join account_invoice ai on (ai.id=ail.invoice_id and ai.type = 'in_invoice')
-                JOIN account_invoice_line_tax ailt on (ailt.invoice_line_id=ail.id)
-                Join account_tax at on (at.id=ailt.tax_id and at.gl_account_id=%s)
-                where at.description ~'STax' and at.amount>0
-                and ail.id<%s and ai.date_invoice>='%s' and ai.date_invoice<='%s'                             
-               '''%(accountid[0],line_id,date_from,invoice_date)
         #=======================================================================
         # sql = '''
-        #         select sum(ail.line_net*(at.amount/100)) as taxamt from account_invoice_line ail
+        #         select case when COALESCE(sum(ail.line_net*(at.amount/100)), 0) = 0 then 0
+        #         else sum(ail.line_net*(at.amount/100)) end as taxamt 
+        #         from account_invoice_line ail
         #         join account_invoice ai on (ai.id=ail.invoice_id and ai.type = 'in_invoice')
         #         JOIN account_invoice_line_tax ailt on (ailt.invoice_line_id=ail.id)
         #         Join account_tax at on (at.id=ailt.tax_id and at.gl_account_id=%s)
         #         where at.description ~'STax' and at.amount>0
         #         and ail.id<%s and ai.date_invoice>='%s' and ai.date_invoice<='%s'                             
-        #        '''%(accountid[0],line_id,invoice_date,date_from)
+        #        '''%(accountid[0],line_id,date_from,invoice_date)       
         #=======================================================================
-        #print sql
-        self.cr.execute(sql)
-        #temp_taxamt = self.cr.fetchone()
+        sql = '''
+                select COALESCE(sum(a.taxamt),0) as taxamount from( 
+                select case when COALESCE(sum(ail.line_net*(at.amount/100)), 0) = 0 then 0
+                else sum(ail.line_net*(at.amount/100)) end as taxamt,ail.id
+                from account_invoice_line ail
+                join account_invoice ai on (ai.id=ail.invoice_id and ai.type = 'in_invoice')
+                JOIN account_invoice_line_tax ailt on (ailt.invoice_line_id=ail.id)
+                Join account_tax at on (at.id=ailt.tax_id and at.gl_account_id=%s)
+                where at.description ~'STax' and at.amount>0
+                and ail.id<%s and ai.date_invoice>='%s'
+                group by ail.id 
+                order by ail.id)a                          
+               '''%(accountid[0],line_id,date_from)
+        self.cr.execute(sql)        
         for move in self.cr.dictfetchall():
-            move_amnt = move['taxamt']
-            temp_t = temp_taxamt
-            temp_taxamt += move['taxamt']
-            #line.line_net * (tax_amt/100)
-                            
+            #move_amnt = move['taxamt']
+            #temp_t = temp_taxamt
+            temp_taxamt += move['taxamount']
         return temp_taxamt or 0.00
-    #YuVi
+   
     
-    
-#     def get_total_opbal(self,line,opbal,tax_amt):
-#         openbalance = opbal
-#         #temp_taxamt = 0.00
-#         #if temp_taxamt:
-#         for a in line:  
-#             open = openbalance+tax_amt
-#         #temp_taxamt+=(net_amnt * (tax_amt/100))
-#             temp_taxamt = tax_amt
-#             return open or 0.00
-    
-     
-            
-
-        #=======================================================================
-        # print line.id
-        # sr_obj = self.pool.get('account.invoice.line')
-        # tx_obj = self.pool.get('account.tax')
-        # sr = sr_obj.browse(self.cr, self.uid, line)
-        # print sr
-        # print sr.id
-        # tx = tx_obj.browse(self.cr, self.uid, sr.id)
-        # amnt = tx.amount
-        # print amnt
-        #=======================================================================
-       
+    def get_debit_balance(self):
+            wizard_data = self.localcontext['data']['form']
+            #date_from = wizard_data['date_from']
+            date_to = wizard_data['date_to']
+            accountid = wizard_data['account_id']
+            openbalance = 0.00
+            net_amt = 0.00
+            sql = '''
+                select sum(aml.credit) as debit 
+                from account_move_line aml
+                inner join account_move am on (am.id=aml.move_id)
+                inner join account_account aa on (aa.id=aml.account_id and aa.id=%s)
+                join account_invoice i on (i.move_id=am.id and i.type = 'in_invoice')
+                where aml.debit>0 and am.state in ('posted') and i.date_invoice < '%s'
+                '''%(accountid[0],date_to)
+            self.cr.execute(sql)            
+            for move in self.cr.dictfetchall():
+                if move['debit']:
+                    openbalance += move['debit']                    
+            return openbalance or 0.00
         
-        #wizard_data = self.localcontext['data']['form']        
-        #for a in line.invoice_line_tax_id:
-        #tax = a.amount        
-        #return tax
-            #if type == '':
-             #   tax = a.description
-    
     def get_opening_balance(self):
             wizard_data = self.localcontext['data']['form']
             date_from = wizard_data['date_from']
@@ -193,20 +219,25 @@ class Parser(report_sxw.rml_parse):
             openbalance = 0.00
             net_amt = 0.00
             sql = '''
-                select sum(aml.debit) as debit 
-                from account_move_line aml
-                inner join account_move am on (am.id=aml.move_id)
-                inner join account_account aa on (aa.id=aml.account_id and aa.id=%s)
-                join account_invoice i on (i.move_id=am.id and i.type = 'in_invoice')
-                where aml.debit>0 and am.state in ('posted') and i.date_invoice < '%s'
+                select COALESCE(sum(a.taxamt),0) as taxamount from( 
+                select case when COALESCE(sum(ail.line_net*(at.amount/100)), 0) = 0 then 0
+                else sum(ail.line_net*(at.amount/100)) end as taxamt,ail.id
+                from account_invoice_line ail
+                join account_invoice ai on (ai.id=ail.invoice_id and ai.type = 'in_invoice')
+                JOIN account_invoice_line_tax ailt on (ailt.invoice_line_id=ail.id)
+                Join account_tax at on (at.id=ailt.tax_id and at.gl_account_id=%s)
+                where at.description ~'STax' and at.amount>0
+                and ai.date_invoice<'%s'
+                group by ail.id 
+                order by ail.id)a
                 '''%(accountid[0],date_from)
             self.cr.execute(sql)
             #print sql
             for move in self.cr.dictfetchall():
-                if move['debit']:
-                    openbalance += move['debit']
+                if move['taxamount']:
+                    openbalance += move['taxamount']
                     #op_amount = openbalance+net_amt
-            return openbalance
+            return openbalance or 0.00
         
     def get_invoice(self):
             wizard_data = self.localcontext['data']['form']
@@ -221,75 +252,15 @@ class Parser(report_sxw.rml_parse):
                 join account_invoice ai on (ai.id=ail.invoice_id and ai.type = 'in_invoice')
                 JOIN account_invoice_line_tax ailt on (ailt.invoice_line_id=ail.id)
                 Join account_tax at on (at.id=ailt.tax_id and at.gl_account_id=%s)
-                where at.description ~'STax' and at.amount>0 and date_invoice between '%s' and '%s' 
+                where at.description ~'STax' and at.amount>0 and ai.date_invoice between '%s' and '%s' 
                 order by ail.id
                 --order by ai.date_invoice,ai.bill_number,ai.bill_date
-                '''%(accountid[0],date_from, date_to) 
+                '''%(accountid[0],date_from,date_to) 
             self.cr.execute(sql)
             #print sql
             invoice_ids = [r[0] for r in self.cr.fetchall()]
             return invoice_obj.browse(self.cr,self.uid,invoice_ids)
-    
-#===============================================================================
-#     def get_invoice(self):
-#         res = {}
-#         wizard_data = self.localcontext['data']['form']
-#         date_from = wizard_data['date_from']
-#         date_to = wizard_data['date_to']
-#         invoice_obj = self.pool.get('account.invoice.line')
-#         sql = '''
-#             select ail.id,
-#             inv.date_invoice as invoice_date,
-#             inv.bill_number as bill_no,
-#             inv.bill_date as bill_dt,
-#             rs.name as party_name,
-#             inv.name as invoice_no,
-#             ail.line_net as net_amount,
-#             at.description as desp,
-#             ail.line_net * (at.amount/100) as service_amt
-#             from account_invoice_line ail
-#             join account_invoice ai on (ai.id=ail.invoice_id)
-#             JOIN account_invoice_line_tax ailt on (ailt.invoice_line_id=ail.id)
-#             Join account_tax at on (at.id=ailt.tax_id)
-#             join account_invoice inv on (ail.invoice_id = inv.id)
-#             join res_partner rs on (inv.partner_id = rs.id)
-#             where invoice_id in (select id from account_invoice where date_invoice between '%s' and '%s' and type = 'in_invoice') 
-#             and at.description ~'STax' and at.amount>0
-#             '''%(date_from, date_to)
-#         #self.cr.execute(sql)
-#         #invoice_ids = [r[0] for r in self.cr.fetchall()]
-#         #return invoice_obj.browse(self.cr,self.uid,invoice_ids)
-#         self.cr.execute(sql)                    
-#         return self.cr.dictfetchall()
-#         
-# 
-#         
-#     '''def get_service_tax(self):
-#         res = {}
-#         wizard_data = self.localcontext['data']['form']
-#         date_from = wizard_data['date_from']
-#         date_to = wizard_data['date_to']
-#         invoice_obj = self.pool.get('account.invoice.line')
-#         sql = 
-#             select ail.id, 
-#             cast(round(sum(ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount
-#             from account_invoice_line ail
-#             JOIN account_invoice_line_tax ailt on (ailt.invoice_line_id=ail.id)
-#             Join account_tax at on (at.id=ailt.tax_id)
-#             where invoice_id in (select id from account_invoice where date_invoice between '%s' and '%s' and type = 'in_invoice') 
-#             and at.description ~'STax' and at.amount>0
-#             %(date_from, date_to)
-#         self.cr.execute(sql)
-#         invoice_ids = [r[0] for r in self.cr.fetchall()]
-#         details = invoice_obj.browse(self.cr,self.uid,invoice_ids)  
-#         for line in details:
-#             for a in line.invoice_line_tax_id:
-#                 tax_amt = a.amount
-#                 tax_des = a.description
-#             
-#                 return tax_des'''
-#===============================================================================
-    
+
     def get_tax(self, invoice_line_tax_id):
         tax_amounts = 0
         tax_amounts = [r.amount for r in invoice_line_tax_id]

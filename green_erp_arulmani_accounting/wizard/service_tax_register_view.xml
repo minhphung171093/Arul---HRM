@@ -9,7 +9,9 @@
                 	<group>                	  
                 	    <field name="date_from" />
                 	    <field name="date_to" />
-                	    <field name='account_id' options="{'create': false, 'create_edit': false}"/>                	    	                                                  
+                	    <field name='account_id' options="{'create': false, 'create_edit': false}"/>
+                	    <field name='assessee_id'/>
+                	    <field name='serv_tax_reg_no'/>              	    	                                                  
                  	</group>
                     <footer>
                         <button name="print_report" string="Print" type="object" class="oe_highlight" context="{'type':'appointments'}"/>

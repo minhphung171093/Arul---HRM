@@ -23,7 +23,7 @@
 			model="service.tax.register" 
 			name="service_tax_report"
 	        string="Service tax Report"
-	        rml="green_erp_arulmani_accounting/report/service_tax_report.ods"/>	
+	        rml="green_erp_arulmani_accounting/report/service_tax_report.ods"/>
 	        
 	   <record id="service_tax_report_pdf" model="ir.actions.report.xml">
 	        <field name="name">service_tax_report_pdf</field>
@@ -31,10 +31,10 @@
 	        <field name="model">service.tax.register</field>
 	        <field name="report_name">service_tax_report_pdf</field>
 	        <field name="report_type">aeroo</field>
-	        <field name="in_format">oo-odt</field>
-	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-pdf'),('compatible_types','=','oo-odt')]"/>
+	        <field name="in_format">oo-ods</field>
+	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-pdf'),('compatible_types','=','oo-ods')]"/>
 	        <field name="parser_loc">green_erp_arulmani_accounting/report/service_tax_report.py</field>
-	        <field name="report_rml">green_erp_arulmani_accounting/report/service_tax_report.odt</field>
+	        <field name="report_rml">green_erp_arulmani_accounting/report/service_tax_report.ods</field>
 	        <field name="parser_state">loc</field>
 	        <field name="tml_source">file</field>
 	        <field name="attachment_use" eval="0"/>
@@ -47,7 +47,7 @@
 			model="service.tax.register" 
 			name="service_tax_report_pdf"
 	        string="Service tax Report"
-	        rml="green_erp_arulmani_accounting/report/service_tax_report.odt"/>	
+	        rml="green_erp_arulmani_accounting/report/service_tax_report.ods"/>	
 	        
 	    
 	    <record id="view_service_tax_register_form" model="ir.ui.view">

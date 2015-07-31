@@ -74,7 +74,8 @@ class Parser(report_sxw.rml_parse):
     def get_copy(self,is_original,is_duplicate,is_triplicate,is_quadruplicate):
         type = ''
         if is_original is True:
-            type =  'ORIGINAL COPY'+'\n'+'DUPLICATE COPY'+'\n'+'TRIPLICATE COPY'+'\n'+'QUADRUPLICATE COPY'
+            #type =  'ORIGINAL COPY'+'\n'+'\033[1m'+'DUPLICATE COPY'+'\033[0m' +'\n'+'TRIPLICATE COPY'+'\n'+'QUADRUPLICATE COPY'
+            type = 'ORIGINAL COPY'+'\n'+'\033[1m'+'DUPLICATE COPY'+ '\033[0m' +'\n'+'TRIPLICATE COPY'+'\n'+'QUADRUPLICATE COPY'
         if is_duplicate is True:
             type = 'ORIGINAL COPY'+'\n'+'DUPLICATE COPY'+'\n'+'TRIPLICATE COPY'+'\n'+'QUADRUPLICATE COPY'
         if is_triplicate is True:
