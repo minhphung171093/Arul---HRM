@@ -259,14 +259,14 @@ class stock_inward_outward_report(osv.osv_memory):
                '''%(locat_ids[0],product_id.id,date_from)
                cr.execute(sql)
                product_isu_qty = cr.fetchone()[0]
-#                sql = '''
-#                        select case when sum(line_net)!=0 then sum(line_net) else 0 end line_net, product_id from account_invoice_line 
-#                        where product_id = %s and invoice_id in (select id from account_invoice where date_invoice < '%s' and sup_inv_id is not null)
-#                        group by product_id
-#                '''%(product_id.id, date_from)
-#                cr.execute(sql)
-#                for inventory in cr.dictfetchall():
-#                    freight_cost = inventory['line_net'] or 0
+               sql = '''
+                        select case when sum(line_net)!=0 then sum(line_net) else 0 end line_net, product_id from account_invoice_line 
+                        where product_id = %s and invoice_id in (select id from account_invoice where date_invoice < '%s' and sup_inv_id is not null)
+                        group by product_id
+                '''%(product_id.id, date_from)
+               cr.execute(sql)
+               for inventory in cr.dictfetchall():
+                   freight_cost = inventory['line_net'] or 0
                    
                if product_id.default_code == 'M0501060001':
                    sql = '''
@@ -341,7 +341,7 @@ class stock_inward_outward_report(osv.osv_memory):
             parent_ids_spares = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
             locat_ids_spares = self.pool.get('stock.location').search(cr, uid, [('name','in',['Spares','Spare','spares']),('location_id','=',parent_ids_spares[0])])
             sql = '''
-                select * from account_move where doc_type in ('good', 'grn', 'product') 
+                select * from account_move where doc_type in ('freight', 'good', 'grn', 'product') 
                     and date between '%(date_from)s' and '%(date_to)s'
                     and ( id in (select move_id from account_move_line where (move_id in (select move_id from account_invoice where to_char(date_invoice, 'YYYY-MM-DD') between '%(date_from)s' and '%(date_to)s' and id in (select invoice_id from account_invoice_line where product_id=%(product_id)s)))
                         or (LEFT(name,17) in (select name from stock_picking where id in (select picking_id from stock_move where to_char(date, 'YYYY-MM-DD') between '%(date_from)s' and '%(date_to)s' and product_id=%(product_id)s)))
@@ -969,8 +969,8 @@ class stock_inward_outward_report(osv.osv_memory):
                 'current_material_value':cur,
 #                 'sl_chuaro': sl_chuaro,
             }))
-#         if context.get('update_price_unit_for_production_COAL',False):
-#             return stock_in_out_line
+        if context.get('update_price_unit_for_production_COAL',False):
+            return stock_in_out_line
         vals = {
             'name': 'Stock Inward and Outward Details',
             'product_id': stock.product_id.id,
