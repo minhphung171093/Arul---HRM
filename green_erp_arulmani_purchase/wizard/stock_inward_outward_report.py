@@ -386,7 +386,9 @@ class stock_inward_outward_report(osv.osv_memory):
                     move_line.append(line)
                 else:
                     move_line.append(line)
-            return move_line    
+            return move_line   
+        
+         
         
         def get_account_move_line(move_id, material_issue_id, product_dec, move_type):
             name = ''
@@ -420,6 +422,37 @@ class stock_inward_outward_report(osv.osv_memory):
                 for qty in cr.dictfetchall():
                     name = qty['name']
             return name
+        
+        def get_create_date(move_id, material_issue_id, product_dec, move_type):
+            if move_type == 'freight':
+                sql = '''
+                   select create_date from account_invoice where move_id = %s and sup_inv_id is not null
+                '''%(move_id)
+                cr.execute(sql)
+                for invoice in cr.dictfetchall():
+                   date = invoice['create_date'] or 0
+            if move_type == 'good':
+                sql = '''
+                    select create_date from tpt_material_issue where id = %s 
+                '''%(material_issue_id)
+                cr.execute(sql)
+                for issue in cr.dictfetchall():
+                    date = issue['create_date']
+            if move_type == 'product':
+                sql = '''
+                    select create_date from mrp_production where id = %s 
+                '''%(product_dec)
+                cr.execute(sql)
+                for product in cr.dictfetchall():
+                    date = product['create_date']        
+            if move_type == 'grn':
+                sql = '''
+                   select create_date from stock_picking where name in (select LEFT(name,17) from account_move_line where move_id = %s) 
+                '''%(move_id)
+                cr.execute(sql)
+                for picking in cr.dictfetchall():
+                    date = picking['create_date']
+            return date
         
         def get_transaction_qty(o, move_id, material_issue_id, product_dec, move_type):
             date_from = o.date_from
@@ -958,7 +991,7 @@ class stock_inward_outward_report(osv.osv_memory):
                 cur = st_value+self.current
             self.current = cur
             stock_in_out_line.append((0,0,{
-                'creation_date': line['date'],
+                'creation_date': get_create_date(line['id'], line['material_issue_id'], line['product_dec'], line['doc_type']),
                 'posting_date': line['date'],
                 'document_no': get_account_move_line(line['id'], line['material_issue_id'], line['product_dec'], line['doc_type']),
                 'gl_document_no': line['name'],
