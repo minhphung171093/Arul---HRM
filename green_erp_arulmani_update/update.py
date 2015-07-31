@@ -2724,6 +2724,15 @@ class tpt_update_stock_move_report(osv.osv):
     
     
     def update_price_unit_for_production_COAL(self, cr, uid, ids, context=None):
+        if context is None:
+            context = {}
+        
+#         inout_obj = self.pool.get('stock.inward.outward.report')
+#         inout_id = inout_obj.create(cr, uid, {'product_id':10756,'date_from':'2015-01-01','date_to':'2015-12-31'})
+#         context.update({'update_price_unit_for_production_COAL':True})
+#         inout_val = inout_obj.print_report(cr, uid, [inout_id], context)
+#         print inout_val
+        
         stock_move = []
         parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
         locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw Material','Raw Materials','Raw material']),('location_id','=',parent_ids[0])])
