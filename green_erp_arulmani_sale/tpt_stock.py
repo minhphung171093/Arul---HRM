@@ -666,7 +666,68 @@ class stock_picking(osv.osv):
         invoice_ids = []
         if not len(ids):
             return False
-        
+#         for pick in self.browse(cr, uid, ids, context=context):
+#             if pick.type == 'out':
+#                 sql ='''
+#                 select case when count(id)!=0 then count(id) else 0 end id from stock_picking where id =%s
+#                 and invoice_state ='invoiced'
+#                 '''%(ids[0])
+#                 cr.execute(sql)
+#                 num = cr.fetchone()[0]
+#                 if num:
+#                     sql ='''
+#                     select id from account_invoice where delivery_order_id = %s and state != 'cancel'
+#                     '''%(ids[0])
+#                     cr.execute(sql)
+#                     if cr.dictfetchone():
+#                         raise osv.except_osv(
+#                             _('Warning'),
+#                             _('You must first cancel all Invoice order(s) attached to this sales order.'))
+#                     else:
+#                         cr.execute(''' update stock_picking set invoice_state ='2binvoiced' where id = %s''',(ids[0],))
+#                         do = self.browse(cr, uid, ids[0], context=context)
+#                         if do:
+#                             line_obj = self.pool.get('account.move.line')
+#                             line_ids = line_obj.search(cr, uid, [('name','=',do.name)])
+#                             if line_ids:
+#                                 line_id = line_obj.browse(cr, uid, line_ids[0])
+#                                 move_id = line_id.move_id.id 
+#                                 if move_id:
+#                                     cr.execute(''' delete from account_move where id = %s''',(move_id,))
+#             if pick.type == 'in':
+#                 sql ='''
+#                 select case when count(id)!=0 then count(id) else 0 end id from stock_picking where id =%s
+#                 and invoice_state ='invoiced'
+#                 '''%(ids[0])
+#                 cr.execute(sql)
+#                 num1 = cr.fetchone()[0]
+#                 if num1:
+#                     sql ='''
+#                     select id from account_invoice where grn_no = %s and state != 'cancel'
+#                     '''%(ids[0])
+#                     cr.execute(sql)
+#                     if cr.dictfetchone():
+#                         raise osv.except_osv(
+#                             _('Warning'),
+#                             _('You must first cancel all Invoice order(s) attached to this sales order.'))
+#                     else:
+#                         cr.execute(''' update stock_picking set invoice_state ='2binvoiced' where id = %s''',(ids[0],))
+#                         grn = self.browse(cr, uid, ids[0], context=context)
+#                         if grn:
+#                             line_obj = self.pool.get('account.move.line')
+#                             sql='''
+#                                 select id from account_move_line where left(name,17) = '%s'
+#                             '''%(grn.name)
+# #                             line_ids = line_obj.search(cr, uid, [('name','=',do.name)])
+#                             cr.execute()
+#                             line_ids = cr.fetchone()
+#                             if line_ids:
+#                                 line_id = line_obj.browse(cr, uid, line_ids[0])
+#                                 move_id = line_id.move_id.id 
+#                                 if move_id:
+#                                     cr.execute(''' delete from account_move where id = %s''',(move_id,))
+                            
+                            
         sql ='''
         select count(id) as id from stock_picking where id =%s
         and invoice_state ='invoiced'
