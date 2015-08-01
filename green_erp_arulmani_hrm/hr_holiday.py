@@ -1529,6 +1529,7 @@ class arul_hr_audit_shift_time(osv.osv):
                 day_28 = shift_for_day[27]
                 day_29 = shift_for_day[28]
                 day_30 = shift_for_day[29]
+                day_31 = shift_for_day[30]
                 
             a_day = int(a_day)
             if a_day == 1:
@@ -1593,6 +1594,8 @@ class arul_hr_audit_shift_time(osv.osv):
                  planne_work_shift = day_29
             if a_day == 30:
                  planne_work_shift = day_30
+            if a_day == 31:
+                 planne_work_shift = day_31
                 
           
         vals.update(
@@ -1671,6 +1674,7 @@ class arul_hr_audit_shift_time(osv.osv):
                         day_28 = shift_for_day[27]
                         day_29 = shift_for_day[28]
                         day_30 = shift_for_day[29]
+                        day_31 = shift_for_day[30]
                         
                     a_day = int(day)
                     if a_day == 1:
@@ -1735,6 +1739,8 @@ class arul_hr_audit_shift_time(osv.osv):
                          planne_work_shift = day_29
                     if a_day == 30:
                          planne_work_shift = day_30
+                    if a_day == 31:
+                         planne_work_shift = day_31
                          
                     sql = '''
                              update arul_hr_audit_shift_time set planned_work_shift_id=%s where id = %s
