@@ -53,7 +53,7 @@ class tpt_service_tax_line(osv.osv_memory):
         'service_tax': fields.float('Service Tax',size=254),
         'total': fields.float('Total',size=254),
         'debit': fields.float('Debit',size=254),
-        'closing_bal': fields.float('Closing. Balance',size=254),
+        'closing_bal': fields.float('Closing Balance',size=254),
     }
 
 tpt_service_tax_line()
@@ -65,9 +65,15 @@ class service_tax_register(osv.osv_memory):
     _columns = {
             'date_from': fields.date('Date From', required=True),
             'date_to': fields.date('Date To', required=True), 
-            'account_id':fields.many2one('account.account','GL Account', required=True),         
+            'account_id':fields.many2one('account.account','GL Account', required=True),
+            'assessee_id':fields.selection([('vvtppl','V.V.TITANIUM PIGMENTS PRIVATE LTD')],'NAME OF THE ASSESSEE',required=True),
+            'serv_tax_reg_no':fields.selection([('aad','AADCV7723PSD001')],'SERVICE TAX REGISTRATION NUMBER',required=True),
             
     }
+    _defaults = {
+                 'assessee_id': 'vvtppl',
+                 'serv_tax_reg_no':'aad',
+                 }
     
       
     def _check_date(self, cr, uid, ids, context=None):
@@ -90,25 +96,77 @@ class service_tax_register(osv.osv_memory):
         datas['form'].update({'active_id':context.get('active_ids',False)})
         return {'type': 'ir.actions.report.xml', 'report_name': 'service_tax_report', 'datas': datas}'''
         
-    def print_report(self, cr, uid, ids, context=None):
+    def print_report(self, cr, uid, ids, context=None):        
+        
+        
+        def get_debit_balance(o):  
+            #date_from = o.date_from
+            date_to = o.date_to
+            account_id = o.account_id
+            openbalance = 0.00
+              
+            sql = '''
+                select sum(aml.credit) as debit 
+                from account_move_line aml
+                inner join account_move am on (am.id=aml.move_id)
+                inner join account_account aa on (aa.id=aml.account_id and aa.id=%s)
+                join account_invoice i on (i.move_id=am.id and i.type = 'in_invoice')
+                where aml.debit>0 and am.state in ('posted') and i.date_invoice < '%s'
+                '''%(account_id.id,date_to)
+            cr.execute(sql)
+            for move in cr.dictfetchall():
+                if move['debit']:
+                    openbalance += move['debit']
+                    #openbalance1 = round(openbalance,2) #Added by TPT-Y on 28/07/2015, for avoid roundoff issue
+            return round(openbalance,2) or 0.00
         
         def get_opening_balance(o):  
             date_from = o.date_from
             account_id = o.account_id
             openbalance = 0.0  
             sql = '''
-                select sum(aml.debit) as debit 
-                from account_move_line aml
-                inner join account_move am on (am.id=aml.move_id)
-                inner join account_account aa on (aa.id=aml.account_id and aa.id=%s)
-                join account_invoice i on (i.move_id=am.id and i.type = 'in_invoice')
-                where aml.debit>0 and am.state in ('posted') and i.date_invoice < '%s'
+                select COALESCE(sum(a.taxamt),0) as taxamount from( 
+                select case when COALESCE(sum(ail.line_net*(at.amount/100)), 0) = 0 then 0
+                else sum(ail.line_net*(at.amount/100)) end as taxamt,ail.id
+                from account_invoice_line ail
+                join account_invoice ai on (ai.id=ail.invoice_id and ai.type = 'in_invoice')
+                JOIN account_invoice_line_tax ailt on (ailt.invoice_line_id=ail.id)
+                Join account_tax at on (at.id=ailt.tax_id and at.gl_account_id=%s)
+                where at.description ~'STax' and at.amount>0
+                and ai.date_invoice<'%s'
+                group by ail.id 
+                order by ail.id)a
                 '''%(account_id.id,date_from)
             cr.execute(sql)
             for move in cr.dictfetchall():
-                if move['debit']:
-                    openbalance += move['debit']
-            return openbalance
+                if move['taxamount']:
+                    openbalance += move['taxamount']
+            return round(openbalance,2) or 0.00
+        
+        
+        def get_total_service_tax(o):
+            date_from = o.date_from
+            date_to = o.date_to
+            account_id = o.account_id
+            total = 0.00            
+            balance = 0.0
+            sql = '''
+                select COALESCE(sum(a.taxamt),0) as taxamount from( 
+                select case when COALESCE(sum(ail.line_net*(at.amount/100)), 0) = 0 then 0
+                else sum(ail.line_net*(at.amount/100)) end as taxamt,ail.id
+                from account_invoice_line ail
+                join account_invoice ai on (ai.id=ail.invoice_id and ai.type = 'in_invoice')
+                JOIN account_invoice_line_tax ailt on (ailt.invoice_line_id=ail.id)
+                Join account_tax at on (at.id=ailt.tax_id and at.gl_account_id=%s)
+                where at.description ~'STax' and at.amount>0
+                and ai.date_invoice between '%s' and '%s'
+                group by ail.id 
+                order by ail.id)a
+                '''%(account_id.id,date_from,date_to)
+            cr.execute(sql)
+            for move in cr.dictfetchall():
+                total += move['taxamount']                                
+            return round(total,2) or 0.00
         
         def get_invoice(o):
             res = {}
@@ -131,19 +189,7 @@ class service_tax_register(osv.osv_memory):
             cr.execute(sql)
             invoice_ids = [r[0] for r in cr.fetchall()]
             return invoice_obj.browse(cr,uid,invoice_ids)
-        # and at.amount>0
-#         def get_tax(self, invoice_line_tax_id):
-#             tax_amounts = 0
-#             tax_amounts = [r.amount for r in invoice_line_tax_id]
-#             return tax_amounts
-#         
-#         def get_paid_tax(self, invoice_line_tax_id, total):
-#             tax_paid = 0
-#             if invoice_line_tax_id:
-#                 tax_amounts = [r.amount for r in invoice_line_tax_id]
-#                 for tax in tax_amounts:
-#                     tax_paid = tax*total/100
-#             return round(tax_paid,2)
+       
            
         
         cr.execute('delete from tpt_service_tax')
@@ -151,6 +197,7 @@ class service_tax_register(osv.osv_memory):
         sr = self.browse(cr, uid, ids[0])
         sr_line = []
         openbalance=get_opening_balance(sr)
+        debit_total=get_debit_balance(sr)
         temp_taxamt = 0
         for line in get_invoice(sr):
             for a in line.invoice_line_tax_id:
@@ -163,15 +210,30 @@ class service_tax_register(osv.osv_memory):
                     'bill_date': line.invoice_id.bill_date or False,
                     'number': line.invoice_id.name or False,
                     'party_name': line.invoice_id.partner_id and line.invoice_id.partner_id.id or False,
-                    'open_bal': openbalance+temp_taxamt,
-                    'taxable_amount':line.line_net,
-                    'service_tax_rate':tax_des,
-                    'service_tax': line.line_net * (tax_amt/100),
-                    'total': openbalance+temp_taxamt+(line.line_net * (tax_amt/100)),
-                    'debit': 0,
-                    'closing_bal': openbalance+temp_taxamt+(line.line_net * (tax_amt/100)),
+                    'open_bal': round(openbalance+temp_taxamt,2) or 0.00,
+                    'taxable_amount': round(line.line_net,2) or 0.00,
+                    'service_tax_rate':tax_des or '',
+                    #'service_tax': line.line_net * (tax_amt/100), #Commented by TPT-Y on 28/07/15, for avoid roundoff issue
+                    'service_tax': round(line.line_net * (tax_amt/100),2) or 0.00, #Added by TPT-Y on 28/07/15, for avoid roundoff issue
+                    #'total': openbalance+temp_taxamt+(line.line_net * (tax_amt/100)), #Commented by TPT-Y on 28/07/15, for avoid roundoff issue
+                    'total': round(openbalance+temp_taxamt+(line.line_net * (tax_amt/100)),2) or 0.00, #Added by TPT-Y on 28/07/15, for avoid roundoff issue
+                    'debit': 0.00,
+                    'closing_bal': round(openbalance+temp_taxamt+(line.line_net * (tax_amt/100)),2) or 0.00, #Added by TPT-Y on 28/07/15, for avoid roundoff issue
                 }))
             temp_taxamt+=(line.line_net * (tax_amt/100))
+        sr_line.append((0,0,{            
+            'total':round(openbalance+temp_taxamt,2) or 0.00, #Added by TPT-Y on 28/07/2015, for avoid roundoff issue
+            'debit':debit_total or 0.00,
+            'closing_bal': round((openbalance+temp_taxamt) - debit_total,2) or 0.00, #Added by TPT-Y on 28/07/2015, for avoid roundoff issue
+            
+        }))
+        
+        sr_line.append((0,0,{            
+            'service_tax_rate' : 'Total',   
+            'service_tax':get_total_service_tax(sr),
+                 
+            
+        }))        
         
         vals = {
             

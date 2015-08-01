@@ -2,10 +2,12 @@
 from openerp import tools
 from openerp.osv import osv, fields
 from openerp.tools.translate import _
+from datetime import datetime, timedelta
+from datetime import date
 import time
+import datetime
 import math
 from openerp.tools import DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_DATETIME_FORMAT, DATETIME_FORMATS_MAP, float_compare
-from datetime import datetime
 import openerp.addons.decimal_precision as dp
 
 
@@ -1425,6 +1427,55 @@ class arul_hr_payroll_executions(osv.osv):
                     '''%(p.id,line.year,int(line.month))
                     cr.execute(sql)
                     total_fd = cr.dictfetchone()['total_fd']
+                    ## TPT START - PTAX CALCULATION
+                    from_date = ''
+                    to_date =''
+                    sql = '''
+                    select from_date,to_date from tpt_hr_ptax where extract(month from to_date)=%s and extract(year from to_date)=%s
+                    '''%(line.month,line.year)
+                    cr.execute(sql)
+                    #if ptax_id: 
+                    for k in cr.fetchall():
+                        from_date=k[0]
+                        to_date=k[1]
+                    payroll_obj = self.pool.get('arul.hr.payroll.executions.details')
+                        ##
+                    total_ptax = 0
+                    if from_date and to_date:
+                        from_month = int(from_date[5:7]) 
+                        from_year = int(from_date[:4]) 
+                        from_day = int(from_date[8:10])
+                            
+                        to_month = int(to_date[5:7]) 
+                        to_year = int(to_date[:4]) 
+                        to_day = int(to_date[8:10])
+    
+                        d1 = datetime.date(from_year, from_month, from_day)
+                        d2 = datetime.date(to_year, to_month, to_day)
+                                        
+                        delta = d2 - d1        
+                        for i in range(delta.days + 1):
+                            temp_day = d1 + timedelta(days=i) 
+                            month = str(temp_day)[5:7]
+                               
+                        payroll_ids = payroll_obj.search(cr, uid,[('month','in',['4','5','6','7','8','9']),('year','=',line.year),('employee_id','=',p.id),('payroll_executions_id.state','in',['confirm','approve'])])
+                        if payroll_ids:
+                            for pay in payroll_ids:
+                                payroll = payroll_obj.browse(cr, uid, pay)
+                                for earning in payroll.earning_structure_line:
+                                    if earning.earning_parameters_id.code=='TOTAL_EARNING':
+                                        total_earning += earning.float
+                        sql = '''
+                                select  pl.ptax_amt ptax_amt from tpt_hr_ptax_line pl
+                                    inner join tpt_hr_ptax_slab sl on pl.slab_id=sl.id
+                                    where %s between sl.from_range and sl.to_range
+                                    and ptax_id = 
+                                    (select id from tpt_hr_ptax where extract(month from to_date)=%s 
+                                    and extract(year from to_date)=%s)
+                                '''%(total_earning, line.month,line.year)
+                        cr.execute(sql)
+                        total_ptax = cr.dictfetchone()['ptax_amt'] 
+                    ### TPT END PTAX 
                     if p.employee_category_id and p.employee_category_id.code == 'S1':
                         pfd = 0.0
                         pd = 0.0
@@ -1488,9 +1539,11 @@ class arul_hr_payroll_executions(osv.osv):
 
                         fd += total_fd
                         fd = round(fd,0)
+                        pt += total_ptax
 			#TPT
                         #total_deduction = pfd + pd + vpfd + esid + fd + ld + ind +  pt + lwf 
                         #total_deduction = pd  + esid + fd + ld + ind +  pt + lwf
+                        
                         total_deduction = pd  + esid + fd + ld + ind +  pt + lwf + i_lic_prem + i_others + l_vvti_loan + l_lic_hfl + l_hdfc + l_tmb + l_sbt + l_others + it_deduction
                         
                         for _other_deductions_id in payroll_emp_struc_obj.browse(cr,uid,emp_struc_ids[0]).payroll_other_deductions_line:
@@ -1530,11 +1583,11 @@ class arul_hr_payroll_executions(osv.osv):
                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
                                           'float': ind,
                                     }))
-                            if _other_deductions_id.deduction_parameters_id.code == 'PT':
-                                vals_other_deductions.append((0,0, {
-                                          'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
-                                          'float': pt,
-                                    }))
+#                             if _other_deductions_id.deduction_parameters_id.code == 'PT':
+#                                 vals_other_deductions.append((0,0, {
+#                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
+#                                           'float': pt,
+#                                     }))
 #                             if _other_deductions_id.deduction_parameters_id.code == 'INS_LIC_PREM':
 #                                 vals_other_deductions.append((0,0, {
 #                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
@@ -1667,7 +1720,8 @@ class arul_hr_payroll_executions(osv.osv):
                             if p.employee_category_id and p.employee_category_id.code == 'S1':           
                                 total_working_days_s1 = calendar_days - new_emp_day + 1    
                                 #spa = spa / (calendar_days - 4 - special_holidays) * total_working_days_s1 
-                                spa = spa / calendar_days  * total_working_days_s1                        
+                                spa = spa / calendar_days  * total_working_days_s1   
+                                spa  = round(spa,0)                     
                         #gross_before = basic + c + hra  +spa + ea + oa			
                         #if total_lop:
                         #    gross_sal = gross_before/calendar_days*(total_days-total_lop)
@@ -1707,6 +1761,9 @@ class arul_hr_payroll_executions(osv.osv):
 			total_earning =  net_basic + net_da + net_c + net_hra + net_ea + net_aa + net_la + net_oa + fa + spa + pc + cre + sha + lta + med
 			gross_sal =  net_basic + net_da + net_c + net_hra + net_ea + net_aa + net_la + net_oa + fa + spa + pc + cre + sha + lta + med
 
+            #tes
+            
+            #
 			#gross_before = basic + c + hra  +spa + ea + oa
 			#if total_no_of_leave: # total_no_of_leave <-> total_lop
                         #    gross_sal = gross_before/calendar_days*(total_days-total_no_of_leave) # total_no_of_leave <-> total_lop
@@ -1727,7 +1784,6 @@ class arul_hr_payroll_executions(osv.osv):
 			total_deduction += (emp_pf_con_amount + emp_esi_con_amount + emp_lwf_amt + vpfd_amount)            
 			net_sala = gross_sal - total_deduction
             
-
 
 #                         for _other_deductions_id in payroll_emp_struc_obj.browse(cr,uid,emp_struc_ids[0]).payroll_other_deductions_line:
 #                             if _other_deductions_id.deduction_parameters_id.code == 'LOP':
@@ -1850,7 +1906,7 @@ class arul_hr_payroll_executions(osv.osv):
                                       'float': net_sala,
                                 }))
                         deduction_ids = deduction_obj.search(cr, uid, [('code','in',['TOTAL_DEDUCTION','VPF.D','PF.D','ESI.D','LWF','F.D','LOP',
-                                    'INS_LIC_PREM','INS_OTHERS','LOAN_VVTI','LOAN_LIC_HFL','LOAN_HDFC','LOAN_TMB', 'LOAN_SBT','LOAN_OTHERS','IT'               
+                                    'INS_LIC_PREM','INS_OTHERS','LOAN_VVTI','LOAN_LIC_HFL','LOAN_HDFC','LOAN_TMB', 'LOAN_SBT','LOAN_OTHERS','IT','PT'               
                                                                                      ])])
                         for deduction in deduction_obj.browse(cr, uid, deduction_ids):
                             if deduction.code == 'TOTAL_DEDUCTION':
@@ -1928,6 +1984,11 @@ class arul_hr_payroll_executions(osv.osv):
                                           'deduction_parameters_id':deduction.id,
                                           'float': it_deduction,
                                     }))
+                            if deduction.code == 'PT':
+                                vals_other_deductions.append((0,0, {
+                                          'deduction_parameters_id':deduction.id,
+                                          'float': pt,
+                                    }))
                             #if deduction.code == 'LOP': TPT COMMENTED
                             #    vals_other_deductions.append((0,0, {
                             #              'deduction_parameters_id':deduction.id,
@@ -1995,7 +2056,8 @@ class arul_hr_payroll_executions(osv.osv):
 #                                 lwf = other_deductions_id.float
                                 
                         fd += total_fd     
-                        fd = round(fd,0)                  
+                        fd = round(fd,0)     
+                        pt += total_ptax             
                         #total_deduction = pfd + pd + vpfd + esid + fd + ld + ind +  pt + lwf 
                         #total_deduction = pfd + pd  + esid + fd + ld + ind +  pt + lwf # PREV
                         total_deduction = pfd + pd  + esid + fd + ld + ind +  pt + lwf + i_lic_prem + i_others + l_vvti_loan + l_lic_hfl + l_hdfc + l_tmb + l_sbt + l_others + it_deduction
@@ -2037,11 +2099,11 @@ class arul_hr_payroll_executions(osv.osv):
                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
                                           'float': ind,
                                     }))
-                            if _other_deductions_id.deduction_parameters_id.code == 'PT':
-                                vals_other_deductions.append((0,0, {
-                                          'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
-                                          'float': pt,
-                                    }))
+#                             if _other_deductions_id.deduction_parameters_id.code == 'PT':
+#                                 vals_other_deductions.append((0,0, {
+#                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
+#                                           'float': pt,
+#                                     }))
 #                             if _other_deductions_id.deduction_parameters_id.code == 'INS_LIC_PREM':
 #                                 vals_other_deductions.append((0,0, {
 #                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
@@ -2184,6 +2246,7 @@ class arul_hr_payroll_executions(osv.osv):
                         #net_sala = gross_before - total_deduction
                         for_esi_base_spa = spa
                         spa = spa / (calendar_days - 4 - special_holidays) * total_shift_worked # TPT total_days <-> total_shift_worked
+                        spa  = round(spa,0)  
                         #total_earning = basic + da + c + hra + fa + pc + cre + ea +spa + la + aa + sha + oa + lta + med
                         #spa = spa / (calendar_days - 4 - special_holidays) * total_days
                         #total_no_of_leave = total_lop + total_esi
@@ -2356,7 +2419,7 @@ class arul_hr_payroll_executions(osv.osv):
                                       'float': net_sala,
                                 }))
                         deduction_ids = deduction_obj.search(cr, uid, [('code','in',['TOTAL_DEDUCTION','VPF.D','PF.D','ESI.D','LWF','F.D','LOP',
-                                        'INS_LIC_PREM','INS_OTHERS','LOAN_VVTI','LOAN_LIC_HFL','LOAN_HDFC','LOAN_TMB', 'LOAN_SBT','LOAN_OTHERS','IT'                                               
+                                        'INS_LIC_PREM','INS_OTHERS','LOAN_VVTI','LOAN_LIC_HFL','LOAN_HDFC','LOAN_TMB', 'LOAN_SBT','LOAN_OTHERS','IT','PT'                                               
                                                                                      ])])
                         for deduction in deduction_obj.browse(cr, uid, deduction_ids):
                             if deduction.code == 'TOTAL_DEDUCTION':
@@ -2434,6 +2497,11 @@ class arul_hr_payroll_executions(osv.osv):
                                           'deduction_parameters_id':deduction.id,
                                           'float': it_deduction,
                                     }))
+                            if deduction.code == 'PT':
+                                vals_other_deductions.append((0,0, {
+                                          'deduction_parameters_id':deduction.id,
+                                          'float': pt,
+                                    }))
                                 
                             #if deduction.code == 'LOP': #TPT
                             #    vals_other_deductions.append((0,0, {
@@ -2504,6 +2572,7 @@ class arul_hr_payroll_executions(osv.osv):
                         
                         fd += total_fd        
                         fd = round(fd,0)
+                        pt += total_ptax 
                         #total_deduction = pfd + pd + vpfd + esid + fd + ld + ind +  pt + lwf
                         #total_deduction = pfd + pd + esid + fd + ld + ind +  pt + lwf
                         total_deduction = pfd + pd + esid + fd + ld + ind +  pt + lwf + i_lic_prem + i_others + l_vvti_loan + l_lic_hfl + l_hdfc + l_tmb + l_sbt + l_others + it_deduction
@@ -2544,11 +2613,11 @@ class arul_hr_payroll_executions(osv.osv):
                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
                                           'float': ind,
                                     }))
-                            if _other_deductions_id.deduction_parameters_id.code == 'PT':
-                                vals_other_deductions.append((0,0, {
-                                          'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
-                                          'float': pt,
-                                    }))
+#                             if _other_deductions_id.deduction_parameters_id.code == 'PT':
+#                                 vals_other_deductions.append((0,0, {
+#                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
+#                                           'float': pt,
+#                                     }))
 #                             if _other_deductions_id.deduction_parameters_id.code == 'INS_LIC_PREM':
 #                                 vals_other_deductions.append((0,0, {
 #                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
@@ -2676,6 +2745,7 @@ class arul_hr_payroll_executions(osv.osv):
                         #oa = total_shift_allowance + total_days*4 + la  # this calculation shifted to ma. oa is treated as same that of entered in paystructure
                         for_esi_base_spa = spa
                         spa = spa/(calendar_days - 4 - special_holidays) * total_shift_worked #TPT total_days <->total_shift_worked 
+                        spa  = round(spa,0)  
                         
                         #ma = total_shift_allowance + total_days * 4 + la + wa 
                         
@@ -2882,7 +2952,7 @@ class arul_hr_payroll_executions(osv.osv):
                                       'float': net_sala,
                                 }))
                         deduction_ids = deduction_obj.search(cr, uid, [('code','in',['TOTAL_DEDUCTION','VPF.D','PF.D','ESI.D','LWF','F.D','LOP',
-                                    'INS_LIC_PREM','INS_OTHERS','LOAN_VVTI','LOAN_LIC_HFL','LOAN_HDFC','LOAN_TMB', 'LOAN_SBT','LOAN_OTHERS','IT'                                                   
+                                    'INS_LIC_PREM','INS_OTHERS','LOAN_VVTI','LOAN_LIC_HFL','LOAN_HDFC','LOAN_TMB', 'LOAN_SBT','LOAN_OTHERS','IT','PT'                                                   
                                                                                      ])])
                         for deduction in deduction_obj.browse(cr, uid, deduction_ids):
                             if deduction.code == 'TOTAL_DEDUCTION':
@@ -2959,6 +3029,11 @@ class arul_hr_payroll_executions(osv.osv):
                                 vals_other_deductions.append((0,0, {
                                           'deduction_parameters_id':deduction.id,
                                           'float': it_deduction,
+                                    }))
+                            if deduction.code == 'PT':
+                                vals_other_deductions.append((0,0, {
+                                          'deduction_parameters_id':deduction.id,
+                                          'float': pt,
                                     }))
                             #if deduction.code == 'LOP': # TPT COMMENTS
                             #    vals_other_deductions.append((0,0, {
@@ -3095,3 +3170,67 @@ class resource_resource(osv.osv):
         'rfid': fields.char('RFID', size=1024, required = False),   
     }
 resource_resource()
+
+class tpt_hr_ptax(osv.osv):
+    _name = "tpt.hr.ptax"
+    _columns = {   
+        'name': fields.char('Name'), 
+        'ptax_line': fields.one2many('tpt.hr.ptax.line', 'ptax_id', 'PTax Slab'),
+        'from_date': fields.date('From Date'),
+        'to_date': fields.date('To Date'),    
+    }
+    def create(self, cr, uid, vals, context=None):
+        vals.update({'name':'From '+str(vals['from_date'])+ ' to '+str(vals['to_date']),
+                        })
+        return super(tpt_hr_ptax, self).create(cr, uid, vals, context)
+    
+    def write(self, cr, uid, ids, vals, context=None):
+        ptax_obj = self.pool.get('tpt.hr.ptax') 
+        ptax_obj_id = ptax_obj.browse(cr,uid,ids[0])
+        if 'from_date' in vals :
+            vals.update({'name':'From '+str(vals['from_date'])+ ' to '+str(ptax_obj_id.to_date),
+                         })
+        if 'to_date' in vals :
+            vals.update({'name':'From '+str(ptax_obj_id.from_date)+ ' to '+str(vals['to_date']),
+                         })
+        new_write = super(tpt_hr_ptax, self).write(cr, uid,ids, vals, context)
+        return new_write
+tpt_hr_ptax()
+
+class tpt_hr_ptax_line(osv.osv):
+    _name = "tpt.hr.ptax.line"
+    _order = "ptax_amt asc"
+    _columns = {   
+        'ptax_id': fields.many2one('tpt.hr.ptax', 'PTax'),
+        'slab_id':fields.many2one('tpt.hr.ptax.slab','Gross Salary'),
+        'from_range': fields.float('Salary Amt From'),
+        'to_range': fields.float('Salary Amt To'),   
+        'ptax_amt': fields.float('PTax Amount'),  
+    }
+tpt_hr_ptax_line()
+
+class tpt_hr_ptax_slab(osv.osv):
+    _name = "tpt.hr.ptax.slab"
+    _columns = {  
+        'name': fields.char('Name'), 
+        'from_range': fields.float('Salary Amt From'),
+        'to_range': fields.float('Salary Amt To'),   
+    }
+    def create(self, cr, uid, vals, context=None):
+        vals.update({'name':'Between Rs.'+str(vals['from_range'])+ ' to Rs.'+str(vals['to_range']),
+                        })
+        return super(tpt_hr_ptax_slab, self).create(cr, uid, vals, context)
+    
+    def write(self, cr, uid, ids, vals, context=None):
+        ptax_obj = self.pool.get('tpt.hr.ptax.slab') 
+        ptax_obj_id = ptax_obj.browse(cr,uid,ids[0])
+        if 'from_range' in vals:
+            
+            vals.update({'name':'Between Rs.'+str(vals['from_range'])+ ' to Rs.'+str(ptax_obj_id.to_range),
+                         })
+        if 'to_range' in vals:
+            vals.update({'name':'Between Rs.'+str(ptax_obj_id.from_range)+ ' to Rs.'+str(vals['to_range']),
+                         })
+        new_write = super(tpt_hr_ptax_slab, self).write(cr, uid,ids, vals, context)
+        return new_write
+tpt_hr_ptax_slab()
