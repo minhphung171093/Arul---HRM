@@ -5115,7 +5115,7 @@ class arul_hr_permission_onduty(osv.osv):
         'employee_id':fields.many2one('hr.employee','Employee',required=True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
         'non_availability_type_id':fields.selection([('permission','Permission'),('on_duty','On duty')],'Non Availability Type',required = True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
         'date':fields.date('Date', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
-        #'perm_out_date':fields.date('Permission Out Date', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+        'perm_out_date':fields.date('Permission Out Date', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
         'from_date':fields.date('From Date', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
         'to_date':fields.date('To Date', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
         'duty_location':fields.char('On Duty Location', size = 1024, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
