@@ -1474,7 +1474,7 @@
 					<field name="payroll_area_id"/>
 					<field name="month"/>
 					<field name="year"/>
-					<field name="state" invisible='1' />
+					<field name="state" />
 					<field name="create_date"/>
 					<field name="create_uid"/>
 				</tree>
