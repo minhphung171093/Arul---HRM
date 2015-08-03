@@ -612,7 +612,7 @@ class stock_movement_analysis(osv.osv_memory):
                 '''%(locat_ids[0],product_id,date_from)
                 cr.execute(sql)
                 product_isu_qty = cr.fetchone()[0]
-                if product_id.default_code == 'M0501060001':
+                if product.default_code == 'M0501060001':
                    sql = '''
                        select case when sum(st.price_unit*st.product_qty)!=0 then sum(st.price_unit*st.product_qty) else 0 end total_cost
                         from stock_move st
