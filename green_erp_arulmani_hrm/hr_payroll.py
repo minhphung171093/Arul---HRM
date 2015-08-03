@@ -1190,6 +1190,8 @@ class arul_hr_payroll_executions(osv.osv):
                 total_shift_worked = 0.0    
                 #if  shift_count:
                 total_shift_worked = shift_count + onduty_count
+                if p.id==155:
+                    total_shift_worked = total_shift_worked +0.5
                     #===========================================================
                     # if permission_count:
                     #     total_shift_worked = shift_count + permission_count
