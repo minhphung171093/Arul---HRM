@@ -2768,6 +2768,7 @@ class arul_hr_payroll_executions(osv.osv):
                             ma = 0
                         else:
                             ma = (total_shift_worked * ( lunch_allowance + washing_allowane )) + total_all_shift_allowance
+                            ma = round(ma,0) 
 
                         #total_earning = basic + da + c + hra + fa + pc + cre + ea +spa + la + aa + sha + oa + lta + med
                         #gross_before = basic + c + hra  +spa + oa + da + ea
