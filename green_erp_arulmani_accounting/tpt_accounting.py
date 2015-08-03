@@ -1088,9 +1088,6 @@ class account_invoice(osv.osv):
             company_currency = self.pool['res.company'].browse(cr, uid, inv.company_id.id).currency_id.id
             # create the analytical lines
             # one move line per invoice line
-#             iml = self._get_analytic_lines(cr, uid, inv.id, context=ctx)
-#             for account_line in inv.invoice_line: 
-#             iml = invoice_line_obj.move_line_price_different(cr, uid, inv.id)
             if (inv.type == 'in_invoice' and not inv.sup_inv_id): 
                 iml = invoice_line_obj.move_line_pf(cr, uid, inv.id)
 #                 iml += invoice_line_obj.move_line_fright(cr, uid, inv.id) 
@@ -1102,23 +1099,26 @@ class account_invoice(osv.osv):
                     if inv.purchase_id.po_document_type != 'service':
                         iml += invoice_line_obj.move_line_fright_change_si(cr, uid, inv.id)
                         iml += invoice_line_obj.move_line_amount_untaxed(cr, uid, inv.id) 
-                        iml += invoice_line_obj.move_line_tds_amount_without_po(cr, uid, inv.id) 
                         iml += invoice_line_obj.move_line_amount_tax(cr, uid, inv.id)
-                        iml += invoice_line_obj.move_line_amount_tax_without_po_deducte(cr, uid, inv.id)
+                        #                         iml += invoice_line_obj.move_line_amount_tax_without_po_deducte(cr, uid, inv.id)
+                        iml += invoice_line_obj.move_line_tds_amount_without_po(cr, uid, inv.id) 
+                        iml += invoice_line_obj.move_line_amount_round_off(cr, uid, inv.id)
                     if inv.purchase_id.po_document_type == 'service':
                         iml += invoice_line_obj.move_line_fright(cr, uid, inv.id)
                         iml += invoice_line_obj.move_line_amount_untaxed(cr, uid, inv.id) 
-                        iml += invoice_line_obj.move_line_tds_amount_without_po(cr, uid, inv.id) 
                         iml += invoice_line_obj.move_line_amount_tax(cr, uid, inv.id)
-                        iml += invoice_line_obj.move_line_amount_tax_without_po_deducte(cr, uid, inv.id)
+#                         iml += invoice_line_obj.move_line_amount_tax_without_po_deducte(cr, uid, inv.id)
                         iml += invoice_line_obj.move_line_amount_tax_credit(cr, uid, inv.id) 
-                        iml += invoice_line_obj.move_line_amount_tax_deducte_credit(cr, uid, inv.id) 
+#                         iml += invoice_line_obj.move_line_amount_tax_deducte_credit(cr, uid, inv.id) 
+                        iml += invoice_line_obj.move_line_tds_amount_without_po(cr, uid, inv.id) 
+                        iml += invoice_line_obj.move_line_amount_round_off(cr, uid, inv.id)
                 else:
                     iml += invoice_line_obj.move_line_fright(cr, uid, inv.id)
                     iml += invoice_line_obj.move_line_amount_untaxed_without_po(cr, uid, inv.id) 
-                    iml += invoice_line_obj.move_line_tds_amount_without_po(cr, uid, inv.id) 
                     iml += invoice_line_obj.move_line_amount_tax(cr, uid, inv.id)
-                    iml += invoice_line_obj.move_line_amount_tax_without_po_deducte(cr, uid, inv.id)
+#                     iml += invoice_line_obj.move_line_amount_tax_without_po_deducte(cr, uid, inv.id)
+                    iml += invoice_line_obj.move_line_tds_amount_without_po(cr, uid, inv.id) 
+                    iml += invoice_line_obj.move_line_amount_round_off(cr, uid, inv.id)
             if (inv.type == 'out_invoice'):
                 iml = invoice_line_obj.move_line_customer_fright(cr, uid, inv.id) 
                 iml += invoice_line_obj.move_line_customer_insurance(cr, uid, inv.id) 
@@ -1130,18 +1130,13 @@ class account_invoice(osv.osv):
             if (inv.type == 'in_invoice' and inv.sup_inv_id): 
                 iml = invoice_line_obj.move_line_fi_base(cr, uid, inv.id)
                 iml += invoice_line_obj.move_line_fi_debit(cr, uid, inv.id) 
-                iml += invoice_line_obj.move_line_fi_debit_deducte(cr, uid, inv.id) 
+#                 iml += invoice_line_obj.move_line_fi_debit_deducte(cr, uid, inv.id) 
                 iml += invoice_line_obj.move_line_fi_credit(cr, uid, inv.id)
-                iml += invoice_line_obj.move_line_fi_credit_deducte(cr, uid, inv.id) 
+#                 iml += invoice_line_obj.move_line_fi_credit_deducte(cr, uid, inv.id) 
                 iml += invoice_line_obj.move_line_tds_amount_freight(cr, uid, inv.id) 
+                iml += invoice_line_obj.move_line_amount_round_off(cr, uid, inv.id)
                 name = inv['name'] or inv['supplier_invoice_number'] or '/'
             
-#             if (inv.type == 'in_invoice' and inv.purchase_id.po_document_type == 'service'): 
-#                 iml = invoice_line_obj.move_line_fi_base(cr, uid, inv.id)
-#                 iml += invoice_line_obj.move_line_fi_debit(cr, uid, inv.id) 
-#                 iml += invoice_line_obj.move_line_fi_credit(cr, uid, inv.id)
-#                 iml += invoice_line_obj.move_line_tds_amount_freight(cr, uid, inv.id) 
-#                 name = inv['name'] or inv['supplier_invoice_number'] or '/'
 #             iml += invoice_line_obj.move_line_price_total(cr, uid, inv.id)  
             # check if taxes are all computed
             compute_taxes = ait_obj.compute(cr, uid, inv.id, context=ctx)
@@ -1434,6 +1429,7 @@ class account_invoice_line(osv.osv):
         cr.execute('SELECT * FROM account_invoice_line WHERE invoice_id=%s', (invoice_id,))
         for t in cr.dictfetchall():
             basic = (t['quantity'] * t['price_unit']) - ( (t['quantity'] * t['price_unit'])*t['disc']/100)
+            basic = round(basic,2)
             sql = '''
                 SELECT purchase_acc_id FROM product_product WHERE id=%s and purchase_acc_id is not null
             '''%(t['product_id'])
@@ -1442,16 +1438,15 @@ class account_invoice_line(osv.osv):
             if not purchase_acc_id:
                 raise osv.except_osv(_('Warning!'),_('Account is not null, please configure it in Material master !'))
             if basic:
-                if round(basic):
-                    res.append({
-                        'type':'tax',
-                        'name':t['name'],
-                        'price_unit': t['price_unit'],
-                        'quantity': 1,
-                        'price': round(basic),
-                        'account_id': purchase_acc_id and purchase_acc_id['purchase_acc_id'] or False,
-                        'account_analytic_id': t['account_analytic_id'],
-                        })
+                res.append({
+                    'type':'tax',
+                    'name':t['name'],
+                    'price_unit': t['price_unit'],
+                    'quantity': 1,
+                    'price': basic,
+                    'account_id': purchase_acc_id and purchase_acc_id['purchase_acc_id'] or False,
+                    'account_analytic_id': t['account_analytic_id'],
+                    })
         return res
     
     def move_line_amount_untaxed_without_po(self, cr, uid, invoice_id):
@@ -1459,17 +1454,17 @@ class account_invoice_line(osv.osv):
         cr.execute('SELECT * FROM account_invoice_line WHERE invoice_id=%s', (invoice_id,))
         for t in cr.dictfetchall():
             basic = (t['quantity'] * t['price_unit']) - ( (t['quantity'] * t['price_unit'])*t['disc']/100)
+            basic = round(basic,2)
             if basic:
-                if round(basic):
-                    res.append({
-                        'type':'tax',
-                        'name':t['name'],
-                        'price_unit': t['price_unit'],
-                        'quantity': 1,
-                        'price': round(basic),
-                        'account_id': t['account_id'],
-                        'account_analytic_id': t['account_analytic_id'],
-                        })
+                res.append({
+                    'type':'tax',
+                    'name':t['name'],
+                    'price_unit': t['price_unit'],
+                    'quantity': 1,
+                    'price': basic,
+                    'account_id': t['account_id'],
+                    'account_analytic_id': t['account_analytic_id'],
+                    })
         return res
     
     def move_line_tds_amount_without_po(self, cr, uid, invoice_id):
@@ -1479,19 +1474,19 @@ class account_invoice_line(osv.osv):
             tds_amount = 0
             if line.tds_id:    
                 tds_amount = line.quantity * line.price_unit * line.tds_id.amount/100
+                tds_amount = round(tds_amount,2)
                 if not line.tds_id.gl_account_id:
                     raise osv.except_osv(_('Warning!'),_('Account is not null, please configure GL Account in Tax master for TDS %'))
                 if tds_amount:   
-                    if round(tds_amount):
-                        res.append({
-                            'type':'tax',
-                            'name':line.name,
-                            'price_unit': line.price_unit,
-                            'quantity': 1,
-                            'price': round(-tds_amount),
-                            'account_id': line.tds_id and line.tds_id.gl_account_id and line.tds_id.gl_account_id.id or False,
-                            'account_analytic_id': line.account_analytic_id.id,
-                        })
+                    res.append({
+                        'type':'tax',
+                        'name':line.name,
+                        'price_unit': line.price_unit,
+                        'quantity': 1,
+                        'price': -tds_amount,
+                        'account_id': line.tds_id and line.tds_id.gl_account_id and line.tds_id.gl_account_id.id or False,
+                        'account_analytic_id': line.account_analytic_id.id,
+                    })
         return res 
     
     def move_line_tds_amount_freight(self, cr, uid, invoice_id):
@@ -1502,24 +1497,25 @@ class account_invoice_line(osv.osv):
                 tds_amount = 0
                 if line.tds_id_2:    
                     if line.fright_fi_type == '2':
-                        base = line.fright
+                        base = round(line.fright,2)
                         tax_tds_amount = base*(line.tds_id_2 and line.tds_id_2.amount/100 or 0)
+                        tax_tds_amount = round(tax_tds_amount,2)
                     else:
-                        base = line.fright*line.quantity
+                        base = round(line.fright*line.quantity,2)
                         tax_tds_amount = base*(line.tds_id_2 and line.tds_id_2.amount/100 or 0)
+                        tax_tds_amount = round(tax_tds_amount,2)
                     if line.tds_id_2 and not line.tds_id_2.gl_account_id:
                         raise osv.except_osv(_('Warning!'),_('Account is not null, please configure GL Account in Tax master for TDS %'))
                     if tax_tds_amount:   
-                        if round(tax_tds_amount):
-                            res.append({
-                                'type':'tax',
-                                'name':line.name,
-                                'price_unit': line.price_unit,
-                                'quantity': 1,
-                                'price': round(-tax_tds_amount),
-                                'account_id': line.tds_id_2 and line.tds_id_2.gl_account_id and line.tds_id_2.gl_account_id.id or False,
-                                'account_analytic_id': line.account_analytic_id.id,
-                            })
+                        res.append({
+                            'type':'tax',
+                            'name':line.name,
+                            'price_unit': line.price_unit,
+                            'quantity': 1,
+                            'price': -tax_tds_amount,
+                            'account_id': line.tds_id_2 and line.tds_id_2.gl_account_id and line.tds_id_2.gl_account_id.id or False,
+                            'account_analytic_id': line.account_analytic_id.id,
+                        })
         return res 
      
     def move_line_customer_product_price(self, cr, uid, invoice_id, context = None):
@@ -1631,45 +1627,47 @@ class account_invoice_line(osv.osv):
                 else:
                     raise osv.except_osv(_('Warning!'),_('Account is not null, please configure GL Account in Tax master !'))
                 basic = (line.quantity * line.price_unit) - ( (line.quantity * line.price_unit)*line.disc/100)
-                basic = round(basic)
+                basic = round(basic,2)
                 if line.p_f_type == '1' :
                     p_f = basic * line.p_f/100
-                    p_f = round(p_f)
+                    p_f = round(p_f,2)
                 elif line.p_f_type == '2' :
                     p_f = line.p_f
-                    p_f = round(p_f)
+                    p_f = round(p_f,2)
                 elif line.p_f_type == '3' :
                     p_f = line.p_f * line.quantity
-                    p_f = round(p_f)
+                    p_f = round(p_f,2)
                 else:
                     p_f = line.p_f
-                    p_f = round(p_f)
+                    p_f = round(p_f,2)
                 if line.ed_type == '1' :
                     ed = (basic + p_f) * line.ed/100
-                    ed = round(ed)
+                    ed = round(ed,2)
                 elif line.ed_type == '2' :
                     ed = line.ed
-                    ed = round(ed)
+                    ed = round(ed,2)
                 elif line.ed_type == '3' :
                     ed = line.ed * line.quantity
-                    ed = round(ed)
+                    ed = round(ed,2)
                 else:
                     ed = line.ed
-                    ed = round(ed)                
+                    ed = round(ed,2)                
                 
                 tax_value = line.tax_service_credit.amount/100
 
                 if line.aed_id_1:
                     tax = (basic + p_f + ed + line.aed_id_1)*(tax_value) * voucher_rate
+                    tax = round(tax,2)
                 else:
                     tax = (basic + p_f + ed)*(tax_value) * voucher_rate
+                    tax = round(tax,2)
                 if tax:    
                     res.append({
                         'type':'tax',
                         'name':line.name,
                         'price_unit': line.price_unit,
                         'quantity': 1,
-                        'price': round(-tax,2),
+                        'price': -tax,
                         'account_id': account,
                         'account_analytic_id': line.account_analytic_id.id,
                         })
@@ -1785,31 +1783,31 @@ class account_invoice_line(osv.osv):
                     else:
                         raise osv.except_osv(_('Warning!'),_('Account is not null, please configure GL Account in Tax master !'))
                 basic = (line.quantity * line.price_unit) - ( (line.quantity * line.price_unit)*line.disc/100)
-                basic = round(basic)
+                basic = round(basic,2)
                 if line.p_f_type == '1' :
                     p_f = basic * line.p_f/100
-                    p_f = round(p_f)
+                    p_f = round(p_f,2)
                 elif line.p_f_type == '2' :
                     p_f = line.p_f
-                    p_f = round(p_f)
+                    p_f = round(p_f,2)
                 elif line.p_f_type == '3' :
                     p_f = line.p_f * line.quantity
-                    p_f = round(p_f)
+                    p_f = round(p_f,2)
                 else:
                     p_f = line.p_f
-                    p_f = round(p_f)
+                    p_f = round(p_f,2)
                 if line.ed_type == '1' :
                     ed = (basic + p_f) * line.ed/100
-                    ed = round(ed)
+                    ed = round(ed,2)
                 elif line.ed_type == '2' :
                     ed = line.ed
-                    ed = round(ed)
+                    ed = round(ed,2)
                 elif line.ed_type == '3' :
                     ed = line.ed * line.quantity
-                    ed = round(ed)
+                    ed = round(ed,2)
                 else:
                     ed = line.ed
-                    ed = round(ed)                
+                    ed = round(ed,2)                
                 tax_amounts = [r.amount for r in line.invoice_line_tax_id]
                 
                 for tax_amount in tax_amounts:
@@ -1817,8 +1815,10 @@ class account_invoice_line(osv.osv):
                     
                 if line.aed_id_1:
                     tax = (basic + p_f + ed + line.aed_id_1)*(tax_value) * voucher_rate
+                    tax = round(tax,2)      
                 else:
                     tax = (basic + p_f + ed)*(tax_value) * voucher_rate
+                    tax = round(tax,2)
                 if tax:    
                     res.append({
                         'type':'tax',
@@ -2235,20 +2235,43 @@ class account_invoice_line(osv.osv):
                 if not sup_inv_fright_id:
                     raise osv.except_osv(_('Warning!'),_('Account is not null, please configure it in GL Posting Configrution !'))
                 if account['fright']:    
-                    if round(account['fright']):
+                    res.append({
+                        'type':'tax',
+                        'name':t['name'],
+                        'price_unit': t['price_unit'],
+                        'quantity': 1,
+                        'price': account['fright'],
+                        'account_id': sup_inv_fright_id and sup_inv_fright_id['sup_inv_fright_id'] or False,
+                        'account_analytic_id': t['account_analytic_id'],
+                    })
+                    break
+                break
+            break
+        return res 
+    
+    def move_line_amount_round_off(self, cr, uid, invoice_id):
+        res = []
+        cr.execute('SELECT * FROM account_invoice_line WHERE invoice_id=%s', (invoice_id,))
+        for t in cr.dictfetchall():
+            cr.execute('SELECT * FROM account_invoice WHERE id=%s', (invoice_id,))
+            for account in cr.dictfetchall():
+                account_ids = self.pool.get('account.account').search(cr, uid, [('code','in',['0000484008'])])
+                if not account_ids:
+                    raise osv.except_osv(_('Warning!'),_('Account is not null, please configure Account with code is 0000484008 and name is PRICE DIFF/ROUNDING in Account master !'))
+                else:
+                    if account['amount_round_off']:    
                         res.append({
                             'type':'tax',
                             'name':t['name'],
                             'price_unit': t['price_unit'],
                             'quantity': 1,
-                            'price': round(account['fright']),
-                            'account_id': sup_inv_fright_id and sup_inv_fright_id['sup_inv_fright_id'] or False,
+                            'price': account['amount_round_off'],
+                            'account_id': account_ids[0],
                             'account_analytic_id': t['account_analytic_id'],
-                        })
-                        break
+                    })
                 break
             break
-        return res 
+        return res
     
     def move_line_fright_change_si(self, cr, uid, invoice_id, context = None):
         res = []
@@ -2277,58 +2300,59 @@ class account_invoice_line(osv.osv):
             for tax_amount in tax_amounts:
                 tax_value += tax_amount/100
             basic = (line.quantity * line.price_unit) - ( (line.quantity * line.price_unit)*line.disc/100)
-            basic = round(basic)
+            basic = round(basic,2)
             if line.p_f_type == '1' :
                 p_f = basic * line.p_f/100
-                p_f = round(p_f)
+                p_f = round(p_f,2)
             elif line.p_f_type == '2' :
                 p_f = line.p_f
-                p_f = round(p_f)
+                p_f = round(p_f,2)
             elif line.p_f_type == '3' :
                 p_f = line.p_f * line.quantity
-                p_f = round(p_f)
+                p_f = round(p_f,2)
             else:
                 p_f = line.p_f
-                p_f = round(p_f)
+                p_f = round(p_f,2)
             if line.ed_type == '1' :
                 ed = (basic + p_f) * line.ed/100
-                ed = round(ed)
+                ed = round(ed,2)
             elif line.ed_type == '2' :
                 ed = line.ed
-                ed = round(ed)
+                ed = round(ed,2)
             elif line.ed_type == '3' :
                 ed = line.ed * line.quantity
-                ed = round(ed)
+                ed = round(ed,2)
             else:
                 ed = line.ed
-                ed = round(ed)
+                ed = round(ed,2)
             if line.aed_id_1:
                 tax = (basic + p_f + ed + line.aed_id_1)*(tax_value) * voucher_rate
+                tax = round(tax,2)
             else:
                 tax = (basic + p_f + ed)*(tax_value) * voucher_rate
+                tax = round(tax,2)
             if line.fright_type == '1' :
                 fright = (basic + p_f + ed + tax) * line.fright/100
-                fright = round(fright)
+                fright = round(fright,2)
             elif line.fright_type == '2' :
                 fright = line.fright
-                fright = round(fright)
+                fright = round(fright,2)
             elif line.fright_type == '3' :
                 fright = line.fright * line.quantity
-                fright = round(fright)
+                fright = round(fright,2)
             else:
                 fright = line.fright
-                fright = round(fright)
+                fright = round(fright,2)
             if fright:
-                if round(fright):
-                    res.append({
-                        'type':'tax',
-                        'name':line.name,
-                        'price_unit': line.price_unit,
-                        'quantity': 1,
-                        'price': round(fright),
-                        'account_id': account,
-                        'account_analytic_id': line.account_analytic_id and line.account_analytic_id.id or False,
-                    })
+                res.append({
+                    'type':'tax',
+                    'name':line.name,
+                    'price_unit': line.price_unit,
+                    'quantity': 1,
+                    'price': fright,
+                    'account_id': account,
+                    'account_analytic_id': line.account_analytic_id and line.account_analytic_id.id or False,
+                })
         return res 
     
     def move_line_customer_fright(self, cr, uid, invoice_id, context = None):
@@ -2425,17 +2449,16 @@ class account_invoice_line(osv.osv):
                 if not sup_inv_ed_id:
                     raise osv.except_osv(_('Warning!'),_('Account is not null, please configure it in GL Posting Configrution !'))
                 if account['excise_duty']:
-                    if round(account['excise_duty']):
-                        res.append({
-                            'type':'tax',
-                            'name':t['name'],
-                            'price_unit': t['price_unit'],
-                            'quantity': 1,
-                            'price': round(account['excise_duty']),
-                            'account_id': sup_inv_ed_id and sup_inv_ed_id['sup_inv_ed_id'] or False,
-                            'account_analytic_id': t['account_analytic_id'],
-                        })
-                        break
+                    res.append({
+                        'type':'tax',
+                        'name':t['name'],
+                        'price_unit': t['price_unit'],
+                        'quantity': 1,
+                        'price': account['excise_duty'],
+                        'account_id': sup_inv_ed_id and sup_inv_ed_id['sup_inv_ed_id'] or False,
+                        'account_analytic_id': t['account_analytic_id'],
+                    })
+                    break
             break
         return res
     
@@ -2451,17 +2474,15 @@ class account_invoice_line(osv.osv):
             if not sup_inv_aed_id:
                 raise osv.except_osv(_('Warning!'),_('Account is not null, please configure it in GL Posting Configrution !'))
             if account['aed']:    
-                if round(account['aed']):
-                    res.append({
-                        'type':'tax',
-                        'name':'/',
-                        'price_unit': account['aed'],
-                        'quantity': 1,
-                        'price': round(account['aed']),
-                        'account_id': sup_inv_aed_id and sup_inv_aed_id['sup_inv_aed_id'] or False,
-                        'account_analytic_id': False,
-                    })
-                    break
+                res.append({
+                    'type':'tax',
+                    'name':'/',
+                    'price_unit': account['aed'],
+                    'quantity': 1,
+                    'price': account['aed'],
+                    'account_id': sup_inv_aed_id and sup_inv_aed_id['sup_inv_aed_id'] or False,
+                    'account_analytic_id': False,
+                })
                 break
             break
         return res
@@ -2486,17 +2507,16 @@ class account_invoice_line(osv.osv):
                 if not sup_inv_pf_id:
                     raise osv.except_osv(_('Warning!'),_('Account is not null, please configure it in GL Posting Configrution !'))
                 if account['p_f_charge']:
-                    if round(account['p_f_charge']):
-                        res.append({
-                            'type':'tax',
-                            'name':t['name'],
-                            'price_unit': t['price_unit'],
-                            'quantity': 1,
-                            'price': round(account['p_f_charge']),
-                            'account_id': sup_inv_pf_id and sup_inv_pf_id['sup_inv_pf_id'] or False,
-                            'account_analytic_id': t['account_analytic_id'],
-                        })
-                        break
+                    res.append({
+                        'type':'tax',
+                        'name':t['name'],
+                        'price_unit': t['price_unit'],
+                        'quantity': 1,
+                        'price': account['p_f_charge'],
+                        'account_id': sup_inv_pf_id and sup_inv_pf_id['sup_inv_pf_id'] or False,
+                        'account_analytic_id': t['account_analytic_id'],
+                    })
+                    break
                 break
             break
         return res 
@@ -2564,20 +2584,21 @@ class account_invoice_line(osv.osv):
             
             if t['fright_fi_type'] == '2':
                 price = t['fright']
+                price = round(price,2)
             else:
                 price = t['fright']*t['quantity']
+                price = round(price,2)
             if price:
-                if round(price):
-                    res.append({
-                        'type':'tax',
-                        'name':t['name'],
-                        'price_unit': t['price_unit'],
-                        'quantity': 1,
-                        'price': round(price),
-        #                 'account_id': sale_acc_id and sale_acc_id['sale_acc_id'] or False,
-                        'account_id': account,
-                        'account_analytic_id': t['account_analytic_id'],
-                    })
+                res.append({
+                    'type':'tax',
+                    'name':t['name'],
+                    'price_unit': t['price_unit'],
+                    'quantity': 1,
+                    'price': price,
+    #                 'account_id': sale_acc_id and sale_acc_id['sale_acc_id'] or False,
+                    'account_id': account,
+                    'account_analytic_id': t['account_analytic_id'],
+                })
         return res
     
     def move_line_fi_debit(self, cr, uid, invoice_id):
@@ -2587,11 +2608,13 @@ class account_invoice_line(osv.osv):
             if line.tax_id and not line.tax_id.gl_account_id:
                 raise osv.except_osv(_('Warning!'),_('GL Account is not null, please configure it in Tax Master!'))
             if line.fright_fi_type == '2':
-                base_amount = round(line.fright)
+                base_amount = round(line.fright,2)
                 tax_debit_amount = base_amount*(line.tax_id and line.tax_id.amount/100 or 0)
+                tax_debit_amount = round(tax_debit_amount,2)
             else:
-                base_amount = round(line.fright*line.quantity)
+                base_amount = round(line.fright*line.quantity,2)
                 tax_debit_amount = base_amount*(line.tax_id and line.tax_id.amount/100 or 0)
+                tax_debit_amount = round(tax_debit_amount,2)
             
             if tax_debit_amount:
                 res.append({
@@ -2599,7 +2622,7 @@ class account_invoice_line(osv.osv):
                     'name':line.name,
                     'price_unit': line.price_unit,
                     'quantity': 1,
-                    'price': round(tax_debit_amount,2),
+                    'price': tax_debit_amount,
                     'account_id': line.tax_id and line.tax_id.gl_account_id and line.tax_id.gl_account_id.id or False,
                     'account_analytic_id': line.account_analytic_id.id,
                 })
@@ -2656,18 +2679,20 @@ class account_invoice_line(osv.osv):
             if line.tax_credit and not line.tax_credit.gl_account_id:
                 raise osv.except_osv(_('Warning!'),_('GL Account is not null, please configure it in Tax Master!'))
             if line.fright_fi_type == '2':
-                base_amount = round(line.fright)
+                base_amount = round(line.fright,2)
                 tax_credit_amount = base_amount*(line.tax_credit and line.tax_credit.amount/100 or 0)
+                tax_credit_amount = round(tax_credit_amount,2)
             else:
-                base_amount = round(line.fright*line.quantity)
+                base_amount = round(line.fright*line.quantity,2)
                 tax_credit_amount = base_amount*(line.tax_credit and line.tax_credit.amount/100 or 0)
+                tax_credit_amount = round(tax_credit_amount,2)
             if tax_credit_amount:
                 res.append({
                     'type':'tax',
                     'name':line.name,
                     'price_unit': line.price_unit,
                     'quantity': 1,
-                    'price': round(-tax_credit_amount,2),
+                    'price': -tax_credit_amount,
                     'account_id': line.tax_credit and line.tax_credit.gl_account_id and line.tax_credit.gl_account_id.id or False,
                     'account_analytic_id': line.account_analytic_id.id,
                 })
