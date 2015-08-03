@@ -4036,63 +4036,62 @@ class tpt_material_issue(osv.osv):
             cr.execute(sql)
             journal_ids = [r[0] for r in cr.fetchall()]
             sql = '''
-                select id from account_period where '%s' between date_start and date_stop
+                select id from account_period where '%s' between date_start and date_stop and special is False
             '''%(date_period)
             cr.execute(sql)
             period_ids = [r[0] for r in cr.fetchall()]
              
             if not period_ids:
                 raise osv.except_osv(_('Warning!'),_('Period is not null, please configure it in Period master !'))
-            for period_id in period_obj.browse(cr,uid,period_ids):
                 
-                for mater in line.material_issue_line:
-    #                 price += mater.product_id.standard_price * mater.product_isu_qty
-                    acc_expense = mater.product_id and mater.product_id.property_account_expense and mater.product_id.property_account_expense.id or False
-                    acc_asset = mater.product_id and mater.product_id.product_asset_acc_id and mater.product_id.product_asset_acc_id.id or False
-                    if not acc_expense or not acc_asset:
-                        raise osv.except_osv(_('Warning!'),_('Please configure Expense Account and Product Asset Account for all materials!'))
-                    avg_cost_ids = avg_cost_obj.search(cr, uid, [('product_id','=',mater.product_id.id),('warehouse_id','=',line.warehouse.id)])
-                    unit = 1
-                    if avg_cost_ids:
-                        avg_cost_id = avg_cost_obj.browse(cr, uid, avg_cost_ids[0])
-                        unit = avg_cost_id.avg_cost or 0
-                    sql = '''
-                        select price_unit from stock_move where product_id=%s and product_qty=%s and issue_id=%s
-                    '''%(mater.product_id.id,mater.product_isu_qty,mater.material_issue_id.id)
-                    cr.execute(sql)
-                    move_price = cr.fetchone()
-                    if move_price and move_price[0] and move_price[0]>0:
-                        unit=move_price[0]
-                    if not unit or unit<0:
-                        unit=1
-                    price += unit * mater.product_isu_qty
-                    product_price = unit * mater.product_isu_qty
-                    
-                    journal_line.append((0,0,{
-                                            'name':line.doc_no + ' - ' + mater.product_id.name, 
-                                            'account_id': acc_asset,
-                                            'debit':0,
-                                            'credit':product_price,
-                                            'product_id':mater.product_id.id,
-                                             
-                                           }))
-                    journal_line.append((0,0,{
-                                'name':line.doc_no + ' - ' + mater.product_id.name, 
-                                'account_id': acc_expense,
-                                'credit':0,
-                                'debit':product_price,
-                                'product_id':mater.product_id.id,
-                            }))
-                value={
-                    'journal_id':journal_ids[0],
-                    'period_id':period_id.id ,
-                    'ref': line.doc_no,
-                    'date': date_period,
-                    'material_issue_id': line.id,
-                    'line_id': journal_line,
-                    'doc_type':'good'
-                    }
-                new_jour_id = account_move_obj.create(cr,uid,value)
+            for mater in line.material_issue_line:
+#                 price += mater.product_id.standard_price * mater.product_isu_qty
+                acc_expense = mater.product_id and mater.product_id.property_account_expense and mater.product_id.property_account_expense.id or False
+                acc_asset = mater.product_id and mater.product_id.product_asset_acc_id and mater.product_id.product_asset_acc_id.id or False
+                if not acc_expense or not acc_asset:
+                    raise osv.except_osv(_('Warning!'),_('Please configure Expense Account and Product Asset Account for all materials!'))
+                avg_cost_ids = avg_cost_obj.search(cr, uid, [('product_id','=',mater.product_id.id),('warehouse_id','=',line.warehouse.id)])
+                unit = 1
+                if avg_cost_ids:
+                    avg_cost_id = avg_cost_obj.browse(cr, uid, avg_cost_ids[0])
+                    unit = avg_cost_id.avg_cost or 0
+                sql = '''
+                    select price_unit from stock_move where product_id=%s and product_qty=%s and issue_id=%s
+                '''%(mater.product_id.id,mater.product_isu_qty,mater.material_issue_id.id)
+                cr.execute(sql)
+                move_price = cr.fetchone()
+                if move_price and move_price[0] and move_price[0]>0:
+                    unit=move_price[0]
+                if not unit or unit<0:
+                    unit=1
+                price += unit * mater.product_isu_qty
+                product_price = unit * mater.product_isu_qty
+                
+                journal_line.append((0,0,{
+                                        'name':line.doc_no + ' - ' + mater.product_id.name, 
+                                        'account_id': acc_asset,
+                                        'debit':0,
+                                        'credit':product_price,
+                                        'product_id':mater.product_id.id,
+                                         
+                                       }))
+                journal_line.append((0,0,{
+                            'name':line.doc_no + ' - ' + mater.product_id.name, 
+                            'account_id': acc_expense,
+                            'credit':0,
+                            'debit':product_price,
+                            'product_id':mater.product_id.id,
+                        }))
+            value={
+                'journal_id':journal_ids[0],
+                'period_id':period_ids[0] ,
+                'ref': line.doc_no,
+                'date': date_period,
+                'material_issue_id': line.id,
+                'line_id': journal_line,
+                'doc_type':'good'
+                }
+            new_jour_id = account_move_obj.create(cr,uid,value)
             self.write(cr, uid, ids,{'state':'done'})
         return True  
     
@@ -4125,64 +4124,63 @@ class tpt_material_issue(osv.osv):
                 cr.execute(sql)
                 journal_ids = [r[0] for r in cr.fetchall()]
                 sql = '''
-                    select id from account_period where '%s' between date_start and date_stop
+                    select id from account_period where '%s' between date_start and date_stop and special is False
                 '''%(date_period)
                 cr.execute(sql)
                 period_ids = [r[0] for r in cr.fetchall()]
                  
                 if not period_ids:
                     raise osv.except_osv(_('Warning!'),_('Period is not null, please configure it in Period master !'))
-                for period_id in period_obj.browse(cr,uid,period_ids):
                     
-                    for mater in line.material_issue_line:
-        #                 price += mater.product_id.standard_price * mater.product_isu_qty
-                        acc_expense = mater.product_id and mater.product_id.property_account_expense and mater.product_id.property_account_expense.id or False
-                        acc_asset = mater.product_id and mater.product_id.product_asset_acc_id and mater.product_id.product_asset_acc_id.id or False
-                        if not acc_expense or not acc_asset:
-                            raise osv.except_osv(_('Warning!'),_('Please configure Expense Account and Product Asset Account for materials %s!'%(mater.product_id.default_code)))
-                        avg_cost_ids = avg_cost_obj.search(cr, uid, [('product_id','=',mater.product_id.id),('warehouse_id','=',line.warehouse.id)])
-                        unit = 1
-                        if avg_cost_ids:
-                            avg_cost_id = avg_cost_obj.browse(cr, uid, avg_cost_ids[0])
-                            unit = avg_cost_id.avg_cost or 0
-                        sql = '''
-                            select price_unit from stock_move where product_id=%s and product_qty=%s and issue_id=%s
-                        '''%(mater.product_id.id,mater.product_isu_qty,mater.material_issue_id.id)
-                        cr.execute(sql)
-                        move_price = cr.fetchone()
-                        if move_price and move_price[0] and move_price[0]>0:
-                            unit=move_price[0]
-                        if not unit or unit<0:
-                            unit=1
-                        price += unit * mater.product_isu_qty
-                        product_price = unit * mater.product_isu_qty
-                    
-                        journal_line.append((0,0,{
-                                                'name':line.doc_no + ' - ' + mater.product_id.name, 
-                                                'account_id': acc_asset,
-                                                'debit':0,
-                                                'credit':product_price,
-                                                'product_id':mater.product_id.id,
-                                                 
-                                               }))
-                        journal_line.append((0,0,{
-                                    'name':line.doc_no + ' - ' + mater.product_id.name, 
-                                    'account_id': acc_expense,
-                                    'credit':0,
-                                    'debit':product_price,
-                                    'product_id':mater.product_id.id,
-                                }))
-                    value={
-                        'journal_id':journal_ids[0],
-                        'period_id':period_id.id ,
-                        'ref': line.doc_no,
-                        'date': date_period,
-                        'material_issue_id': line.id,
-                        'line_id': journal_line,
-                        'doc_type':'good'
-                        }
-                    new_jour_id = account_move_obj.create(cr,uid,value)
-                    print 'TPT Create Done', line.id,line.doc_no
+                for mater in line.material_issue_line:
+    #                 price += mater.product_id.standard_price * mater.product_isu_qty
+                    acc_expense = mater.product_id and mater.product_id.property_account_expense and mater.product_id.property_account_expense.id or False
+                    acc_asset = mater.product_id and mater.product_id.product_asset_acc_id and mater.product_id.product_asset_acc_id.id or False
+                    if not acc_expense or not acc_asset:
+                        raise osv.except_osv(_('Warning!'),_('Please configure Expense Account and Product Asset Account for materials %s!'%(mater.product_id.default_code)))
+                    avg_cost_ids = avg_cost_obj.search(cr, uid, [('product_id','=',mater.product_id.id),('warehouse_id','=',line.warehouse.id)])
+                    unit = 1
+                    if avg_cost_ids:
+                        avg_cost_id = avg_cost_obj.browse(cr, uid, avg_cost_ids[0])
+                        unit = avg_cost_id.avg_cost or 0
+                    sql = '''
+                        select price_unit from stock_move where product_id=%s and product_qty=%s and issue_id=%s
+                    '''%(mater.product_id.id,mater.product_isu_qty,mater.material_issue_id.id)
+                    cr.execute(sql)
+                    move_price = cr.fetchone()
+                    if move_price and move_price[0] and move_price[0]>0:
+                        unit=move_price[0]
+                    if not unit or unit<0:
+                        unit=1
+                    price += unit * mater.product_isu_qty
+                    product_price = unit * mater.product_isu_qty
+                
+                    journal_line.append((0,0,{
+                                            'name':line.doc_no + ' - ' + mater.product_id.name, 
+                                            'account_id': acc_asset,
+                                            'debit':0,
+                                            'credit':product_price,
+                                            'product_id':mater.product_id.id,
+                                             
+                                           }))
+                    journal_line.append((0,0,{
+                                'name':line.doc_no + ' - ' + mater.product_id.name, 
+                                'account_id': acc_expense,
+                                'credit':0,
+                                'debit':product_price,
+                                'product_id':mater.product_id.id,
+                            }))
+                value={
+                    'journal_id':journal_ids[0],
+                    'period_id':period_ids[0] ,
+                    'ref': line.doc_no,
+                    'date': date_period,
+                    'material_issue_id': line.id,
+                    'line_id': journal_line,
+                    'doc_type':'good'
+                    }
+                new_jour_id = account_move_obj.create(cr,uid,value)
+                print 'TPT Create Done', line.id,line.doc_no
         return True
     
 tpt_material_issue()    
