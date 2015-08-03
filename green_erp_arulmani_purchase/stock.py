@@ -654,6 +654,7 @@ class account_invoice(osv.osv):
                 'amount_tax_debit': 0.0,
                 'amount_tax_credit': 0.0,
                 'aed': 0.0,
+                'amount_round_off': 0.0,
             }
             if line.type == 'out_invoice':
                 res[line.id] = {
