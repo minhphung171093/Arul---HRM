@@ -1176,11 +1176,18 @@ class arul_hr_payroll_executions(osv.osv):
                 permission_count = b[0]
                 
                 #OnDuty
+                #===============================================================
+                # sql = '''
+                # SELECT CASE WHEN SUM(total_shift_worked)!=0 THEN SUM(total_shift_worked) ELSE 0 END total_shift_worked 
+                # FROM arul_hr_permission_onduty WHERE non_availability_type_id='on_duty' 
+                # AND EXTRACT(year FROM date) = %s AND EXTRACT(month FROM date) = %s and employee_id =%s and total_shift_worked>=1 and approval='t'
+                # '''%(line.year,line.month,p.id)
+                #===============================================================
                 sql = '''
-                SELECT CASE WHEN SUM(total_shift_worked)!=0 THEN SUM(total_shift_worked) ELSE 0 END total_shift_worked 
-                FROM arul_hr_permission_onduty WHERE non_availability_type_id='on_duty' 
-                AND EXTRACT(year FROM date) = %s AND EXTRACT(month FROM date) = %s and employee_id =%s and total_shift_worked>=1 and approval='t'
-                '''%(line.year,line.month,p.id)
+                    select case when sum(total_shift_worked)!=0 then sum(total_shift_worked) else 0 end total_shift_worked from arul_hr_permission_onduty where shift_type='G2' and 
+                    EXTRACT(year FROM date) = %s AND EXTRACT(month FROM date) = %s and employee_id=%s
+                    and approval='t'
+                    '''%(line.year,line.month,p.id)
                 cr.execute(sql)
                 c =  cr.fetchone()
                 onduty_count = c[0]
@@ -1190,8 +1197,10 @@ class arul_hr_payroll_executions(osv.osv):
                 total_shift_worked = 0.0    
                 #if  shift_count:
                 total_shift_worked = shift_count + onduty_count
-                if p.id==155:
-                    total_shift_worked = total_shift_worked +0.5
+                #===============================================================
+                # if p.id==155:
+                #     total_shift_worked = total_shift_worked +0.5
+                #===============================================================
                     #===========================================================
                     # if permission_count:
                     #     total_shift_worked = shift_count + permission_count
