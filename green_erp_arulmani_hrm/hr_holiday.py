@@ -5077,8 +5077,16 @@ class arul_hr_permission_onduty(osv.osv):
             res[time.id] = {
                 'time_total': 0.0,
             }
-            time_total = time.end_time - time.start_time
-            res[time.id]['time_total'] = time_total 
+            if time.start_time != 0 and time.end_time!=0:
+                if time.start_time > time.end_time:
+                    time_total = 24-time.start_time + time.end_time
+                else:
+                    time_total = time.end_time - time.start_time
+            else:
+                time_total=0
+            res[time.id]['time_total'] = time_total  
+            #time_total = time.end_time - time.start_time
+            #res[time.id]['time_total'] = time_total 
         return res
     #TPT - Permission On Duty
     def _shift_total(self, cr, uid, ids, field_name, arg, context=None):
@@ -5107,6 +5115,7 @@ class arul_hr_permission_onduty(osv.osv):
         'employee_id':fields.many2one('hr.employee','Employee',required=True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
         'non_availability_type_id':fields.selection([('permission','Permission'),('on_duty','On duty')],'Non Availability Type',required = True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
         'date':fields.date('Date', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+        'perm_out_date':fields.date('Permission Out Date', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
         'from_date':fields.date('From Date', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
         'to_date':fields.date('To Date', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
         'duty_location':fields.char('On Duty Location', size = 1024, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
@@ -5347,9 +5356,9 @@ class arul_hr_permission_onduty(osv.osv):
             if ((time.start_time > 24 or time.start_time < 0) or (time.end_time > 24 or time.end_time < 0)):
                 raise osv.except_osv(_('Warning!'),_('Input Wrong Time!'))
                 return False
-            if (time.start_time > time.end_time):
-                raise osv.except_osv(_('Warning!'),_('Start Time is earlier than End Time'))
-                return False
+#             if (time.start_time > time.end_time):
+#                 raise osv.except_osv(_('Warning!'),_('Start Time is earlier than End Time'))
+#                 return False
             if time.start_time == 0.0 and time.end_time == 0.0:
                 raise osv.except_osv(_('Warning!'),_('Input Wrong Time'))
                 return False
@@ -5378,7 +5387,12 @@ class arul_hr_permission_onduty(osv.osv):
                 #raise osv.except_osv(_('Warning!%s'),_(p[0]))           
                 if p[0]-1>0:
                     raise osv.except_osv(_('Warning!'),_('Permission Entry Already Exist for this Date'))   
-                if time.end_time - time.start_time > 1:
+                if time.start_time > time.end_time:
+                    time_total = 24-time.start_time + time.end_time
+                else:
+                    time_total = time.end_time - time.start_time
+                #if time.end_time - time.start_time > 1:
+                if time_total > 1:
                     raise osv.except_osv(_('Warning!'),_('Permission should not exceed an Hour for a day')) 
         return True
     
