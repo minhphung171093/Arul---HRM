@@ -201,6 +201,7 @@
 				</xpath>
 				<xpath expr="//page[@string='Invoice']/group/field[@name='amount_tax']" position="after">
 					<field name="fright" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+					<field name="amount_round_off" widget="monetary" options="{'currency_field': 'currency_id'}"/>
 				</xpath>
 				<xpath expr="//page[@string='Invoice']/group/field[@name='residual']" position="attributes">
 					<attribute name='invisible'>1</attribute>
@@ -502,6 +503,7 @@
                                 <field name="amount_tax" nolabel="1" widget="monetary" options="{'currency_field': 'currency_id'}"/>
                                 <field name="fright" widget="monetary"/>
                                 <field name="amount_total_tds" widget="monetary"/>
+                                <field name="amount_round_off" widget="monetary"/>
                                 <field name="amount_total" class="oe_subtotal_footer_separator" widget="monetary" options="{'currency_field': 'currency_id'}"/>
                                 <field name="amount_total_inr" class="oe_subtotal_footer_separator" widget="monetary" attrs="{'invisible': [('amount_total','=','amount_total_inr')]}"/>
 								<field name="residual" widget="monetary" options="{'currency_field': 'currency_id'}" invisible = '1'/>
@@ -725,6 +727,7 @@
                                 <field name="amount_tax_credit" widget="monetary"/>
                                 <field name="fright" widget="monetary"/>
                                 <field name="amount_total_tds" widget="monetary"/>
+                                <field name="amount_round_off" widget="monetary"/>
                                 <field name="amount_total" class="oe_subtotal_footer_separator" widget="monetary" options="{'currency_field': 'currency_id'}"/>
                                 <field name="amount_total_inr" class="oe_subtotal_footer_separator" widget="monetary" attrs="{'invisible': [('amount_total','=','amount_total_inr')]}"/>
 								<field name="residual" widget="monetary" options="{'currency_field': 'currency_id'}" invisible = '1'/>
@@ -954,6 +957,7 @@
                                 <field name="amount_tax_debit" widget="monetary" invisible = '0' options="{'currency_field': 'currency_id'}"/>
                                 <field name="amount_tax_credit" widget="monetary" invisible = '0' options="{'currency_field': 'currency_id'}"/>
                                 <field name="amount_total_tds_2" widget="monetary" invisible = '0' options="{'currency_field': 'currency_id'}" />
+                                <field name="amount_round_off" widget="monetary"/>
                                 <field name="amount_total" class="oe_subtotal_footer_separator" widget="monetary" options="{'currency_field': 'currency_id'}"/>
 								<field name="residual" widget="monetary" options="{'currency_field': 'currency_id'}" invisible = '1'/>
                                 <field name="reconciled" invisible="1"/>
