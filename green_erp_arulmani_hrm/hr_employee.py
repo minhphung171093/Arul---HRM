@@ -394,7 +394,11 @@ class arul_hr_employee_action_history(osv.osv):
                 raise osv.except_osv(_('Warning!'),_('Not able to post Leaving Entry for Future Date!'))
                 return False
             action_history = self.browse(cr, uid, new_id)
-            self.pool.get('hr.employee').write(cr, uid, [action_history.employee_id.id], {'active': False})
+            self.pool.get('hr.employee').write(cr, uid, [action_history.employee_id.id], 
+                                               {'active': False,
+                                                'date_of_resignation':leaving_date
+                                                
+                                                })
         if context.get('create_promotion_employee'):
             action_history = self.browse(cr, uid, new_id)
             self.pool.get('hr.employee').write(cr, uid, [action_history.employee_id.id], {#'employee_category_id': action_history.employee_category_id and action_history.employee_category_id.id or False,
