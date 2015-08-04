@@ -2455,6 +2455,26 @@ class tpt_update_stock_move_report(osv.osv):
             dem+=1
         return self.write(cr, uid, ids, {'result':'create_one_issue_one_posting Remaining'})    
     
+    def update_invoice_do_sale_blanket(self, cr, uid, ids, context=None):
+        sql = '''
+            update account_invoice set partner_id=4968,commercial_partner_id=4968 where id=1200;
+            update account_invoice_line set partner_id=4968 where invoice_id=1200;
+            
+            update account_move set partner_id=4968  where id in (select move_id from account_invoice where id=1200);
+            update account_move_line set partner_id=4968 where move_id in (select move_id from account_invoice where id=1200);
+            
+            update stock_picking set partner_id=4968 where id in (select delivery_order_id from account_invoice where id=1200);
+            update stock_move set partner_id=4968 where picking_id in (select delivery_order_id from account_invoice where id=1200);
+            
+            update account_move set partner_id=4968 where id in (select move_id from account_move_line where name=(select name from stock_picking where id in (select delivery_order_id from account_invoice where id=1200)));
+            update account_move_line set partner_id=4968 where name=(select name from stock_picking where id in (select delivery_order_id from account_invoice where id=1200));
+            
+            update sale_order set partner_id=4968,partner_invoice_id=4968,partner_shipping_id=4968 where id in (select sale_id from stock_picking where id in (select delivery_order_id from account_invoice where id=1200));
+            update sale_order_line set order_partner_id=4968 where order_id in (select id from sale_order where id in (select sale_id from stock_picking where id in (select delivery_order_id from account_invoice where id=1200)));
+            update tpt_blanket_order set customer_id=4968 where id in (select blanket_id from sale_order where id in (select sale_id from stock_picking where id in (select delivery_order_id from account_invoice where id=1200)));
+        '''
+        cr.execute(sql)
+        return self.write(cr, uid, ids, {'result':'update_invoice_do_sale_blanket Done'})
     
     def config_GRN_2183(self, cr, uid, ids, context=None):
         invoice_obj = self.pool.get('account.invoice')
@@ -3202,6 +3222,7 @@ class tpt_update_stock_move_report(osv.osv):
                     }
                 new_jour_id = account_move_obj.create(cr,uid,value)
         return self.write(cr, uid, ids, {'result':'Create all GRN posting Remaining'}) 
+    
 tpt_update_stock_move_report()
 
 
