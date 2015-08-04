@@ -269,56 +269,52 @@ class arul_hr_payroll_employee_structure(osv.osv):
          'payroll_earning_structure_line':fields.one2many('arul.hr.payroll.earning.structure','earning_structure_id','Earning Structure' ),
          'payroll_other_deductions_line':fields.one2many('arul.hr.payroll.other.deductions','earning_structure_id','Other Deductions'),
          'flag': fields.boolean('Flag'),
-	 'create_date': fields.datetime('Created Date',readonly = True),
-	 'write_date': fields.datetime('Updated Date',readonly = True),
-	 'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
-
-	 'history_line': fields.one2many('arul.hr.payroll.employee.structure','history_id','Histories',readonly = True),
-         'history_id': fields.many2one('arul.hr.payroll.employee.structure','Histories Line', ondelete='cascade'),
-	 #'pay_history_line': fields.one2many('arul.hr.payroll.earning.structure','pay_history_line_id',readonly = True),
-	 #'pay_history_line_id': fields.one2many('arul.hr.payroll.earning.structure','pay_history_line_id',ondelete='cascade'),
-	 'loan_line':fields.one2many('arul.hr.payroll.loan.deduction.parameters','loan_id', ondelete='cascade'),
-	 'insurance_line':fields.one2many('arul.hr.payroll.insurance.deduction.parameters','insurance_id', ondelete='cascade'),
-	 #'payroll_other_deductions_vpf':fields.one2many('arul.hr.payroll.other.deductions','earning_structure_id','Structure line'),
-	 #'payroll_other_deductions_line1':fields.one2many('arul.hr.payroll.other.deductions','earning_structure_id','Structure line'),
-	 'loan_amount_subtotal': fields.function(_loan_amount_line, string='Loan Subtotal', digits_compute= dp.get_precision('Account'),
-		store={
-                'arul.hr.payroll.employee.structure': (lambda self, cr, uid, ids, c={}: ids, ['loan_line'], 10),
-                'arul.hr.payroll.loan.deduction.parameters': (_get_loan, ['loan_amount'], 10),
-		},multi='sums', help="The total amount."),
-	 'insurance_amount_subtotal': fields.function(_insurance_amount_line, string='Insurance Subtotal', digits_compute= dp.get_precision('Account'),
-		store={
-                'arul.hr.payroll.employee.structure': (lambda self, cr, uid, ids, c={}: ids, ['insurance_line'], 20),
-                'arul.hr.payroll.insurance.deduction.parameters': (_get_insurance, ['insurance_amount'], 20),
-		},multi='sums', help="The total amount."),
-     ##
-     'state':fields.selection([('draft', 'Draft'),('approved', 'Approved')],'Status', 
-                             readonly=True, states={'done':[('readonly', True)]}),
-     ##
+    	 'create_date': fields.datetime('Created Date',readonly = True),
+    	 'write_date': fields.datetime('Updated Date',readonly = True),
+    	 'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
+    
+    	 'history_line': fields.one2many('arul.hr.payroll.employee.structure','history_id','Histories',readonly = True),
+             'history_id': fields.many2one('arul.hr.payroll.employee.structure','Histories Line', ondelete='cascade'),
+    	 #'pay_history_line': fields.one2many('arul.hr.payroll.earning.structure','pay_history_line_id',readonly = True),
+    	 #'pay_history_line_id': fields.one2many('arul.hr.payroll.earning.structure','pay_history_line_id',ondelete='cascade'),
+    	 'loan_line':fields.one2many('arul.hr.payroll.loan.deduction.parameters','loan_id', ondelete='cascade'),
+    	 'insurance_line':fields.one2many('arul.hr.payroll.insurance.deduction.parameters','insurance_id', ondelete='cascade'),
+    	 #'payroll_other_deductions_vpf':fields.one2many('arul.hr.payroll.other.deductions','earning_structure_id','Structure line'),
+    	 #'payroll_other_deductions_line1':fields.one2many('arul.hr.payroll.other.deductions','earning_structure_id','Structure line'),
+    	 'loan_amount_subtotal': fields.function(_loan_amount_line, string='Loan Subtotal', digits_compute= dp.get_precision('Account'),
+    		store={
+                    'arul.hr.payroll.employee.structure': (lambda self, cr, uid, ids, c={}: ids, ['loan_line'], 10),
+                    'arul.hr.payroll.loan.deduction.parameters': (_get_loan, ['loan_amount'], 10),
+    		},multi='sums', help="The total amount."),
+    	 'insurance_amount_subtotal': fields.function(_insurance_amount_line, string='Insurance Subtotal', digits_compute= dp.get_precision('Account'),
+    		store={
+                    'arul.hr.payroll.employee.structure': (lambda self, cr, uid, ids, c={}: ids, ['insurance_line'], 20),
+                    'arul.hr.payroll.insurance.deduction.parameters': (_get_insurance, ['insurance_amount'], 20),
+    		},multi='sums', help="The total amount."),
+         ##
+         'state':fields.selection([('draft', 'Draft'),('approved', 'Approved')],'Status', 
+                                 readonly=True, states={'done':[('readonly', True)]}),
+         ##
     }
     #Start:TPT By BalamuruganPurushothaman on 23/02/2015 - To  Add update L.D & I.D values from Loan & Insurance tab respectively,while creating the Employee Payroll Strcuture
     def create(self, cr, uid, vals, context=None):
         vals['flag'] = True
-	new_id = super(arul_hr_payroll_employee_structure, self).create(cr, uid, vals, context)
-	emp_struct = self.browse(cr,uid,new_id)
-	#raise osv.except_osv(_('Warning!%s'),_(vals))
-	other_deduction_obj = self.pool.get('arul.hr.payroll.other.deductions')
-	deduction_obj = self.pool.get('arul.hr.payroll.deduction.parameters')
-	deduction_ids = deduction_obj.search(cr, uid, [('code','in',['VPF.D','I.D','L.D'])])
-	
-    #TPT COMMENTED ON 18/04/2015 - FOR LOAN INSURANCE SPLITUP
-	#===========================================================================
-	# for deduction in deduction_obj.browse(cr, uid, deduction_ids):
- #                if deduction.code == 'L.D':
- #                    sql = ''' UPDATE arul_hr_payroll_other_deductions  SET float=%s WHERE deduction_parameters_id = %s AND earning_structure_id=%s'''%(emp_struct.loan_amount_subtotal,deduction.id,emp_struct.id)
-	# 	    cr.execute(sql)
-	# 	if deduction.code == 'I.D':
- #                    sql = ''' UPDATE arul_hr_payroll_other_deductions  SET float=%s WHERE deduction_parameters_id = %s AND earning_structure_id=%s'''%(emp_struct.insurance_amount_subtotal,deduction.id,emp_struct.id)
-	# 	    cr.execute(sql)
-	#===========================================================================
-		    
-        #return super(arul_hr_payroll_employee_structure, self).create(cr, uid, vals, context)	
-	return new_id
+        if 'employee_id' in vals:
+            emp = self.pool.get('hr.employee').browse(cr, uid, vals['employee_id']) 
+ 
+            vals.update({
+                    'employee_category_id':emp.employee_category_id and emp.employee_category_id.id or False,
+                    'sub_category_id':emp.employee_sub_category_id and emp.employee_sub_category_id.id or False,
+                    })
+    	new_id = super(arul_hr_payroll_employee_structure, self).create(cr, uid, vals, context)
+    	emp_struct = self.browse(cr,uid,new_id)
+    	#raise osv.except_osv(_('Warning!%s'),_(vals))
+    	other_deduction_obj = self.pool.get('arul.hr.payroll.other.deductions')
+    	deduction_obj = self.pool.get('arul.hr.payroll.deduction.parameters')
+    	deduction_ids = deduction_obj.search(cr, uid, [('code','in',['VPF.D','I.D','L.D'])])
+    	
+        
+    	return new_id
     
     def bt_approve(self, cr, uid, ids, context=None):
         sql = '''
@@ -329,49 +325,35 @@ class arul_hr_payroll_employee_structure(osv.osv):
     
     #To  Add update L.D & I.D values from Loan & Insurance tab respectively, while editing Employee Payroll Strcuture
     def write(self, cr, uid, ids, vals, context=None):
-	for emp_struct in self.browse(cr,uid,ids): # TO MAINTAIN EMPLOYEE PAYROLL STRUCTURE - 26/02/2015
-	    if 'employee_category_id' in vals: 
-                    default ={'history_id': emp_struct.id,'history_line':[]}
-                    self.copy(cr, uid, emp_struct.id,default)
-	    if 'sub_category_id' in vals: 
-                    default ={'history_id': emp_struct.id,'history_line':[]}
-                    self.copy(cr, uid, emp_struct.id,default)
-	    if 'payroll_earning_structure_line' in vals:
-                    default ={'history_id': emp_struct.id,'history_line':[]}
-                    self.copy(cr, uid, emp_struct.id,default)
-	    if 'payroll_other_deductions_line' in vals:
-                    default ={'history_id': emp_struct.id,'history_line':[]}
-                    self.copy(cr, uid, emp_struct.id,default)
-	    if 'loan_line' in vals:
-                    default ={'history_id': emp_struct.id,'history_line':[]}
-                    self.copy(cr, uid, emp_struct.id,default)
-	    if 'insurance_line' in vals:
-                    default ={'history_id': emp_struct.id,'history_line':[]}
-                    self.copy(cr, uid, emp_struct.id,default)
-        ###
-        vals.update({'state':'draft'})
-        ###
-        new_write = super(arul_hr_payroll_employee_structure, self).write(cr, uid,ids, vals, context)
-	for emp_struct in self.browse(cr,uid,ids):
-		other_deduction_obj = self.pool.get('arul.hr.payroll.other.deductions')
-		deduction_obj = self.pool.get('arul.hr.payroll.deduction.parameters')
-		deduction_ids = deduction_obj.search(cr, uid, [('code','in',['VPF.D','I.D','L.D'])])	
-        
-        #TPT COMMENTED FOR LOAN-INSURANCE SPLITUP
-		#=======================================================================
-		# for deduction in deduction_obj.browse(cr, uid, deduction_ids):
-  #               	if deduction.code == 'L.D':
-  #                   		sql = ''' UPDATE arul_hr_payroll_other_deductions  SET float=%s WHERE deduction_parameters_id = %s AND earning_structure_id=%s'''%(emp_struct.loan_amount_subtotal,deduction.id,emp_struct.id)
-		#     		cr.execute(sql)
-		# 	if deduction.code == 'I.D':
-  #                   		sql = ''' UPDATE arul_hr_payroll_other_deductions  SET float=%s WHERE deduction_parameters_id = %s AND earning_structure_id=%s'''%(emp_struct.insurance_amount_subtotal,deduction.id,emp_struct.id)
-		#     		cr.execute(sql)
-		#=======================================================================
-
-		#if 'employee_category_id' in vals:
-                #    default ={'history_id': emp_struct.id,'history_line':[]}
-                #    self.copy(cr, uid, emp_struct.id,default)
-
+    	for emp_struct in self.browse(cr,uid,ids): # TO MAINTAIN EMPLOYEE PAYROLL STRUCTURE - 26/02/2015
+    	    if 'employee_category_id' in vals: 
+                        default ={'history_id': emp_struct.id,'history_line':[]}
+                        self.copy(cr, uid, emp_struct.id,default)
+    	    if 'sub_category_id' in vals: 
+                        default ={'history_id': emp_struct.id,'history_line':[]}
+                        self.copy(cr, uid, emp_struct.id,default)
+    	    if 'payroll_earning_structure_line' in vals:
+                        default ={'history_id': emp_struct.id,'history_line':[]}
+                        self.copy(cr, uid, emp_struct.id,default)
+    	    if 'payroll_other_deductions_line' in vals:
+                        default ={'history_id': emp_struct.id,'history_line':[]}
+                        self.copy(cr, uid, emp_struct.id,default)
+    	    if 'loan_line' in vals:
+                        default ={'history_id': emp_struct.id,'history_line':[]}
+                        self.copy(cr, uid, emp_struct.id,default)
+    	    if 'insurance_line' in vals:
+                        default ={'history_id': emp_struct.id,'history_line':[]}
+                        self.copy(cr, uid, emp_struct.id,default)
+            ###
+            vals.update({'state':'draft'})
+            ###
+            new_write = super(arul_hr_payroll_employee_structure, self).write(cr, uid,ids, vals, context)
+    	for emp_struct in self.browse(cr,uid,ids):
+    		other_deduction_obj = self.pool.get('arul.hr.payroll.other.deductions')
+    		deduction_obj = self.pool.get('arul.hr.payroll.deduction.parameters')
+    		deduction_ids = deduction_obj.search(cr, uid, [('code','in',['VPF.D','I.D','L.D'])])	
+            
+    
         return new_write
 
     def name_get(self, cr, uid, ids, context=None):
@@ -2768,6 +2750,7 @@ class arul_hr_payroll_executions(osv.osv):
                             ma = 0
                         else:
                             ma = (total_shift_worked * ( lunch_allowance + washing_allowane )) + total_all_shift_allowance
+                            ma = round(ma,0) 
 
                         #total_earning = basic + da + c + hra + fa + pc + cre + ea +spa + la + aa + sha + oa + lta + med
                         #gross_before = basic + c + hra  +spa + oa + da + ea
