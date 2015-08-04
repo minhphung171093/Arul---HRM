@@ -203,6 +203,10 @@ access_vvti_accounting_172,tpt.stock.statement.line,green_erp_arulmani_purchase.
 access_vvti_accounting_173,tpt.account.balance.report,green_erp_arulmani_accounting.model_tpt_account_balance_report,base.group_user,True,True,True,True
 access_vvti_accounting_174,tpt.account.balance.report.line,green_erp_arulmani_accounting.model_tpt_account_balance_report_line,base.group_user,True,True,True,True
 
+access_vvti_accounting_175,tpt.ed.invoice.positing,green_erp_arulmani_accounting.model_tpt_ed_invoice_positing,green_erp_arulmani_accounting.group_vvti_accounting_user,True,True,True,False
+access_vvti_accounting_176,tpt.ed.invoice.positing.line,green_erp_arulmani_accounting.model_tpt_ed_invoice_positing_line,green_erp_arulmani_accounting.group_vvti_accounting_user,True,True,True,False
+
+
 
 
 

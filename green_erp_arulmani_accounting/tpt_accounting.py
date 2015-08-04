@@ -703,12 +703,50 @@ stock_picking()
 
 class account_invoice(osv.osv):
     _inherit = "account.invoice"
-     
+    
+    def get_button_ed(self, cr, uid, ids, name, args, context=None):
+        result = {}
+        for invoice in self.browse(cr, uid, ids, context=context):
+            result[invoice.id] = False
+            if invoice.purchase_id:
+                for invoice_line in invoice.invoice_line:
+                    if invoice_line.ed or invoice_line.aed_id_1:
+                        result[invoice.id] = True
+                        break
+        return result
+                
     _columns = {
         'bill_number': fields.char('Bill Number', size=1024),
         'bill_date': fields.date('Bill Date'),
         'cost_center_id':fields.many2one('tpt.cost.center','Cost Center'),
+#         'flag_bt_ed': fields.boolean('button ed'),
+        'flag_bt_ed': fields.function(get_button_ed, string='button ed', type='boolean'),
     }
+    
+    def bt_post_ed(self, cr, uid, ids, context=None):
+        for post in self.browse(cr,uid,ids):
+            sql = '''
+                select id from tpt_ed_invoice_positing where invoice_id = %s
+            '''%(post.id)
+            cr.execute(sql)
+            ed_invoice_ids = cr.dictfetchall()
+            if ed_invoice_ids:
+                raise osv.except_osv(_('Warning!'),_('You have already created ED Posting!'))
+            else:
+                res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
+                                                'green_erp_arulmani_accounting', 'ed_type_form_view')
+                return {
+                            'name': 'Post ED',
+                            'view_type': 'form',
+                            'view_mode': 'form',
+                            'view_id': res[1],
+                            'res_model': 'ed.type.pop.up',
+                            'domain': [],
+                            'context': {'default_message':'Please Choose ED Type', 'default_invoice_id':ids[0]},
+                            'type': 'ir.actions.act_window',
+                            'target': 'new',
+                        }
+    
     def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
         if context is None:
             context = {}
@@ -927,6 +965,13 @@ class account_invoice(osv.osv):
                 })
         new_write = super(account_invoice, self).write(cr, uid,ids, vals, context)
         for new in self.browse(cr,uid,ids):
+#             if new.purchase_id:
+#                 for invoice_line in new.invoice_line:
+#                     if not invoice_line.ed and not invoice_line.aed_id_1:
+#                         sql = '''
+#                             update account_invoice set flag_bt_ed = 't' where id = %s
+#                         '''%(invoice_line.invoice_id.id)
+#                         cr.execute(sql)
             if new.purchase_id.po_document_type == 'service':
                 for purchase_line in new.purchase_id.order_line:
                     sql = '''
@@ -2715,32 +2760,112 @@ class account_invoice_line(osv.osv):
                 })
         return res
     
-#     def move_line_price_total(self, cr, uid, invoice_id):
-#         res = []
-#         cr.execute('SELECT * FROM account_invoice_line WHERE invoice_id=%s', (invoice_id,))
-#         for t in cr.dictfetchall():
-#             cr.execute('SELECT * FROM account_invoice WHERE id=%s', (t['invoice_id'],))
-#             for account in cr.dictfetchall():
-#                 sql = '''
-#                     SELECT sup_inv_price_id FROM tpt_posting_configuration WHERE name = 'sup_inv' and sup_inv_price_id is not null
-#                 '''
-#                 cr.execute(sql)
-#                 sup_inv_price_id = cr.dictfetchone()
-#                 if not sup_inv_price_id:
-#                     raise osv.except_osv(_('Warning!'),_('Account is not null, please configure it in GL Posting Configrution !'))
-#                 res.append({
-#                     'type':'tax',
-#                     'name':account['name'],
-#                     'price_unit': t['price_unit'],
-#                     'quantity': 1,
-#                     'price': account['amount_total'],
-#                     'account_id': sup_inv_price_id and sup_inv_price_id['sup_inv_price_id'] or False,
-#                     'account_analytic_id': t['account_analytic_id'],
-#                 })
-#                 break
-#             break
-#         return res   
 account_invoice_line()
+
+class tpt_ed_invoice_positing(osv.osv):
+    _name = "tpt.ed.invoice.positing"
+    
+    _columns = {
+        'name':fields.char('Document No', size = 1024, required = True, readonly = True),
+        'supplier_id':fields.many2one('res.partner', 'Supplier', readonly=True),
+        'invoice_id':fields.many2one('account.invoice', 'Invoice No', readonly=True),
+        'date':fields.date('Posting Date',states={'posted': [('readonly', True)]}),
+        'create_uid':fields.many2one('res.users','Created By', readonly=True),
+        'created_on': fields.datetime('Created On', readonly=True),
+        'tpt_ed_invoice_positing_line': fields.one2many('tpt.ed.invoice.positing.line','ed_invoice_id','ED Invoice'),
+        'ed_type':fields.selection(
+                        [('spare_ed_12.36', 'Spares ED value of 12.36%'),
+                         ('spare_ed_aed', 'Spares ED value with AED'),
+                         ('spare_ed_12.5', 'Spares ED value of 12.5%'),
+                         ('raw_ed_12.36', 'Raw material ED value of 12.36%'),
+                         ('raw_ed_aed', 'Raw material ED value with AED'),
+                         ('raw_ed_12.5', 'Raw material ED value of 12.5%')],
+                        'ED Type', readonly=True),
+        'state':fields.selection([('draft', 'Draft'),('posted', 'Posted')],'Status', readonly=True),
+        }
+    _defaults= {
+        'state': 'draft',
+        'name': '/',       
+                }
+    
+    def bt_validate(self, cr, uid, ids, context=None):
+#         for ed in self.browse(cr, uid, ids):
+#             move_line = []
+#             for ed_line in ed.tpt_ed_invoice_positing_line:
+#                 move_line.append((0,0,
+#                                   {
+#                                    'name': ed.name,
+#                                    'account_id': ed_line.gl_account_id.id,
+#                                    'debit': ed_line.debit,
+#                                    'credit': ed_line.credit,
+#                                    }))
+#             sql = '''
+#                 select id from account_journal
+#             '''
+#             cr.execute(sql)
+#             journal_ids = [r[0] for r in cr.fetchall()]
+#             sql = '''
+#                 select id from account_period where '%s' between date_start and date_stop
+#             '''%(ed.date)
+#             cr.execute(sql)
+#             period_ids = [r[0] for r in cr.fetchall()]
+#             if not period_ids:
+#                 raise osv.except_osv(_('Warning!'),_('Period is not null, please configure it in Period master !'))
+#             value={
+#                     'journal_id':journal_ids[0],
+#                     'period_id':period_ids[0] ,
+#                     'ref': ed.name,
+#                     'date': ed.date,
+#                     'ed_invoice_id': ed.id,
+#                     'line_id': move_line,
+#                     'doc_type': False
+#                     }
+#             new_jour_id = self.pool.get('account.move').create(cr,uid,value)
+        return self.write(cr, uid, ids,{'state':'posted'})
+    
+    def _check_date(self, cr, uid, ids, context=None):
+        for ed in self.browse(cr, uid, ids, context=context):
+            if ed.date < ed.invoice_id.date_invoice:
+                raise osv.except_osv(_('Warning!'),_('Date should not be less than Invoice Posting Date'))
+                return False
+            if ed.date > time.strftime('%Y-%m-%d'):
+                raise osv.except_osv(_('Warning!'),_('Date should not allow future date'))
+                return False
+        return True
+    _constraints = [
+        (_check_date, 'Identical Data', []),
+    ]
+    
+    def create(self, cr, uid, vals, context=None):
+        if vals.get('name','/')=='/':
+            sql = '''
+                select code from account_fiscalyear where '%s' between date_start and date_stop
+            '''%(time.strftime('%Y-%m-%d'))
+            cr.execute(sql)
+            fiscalyear = cr.dictfetchone()
+            if not fiscalyear:
+                raise osv.except_osv(_('Warning!'),_('Financial year has not been configured. !'))
+            else:
+                sequence = self.pool.get('ir.sequence').get(cr, uid, 'tpt.ed.invoice.positing.import')
+                vals['name'] =  sequence and sequence+'/'+fiscalyear['code'] or '/'
+        return super(tpt_ed_invoice_positing, self).create(cr, uid, vals, context)
+    
+    
+    
+tpt_ed_invoice_positing()
+
+class tpt_ed_invoice_positing_line(osv.osv):
+    _name = "tpt.ed.invoice.positing.line"
+    
+    _columns = {
+        'ed_invoice_id':fields.many2one('tpt.ed.invoice.positing', 'ED Invoice',ondelete='cascade'),
+        'gl_account_id':fields.many2one('account.account', 'GL Code'),
+        'gl_desc':fields.char('GL Description', size = 1024),
+        'debit':fields.float('Debit'),
+        'credit':fields.float('Credit'),
+        }
+    
+tpt_ed_invoice_positing_line()
 
 class tpt_product_avg_cost(osv.osv):
     _name = "tpt.product.avg.cost"
@@ -5210,9 +5335,9 @@ class account_move(osv.osv):
                                   ('freight', 'Freight Invoice'),
                                   ('worker_payroll', 'Workers Payroll')],'Document Type'),  
         'material_issue_id': fields.many2one('tpt.material.issue','Material Issue',ondelete='restrict'), 
+        'ed_invoice_id': fields.many2one('tpt.ed.invoice.positing','ED Invoice Posting',ondelete='restrict'),  
         'grn_id': fields.many2one('stock.picking','GRN',ondelete='restrict'),
         'product_dec': fields.many2one('mrp.production','Production',ondelete='restrict'),  
-                                  
                 }
 account_move()
 
