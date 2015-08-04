@@ -1318,7 +1318,7 @@ class arul_hr_payroll_executions(osv.osv):
                 cr.execute(sql)
                 special_holiday_worked_count = cr.dictfetchone()['total_shift_worked']
                 
-                #TPT-TAKING SHD HOLIDAY COUONT FOR PAYROLL MONTH
+                #TPT-TAKING SHD HOLIDAY COUNT FOR PAYROLL MONTH
                 special_holidays = 0
                 sql = '''
                         select count(*) from arul_hr_holiday_special where EXTRACT(year FROM date) = %s and EXTRACT(month FROM date) = %s and is_local_holiday='f'
@@ -1427,31 +1427,24 @@ class arul_hr_payroll_executions(osv.osv):
                     select from_date,to_date from tpt_hr_ptax where extract(month from to_date)=%s and extract(year from to_date)=%s
                     '''%(line.month,line.year)
                     cr.execute(sql)
-                    #if ptax_id: 
                     for k in cr.fetchall():
                         from_date=k[0]
                         to_date=k[1]
                     payroll_obj = self.pool.get('arul.hr.payroll.executions.details')
-                        ##
+                    
                     total_ptax = 0
                     if from_date and to_date:
-                        from_month = int(from_date[5:7]) 
-                        from_year = int(from_date[:4]) 
-                        from_day = int(from_date[8:10])
-                            
-                        to_month = int(to_date[5:7]) 
-                        to_year = int(to_date[:4]) 
-                        to_day = int(to_date[8:10])
-    
-                        d1 = datetime.date(from_year, from_month, from_day)
-                        d2 = datetime.date(to_year, to_month, to_day)
-                                        
-                        delta = d2 - d1        
-                        for i in range(delta.days + 1):
-                            temp_day = d1 + timedelta(days=i) 
-                            month = str(temp_day)[5:7]
-                               
-                        payroll_ids = payroll_obj.search(cr, uid,[('month','in',['4','5','6','7','8','9']),('year','=',line.year),('employee_id','=',p.id),('payroll_executions_id.state','in',['confirm','approve'])])
+                        sql = '''
+                        SELECT * FROM generate_series('%s'::timestamp,
+                              '%s', '1 Months')
+                        '''%(from_date, to_date)
+                        cr.execute(sql)
+                        temp_list = [r[0] for r in cr.fetchall()]
+                        month_list = []
+                        for k in temp_list:
+                            month_list.append(str(int(k[5:7])))
+                                  
+                        payroll_ids = payroll_obj.search(cr, uid,[('month','in',month_list),('year','=',line.year),('employee_id','=',p.id),('payroll_executions_id.state','in',['confirm','approve'])])
                         if payroll_ids:
                             for pay in payroll_ids:
                                 payroll = payroll_obj.browse(cr, uid, pay)
