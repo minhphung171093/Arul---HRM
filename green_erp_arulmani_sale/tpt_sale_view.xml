@@ -27,8 +27,8 @@
 				<xpath expr="//field[@name='date_order']"  position="replace">
 					<!--<field name="date_order" string = "SO Date" on_change = "onchange_so_date(date_order, blanket_id)"/>-->
 					<field name="date_order" string = "SO Date" on_change = "onchange_date_order(date_order)"/>
-                	<field name="po_date" on_change="onchange_po_date(po_date)" />
-                	<field name="po_number" readonly='1' />
+                	<field name="po_date" readonly='1' on_change="onchange_po_date(po_date)" />
+                	<field name="po_number" readonly='1'/>
                 	<!-- 
                 	<field name="expected_date" />
                 	 -->
