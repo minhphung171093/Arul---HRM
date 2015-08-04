@@ -1917,7 +1917,7 @@
             action="action_move_journal_line_editable"
             id="menu_action_move_journal_line_editable"
             parent="account.menu_configuration_misc"
-            groups="base.group_no_one"
+            groups="base.group_no_one,green_erp_arulmani_accounting.group_vvti_accounting_user"
             sequence="5"/>
 		
 		<record id="view_move_line_tree_inherit" model="ir.ui.view">
@@ -2503,10 +2503,10 @@
             <field name="inherit_id" ref="green_erp_arulmani_hrm.view_tpt_hr_payroll_approve_reject_form_vew"/>
             <field name="arch" type="xml">
             	<xpath expr="//button[@name='reject_payroll']" position="attributes">
-					<attribute name='groups'>green_erp_arulmani_accounting.group_vvti_accounting_gm,green_erp_arulmani_hrm.group_vvti_hrm_gm</attribute>
+					<attribute name='groups'>green_erp_arulmani_accounting.group_vvti_accounting_gm,green_erp_arulmani_hrm.group_vvti_hrm_gm,green_erp_arulmani_accounting.group_vvti_accounting_mgr</attribute>
 				</xpath>
 				<xpath expr="//button[@name='approve_payroll']" position="attributes">
-					<attribute name='groups'>green_erp_arulmani_accounting.group_vvti_accounting_gm,green_erp_arulmani_hrm.group_vvti_hrm_gm</attribute>
+					<attribute name='groups'>green_erp_arulmani_accounting.group_vvti_accounting_gm,green_erp_arulmani_hrm.group_vvti_hrm_gm,green_erp_arulmani_accounting.group_vvti_accounting_mgr</attribute>
 				</xpath>
 		     </field>   
        </record>
@@ -2587,7 +2587,7 @@
 				</xpath>
 				
 				<xpath expr="//button[@name='action_revert_done']" position="attributes">
-					<attribute name='groups'>base.user_root</attribute>
+					<attribute name='groups'>green_erp_arulmani_purchase.group_vvti_purchase_store_mgr</attribute>
 				</xpath>
 				
 				<xpath expr="//button[@name='action_process']" position="attributes">
@@ -2710,6 +2710,33 @@
         <menuitem action="action_view_tpt_ed_invoice_positing_form"
             id="menu_action_view_tpt_ed_invoice_positing_form"
             parent="green_erp_arulmani_accounting.menu_tpt_accounting" sequence="10" />
+            
+       	<record id="inher_view_arul_hr_payroll_executions_form_vew" model="ir.ui.view">
+            <field name="name">inher.arul.hr.payroll.executions.form</field>
+            <field name="model">arul.hr.payroll.executions</field>
+            <field name="inherit_id" ref="green_erp_arulmani_hrm.view_arul_hr_payroll_executions_form_vew"/>
+            <field name="arch" type="xml">
+            	<xpath expr="//button[@name='rollback_payroll']" position="attributes">
+					<attribute name='groups'>green_erp_arulmani_hrm.group_vvti_hrm_payroll_controller,green_erp_arulmani_accounting.group_vvti_accounting_mgr</attribute>
+				</xpath>
+				
+				<xpath expr="//button[@name='confirm_payroll']" position="attributes">
+					<attribute name='groups'>green_erp_arulmani_hrm.group_vvti_hrm_payroll_controller,green_erp_arulmani_accounting.group_vvti_accounting_mgr</attribute>
+				</xpath>
+				
+            </field>
+	  </record>
+	  
+	  <record id="inher_view_tpt_purchase_indent_line_form_hod" model="ir.ui.view">
+            <field name="name">inher.tpt.purchase.indent.line.form</field>
+            <field name="model">tpt.purchase.product</field>
+            <field name="inherit_id" ref="green_erp_arulmani_purchase.view_tpt_purchase_indent_line_form_hod"/>
+            <field name="arch" type="xml">
+            	<xpath expr="//button[@name='%(green_erp_arulmani_purchase.action_reject_pur_line_form)d']" position="attributes">
+					<attribute name='groups'>green_erp_arulmani_production.group_vvti_production_mgr</attribute>
+				</xpath>
+            </field>
+	  </record>
 	  
     </data>
 </openerp>

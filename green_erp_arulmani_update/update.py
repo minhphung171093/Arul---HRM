@@ -1986,6 +1986,9 @@ class tpt_update_stock_move_report(osv.osv):
         amount_ed=0.0
         amount_fright=0.0
         line_net = 0.0
+        base = 0.0
+        tax_debit_amount = 0.0
+        tax_credit_amount = 0.0
         account_inv_obj = self.pool.get('account.invoice.line')
         sql='''
             select id from account_invoice_line
@@ -2023,7 +2026,25 @@ class tpt_update_stock_move_report(osv.osv):
                 tax_amounts = [r.amount for r in line.invoice_line_tax_id]
                 for tax in tax_amounts:
                     amount_total_tax += tax/100
+                ###
+                amount_total_tax = (amount_basic + amount_p_f + amount_ed)*(amount_total_tax)
+                ###
                 line_net = amount_total_tax+amount_fright+amount_ed+amount_p_f+amount_basic+line.aed_id_1
+                
+                ###
+                if line.invoice_id.sup_inv_id and line.invoice_id.type=='in_invoice':
+                    if line.fright_fi_type == '2':
+                        base = line.fright
+                        tax_debit_amount = base*(line.tax_id and line.tax_id.amount/100 or 0)
+                        tax_credit_amount = base*(line.tax_credit and line.tax_credit.amount/100 or 0)
+#                         tax_tds_amount = base*(line.tds_id_2 and line.tds_id_2.amount/100 or 0)
+                    else:
+                        base = line.fright*line.quantity
+                        tax_debit_amount = base*(line.tax_id and line.tax_id.amount/100 or 0)
+                        tax_credit_amount = base*(line.tax_credit and line.tax_credit.amount/100 or 0)
+#                         tax_tds_amount = base*(line.tds_id_2 and line.tds_id_2.amount/100 or 0)
+                    line_net = base+tax_debit_amount-tax_credit_amount
+                ###
                 
                 sql = '''
                     update account_invoice_line set line_net = %s where id = %s
@@ -2981,54 +3002,53 @@ class tpt_update_stock_move_report(osv.osv):
             journal_ids = [r[0] for r in cr.fetchall()]
             date_period = line.date_planned,
             sql = '''
-                select id from account_period where '%s' between date_start and date_stop
+                select id from account_period where '%s' between date_start and date_stop and special is False
             '''%(date_period)
             cr.execute(sql)
             period_ids = [r[0] for r in cr.fetchall()]
             
             if not period_ids:
                 raise osv.except_osv(_('Warning!'),_('Period is not null, please configure it in Period master !'))
-            for period_id in period_obj.browse(cr,uid,period_ids):
         
-                if line.state=='done':
-                    for mat in line.move_lines2:
-                        cost = mat.price_unit * mat.product_qty
-                        price += cost
-                        if cost:
-                            if mat.product_id.purchase_acc_id:
-                                journal_line.append((0,0,{
-                                                'name':mat.product_id.code, 
-                                                'account_id': mat.product_id.purchase_acc_id and mat.product_id.purchase_acc_id.id,
-                                                'debit':cost,
+            if line.state=='done':
+                for mat in line.move_lines2:
+                    cost = mat.price_unit * mat.product_qty
+                    price += cost
+                    if cost:
+                        if mat.product_id.purchase_acc_id:
+                            journal_line.append((0,0,{
+                                            'name':mat.product_id.code, 
+                                            'account_id': mat.product_id.purchase_acc_id and mat.product_id.purchase_acc_id.id,
+                                            'debit':cost,
+                                            'credit':0,
+                                           }))
+                        else:
+                            raise osv.except_osv(_('Warning!'),_("Purchase GL Account is not configured for Product '%s'! Please configured it!")%(mat.product_id.code))
+                for act in line.bom_id.activities_line:
+                    if act.activities_id.act_acc_id:
+                        credit += act.product_cost
+                        journal_line.append((0,0,{
+                                                'name':act.activities_id.code, 
+                                                'account_id': act.activities_id.act_acc_id and act.activities_id.act_acc_id.id,
+                                                'debit':act.product_cost or 0,
                                                 'credit':0,
                                                }))
-                            else:
-                                raise osv.except_osv(_('Warning!'),_("Purchase GL Account is not configured for Product '%s'! Please configured it!")%(mat.product_id.code))
-                    for act in line.bom_id.activities_line:
-                        if act.activities_id.act_acc_id:
-                            credit += act.product_cost
-                            journal_line.append((0,0,{
-                                                    'name':act.activities_id.code, 
-                                                    'account_id': act.activities_id.act_acc_id and act.activities_id.act_acc_id.id,
-                                                    'debit':act.product_cost or 0,
-                                                    'credit':0,
-                                                   }))
-                        else:
-                            raise osv.except_osv(_('Warning!'),_("Activity Account is not configured for Activity '%s'! Please configured it!")%(act.activities_id.code))
-                    credit += price
-                    if credit:
-                        if line.product_id.product_asset_acc_id:
-                            journal_line.append((0,0,{
-                                                    'name':line.product_id.code, 
-                                                    'account_id': line.product_id.product_asset_acc_id and line.product_id.product_asset_acc_id.id,
-                                                    'debit': 0,
-                                                    'credit':credit ,
-                                                   }))
-                        else:
-                            raise osv.except_osv(_('Warning!'),_("Product Asset Account is not configured for Product '%s'! Please configured it!")%(line.product_id.code))
+                    else:
+                        raise osv.except_osv(_('Warning!'),_("Activity Account is not configured for Activity '%s'! Please configured it!")%(act.activities_id.code))
+                credit += price
+                if credit:
+                    if line.product_id.product_asset_acc_id:
+                        journal_line.append((0,0,{
+                                                'name':line.product_id.code, 
+                                                'account_id': line.product_id.product_asset_acc_id and line.product_id.product_asset_acc_id.id,
+                                                'debit': 0,
+                                                'credit':credit ,
+                                               }))
+                    else:
+                        raise osv.except_osv(_('Warning!'),_("Product Asset Account is not configured for Product '%s'! Please configured it!")%(line.product_id.code))
             value={
                         'journal_id':journal_ids[0],
-                        'period_id':period_id.id ,
+                        'period_id':period_ids[0] ,
                         'doc_type':'product',
                         'date': line.date_planned,
                         'line_id': journal_line,
