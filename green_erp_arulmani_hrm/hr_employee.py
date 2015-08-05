@@ -1390,9 +1390,13 @@ class tpt_hr_training_header(osv.osv):
         'training_line': fields.one2many('tpt.hr.training.line', 'training_id', 'Employee Training'),
         'training_master_id':fields.many2one('tpt.hr.training','Name of Training'),
         'deliver_date': fields.date('Date Of Delivery'),
+        'effective_date': fields.date('Effective Date'),
         'to_date': fields.date('To Date'),    
         'site_name': fields.char('Name of Site/Plant'), 
         'training_company': fields.char('Training Company'),     
+        'faculty_name': fields.char('Name of Faculty'),  
+        'time_from': fields.float('From Time'), 
+        'time_to': fields.float('To Time'), 
     }
     #===========================================================================
     # def create(self, cr, uid, vals, context=None):
