@@ -1703,6 +1703,7 @@ class arul_hr_payroll_executions(osv.osv):
                         payroll_obj = self.pool.get('arul.hr.payroll.executions.details')
                         
                         total_ptax = 0
+                        prev_total_earning = 0
                         if from_date and to_date:
                             sql = '''
                             SELECT * FROM generate_series('%s'::timestamp,
@@ -1718,11 +1719,12 @@ class arul_hr_payroll_executions(osv.osv):
                             if payroll_ids:
                                 for pay in payroll_ids:
                                     payroll = payroll_obj.browse(cr, uid, pay)
-                                    prev_total_earning = 0
+                                   
                                     for earning in payroll.earning_structure_line:
                                         if earning.earning_parameters_id.code=='TOTAL_EARNING':
-                                            prev_total_earning += earning.float
-                            ptax_total_earning = prev_total_earning + total_earning
+                                            prev_total_earning +=   earning.float
+                            #raise osv.except_osv(_('Warning !'), _(prev_total_earning))
+                            ptax_total_earning = prev_total_earning + total_earning 
                             sql = '''
                                     select  pl.ptax_amt ptax_amt from tpt_hr_ptax_line pl
                                         inner join tpt_hr_ptax_slab sl on pl.slab_id=sl.id
