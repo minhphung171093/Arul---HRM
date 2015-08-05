@@ -321,9 +321,9 @@
 					<field name="amount_basic"/>
 					<field name="amount_ed"/>
 					<field name="price_subtotal" string ="SubTotal"/>
-					<field name="freight" readonly='1'/>
-					<field name="insurance" readonly='1'/>
-					<field name="others" readonly='1'/>
+					<field name="freight" readonly='0'/>
+					<field name="insurance" readonly='0'/>
+					<field name="others" readonly='0'/>
 				</xpath>
 				
 				<xpath expr="//field[@name='amount_total']" position="after">
