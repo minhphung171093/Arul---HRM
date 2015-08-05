@@ -960,37 +960,69 @@ class meals_deduction(osv.osv):
         res = {}
         for line in self.browse(cr,uid,ids,context=context):
             #raise osv.except_osv(_('Warning!'),_(sql))
+            details_obj = self.pool.get('meals.deduction')
+            details_ids = details_obj.browse(cr,uid,ids[0])
+            
+            bf = 0
+            lunch = 0
+            dinner = 0
+            mid_dinner = 0
+            
             res[line.id] = {
-                'no_of_bf': 0.0,
-                'no_of_lunch': 0.0,
-                'no_of_dinner': 0.0,
-                'no_of_dinner': 0.0, 
-                'no_of_mid_dinner': 0.0,
-            }
-
-            sql = '''select count(*) from meals_details where meals_id=%s
-             and break_fast='t' '''%line.id
-            cr.execute(sql)
-            p = cr.fetchone()
-            bf = p[0]
-            
-            sql = '''select count(*) from meals_details where meals_id=%s
-             and lunch='t' '''%line.id
-            cr.execute(sql)
-            p = cr.fetchone()
-            lunch = p[0]
-            
-            sql = '''select count(*) from meals_details where meals_id=%s
-             and dinner='t' '''%line.id
-            cr.execute(sql)
-            p = cr.fetchone()
-            dinner = p[0]
-            
-            sql = '''select count(*) from meals_details where meals_id=%s
-             and midnight_tiffin='t' '''%line.id
-            cr.execute(sql)
-            p = cr.fetchone()
-            mid_dinner = p[0]
+                    'no_of_bf': 0.0,
+                    'no_of_lunch': 0.0,
+                    'no_of_dinner': 0.0,
+                    'no_of_dinner': 0.0, 
+                    'no_of_mid_dinner': 0.0,
+                }
+            if details_ids.meals_for=='employees':
+                sql = '''select count(*) from meals_details where meals_id=%s
+                 and break_fast='t' '''%line.id
+                cr.execute(sql)
+                p = cr.fetchone()
+                bf = p[0]
+                
+                sql = '''select count(*) from meals_details where meals_id=%s
+                 and lunch='t' '''%line.id
+                cr.execute(sql)
+                p = cr.fetchone()
+                lunch = p[0]
+                
+                sql = '''select count(*) from meals_details where meals_id=%s
+                 and dinner='t' '''%line.id
+                cr.execute(sql)
+                p = cr.fetchone()
+                dinner = p[0]
+                
+                sql = '''select count(*) from meals_details where meals_id=%s
+                 and midnight_tiffin='t' '''%line.id
+                cr.execute(sql)
+                p = cr.fetchone()
+                mid_dinner = p[0]
+            if details_ids.meals_for=='others':
+                sql = '''select case when sum(break_fast_num)=0 then 0 else sum(break_fast_num) end as break_fast_num from meals_details where meals_id=%s
+                 '''%line.id
+                cr.execute(sql)
+                p = cr.fetchone()
+                bf = p[0]
+                
+                sql = '''select case when sum(lunch_num)=0 then 0 else sum(lunch_num) end as lunch_num from meals_details where meals_id=%s
+                  '''%line.id
+                cr.execute(sql)
+                p = cr.fetchone()
+                lunch = p[0]
+                
+                sql = '''select case when sum(dinner_num)=0 then 0 else sum(dinner_num) end as dinner_num from meals_details where meals_id=%s
+                '''%line.id
+                cr.execute(sql)
+                p = cr.fetchone()
+                dinner = p[0]
+                
+                sql = '''select case when sum(midnight_tiffin_num)=0 then 0 else sum(midnight_tiffin_num) end as midnight_tiffin_num from meals_details where meals_id=%s
+                  '''%line.id
+                cr.execute(sql)
+                p = cr.fetchone()
+                mid_dinner = p[0]
             
             res[line.id]['no_of_bf'] = bf
             res[line.id]['no_of_lunch'] = lunch
