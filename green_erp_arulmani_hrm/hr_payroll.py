@@ -1028,12 +1028,8 @@ class arul_hr_payroll_executions(osv.osv):
             contribution_obj = self.pool.get('arul.hr.payroll.contribution.parameters')
             earning_obj = self.pool.get('arul.hr.payroll.earning.parameters')
             deduction_obj = self.pool.get('arul.hr.payroll.deduction.parameters')
-            
-            
-            
-            
-            ##
-            
+ 
+            ##    
             sql = '''
                 select employee_id from arul_hr_monthly_shift_schedule where 
                     monthly_work_id in (select id from arul_hr_monthly_work_schedule where "month"='%s' and "year"=%s and state='done')
@@ -1108,7 +1104,6 @@ class arul_hr_payroll_executions(osv.osv):
                 lop_esi =  cr.fetchone()
                 tpt_lop_esi = lop_esi[0]
                 total_no_of_leave = tpt_lop_esi
-                
 
                 #TPT BalamuruganPurushothaman ON 19/05/2015 - TO DEFINE RULES FOR NEWLY JOINED EMPLOYEES IN BETWEEN A PAYROLL MONTH
                 # If Date Of Joining is 15/04/2015 Then  
@@ -1276,8 +1271,7 @@ class arul_hr_payroll_executions(osv.osv):
                 punch_days = [row[0] for row in cr.fetchall()]
                 ##
                 ###TPT
-                
-                
+
                 total_g1_shift_allowance = g1_shift_count * g1_shift_allowance
                 total_g2_shift_allowance = g2_shift_count * g2_shift_allowance
                 total_a_shift_allowance = a_shift_count * a_shift_allowance
@@ -1404,48 +1398,7 @@ class arul_hr_payroll_executions(osv.osv):
                     '''%(p.id,line.year,int(line.month))
                     cr.execute(sql)
                     total_fd = cr.dictfetchone()['total_fd']
-                    ## TPT START - PTAX CALCULATION
-                    from_date = ''
-                    to_date =''
-                    sql = '''
-                    select from_date,to_date from tpt_hr_ptax where extract(month from to_date)=%s and extract(year from to_date)=%s
-                    '''%(line.month,line.year)
-                    cr.execute(sql)
-                    for k in cr.fetchall():
-                        from_date=k[0]
-                        to_date=k[1]
-                    payroll_obj = self.pool.get('arul.hr.payroll.executions.details')
                     
-                    total_ptax = 0
-                    if from_date and to_date:
-                        sql = '''
-                        SELECT * FROM generate_series('%s'::timestamp,
-                              '%s', '1 Months')
-                        '''%(from_date, to_date)
-                        cr.execute(sql)
-                        temp_list = [r[0] for r in cr.fetchall()]
-                        month_list = []
-                        for k in temp_list:
-                            month_list.append(str(int(k[5:7])))
-                                  
-                        payroll_ids = payroll_obj.search(cr, uid,[('month','in',month_list),('year','=',line.year),('employee_id','=',p.id),('payroll_executions_id.state','in',['confirm','approve'])])
-                        if payroll_ids:
-                            for pay in payroll_ids:
-                                payroll = payroll_obj.browse(cr, uid, pay)
-                                for earning in payroll.earning_structure_line:
-                                    if earning.earning_parameters_id.code=='TOTAL_EARNING':
-                                        total_earning += earning.float
-                        sql = '''
-                                select  pl.ptax_amt ptax_amt from tpt_hr_ptax_line pl
-                                    inner join tpt_hr_ptax_slab sl on pl.slab_id=sl.id
-                                    where %s between sl.from_range and sl.to_range
-                                    and ptax_id = 
-                                    (select id from tpt_hr_ptax where extract(month from to_date)=%s 
-                                    and extract(year from to_date)=%s)
-                                '''%(total_earning, line.month,line.year)
-                        cr.execute(sql)
-                        total_ptax = cr.dictfetchone()['ptax_amt'] 
-                    ### TPT END PTAX 
                     if p.employee_category_id and p.employee_category_id.code == 'S1':
                         pfd = 0.0
                         pd = 0.0
@@ -1467,17 +1420,12 @@ class arul_hr_payroll_executions(osv.osv):
                         l_sbt = 0 
                         l_others = 0
                         it_deduction = 0
-                        #total_f = 0
-			#total_f = 0
+    
                         for other_deductions_id in payroll_emp_struc_obj.browse(cr,uid,emp_struc_ids[0]).payroll_other_deductions_line:
-#                             if other_deductions_id.deduction_parameters_id.code == 'PF.D':
-#                                 pfd = other_deductions_id.float
                             if other_deductions_id.deduction_parameters_id.code == 'P.D':
                                 pd = other_deductions_id.float
                             if other_deductions_id.deduction_parameters_id.code == 'VPF.D':
                                 vpfd = other_deductions_id.float
-#                             if other_deductions_id.deduction_parameters_id.code == 'ESI.D':
-#                                 esid = other_deductions_id.float
                             if other_deductions_id.deduction_parameters_id.code == 'F.D':
                                 fd = other_deductions_id.float
                             if other_deductions_id.deduction_parameters_id.code == 'L.D':
@@ -1504,24 +1452,13 @@ class arul_hr_payroll_executions(osv.osv):
                                 l_others = other_deductions_id.float
                             if other_deductions_id.deduction_parameters_id.code == 'IT':
                                 it_deduction = other_deductions_id.float
-#                             if other_deductions_id.deduction_parameters_id.code == 'LWF':
-#                                 lwf = other_deductions_id.float
 
                         fd += total_fd
                         fd = round(fd,0)
-                        pt += total_ptax
-			#TPT
-                        #total_deduction = pfd + pd + vpfd + esid + fd + ld + ind +  pt + lwf 
-                        #total_deduction = pd  + esid + fd + ld + ind +  pt + lwf
-                        
+                        #pt += total_ptax			
                         total_deduction = pd  + esid + fd + ld + ind +  pt + lwf + i_lic_prem + i_others + l_vvti_loan + l_lic_hfl + l_hdfc + l_tmb + l_sbt + l_others + it_deduction
                         
                         for _other_deductions_id in payroll_emp_struc_obj.browse(cr,uid,emp_struc_ids[0]).payroll_other_deductions_line:
-#                             if _other_deductions_id.deduction_parameters_id.code == 'PF.D':
-#                                 vals_other_deductions.append((0,0, {
-#                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
-#                                           'float': pfd,
-#                                     }))
                             if _other_deductions_id.deduction_parameters_id.code == 'P.D':
                                 vals_other_deductions.append((0,0, {
                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
@@ -1605,8 +1542,7 @@ class arul_hr_payroll_executions(osv.osv):
                                 med = earning_struc_id.float
                             if earning_struc_id.earning_parameters_id.code == 'ESI_CHECK':
                                 esi_check = earning_struc_id.float
-                        
-                        # 
+
                         sql = '''
                         select extract(day from date_of_joining) doj from hr_employee where extract(year from date_of_joining)= %s and 
                           extract(month from date_of_joining)= %s and id=%s
@@ -1640,11 +1576,6 @@ class arul_hr_payroll_executions(osv.osv):
 
 			total_earning =  net_basic + net_da + net_c + net_hra + net_ea + net_aa + net_la + net_oa + fa + spa + pc + cre + sha + lta + med
 			gross_sal =  net_basic + net_da + net_c + net_hra + net_ea + net_aa + net_la + net_oa + fa + spa + pc + cre + sha + lta + med
-
-            #tes
-            
-            #
-			
 
 			if gross_sal + esi_check >= emp_esi_limit:
                             emp_esi_con_amount = 0
@@ -1759,6 +1690,52 @@ class arul_hr_payroll_executions(osv.osv):
                                       'earning_parameters_id':earning.id,
                                       'float': net_sala,
                                 }))
+                        ## TPT START - PTAX CALCULATION
+                        from_date = ''
+                        to_date =''
+                        sql = '''
+                        select from_date,to_date from tpt_hr_ptax where extract(month from to_date)=%s and extract(year from to_date)=%s
+                        '''%(line.month,line.year)
+                        cr.execute(sql)
+                        for k in cr.fetchall():
+                            from_date=k[0]
+                            to_date=k[1]
+                        payroll_obj = self.pool.get('arul.hr.payroll.executions.details')
+                        
+                        total_ptax = 0
+                        if from_date and to_date:
+                            sql = '''
+                            SELECT * FROM generate_series('%s'::timestamp,
+                                  '%s', '1 Months')
+                            '''%(from_date, to_date)
+                            cr.execute(sql)
+                            temp_list = [r[0] for r in cr.fetchall()]
+                            month_list = []
+                            for k in temp_list:
+                                month_list.append(str(int(k[5:7])))
+                                      
+                            payroll_ids = payroll_obj.search(cr, uid,[('month','in',month_list),('year','=',line.year),('employee_id','=',p.id),('payroll_executions_id.state','in',['confirm','approve'])])
+                            if payroll_ids:
+                                for pay in payroll_ids:
+                                    payroll = payroll_obj.browse(cr, uid, pay)
+                                    prev_total_earning = 0
+                                    for earning in payroll.earning_structure_line:
+                                        if earning.earning_parameters_id.code=='TOTAL_EARNING':
+                                            prev_total_earning += earning.float
+                            ptax_total_earning = prev_total_earning + total_earning
+                            sql = '''
+                                    select  pl.ptax_amt ptax_amt from tpt_hr_ptax_line pl
+                                        inner join tpt_hr_ptax_slab sl on pl.slab_id=sl.id
+                                        where %s between sl.from_range and sl.to_range
+                                        and ptax_id = 
+                                        (select id from tpt_hr_ptax where extract(month from to_date)=%s 
+                                        and extract(year from to_date)=%s)
+                                    '''%(ptax_total_earning, line.month,line.year)
+                            cr.execute(sql)
+                            total_ptax = cr.dictfetchone()['ptax_amt'] 
+                            pt = total_ptax
+                            total_deduction = total_deduction + pt
+                        ### TPT END PTAX 
                         deduction_ids = deduction_obj.search(cr, uid, [('code','in',['TOTAL_DEDUCTION','VPF.D','PF.D','ESI.D','LWF','F.D','LOP',
                                     'INS_LIC_PREM','INS_OTHERS','LOAN_VVTI','LOAN_LIC_HFL','LOAN_HDFC','LOAN_TMB', 'LOAN_SBT','LOAN_OTHERS','IT','PT'               
                                                                                      ])])
@@ -1843,11 +1820,7 @@ class arul_hr_payroll_executions(osv.osv):
                                           'deduction_parameters_id':deduction.id,
                                           'float': pt,
                                     }))
-                            #if deduction.code == 'LOP': TPT COMMENTED
-                            #    vals_other_deductions.append((0,0, {
-                            #              'deduction_parameters_id':deduction.id,
-                            #              'float': lop,
-                            #        }))
+
 		    # Handling Pay Structure for S2 Category
                     if p.employee_category_id and p.employee_category_id.code == 'S2':
                         pfd = 0.0
@@ -1872,14 +1845,11 @@ class arul_hr_payroll_executions(osv.osv):
                         it_deduction = 0
                         
                         for other_deductions_id in payroll_emp_struc_obj.browse(cr,uid,emp_struc_ids[0]).payroll_other_deductions_line:
-#                             if other_deductions_id.deduction_parameters_id.code == 'PF.D':
-#                                 pfd = other_deductions_id.float
+
                             if other_deductions_id.deduction_parameters_id.code == 'P.D':
                                 pd = other_deductions_id.float
                             if other_deductions_id.deduction_parameters_id.code == 'VPF.D':
                                 vpfd = other_deductions_id.float
-#                             if other_deductions_id.deduction_parameters_id.code == 'ESI.D':
-#                                 esid = other_deductions_id.float
                             if other_deductions_id.deduction_parameters_id.code == 'F.D':
                                 fd = other_deductions_id.float
                             if other_deductions_id.deduction_parameters_id.code == 'L.D':
@@ -1906,22 +1876,13 @@ class arul_hr_payroll_executions(osv.osv):
                                 l_others = other_deductions_id.float
                             if other_deductions_id.deduction_parameters_id.code == 'IT':
                                 it_deduction = other_deductions_id.float
-#                             if other_deductions_id.deduction_parameters_id.code == 'LWF':
-#                                 lwf = other_deductions_id.float
                                 
                         fd += total_fd     
                         fd = round(fd,0)     
-                        pt += total_ptax             
-                        #total_deduction = pfd + pd + vpfd + esid + fd + ld + ind +  pt + lwf 
-                        #total_deduction = pfd + pd  + esid + fd + ld + ind +  pt + lwf # PREV
+                        
                         total_deduction = pfd + pd  + esid + fd + ld + ind +  pt + lwf + i_lic_prem + i_others + l_vvti_loan + l_lic_hfl + l_hdfc + l_tmb + l_sbt + l_others + it_deduction
 
                         for _other_deductions_id in payroll_emp_struc_obj.browse(cr,uid,emp_struc_ids[0]).payroll_other_deductions_line:
-#                             if _other_deductions_id.deduction_parameters_id.code == 'PF.D':
-#                                 vals_other_deductions.append((0,0, {
-#                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
-#                                           'float': pfd,
-#                                     }))
                             if _other_deductions_id.deduction_parameters_id.code == 'P.D':
                                 vals_other_deductions.append((0,0, {
                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
@@ -2149,6 +2110,54 @@ class arul_hr_payroll_executions(osv.osv):
                                       'earning_parameters_id':earning.id,
                                       'float': net_sala,
                                 }))
+                       
+                        ## TPT START - PTAX CALCULATION
+                        from_date = ''
+                        to_date =''
+                        sql = '''
+                        select from_date,to_date from tpt_hr_ptax where extract(month from to_date)=%s and extract(year from to_date)=%s
+                        '''%(line.month,line.year)
+                        cr.execute(sql)
+                        for k in cr.fetchall():
+                            from_date=k[0]
+                            to_date=k[1]
+                        payroll_obj = self.pool.get('arul.hr.payroll.executions.details')
+                        
+                        total_ptax = 0
+                        prev_total_earning = 0
+                        if from_date and to_date:
+                            sql = '''
+                            SELECT * FROM generate_series('%s'::timestamp,
+                                  '%s', '1 Months')
+                            '''%(from_date, to_date)
+                            cr.execute(sql)
+                            temp_list = [r[0] for r in cr.fetchall()]
+                            month_list = []
+                            for k in temp_list:
+                                month_list.append(str(int(k[5:7])))
+                                      
+                            payroll_ids = payroll_obj.search(cr, uid,[('month','in',month_list),('year','=',line.year),('employee_id','=',p.id),('payroll_executions_id.state','in',['confirm','approve'])])
+                            if payroll_ids:
+                                for pay in payroll_ids:
+                                    payroll = payroll_obj.browse(cr, uid, pay)
+                                    for earning in payroll.earning_structure_line:
+                                        if earning.earning_parameters_id.code=='TOTAL_EARNING':
+                                            prev_total_earning += earning.float
+                            ptax_total_earning = prev_total_earning + total_earning
+                            sql = '''
+                                    select  pl.ptax_amt ptax_amt from tpt_hr_ptax_line pl
+                                        inner join tpt_hr_ptax_slab sl on pl.slab_id=sl.id
+                                        where %s between sl.from_range and sl.to_range
+                                        and ptax_id = 
+                                        (select id from tpt_hr_ptax where extract(month from to_date)=%s 
+                                        and extract(year from to_date)=%s)
+                                    '''%(ptax_total_earning, line.month,line.year)
+                            cr.execute(sql)
+                            total_ptax = cr.dictfetchone()['ptax_amt'] 
+                            pt = total_ptax
+                            total_deduction = total_deduction + pt
+                        ### TPT END PTAX 
+                        
                         deduction_ids = deduction_obj.search(cr, uid, [('code','in',['TOTAL_DEDUCTION','VPF.D','PF.D','ESI.D','LWF','F.D','LOP',
                                         'INS_LIC_PREM','INS_OTHERS','LOAN_VVTI','LOAN_LIC_HFL','LOAN_HDFC','LOAN_TMB', 'LOAN_SBT','LOAN_OTHERS','IT','PT'                                               
                                                                                      ])])
@@ -2259,14 +2268,10 @@ class arul_hr_payroll_executions(osv.osv):
                         it_deduction = 0
                         
                         for other_deductions_id in payroll_emp_struc_obj.browse(cr,uid,emp_struc_ids[0]).payroll_other_deductions_line:
-#                             if other_deductions_id.deduction_parameters_id.code == 'PF.D':
-#                                 pfd = other_deductions_id.float
                             if other_deductions_id.deduction_parameters_id.code == 'P.D':
                                 pd = other_deductions_id.float
                             if other_deductions_id.deduction_parameters_id.code == 'VPF.D':
                                 vpfd = other_deductions_id.float
-#                             if other_deductions_id.deduction_parameters_id.code == 'ESI.D':
-#                                 esid = other_deductions_id.float
                             if other_deductions_id.deduction_parameters_id.code == 'F.D':
                                 fd = other_deductions_id.float
                             if other_deductions_id.deduction_parameters_id.code == 'L.D':
@@ -2296,7 +2301,6 @@ class arul_hr_payroll_executions(osv.osv):
                         
                         fd += total_fd        
                         fd = round(fd,0)
-                        pt += total_ptax 
 
                         total_deduction = pfd + pd + esid + fd + ld + ind +  pt + lwf + i_lic_prem + i_others + l_vvti_loan + l_lic_hfl + l_hdfc + l_tmb + l_sbt + l_others + it_deduction
                         for _other_deductions_id in payroll_emp_struc_obj.browse(cr,uid,emp_struc_ids[0]).payroll_other_deductions_line:
@@ -2539,6 +2543,53 @@ class arul_hr_payroll_executions(osv.osv):
                                       'earning_parameters_id':earning.id,
                                       'float': net_sala,
                                 }))
+                        
+                        ## TPT START - PTAX CALCULATION
+                        from_date = ''
+                        to_date =''
+                        sql = '''
+                        select from_date,to_date from tpt_hr_ptax where extract(month from to_date)=%s and extract(year from to_date)=%s
+                        '''%(line.month,line.year)
+                        cr.execute(sql)
+                        for k in cr.fetchall():
+                            from_date=k[0]
+                            to_date=k[1]
+                        payroll_obj = self.pool.get('arul.hr.payroll.executions.details')
+                        
+                        total_ptax = 0
+                        prev_total_earning = 0
+                        if from_date and to_date:
+                            sql = '''
+                            SELECT * FROM generate_series('%s'::timestamp,
+                                  '%s', '1 Months')
+                            '''%(from_date, to_date)
+                            cr.execute(sql)
+                            temp_list = [r[0] for r in cr.fetchall()]
+                            month_list = []
+                            for k in temp_list:
+                                month_list.append(str(int(k[5:7])))
+                                      
+                            payroll_ids = payroll_obj.search(cr, uid,[('month','in',month_list),('year','=',line.year),('employee_id','=',p.id),('payroll_executions_id.state','in',['confirm','approve'])])
+                            if payroll_ids:
+                                for pay in payroll_ids:
+                                    payroll = payroll_obj.browse(cr, uid, pay)
+                                    for earning in payroll.earning_structure_line:
+                                        if earning.earning_parameters_id.code=='TOTAL_EARNING':
+                                            prev_total_earning += earning.float
+                            ptax_total_earning = prev_total_earning + total_earning
+                            sql = '''
+                                    select  pl.ptax_amt ptax_amt from tpt_hr_ptax_line pl
+                                        inner join tpt_hr_ptax_slab sl on pl.slab_id=sl.id
+                                        where %s between sl.from_range and sl.to_range
+                                        and ptax_id = 
+                                        (select id from tpt_hr_ptax where extract(month from to_date)=%s 
+                                        and extract(year from to_date)=%s)
+                                    '''%(ptax_total_earning, line.month,line.year)
+                            cr.execute(sql)
+                            total_ptax = cr.dictfetchone()['ptax_amt'] 
+                            pt = total_ptax
+                            total_deduction = total_deduction + pt
+                        ### TPT END PTAX 
                         deduction_ids = deduction_obj.search(cr, uid, [('code','in',['TOTAL_DEDUCTION','VPF.D','PF.D','ESI.D','LWF','F.D','LOP',
                                     'INS_LIC_PREM','INS_OTHERS','LOAN_VVTI','LOAN_LIC_HFL','LOAN_HDFC','LOAN_TMB', 'LOAN_SBT','LOAN_OTHERS','IT','PT'                                                   
                                                                                      ])])
