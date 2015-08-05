@@ -453,7 +453,84 @@
             <field name="act_window_id" ref="action_arul_hr_employee_transfer_action_form"/>
         </record>
 
-        
+        <!-- TPT START -->
+        <record id="view_arul_hr_employee_section_transfer_action_tree_vew" model="ir.ui.view">
+			<field name="name">arul.hr.employee.section.transfer.action.tree</field>
+			<field name="model">arul.hr.employee.action.history</field>
+			<field name="arch" type="xml">
+				<tree string="Employee Section Change Action">
+					<field name="action_id"/>
+					<field name ="action_type_id"/>
+					<field name ="employee_id"/>
+					<field name="department_from_id"/>
+					<field name ="department_to_id"/>
+					<field name ="section_from_id"/>
+					<field name ="section_to_id"/>
+					<field name ="action_date" string = "Date of Section Change"/>
+					<field name ="period_from"/>
+					<field name ="period_to"/>
+					<field name ="note"/>
+					<field name ="create_date"/>
+                	<field name ="create_uid"/>
+				</tree>
+			</field>
+		</record>
+
+		<record id="view_arul_hr_employee_section_transfer_action_form_vew" model="ir.ui.view">
+            <field name="name">arul.hr.employee.section.transfer.action.form</field>
+            <field name="model">arul.hr.employee.action.history</field>
+            <field name="arch" type="xml">
+                <form string="Employee Section Change Action" version="7.0">    
+                	<sheet>
+		                 <group col='4' colspan='2'>
+							<field name="action_id" on_change="onchange_action_id(action_id)" domain="[('name','=',('Section Change'))]" options="{'create': false, 'create_edit': false}"/>
+							<field name="action_type_id" required='0' domain="[('name','=',('Section Change'))]" options="{'create': false, 'create_edit': false}"/>
+							<field name ="employee_id" options="{'create': false, 'create_edit': false}" required = "1" domain="[('active','=',1)]"
+							 on_change="onchange_section_transfer_employee_id(employee_id)"/>
+							<field name ="department_from_id" readonly='1' options="{'create': false, 'create_edit': false}"/>
+							<newline/>
+							<field name ="section_from_id" options="{'create': false, 'create_edit': false}"/>
+							<field name ="section_to_id" options="{'create': false, 'create_edit': false}"/>
+							
+							<newline/>
+							<field name ="action_date" string = "Date of Order Issued"/>
+							<field name ="period_from"/>						
+							<field name ="date_from" string = 'Period From'/>
+							<field name ="date_to" string ='Period To'/>
+							<field name ="create_date"/>
+                			<field name ="create_uid"/>
+						</group>
+						<group>
+							<field name ="note"/>
+						</group>
+					</sheet>
+				</form>
+			</field>
+		</record>
+
+         <record id="action_arul_hr_employee_section_transfer_action_form" model="ir.actions.act_window">
+            <field name="name">Section Change</field>
+			<field name="type">ir.actions.act_window</field>
+            <field name="res_model">arul.hr.employee.action.history</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="domain">[('action_id.name','=','Section Change')]</field>
+            <field name="context">{'create_section_transfer_employee':1,'action_default_section_transfer':1}</field>
+            <field name="view_id" ref="view_arul_hr_employee_section_transfer_action_form_vew"/>
+        </record>
+        <record id="action_arul_hr_employee_section_transfer_action_form1" model="ir.actions.act_window.view">
+            <field eval="0" name="sequence"/>
+            <field name="view_mode">tree</field>
+            <field name="view_id" ref="view_arul_hr_employee_section_transfer_action_tree_vew"/>
+            <field name="act_window_id" ref="action_arul_hr_employee_section_transfer_action_form"/>
+        </record>
+        <record id="action_arul_hr_employee_contracts_action_form2" model="ir.actions.act_window.view">
+            <field eval="1" name="sequence"/>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="view_arul_hr_employee_section_transfer_action_form_vew"/>
+            <field name="act_window_id" ref="action_arul_hr_employee_section_transfer_action_form"/>
+        </record>
+        <!-- TPT END -->
         <record id="view_arul_hr_employee_action_history_tree_vew" model="ir.ui.view">
 			<field name="name">arul.hr.employee.action.history.tree</field>
 			<field name="model">arul.hr.employee.action.history</field>
@@ -1298,7 +1375,96 @@
             id="menu_action_meals_deduction_form"
             parent="hr.menu_hr_main" sequence="31"/>
 
-  
+		<!-- TPT-START -->
+		<record id="tpt_hr_training_header_tree_view" model="ir.ui.view">
+			<field name="name">tpt.hr.training.header.tree</field>
+			<field name="model">tpt.hr.training.header</field>
+			<field name="arch" type="xml">
+				<tree string="Training Details">
+					<field name ="name" />
+				</tree>
+			</field>
+		</record>
+
+		<record id="tpt_hr_training_header_form_view" model="ir.ui.view">
+            <field name="name">tpt.hr.training.header.form</field>
+            <field name="model">tpt.hr.training.header</field>
+            <field name="arch" type="xml">
+                <form string="Training Master" version="7.0">  
+                	<sheet>  
+                		<group>
+                			<field name ="name"/>
+                		</group>
+                		<notebook>
+							<page string = "Employees">
+								<field name="training_line" nolabel='1'>
+									<tree editable='top'>
+										<field name="employee_id" />
+										<field name="designation_id" />
+									</tree>
+								</field>
+							</page>
+				   		</notebook>
+                		
+                			
+                	</sheet>
+				</form>
+			</field>
+		</record>
+
+        <record id="action_tpt_hr_training_header_form" model="ir.actions.act_window">
+            <field name="name">Training Attendance Record</field>
+			<field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.hr.training.header</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="tpt_hr_training_header_tree_view"/>
+        </record>
+        
+        <menuitem action="action_tpt_hr_training_header_form"
+            id="menu_tpt_hr_training_header_form"
+            parent="hr.menu_hr_main" sequence="32"/>
+		<!-- TPT-END -->
+  		
+  		<!-- TPT-START -->
+		<record id="tpt_hr_training_tree_view" model="ir.ui.view">
+			<field name="name">tpt.hr.training.tree</field>
+			<field name="model">tpt.hr.training</field>
+			<field name="arch" type="xml">
+				<tree string="Meals Deduction Master">
+					<field name ="name" />
+				</tree>
+			</field>
+		</record>
+
+		<record id="tpt_hr_training_header_form_view" model="ir.ui.view">
+            <field name="name">tpt.hr.training.header.form</field>
+            <field name="model">tpt.hr.training.header</field>
+            <field name="arch" type="xml">
+                <form string="Training Master" version="7.0">  
+                	<sheet>  
+                		<group>
+                			<field name ="name"/>
+                		</group>
+                	</sheet>
+				</form>
+			</field>
+		</record>
+
+        <record id="action_tpt_hr_training_form" model="ir.actions.act_window">
+            <field name="name">Training Master</field>
+			<field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.hr.training</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="tpt_hr_training_tree_view"/>
+        </record>
+        
+        <menuitem action="action_tpt_hr_training_form"
+            id="menu_tpt_hr_training_form"
+            parent="hr.menu_hr_main" sequence="33"/>
+		<!-- TPT-END -->
+		
         <record id="employee_leave_tree_view" model="ir.ui.view">
 			<field name="name">employee.leave.tree</field>
 			<field name="model">employee.leave</field>
