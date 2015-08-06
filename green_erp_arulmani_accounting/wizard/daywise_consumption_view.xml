@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>   
+        <record id="daywise_consumption_report_form" model="ir.ui.view">
+            <field name="name">daywise.consumption.report.form</field>
+            <field name="model">day.wise.register</field>
+            <field name="arch" type="xml">
+                <form string="Daywise Consumption Report" version="7.0">
+                	<group>
+	                <field name="date_from" required="1"/>
+	                <field name="date_to" required="1"/>
+	                <field name="name" 
+	                domain="[('state','=','finance_manager'),('bom_id','=',False)],[('active','=','t')]" 
+	                options="{'create': false, 'create_edit': false}" 
+	                required="1"/>
+	                <field name="product_id" 
+	                options="{'create': false, 'create_edit': false}"
+	                domain="[('cate_name','=','raw')]"
+	                />	                                	                                      
+                 	</group>
+                    <footer>
+                        <button name="print_report" string="Print" type="object" class="oe_highlight" context="{'type':'appointments'}"/>
+                        <button string="Cancel" class="oe_link" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>        
+        <record id="action_daywise_consumption_report" model="ir.actions.act_window">            
+            <field name="name">Daywise Consumption Report</field>         
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">day.wise.register</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="daywise_consumption_report_form" />
+            <field name="target">new</field>
+        </record>
+        
+        <menuitem id="menu_tpt_accounting" name="Accounting" parent="account.menu_finance" sequence="0" groups="green_erp_arulmani_sale.group_vvti_unit_account"/>
+        <menuitem action="action_daywise_consumption_report"
+            id="menu_action_daywise_consumption_view"
+            parent="menu_tpt_accounting" sequence="22"/>
+        
+        
+    </data>
+</openerp>
+
