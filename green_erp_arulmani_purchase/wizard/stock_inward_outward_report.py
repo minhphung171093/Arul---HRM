@@ -1002,8 +1002,8 @@ class stock_inward_outward_report(osv.osv_memory):
                 'current_material_value':cur,
 #                 'sl_chuaro': sl_chuaro,
             }))
-#         if context.get('update_price_unit_for_production_COAL',False):
-#             return stock_in_out_line
+        if context.get('update_price_unit_for_good_issue',False):
+            return stock_in_out_line
         vals = {
             'name': 'Stock Inward and Outward Details',
             'product_id': stock.product_id.id,
