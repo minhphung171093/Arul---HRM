@@ -1384,6 +1384,28 @@ employee_leave_detail()
 
 class tpt_hr_training_header(osv.osv):
     _name = "tpt.hr.training.header"
+    def _total_no_of_emp(self, cr, uid, ids, field_name, args, context=None):
+        res = {}
+        for line in self.browse(cr,uid,ids,context=context):
+            training_obj = self.pool.get('tpt.hr.training.header')
+            training_ids = training_obj.browse(cr,uid,ids[0])
+            
+            total_emp = 0
+
+            res[line.id] = {
+                    'no_of_emp': 0.0, 
+                }
+            
+            sql = '''select case when count(*)=0 then 0 else count(*) end as total_emp from tpt_hr_training_line where training_id=%s
+                 '''%line.id
+            cr.execute(sql)
+            p = cr.fetchone()
+            total_emp = p[0]
+
+            res[line.id]['no_of_emp'] = total_emp  
+           
+        return res
+    
     _columns = {   
         'name': fields.char('Name'), 
         'training_name': fields.char('Training Name'), 
@@ -1397,13 +1419,18 @@ class tpt_hr_training_header(osv.osv):
         'faculty_name': fields.char('Name of Faculty'),  
         'time_from': fields.float('From Time'), 
         'time_to': fields.float('To Time'), 
+        'no_of_emp': fields.function(_total_no_of_emp, type='float',  string='No.of Employees Attended', multi='no_of_employees'),
+    }
+    _defaults={
+               'name':'/',     
     }
     #===========================================================================
-    # def create(self, cr, uid, vals, context=None):
-    #     vals.update({'name':'From '+str(vals['from_date'])+ ' to '+str(vals['to_date']),
-    #                     })
-    #     return super(tpt_hr_training_header, self).create(cr, uid, vals, context)
-    # 
+    def create(self, cr, uid, vals, context=None):
+         
+         if vals.get('name','/')=='/':
+            vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.emp.training.import') or '/'
+         return super(tpt_hr_training_header, self).create(cr, uid, vals, context)
+     
     # def write(self, cr, uid, ids, vals, context=None):
     #     ptax_obj = self.pool.get('tpt.hr.ptax') 
     #     ptax_obj_id = ptax_obj.browse(cr,uid,ids[0])
@@ -1427,12 +1454,27 @@ class tpt_hr_training_line(osv.osv):
         'designation_id':fields.many2one('hr.job','Designation'),
     
     }
+    def create(self, cr, uid, vals, context=None):
+        if vals['employee_id']:
+            emp_id = self.pool.get('hr.employee').browse(cr, uid, vals['employee_id'])
+            vals.update(
+                    {'designation_id':emp_id.job_id.id}
+                    )
+            new_id = super(tpt_hr_training_line, self).create(cr, uid, vals, context)
+        return new_id
+    def onchange_employee_id(self, cr, uid, ids,employee_id=False, context=None):
+        if employee_id:
+            emp_id = self.pool.get('hr.employee').browse(cr, uid, employee_id)
+            return {'value': {'designation_id': emp_id.job_id.id }}
+        
 tpt_hr_training_line()
 
 class tpt_hr_training(osv.osv):
     _name = "tpt.hr.training"
     _columns = {  
+        'code': fields.char('Code'), 
         'name': fields.char('Title'), 
+        'desc': fields.char('Description'), 
         
     }
     #===========================================================================
