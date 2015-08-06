@@ -1477,20 +1477,28 @@
             <field name="arch" type="xml">
                 <form string="Training Master" version="7.0">  
                 	<sheet>  
-                		<group>
+                		<group col='4' colspan='2'>
                 			<field name ="name" readonly='1'/>
-                			<field name ="training_master_id"/>
+                			<newline/>
+                			<field name ="training_master_id" options="{'create': false, 'create_edit': false}"/>
                 			<field name ="site_name"/>
+                			<newline/>
                 			<field name ="effective_date"/>
                 			<field name ="deliver_date"/>
+                			<newline/>
+                			<field name="time_from" widget="float_time"/>
+                			<field name="time_to" widget="float_time"/>
                 			<field name ="training_company"/>
                 			<field name ="faculty_name"/>
+                			<newline/>
+                			<field name ="create_date"/>
+                			<field name ="create_uid"/>
                 		</group>
                 		<notebook>
 							<page string = "Employees">
 								<field name="training_line" nolabel='1'>
 									<tree editable='top'>
-										<field name="employee_id" on_change="onchange_employee_id(employee_id)"/>
+										<field name="employee_id" on_change="onchange_employee_id(employee_id)" options="{'create': false, 'create_edit': false}"/>
 										<field name="designation_id" readonly='1'/>
 									</tree>
 								</field>

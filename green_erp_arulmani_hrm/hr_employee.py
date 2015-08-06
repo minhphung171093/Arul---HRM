@@ -1407,7 +1407,7 @@ class tpt_hr_training_header(osv.osv):
         return res
     
     _columns = {   
-        'name': fields.char('Name'), 
+        'name': fields.char('Document No.'), 
         'training_name': fields.char('Training Name'), 
         'training_line': fields.one2many('tpt.hr.training.line', 'training_id', 'Employee Training'),
         'training_master_id':fields.many2one('tpt.hr.training','Name of Training'),
@@ -1420,6 +1420,8 @@ class tpt_hr_training_header(osv.osv):
         'time_from': fields.float('From Time'), 
         'time_to': fields.float('To Time'), 
         'no_of_emp': fields.function(_total_no_of_emp, type='float',  string='No.of Employees Attended', multi='no_of_employees'),
+        'create_date': fields.datetime('Created Date',readonly = True), 
+        'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
     }
     _defaults={
                'name':'/',     
