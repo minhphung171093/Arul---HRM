@@ -1067,11 +1067,9 @@ class stock_movement_analysis(osv.osv_memory):
                 'receipt_qty':get_qty(stock,line.id),
                 'receipt_value':get_receipt_value(stock,line.id),
                 'consum_qty':get_qty_out(stock,line.id) + get_qty_chuaro(stock,line.id),
-#phuoc grn                'consum_value': (get_qty(stock,line.id)*get_qty_out(stock,line.id)) and (get_receipt_value(stock,line.id)/get_qty(stock,line.id)*get_qty_out(stock,line.id)) or 0,
-#                 'consum_value':(get_opening_stock(stock,line.id)+get_qty(stock,line.id)) and ((get_receipt_value(stock,line.id)+get_opening_stock_value(stock,line.id))/(get_opening_stock(stock,line.id)+get_qty(stock,line.id))*get_qty_out(stock,line.id)) or 0 ,    
-                'consum_value': good + product , 
+                'consum_value': (get_opening_stock(stock,line.id)-get_qty_opening_chuaro(stock, line.id)+get_qty(stock,line.id)) and (get_opening_stock_value(stock,line.id)+get_receipt_value(stock,line.id))/(get_opening_stock(stock,line.id)-get_qty_opening_chuaro(stock, line.id)+get_qty(stock,line.id))*(get_qty_out(stock,line.id) + get_qty_chuaro(stock,line.id)) or 0,
+#                 'consum_value': good + product , 
                 'close_stock':get_qty(stock,line.id) - (get_qty_out(stock,line.id) + get_qty_chuaro(stock,line.id)) + (get_opening_stock(stock,line.id)-get_qty_opening_chuaro(stock, line.id)) ,
-#phuoc grn                'close_value': get_opening_stock_value(stock,line.id)+get_receipt_value(stock,line.id)-(get_qty(stock,line.id) and (get_receipt_value(stock,line.id)/get_qty(stock,line.id)*get_qty_out(stock,line.id)) or 0)
                 'close_value': get_opening_stock_value(stock,line.id)+get_receipt_value(stock,line.id)-(good)-product,   
             
             }))
