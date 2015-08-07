@@ -89,6 +89,8 @@
 		                			<field name="total"/>
 		                			<field name="debit"/>
 		                			<field name="closing_bal"/>
+		                			<!-- <field name="debit_1"/> -->
+		                			<!-- <field name="debit_2"/> -->
 		                		</tree>
 		                	</field>
 		                	</div>
