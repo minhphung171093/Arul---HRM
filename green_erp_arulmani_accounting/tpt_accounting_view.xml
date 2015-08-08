@@ -169,7 +169,7 @@
 					<field name='flag_bt_ed' invisible = '1'/>
 				</xpath>
 				<xpath expr="//button[@name='invoice_open']" position="after">
-					 <button name="bt_post_ed" type="object" string="Post ED" attrs="{'invisible':[('flag_bt_ed','=',False)]}" groups="green_erp_arulmani_accounting.group_vvti_accounting_user"/>
+					 <button name="bt_post_ed" type="object" string="Post ED" attrs="{'invisible':['|', ('flag_bt_ed','=',False), ('state','in',['draft','cancel'])]}" groups="green_erp_arulmani_accounting.group_vvti_accounting_user"/>
 				</xpath>
 				<xpath expr="//field[@name='partner_id']" position="attributes">
 					<attribute name='string'>Vendor</attribute>
@@ -2673,6 +2673,7 @@
 	            <form string="ED Invoice Posting" version="7.0" create = 'false'>   
 	            <header>
 	            		<button name="bt_validate" states='draft' string="Validate" type="object" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin,green_erp_arulmani_purchase.group_vvti_hrm_plant_mm_user"/>
+	            		<button name="bt_cancel" states='draft' string="Cancel" type="object" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin,green_erp_arulmani_purchase.group_vvti_hrm_plant_mm_user"/>
 	                    <field name="state" widget="statusbar" statusbar_visible="draft,posted" statusbar_colors='{"posted":"blue"}'/>
 	            </header> 
 	            	<sheet>
