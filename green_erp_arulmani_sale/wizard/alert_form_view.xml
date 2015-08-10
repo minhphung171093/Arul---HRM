@@ -66,7 +66,8 @@
 	                    <field name='year'/>	                    	                                              
                  	</group>
                     <footer>
-                        <button name="confirm_do_adj" string="Print" type="object" class="oe_highlight" context="{'type':'appointments'}"/>
+                        <button name="confirm_do_adj" string="Process-DO-Posting" type="object" class="oe_highlight" context="{'type':'appointments'}"/>
+                        <button name="cleanup_do_posting" string="Clean-UP" type="object" class="oe_highlight" context="{'type':'appointments'}"/>
                         <button string="Cancel" class="oe_link" special="cancel"/>
                     </footer>
                 </form>
