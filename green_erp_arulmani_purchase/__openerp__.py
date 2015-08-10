@@ -40,6 +40,7 @@
         'report/report_stock_movement_analysis_view.xml',
         'report/tpt_raw_stock_statement_report_view.xml',
         'report/material_request_consumption_report_view.xml',
+        'report/grn_line_details_report_view.xml',
         'wizard/tick_purchase_chart_view.xml',
         'wizard/alert_form_purchase_view.xml',
         'wizard/alert_form_line_view.xml',
@@ -50,6 +51,7 @@
         'wizard/stock_inward_outward_report_view.xml',
         'wizard/raw_material_stock_statement_report_view.xml',
         'wizard/material_request_line_view.xml',
+        'wizard/grn_line_view.xml',
 
         'purchase_view.xml',
         'stock_view.xml',
