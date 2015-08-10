@@ -652,8 +652,8 @@
 		           		<field name="name" readonly='1' />
 		           </group>
 		           		<group col='4' colspan='2' string="PTax Period">
-						<field name="from_date" />
-						<field name="to_date" />
+						<field name="from_date" required='1'/>
+						<field name="to_date" required='1'/>
 		            </group>
 					<group col='4' colspan='2' string="Effective Payroll Executions Period">
 						<field name="month" required='1'/>
@@ -714,8 +714,8 @@
 	            <form string="PTax Slab Range" version="7.0">   
 	            <sheet>
 		           <group col='4' colspan='2' string="PTax Range">
-						<field name="from_range" />
-						<field name="to_range" />
+						<field name="from_range" required='1'/>
+						<field name="to_range" required='1'/>
 						<field name="is_active" />
 		            </group>	
 		            <group col='4' colspan='2' string="PTax Amount">
