@@ -83,15 +83,25 @@ class tpt_do_adj(osv.osv_memory):
                     account_ids = account_obj.search(cr, uid, [('code','=','0000810033')])
             if account_ids:
                 account = account_ids[0]
-        return account
+        return account 
+    def cleanup_do_posting(self, cr, uid, ids, context=None):
+        cb = self.browse(cr, uid, ids[0])
+        sql = '''
+            delete from account_move where doc_type = 'do'
+            and extract(month from date)=%s and extract(year from date)=%s
+        '''%(cb.month,cb.year)
+        cr.execute(sql)
+        
+        return {'type': 'ir.actions.act_window_close'}  
     def confirm_do_adj(self, cr, uid, ids, context=None): 
+        cb = self.browse(cr, uid, ids[0])
         picking_obj = self.pool.get('stock.picking')
         account_move_obj = self.pool.get('account.move')
         period_obj = self.pool.get('account.period')
         sql = '''
             select id from stock_picking where type = 'out' and state = 'done' 
-                
-        ''' #and name in (select ref from account_move where doc_type='do')
+            and extract(month from date)=%s and extract(year from date)=%s
+        '''%(cb.month,cb.year)
         cr.execute(sql)
         picking_ids = [r[0] for r in cr.fetchall()]
         if not picking_ids:
