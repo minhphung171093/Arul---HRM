@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data> 
+	    <record id="tpt_material_request_report_pdf" model="ir.actions.report.xml">
+		        <field name="name">tpt_material_request_report_pdf</field>
+		        <field name="type">ir.actions.report.xml</field>
+		        <field name="model">tpt.material.request.report</field>
+		        <field name="report_name">tpt_material_request_report_pdf</field>
+		        <field name="report_type">aeroo</field>
+		        <field name="in_format">oo-ods</field>
+		        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-pdf'),('compatible_types','=','oo-ods')]"/>
+		        <field name="parser_loc">green_erp_arulmani_purchase/report/material_request_consumption_report.py</field>
+		        <field name="report_rml">green_erp_arulmani_purchase/report/material_request_consumption_report.ods</field>
+		        <field name="parser_state">loc</field>
+		        <field name="tml_source">file</field>
+		        <field name="attachment_use" eval="0"/>
+	    	</record>		    
+			
+			<report 
+				auto="True" 
+				menu="False"
+				id="tpt_material_request_report_pdf" 
+				model="tpt.material.request.report" 
+				name="tpt_material_request_report_pdf"
+		        string="Material Request Line Report"
+		        rml="green_erp_arulmani_purchase/report/material_request_consumption_report.ods"/>
+		        
+		<record id="tpt_material_request_report_xls" model="ir.actions.report.xml">
+	        <field name="name">tpt_material_request_report_xls</field>
+	        <field name="type">ir.actions.report.xml</field>
+	        <field name="model">tpt.material.request.report</field>
+	        <field name="report_name">tpt_material_request_report_xls</field>
+	        <field name="report_type">aeroo</field>
+	        <field name="in_format">oo-ods</field>
+	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-xls'),('compatible_types','=','oo-ods')]"/>
+	        <field name="parser_loc">green_erp_arulmani_purchase/report/material_request_consumption_report.py</field>
+	        <field name="report_rml">green_erp_arulmani_purchase/report/material_request_consumption_report.ods</field>
+	        <field name="parser_state">loc</field>
+	        <field name="tml_source">file</field>
+	        <field name="attachment_use" eval="0"/>
+    	</record>		    
+		
+		<report 
+			auto="True" 
+			menu="False"
+			id="tpt_material_request_report_xls" 
+			model="tpt.material.request.report" 
+			name="tpt_material_request_report_xls"
+	        string="Material Request Line Report"
+	        rml="green_erp_arulmani_purchase/report/material_request_consumption_report.ods"/>    
+		    
+		<record id="view_tpt_material_request_report" model="ir.ui.view">
+	        <field name="name">tpt.material.request.report</field>
+	        <field name="model">tpt.material.request.report</field>
+	        <field name="arch" type="xml">
+	            <form version='7.0' string="Material Request Line Report" create="false" edit="false" delete="false">
+	            	<header>
+	            		<button name="print_report_xls" string="Print (.xls)" type="object" class="oe_highlight" />
+	            		<button name="print_report_pdf" string="Print (.pdf)" type="object" class="oe_highlight" />
+	            	</header>
+	            	<sheet>
+	            	
+	            		<div class="oe_text_center">
+            			<b><field name="name" nolabel="1" class="oe_text_center oe_inline"/></b>
+            			</div>	            		
+            			<div class="oe_bold oe_text_left"> 
+            			<field name="date_from_title" nolabel = '1' class="oe_text_left oe_inline"/>           			
+            			<field name="date_from" class="oe_text_left oe_inline"/>            			
+            			</div>
+            			<div class="oe_bold oe_text_left">
+            			<field name="date_to_title" nolabel = '1' class="oe_text_left oe_inline"/>
+            			<field name="date_to" class="oe_text_left oe_inline"/> 
+            			</div>
+            			<div class="oe_bold oe_text_left">            			
+            			<field name="material_request_id" class="oe_text_left oe_inline"/>
+            			</div>
+            			<div class="oe_bold oe_text_left">            			
+            			<field name="cost_center_id" class="oe_text_left oe_inline"/>
+            			</div>
+            			<div class="oe_bold oe_text_left">            			
+            			<field name="requisitioner" class="oe_text_left oe_inline"/>
+            			</div>            			
+            			<div class="oe_bold oe_text_left">            			
+            			<field name="department_id" class="oe_text_left oe_inline"/>
+            			</div>
+            			<div class="oe_bold oe_text_left">            			
+            			<field name="section_id" class="oe_text_left oe_inline"/>
+            			</div>
+            			<div class="oe_bold oe_text_left">            			
+            			<field name="state" class="oe_text_left oe_inline"/>
+            			</div>
+            			<div class="oe_bold oe_text_left">            			
+            			<field name="product_id" class="oe_text_left oe_inline"/>
+            			</div>
+            			<div class="oe_bold oe_text_left">            			
+            			<field name="project_id" class="oe_text_left oe_inline"/>
+            			</div>
+            			<div class="oe_bold oe_text_left">            			
+            			<field name="project_section_id" class="oe_text_left oe_inline"/>
+            			</div>             			
+            			
+            			<group>
+		                	<field name="material_req_line_id" nolabel='1'>
+		                		<tree create="false" edit="false" delete="false">
+		                			<field name="mat_req_no"/>
+		                			<field name="mat_req_date"/>                			
+		                			<field name="exp_date"/>
+		                			<field name="dept"/>
+		                			<field name="sec"/>		                			
+		                			<field name="requisitioner"/>
+		                			<field name="req_raised"/>
+		                			<field name="mat_code"/>
+		                			<field name="mat_desc"/>
+		                			<field name="cost_cent"/>
+		                			<field name="uom"/>
+		                			<field name="req_qty"/>
+		                			<field name="on_hand_qty"/>
+		                			<field name="pen_qty"/>
+		                			<field name="bin"/>
+		                			<field name="project"/>
+		                			<field name="project_sec"/>
+		                			<field name="state"/>		                			
+		                		</tree>
+		                	</field>
+	                	</group>
+	               	</sheet>
+	           </form>
+	        </field>
+	    </record>        
+		        
+       <!-- <record id="material_request_line_report" model="ir.actions.report.xml">
+	        <field name="name">material_request_line_report</field>
+	        <field name="type">ir.actions.report.xml</field>
+	        <field name="model">material.request.line.report</field>
+	        <field name="report_name">material_request_line_report</field>
+	        <field name="report_type">aeroo</field>
+	        <field name="in_format">oo-ods</field>
+	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-xls')]"/>
+	        <field name="parser_loc">green_erp_arulmani_purchase/report/material_request_consumption_report.py</field>
+	        <field name="report_rml">green_erp_arulmani_purchase/report/material_request_consumption_report.ods</field>
+	        <field name="parser_state">loc</field>
+	        <field name="tml_source">file</field>
+	        <field name="attachment_use" eval="0"/>
+    	</record>		    
+		
+		<report 
+			auto="True"
+			menu="False"
+			id="material_request_line_report"
+			model="material.request.line.report" 
+			name="material_request_line_report"
+	        string="Goods Request Line Report"
+	        rml="green_erp_arulmani_purchase/report/material_request_consumption_report.ods"/>   -->
+          	
+    </data>
+</openerp>

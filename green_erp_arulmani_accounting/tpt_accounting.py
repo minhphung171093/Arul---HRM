@@ -604,7 +604,7 @@ class stock_picking(osv.osv):
                         if sale_id:
                             sql = '''
                                 select id from tpt_batch_allotment where sale_order_id = %s and state='confirm'
-                            '''%(sale_id) #TPT-By BalamuruganPurushothaman ON 29/07/2015 - TO TAKE CONFIRMED BATCH ALLOTMENT ONLY NOT IN CANCEL STATE
+                            '''%(sale_id) #TPT-By BalamuruganPurushothaman ON 29/07/2015 - TO TAKE CONFIRMED "BATCH ALLOTMENT" ONLY - SQL state='confirm is appended'
                             cr.execute(sql)
                             allot_ids = cr.dictfetchone()
                             if allot_ids:
@@ -5406,6 +5406,7 @@ class account_move(osv.osv):
         'material_issue_id': fields.many2one('tpt.material.issue','Material Issue',ondelete='restrict'), 
         'ed_invoice_id': fields.many2one('tpt.ed.invoice.positing','ED Invoice Posting',ondelete='restrict'),  
         'grn_id': fields.many2one('stock.picking','GRN',ondelete='restrict'),
+        'do_id': fields.many2one('stock.picking','DO',ondelete='restrict'), #TPT-BalamuruganPurushothaman
         'product_dec': fields.many2one('mrp.production','Production',ondelete='restrict'),  
                 }
     
