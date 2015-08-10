@@ -3284,7 +3284,7 @@ class tpt_update_stock_move_report(osv.osv):
         cr.execute(sql)
         picking_ids = [r[0] for r in cr.fetchall()]
         if not picking_ids:
-            return self.write(cr, uid, ids, {'result':'Create all GRN posting Done'}) 
+            return self.write(cr, uid, ids, {'result':'Create all DO posting Done'}) 
         for line in picking_obj.browse(cr,uid,picking_ids):
             debit = 0.0
             credit = 0.0
@@ -3314,57 +3314,68 @@ class tpt_update_stock_move_report(osv.osv):
             journal_ids = [r[0] for r in cr.fetchall()]
             journal = self.pool.get('account.journal').browse(cr,uid,journal_ids[0])
             for p in line.move_lines:
-                    if p.prodlot_id:
-                        sale_id = p.sale_line_id and p.sale_line_id.order_id.id or False 
-                        used_qty = p.product_qty or 0
-                        if sale_id:
-                            sql = '''
+                if p.prodlot_id:
+                    sale_id = p.sale_line_id and p.sale_line_id.order_id.id or False 
+                    used_qty = p.product_qty or 0
+                    if sale_id:
+                        sql = '''
                                 select id from tpt_batch_allotment where sale_order_id = %s and state='confirm'
                             '''%(sale_id) #TPT-By BalamuruganPurushothaman ON 29/07/2015 - TO TAKE CONFIRMED "BATCH ALLOTMENT" ONLY - SQL state='confirm is appended'
-                            cr.execute(sql)
-                            print "TEST1 : %s"%sql
-                            allot_ids = cr.dictfetchone()
-                            if allot_ids:
-                                allot_id = allot_ids['id']
-                                sql = '''
-                                select id from tpt_batch_allotment_line where sys_batch = %s and batch_allotment_id = %s
-                                '''%(p.prodlot_id.id,allot_id)
-                                cr.execute(sql)
-                                print 'TEST: %s'%sql
-                                allot_line_id = cr.dictfetchone()['id']
-                                line_id = self.pool.get('tpt.batch.allotment.line').browse(cr, uid, allot_line_id)
-                                used_qty += line_id.used_qty
-                                sql = '''
-                                    update tpt_batch_allotment_line set product_uom_qty = %s where id = %s
-                                '''%(used_qty,allot_line_id)
-                                cr.execute(sql)
-                                if line_id.product_uom_qty == line_id.used_qty:
-                                    sql = '''
-                                        update tpt_batch_allotment_line set is_deliver = 't' where id = %s
-                                    '''%(allot_line_id)
-                                    cr.execute(sql)
+                        cr.execute(sql)
+                            #print "TEST1 : %s"%sql
+                        allot_ids = cr.dictfetchone()
+                            #===================================================
+                            # if allot_ids:
+                            #     allot_id = allot_ids['id']
+                            #     sql = '''
+                            #     select id from tpt_batch_allotment_line where sys_batch = %s and batch_allotment_id = %s
+                            #     '''%(p.prodlot_id.id,allot_id)
+                            #     cr.execute(sql)
+                            #     print 'TEST: %s'%sql
+                            #     allot_line_id = cr.dictfetchone()['id']
+                            #     line_id = self.pool.get('tpt.batch.allotment.line').browse(cr, uid, allot_line_id)
+                            #     used_qty += line_id.used_qty
+                            #     sql = '''
+                            #         update tpt_batch_allotment_line set product_uom_qty = %s where id = %s
+                            #     '''%(used_qty,allot_line_id)
+                            #     cr.execute(sql)
+                            #     if line_id.product_uom_qty == line_id.used_qty:
+                            #         sql = '''
+                            #             update tpt_batch_allotment_line set is_deliver = 't' where id = %s
+                            #         '''%(allot_line_id)
+                            #         cr.execute(sql)
+                            #===================================================
                     
                     #TPT START By BalamuruganPurushothaman ON 28/07/2015 - TO SET COST PRICE OF FINISHED PRODUCT IN JOURNAL POSTING INSTEAD OF SALES PROCE WHILE DO CONFIRM PROCESS
                     #debit += p.sale_line_id and p.sale_line_id.price_unit * p.product_qty or 0  ##TPT COMMENTED
-                    product = self.pool.get('product.product').browse(cr, uid, p.product_id.id)
-                    debit += product.standard_price and product.standard_price * p.product_qty or 0
+                product = self.pool.get('product.product').browse(cr, uid, p.product_id.id)
+                debit += product.standard_price and product.standard_price * p.product_qty or 0
                     #TPT END
                     
                     #product_name = p.product_id.name    # TPT - COMMENTED By BalamuruganPurushothaman ON 20/06/2015 
-                    product_name = p.product_id.default_code # TPT - Added By BalamuruganPurushothaman ON 20/06/2015 fto get GL code with respect to Product Code
-                    product_id = p.product_id.id
-                    account = self.get_pro_account_id(cr,uid,product_name,dis_channel)
-                    if not account:
-#                             raise osv.except_osv(_('Warning!'),_('Account is not created for this Distribution Channel! Please check it!'))
-                        if p.product_id.product_cose_acc_id:
-                            account = p.product_id.product_cose_acc_id.id
-                        else: 
-                            raise osv.except_osv(_('Warning!'),_('Product Cost of Goods Sold Account is not configured! Please configured it!'))
+                product_name = p.product_id.default_code # TPT - Added By BalamuruganPurushothaman ON 20/06/2015 fto get GL code with respect to Product Code
+                product_id = p.product_id.id
+                account = self.get_pro_account_id(cr,uid,product_name,dis_channel)
+                if not account:
+                    if p.product_id.product_cose_acc_id:
+                        account = p.product_id.product_cose_acc_id.id
+                    else: 
+                        raise osv.except_osv(_('Warning!'),_('Product Cost of Goods Sold Account is not configured! Please configured it!'))
                      
-                    if p.product_id.product_asset_acc_id:
-                        asset_id = p.product_id.product_asset_acc_id.id
-                    else:
-                        raise osv.except_osv(_('Warning!'),_('Product Asset Account is not configured! Please configured it!'))
+                if p.product_id.product_asset_acc_id:
+                    asset_id = p.product_id.product_asset_acc_id.id
+                else:
+                    raise osv.except_osv(_('Warning!'),_('Product Asset Account is not configured! Please configured it!'))
+            if account is False:
+                if p.product_id.product_cose_acc_id:
+                    account = p.product_id.product_cose_acc_id.id
+                else: 
+                    raise osv.except_osv(_('Warning!'),_('Product Cost of Goods Sold Account is not configured! Please configured it-2!'))
+            if asset_id is False:
+                asset_id = p.product_id.product_asset_acc_id.id              
+            if asset_id is False:
+                raise osv.except_osv(_('Warning!'),_('Asset ID is False'))
+            
             journal_line.append((0,0,{
                             'name':line.name, 
                             'account_id': account,
