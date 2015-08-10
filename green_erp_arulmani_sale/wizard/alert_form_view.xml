@@ -56,6 +56,35 @@
 	        <field name="target">new</field>
 	    </record>
 	    
+	    <record id="alert_mgnt_warning_form_view" model="ir.ui.view">
+	        <field name="name">do.mgnt.confirm</field>
+	        <field name="model">do.mgnt.confirm</field>
+	        <field eval="20" name="priority"/>
+	        <field name="arch" type="xml">
+	            <form string="Alert" version="7.0">
+	            	<!--<label string="Not able to process DO due to exceed of credit limit. Need management approval to proceed further!"/>-->
+	                
+	                <field name='reason' required='1' placeholder="Please Type here the reason"/>
+	              
+	                <footer>
+	                    <!-- <button name="action_confirm" string="Confirm" class="oe_highlight" special="cancel" /> -->
+	                <button name="action_confirm" type='object' string="Confirm" class="oe_highlight"/>
+	                    or
+	                    <button string="Cancel" class="oe_highlight" special="cancel" />
+	                
+	                </footer>
+	            </form>
+	        </field>
+    	</record>
+
+	    <record model="ir.actions.act_window" id="action_mgnt_alert_warning">
+	        <field name="name">Alert</field>
+	        <field name="res_model">do.mgnt.confirm</field>
+	        <field name="view_type">form</field>
+	        <field name="view_mode">form</field>
+	        <field name="view_id" ref="alert_mgnt_warning_form_view" />
+	        <field name="target">new</field>
+	    </record>
     </data>
 </openerp>
 
