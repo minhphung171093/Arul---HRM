@@ -281,7 +281,8 @@ class Parser(report_sxw.rml_parse):
                         self.cr.execute('''
                             select aa.name as acc_name,aml.account_id,sum(aml.debit) as debit,sum(aml.credit) as credit,
                             av.name as voucher_name,av.date as voucher_date,aml.ref as ref, aml.name as voucher_desc,
-                            av.payee as payee,av.cheque_no as cheque_no, av.cheque_date as cheque_date
+                            av.payee as payee,av.cheque_no as cheque_no, av.cheque_date as cheque_date,av.number as voucher_no,
+                            av.narration as desc
                             from account_move_line aml
                             inner join account_move am on (am.id=aml.move_id)
                             inner join account_account aa on (aa.id=aml.account_id)
@@ -292,7 +293,8 @@ class Parser(report_sxw.rml_parse):
                             inner join account_account acc on (acc.id=aml.account_id and acc.id=%s)
                             )a on (a.cash_header_id=am.id and cash_account_id<>aml.account_id)
                             where av.type in ('payment') and av.state in ('posted') and av.date between %s and %s 
-                            group by aa.name,aml.account_id,av.name,av.date,aml.ref,aml.name,av.payee,av.cheque_no, av.cheque_date
+                            group by aa.name,aml.account_id,av.name,av.date,aml.ref,aml.name,av.payee,av.cheque_no, av.cheque_date,av.number,
+                            av.narration
                             order by av.date
                         ''',((account_id),date_from, date_to,))
                         return self.cr.dictfetchall()
@@ -300,7 +302,8 @@ class Parser(report_sxw.rml_parse):
                         self.cr.execute('''
                             select aa.name as acc_name,aml.account_id,sum(aml.debit) as debit,sum(aml.credit) as credit,
                             av.name as voucher_name,av.date as voucher_date,aml.ref as ref, aml.name as voucher_desc,
-                            av.payee as payee,av.cheque_no as cheque_no, av.cheque_date as cheque_date
+                            av.payee as payee,av.cheque_no as cheque_no, av.cheque_date as cheque_date,av.number as voucher_no,
+                            av.narration as desc
                             from account_move_line aml
                             inner join account_move am on (am.id=aml.move_id)
                             inner join account_account aa on (aa.id=aml.account_id)
@@ -311,7 +314,8 @@ class Parser(report_sxw.rml_parse):
                             inner join account_account acc on (acc.id=aml.account_id and acc.id=%s)
                             )a on (a.cash_header_id=am.id and cash_account_id<>aml.account_id)
                             where av.type in ('receipt') and av.state in ('posted') and av.date between %s and %s 
-                            group by aa.name,aml.account_id,av.name,av.date,aml.ref,aml.name,av.payee,av.cheque_no, av.cheque_date
+                            group by aa.name,aml.account_id,av.name,av.date,aml.ref,aml.name,av.payee,av.cheque_no, av.cheque_date,av.number,
+                            av.narration
                             order by av.date
                         
                         ''',((account_id),date_from, date_to,))
@@ -320,7 +324,8 @@ class Parser(report_sxw.rml_parse):
                         self.cr.execute('''
                             select aa.name as acc_name,aml.account_id,sum(aml.debit) as debit,sum(aml.credit) as credit,
                             av.name as voucher_name,av.date as voucher_date,aml.ref as ref, aml.name as voucher_desc,
-                            av.payee as payee,av.cheque_no as cheque_no, av.cheque_date as cheque_date
+                            av.payee as payee,av.cheque_no as cheque_no, av.cheque_date as cheque_date,av.number as voucher_no,
+                            av.narration as desc
                             from account_move_line aml
                             inner join account_move am on (am.id=aml.move_id)
                             inner join account_account aa on (aa.id=aml.account_id)
@@ -331,7 +336,8 @@ class Parser(report_sxw.rml_parse):
                             inner join account_account acc on (acc.id=aml.account_id and acc.id=%s)
                             )a on (a.cash_header_id=am.id and cash_account_id<>aml.account_id)
                             where av.type in ('receipt','payment') and av.state in ('posted') and av.date between %s and %s 
-                            group by aa.name,aml.account_id,av.name,av.date,aml.ref,aml.name,av.payee,av.cheque_no, av.cheque_date
+                            group by aa.name,aml.account_id,av.name,av.date,aml.ref,aml.name,av.payee,av.cheque_no, av.cheque_date,
+                            av.number,av.narration
                             order by av.date
                         ''',((account_id),date_from, date_to,))
                         return self.cr.dictfetchall()
@@ -340,7 +346,8 @@ class Parser(report_sxw.rml_parse):
                         self.cr.execute('''
                             select aa.name as acc_name,aml.account_id,sum(aml.debit) as debit,sum(aml.credit) as credit,
                             av.name as voucher_name,av.date as voucher_date,aml.ref as ref, aml.name as voucher_desc,
-                            av.payee as payee,av.cheque_no as cheque_no, av.cheque_date as cheque_date
+                            av.payee as payee,av.cheque_no as cheque_no, av.cheque_date as cheque_date,av.number as voucher_no,
+                            av.narration as desc
                             from account_move_line aml
                             inner join account_move am on (am.id=aml.move_id)
                             inner join account_account aa on (aa.id=aml.account_id)
@@ -359,7 +366,8 @@ class Parser(report_sxw.rml_parse):
                         self.cr.execute('''
                             select aa.name as acc_name,aml.account_id,sum(aml.debit) as debit,sum(aml.credit) as credit,
                             av.name as voucher_name,av.date as voucher_date,aml.ref as ref, aml.name as voucher_desc,
-                            av.payee as payee,av.cheque_no as cheque_no, av.cheque_date as cheque_date
+                            av.payee as payee,av.cheque_no as cheque_no, av.cheque_date as cheque_date,av.number as voucher_no,
+                            av.narration as desc
                             from account_move_line aml
                             inner join account_move am on (am.id=aml.move_id)
                             inner join account_account aa on (aa.id=aml.account_id)
@@ -370,7 +378,8 @@ class Parser(report_sxw.rml_parse):
                             inner join account_account acc on (acc.id=aml.account_id and acc.id=%s)
                             )a on (a.cash_header_id=am.id and cash_account_id<>aml.account_id)
                             where av.type in ('receipt') and av.state in ('draft','posted') and av.date between %s and %s 
-                            group by aa.name,aml.account_id,av.name,av.date,aml.ref,aml.name,av.payee,av.cheque_no, av.cheque_date
+                            group by aa.name,aml.account_id,av.name,av.date,aml.ref,aml.name,av.payee,av.cheque_no, av.cheque_date,av.number,
+                            av.narration
                             order by av.date
                         ''',((account_id),date_from, date_to,))
                         return self.cr.dictfetchall()
@@ -378,7 +387,8 @@ class Parser(report_sxw.rml_parse):
                         self.cr.execute('''
                             select aa.name as acc_name,aml.account_id,sum(aml.debit) as debit,sum(aml.credit) as credit,
                             av.name as voucher_name,av.date as voucher_date,aml.ref as ref, aml.name as voucher_desc,
-                            av.payee as payee,av.cheque_no as cheque_no, av.cheque_date as cheque_date
+                            av.payee as payee,av.cheque_no as cheque_no, av.cheque_date as cheque_date,av.number as voucher_no,
+                            av.narration as desc
                             from account_move_line aml
                             inner join account_move am on (am.id=aml.move_id)
                             inner join account_account aa on (aa.id=aml.account_id)
@@ -389,7 +399,7 @@ class Parser(report_sxw.rml_parse):
                             inner join account_account acc on (acc.id=aml.account_id and acc.id=%s)
                             )a on (a.cash_header_id=am.id and cash_account_id<>aml.account_id)
                             where av.type in ('receipt','payment') and av.state in ('draft','posted') and av.date between %s and %s 
-                            group by aa.name,aml.account_id,av.name,av.date,aml.ref,aml.name,av.payee,av.cheque_no, av.cheque_date
+                            group by aa.name,aml.account_id,av.name,av.date,aml.ref,aml.name,av.payee,av.cheque_no, av.cheque_date,av.number,av.narration
                             order by av.date
                         ''',((account_id),date_from, date_to,))
                         return self.cr.dictfetchall()

@@ -48,3 +48,34 @@ class do_mgnt_confirm(osv.osv_memory):
     
     
 do_mgnt_confirm()
+
+class tpt_do_adj(osv.osv_memory):
+    _name = "tpt.do.adj"
+    _columns = {    
+                'name': fields.char(string="Title", size=1024, readonly=True),
+                'reason': fields.char('Reason', size=1024, ),
+                }
+    
+    def action_confirm(self, cr, uid, ids, context=None): 
+        audit_id = context.get('audit_id')
+        do_obj = self.pool.get('stock.picking').browse(cr, uid, audit_id)
+        popup_id = self.pool.get('do.mgnt.confirm').browse(cr, uid, ids[0])
+        reason = popup_id.reason
+        
+        space_removed = reason.replace(" ", "")
+        if space_removed == '':
+            raise osv.except_osv(_('Warning!'),_('Please Provide the Reason!'))
+        
+        sql = ''' update stock_picking set reason_mgnt_confirm='%s' where id=%s
+        '''%(reason,audit_id)
+        cr.execute(sql) 
+        
+        if do_obj.doc_status == 'waiting':
+                sql = '''
+                    update stock_picking set flag_confirm = True, doc_status='approved' where id = %s
+                    '''%(audit_id)
+                cr.execute(sql)
+        return {'type': 'ir.actions.act_window_close'}   
+    
+    
+tpt_do_adj()

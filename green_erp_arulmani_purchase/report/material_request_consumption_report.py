@@ -233,44 +233,111 @@ class Parser(report_sxw.rml_parse):
             join product_uom u on (u.id = mrl.uom_po_id)            
             left join tpt_cost_center cc on (cc.id = mr.cost_center_id)
             left join tpt_project pr on (pr.id = mr.project_id)
-            left join tpt_project_section prs on (prs.id = mr.project_section_id)
-            where mr.date_request between '%s' and '%s'
-            '''%(date_from, date_to)
-              
-        if mat_req_no:
-            str = " and mrl.material_request_id = %s"%(mat_req_no[0])
-            sql = sql+str
-        if cost_cent:
-            str = " and mr.cost_center_id = %s "%(cost_cent[0])
-            sql = sql+str
-        if requisitioner:
-            str = " and mr.requisitioner = %s "%(requisitioner[0])
-            sql = sql+str
+            left join tpt_project_section prs on (prs.id = mr.project_section_id)            
+            '''
+        
+        if date_from or date_to or mat_req_no or cost_cent or requisitioner or department or section or state or mat_code or project_id or project_sec_id:
+                    str = " where "
+                    sql = sql+str
+        if (date_from and not date_to and not mat_req_no and not cost_cent and not requisitioner and not department and not section and not state and not mat_code and not project_id and not project_sec_id) or (date_from and not date_to and (mat_req_no or cost_cent or requisitioner or department or section or state or mat_code or project_id or project_sec_id)):
+                    str = " mr.date_request <= '%s'"%(date_from)
+                    sql = sql+str               
+        if (date_to and not date_from and not mat_req_no and not cost_cent and not requisitioner and not department and not section and not state and not mat_code and not project_id and not project_sec_id) or (date_to and not date_from and (mat_req_no or cost_cent or requisitioner or department or section or state or mat_code or project_id or project_sec_id)):
+                    str = " mr.date_request <= '%s'"%(date_to)
+                    sql = sql+str
+        if (date_to and date_from and not mat_req_no and not cost_cent and not requisitioner and not department and not section and not state and not mat_code and not project_id and not project_sec_id) or ((date_to and date_from) and (mat_req_no or cost_cent or requisitioner or department or section or state or mat_code or project_id or project_sec_id)):
+                    str = " mr.date_request between '%s' and '%s'"%(date_from,date_to)
+                    sql = sql+str                    
+        if mat_req_no and not date_to and not date_from and not cost_cent and not requisitioner and not department and not section and not state and not mat_code and not project_id and not project_sec_id:
+                    str = " mrl.material_request_id = %s"%(mat_req_no[0])
+                    sql = sql+str
+        if mat_req_no and (date_to or date_from) and (date_to or date_from or cost_cent or requisitioner or department or section or state or mat_code or project_id or project_sec_id):
+                    str = " and mrl.material_request_id = %s"%(mat_req_no[0])
+                    sql = sql+str
+        if cost_cent and not mat_req_no and not date_to and not date_from and not requisitioner and not department and not section and not state and not mat_code and not project_id and not project_sec_id:
+                    str = " mr.cost_center_id = %s "%(cost_cent[0])
+                    sql = sql+str
+        if cost_cent and (date_to or date_from or mat_req_no) and (date_to or date_from or mat_req_no or requisitioner or department or section or state or mat_code or project_id or project_sec_id):
+                    str = " and mr.cost_center_id = %s "%(cost_cent[0])
+                    sql = sql+str                    
+        if requisitioner and not mat_req_no and not date_to and not date_from and not cost_cent and not department and not section and not state and not mat_code and not project_id and not project_sec_id:
+                    str = " mr.requisitioner = %s "%(requisitioner[0])
+                    sql = sql+str
+        if requisitioner and (date_to or date_from or mat_req_no or cost_cent) and (date_to or date_from or mat_req_no or cost_cent or department or section or state or mat_code or project_id or project_sec_id):
+                    str = " and mr.requisitioner = %s "%(requisitioner[0])
+                    sql = sql+str                
+        if department and not mat_req_no and not date_to and not date_from and not cost_cent and not requisitioner and not section and not state and not mat_code and not project_id and not project_sec_id:
+                    str = " mr.department_id = %s "%(department[0])
+                    sql = sql+str
+        if department and (date_to or date_from or mat_req_no or cost_cent or requisitioner) and (date_to or date_from or mat_req_no or cost_cent or requisitioner or section or state or mat_code or project_id or project_sec_id):
+                    str = " and mr.department_id = %s "%(department[0])
+                    sql = sql+str
+        if section and not mat_req_no and not date_to and not date_from and not cost_cent and not requisitioner and not department and not state and not mat_code and not project_id and not project_sec_id:
+                    str = " mr.section_id = %s "%(section[0])
+                    sql = sql+str
+        if section and (date_to or date_from or mat_req_no or cost_cent or requisitioner or department) and (date_to or date_from or mat_req_no or cost_cent or requisitioner or department or state or mat_code or project_id or project_sec_id):
+                    str = " and mr.section_id = %s "%(section[0])
+                    sql = sql+str
+        if state and not mat_req_no and not date_to and not date_from and not cost_cent and not requisitioner and not department and not section and not mat_code and not project_id and not project_sec_id:
+                    str = " mr.state = '%s'"%(state)
+                    sql = sql+str
+        if state and (date_to or date_from or mat_req_no or cost_cent or requisitioner or department or section) and (date_to or date_from or mat_req_no or cost_cent or requisitioner or department or section or mat_code or project_id or project_sec_id):
+                    str = " and mr.state = '%s' "%(state)
+                    sql = sql+str
+        if mat_code and not mat_req_no and not date_to and not date_from and not cost_cent and not requisitioner and not department and not section and not state and not project_id and not project_sec_id:
+                    str = " mrl.product_id = %s"%(mat_code[0])
+                    sql = sql+str
+        if mat_code and (date_to or date_from or mat_req_no or cost_cent or requisitioner or department or section or state) and (date_to or date_from or mat_req_no or cost_cent or requisitioner or department or section or state or project_id or project_sec_id):
+                    str = " and mrl.product_id = %s "%(mat_code[0])
+                    sql = sql+str
+        if project_id and not mat_req_no and not date_to and not date_from and not cost_cent and not requisitioner and not department and not section and not state and not mat_code and not project_sec_id:
+                    str = " pr.id = %s"%(project_id[0])
+                    sql = sql+str
+        if project_id and (date_to or date_from or mat_req_no or cost_cent or requisitioner or department or section or state or mat_code) and (date_to or date_from or mat_req_no or cost_cent or requisitioner or department or section or state or mat_code or project_sec_id):
+                    str = " and prs.id = %s "%(project_id[0])
+                    sql = sql+str
+        if project_sec_id and not mat_req_no and not date_to and not date_from and not cost_cent and not requisitioner and not department and not section and not state and not mat_code and not project_id:
+                    str = " prs.id = %s"%(project_sec_id[0])
+                    sql = sql+str
+        if project_sec_id and (date_to or date_from or mat_req_no or cost_cent or requisitioner or department or section or state or mat_code or project_id):
+                    str = " and prs.id = %s "%(project_sec_id[0])
+                    sql = sql+str  
         #=======================================================================
-        # if pend_qty:
-        #     str = " and (msl.product_uom_qty-msl.product_isu_qty) = %s "%(pend_qty)
+        # if mat_req_no:
+        #     str = " and mrl.material_request_id = %s"%(mat_req_no[0])
         #     sql = sql+str
+        # if cost_cent:
+        #     str = " and mr.cost_center_id = %s "%(cost_cent[0])
+        #     sql = sql+str
+        # if requisitioner:
+        #     str = " and mr.requisitioner = %s "%(requisitioner[0])
+        #     sql = sql+str
+        # #=======================================================================
+        # # if pend_qty:
+        # #     str = " and (msl.product_uom_qty-msl.product_isu_qty) = %s "%(pend_qty)
+        # #     sql = sql+str
+        # #=======================================================================
+        # if department:
+        #     str = " and mr.department_id = %s "%(department[0])
+        #     sql = sql+str 
+        # if section:
+        #     str = " and mr.section_id = %s "%(section[0])
+        #     sql = sql+str 
+        # if state:
+        #     str = " and mr.state = '%s' "%(state)
+        #     sql = sql+str 
+        # if mat_code:
+        #     str = " and mrl.product_id = %s "%(mat_code[0])
+        #     sql = sql+str
+        # if project_id:
+        #     str = " and pr.id = %s "%(project_id[0])
+        #     sql = sql+str
+        # if project_sec_id:
+        #     str = " and prs.id = %s "%(project_sec_id[0])
+        #     sql = sql+str        
+        # sql=sql+" order by mr.date_request"
         #=======================================================================
-        if department:
-            str = " and mr.department_id = %s "%(department[0])
-            sql = sql+str 
-        if section:
-            str = " and mr.section_id = %s "%(section[0])
-            sql = sql+str 
-        if state:
-            str = " and mr.state = '%s' "%(state)
-            sql = sql+str 
-        if mat_code:
-            str = " and mrl.product_id = %s "%(mat_code[0])
-            sql = sql+str
-        if project_id:
-            str = " and pr.id = %s "%(project_id[0])
-            sql = sql+str
-        if project_sec_id:
-            str = " and prs.id = %s "%(project_sec_id[0])
-            sql = sql+str        
-        sql=sql+" order by mr.date_request"
-        #print sql
+       
             
         self.cr.execute(sql)
         return self.cr.dictfetchall()
