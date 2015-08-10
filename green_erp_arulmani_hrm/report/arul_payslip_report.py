@@ -144,6 +144,7 @@ class Parser(report_sxw.rml_parse):
             total_erning = 0
             net = 0
             total_ded = 0
+            it = 0
             pt = 0
             lop = 0
             vpf = 0
@@ -211,7 +212,9 @@ class Parser(report_sxw.rml_parse):
                 for deduction in payroll.other_deduction_line:
                     if deduction.deduction_parameters_id.code=='VPF.D':
                         vpf += deduction.float
-                    if deduction.deduction_parameters_id.code=='IT': #PT
+                    if deduction.deduction_parameters_id.code=='IT': #IT
+                        it += deduction.float
+                    if deduction.deduction_parameters_id.code=='PT': #PT
                         pt += deduction.float
                     if deduction.deduction_parameters_id.code=='L.D':
                         loan += deduction.float
@@ -344,7 +347,7 @@ class Parser(report_sxw.rml_parse):
                     'total_erning': format(total_erning,'.2f'),
                     'net':format(net,'.2f'),
                     'total_ded':format(total_ded,'.2f'),
-                    'pt':pt,
+                    'pt':it+pt,
                     #'lop':lop, 
                     'lop':tpt_lop_leave,
                     'esi':tpt_esi_leave,

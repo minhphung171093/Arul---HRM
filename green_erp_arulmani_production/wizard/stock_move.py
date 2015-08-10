@@ -22,6 +22,8 @@
 from openerp.osv import fields, osv
 from openerp.tools.translate import _
 import openerp.addons.decimal_precision as dp
+# from numpy.ma.core import greater
+# from twisted.enterprise.reflector import GREATERTHAN
 
 
 class split_in_production_lot(osv.osv_memory):
@@ -55,7 +57,8 @@ class split_in_production_lot(osv.osv_memory):
                 for line in lines:
                     quantity = line.quantity
                     total_move_qty += quantity
-                    if total_move_qty > move_qty:
+#                     if total_move_qty > move_qty:
+                    if round(total_move_qty,3) > round(move_qty,3):
                         raise osv.except_osv(_('Processing Error!'), _('Serial number quantity %d of %s is larger than available quantity (%d)!') \
                                 % (total_move_qty, move.product_id.name, move_qty))
                     if quantity <= 0 or move_qty == 0:
@@ -63,7 +66,7 @@ class split_in_production_lot(osv.osv_memory):
                     quantity_rest -= quantity
                     uos_qty = quantity / move_qty * move.product_uos_qty
                     uos_qty_rest = quantity_rest / move_qty * move.product_uos_qty
-                    if quantity_rest < 0:
+                    if round(quantity_rest,3) < 0:
                         quantity_rest = quantity
                         self.pool.get('stock.move').log(cr, uid, move.id, _('Unable to assign all lots to this move!'))
                         return False
@@ -73,13 +76,13 @@ class split_in_production_lot(osv.osv_memory):
                         'product_uos_qty': uos_qty,
                         'state': move.state
                     }
-                    if quantity_rest > 0:
+                    if round(quantity_rest,3) > 0:
                         current_move = move_obj.copy(cr, uid, move.id, default_val, context=context)
                         if inventory_id and current_move:
                             inventory_obj.write(cr, uid, inventory_id, {'move_ids': [(4, current_move)]}, context=context)
                         new_move.append(current_move)
 
-                    if quantity_rest == 0:
+                    if round(quantity_rest,3) == 0:
                         current_move = move.id
                     prodlot_id = False
                     if data.use_exist:
@@ -93,7 +96,7 @@ class split_in_production_lot(osv.osv_memory):
                     move_obj.write(cr, uid, [current_move], {'prodlot_id': prodlot_id, 'state':move.state})
 
                     update_val = {}
-                    if quantity_rest > 0:
+                    if round(quantity_rest,3) > 0:
                         update_val['product_qty'] = quantity_rest
                         update_val['product_uos_qty'] = uos_qty_rest
                         update_val['state'] = move.state

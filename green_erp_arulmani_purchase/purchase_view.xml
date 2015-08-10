@@ -686,7 +686,7 @@
 					<!--<button name="purchase_head_amendement" states="head" string="Amendement" class="oe_highlight"/>-->
 					<button name="purchase_amendement_head" states="amendement" string="Purchase Head Approval" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin,green_erp_arulmani_purchase.group_vvti_purchase_mgr"/>
 					<button name="purchase_gm_confirmed" states="gm" string="MD Approval" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin"/>
-					<button name="purchase_md_confirmed" attrs="{'invisible':['|',('state','!=','md'),('po_document_type','=','service')]}" string="Create GRN" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin,green_erp_arulmani_purchase.group_vvti_purchase_store_mgr"/>
+					<button name="purchase_md_confirmed" attrs="{'invisible':['|',('state','!=','md'),('po_document_type','=','service')]}" string="Create GRN" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin,green_erp_arulmani_purchase.group_vvti_purchase_store_mgr,green_erp_arulmani_purchase.group_vvti_purchase_store_user"/>
 					<button name="bt_purchase_done" attrs="{'invisible':['|',('state','!=','md'),('po_document_type','!=','service')]}" string="Service Confirm" type='object' class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin,green_erp_arulmani_purchase.group_vvti_purchase_store_mgr,green_erp_arulmani_accounting.group_vvti_accounting_admin,green_erp_arulmani_purchase.group_vvti_purchase_user"/>
 				</xpath>  
 				<xpath expr="//form/header/button[@name='view_picking']" position="attributes">
@@ -824,6 +824,10 @@
 				<xpath expr="//button[@name='action_cancel']" position="attributes">
 					<attribute name='groups'>green_erp_arulmani_purchase.group_vvti_purchase_user</attribute>
 				</xpath>
+				
+				<xpath expr="//field[@name='date_order']" position="attributes">
+					<attribute name='on_change'>onchange_date_order(date_order)</attribute>
+				</xpath> 
 				
 			</field>
 		</record>
@@ -1134,7 +1138,7 @@
 	            	<sheet>
                    	 <group col="4" colspan="2" >
                    	 	<field name="name" />
-						<field name="date_quotation" />
+						<field name="date_quotation" on_change="onchange_date_quotation(date_quotation)"/>
 						<field name="rfq_no_id" domain="[('state','=','done')]" on_change = "onchange_rfq_no_id(rfq_no_id)" options="{'create': false, 'create_edit': false}" />
 						<field name="supplier_id" domain="[('supplier','=',1)]" options="{'create': false, 'create_edit': false}" on_change = "onchange_supplier_location(supplier_id)" context="{'search_supplier_code':1,'rfq_no_id':rfq_no_id}"/>
 						<field name="supplier_name_id"/>
@@ -1236,7 +1240,7 @@
 		                <group > 
 		                	<field name="name"/>
 			                <field name="grn_no_id" on_change = "onchange_grn_no_id(grn_no_id)" context="{'search_grn_no_id':True}" options="{'create': false, 'create_edit': false}"/>
-							<field name="request_date"/>
+							<field name="request_date" on_change="onchange_request_date(request_date)"/>
 						</group>
 						<notebook>
 							<page string="Product Details">
@@ -1591,7 +1595,9 @@
 		                	<field name="name"/>
 		                	<field name="good_id" context="{'search_good_return_request':True}"  on_change = "onchange_good_id(good_id)" options="{'create': false, 'create_edit': false}"  />
 		                	<field name="grn_id"  options="{'create': false, 'create_edit': false}"/>
-		                	<field name="gate_date_time"/>
+		                	<field name="gate_date_time" on_change="onchange_gate_date_time(gate_date_time)"/>
+		                	<field name="header_text"/>
+		                	<field name="invoice_no"/>
 			                <field name="po_id" options="{'create': false, 'create_edit': false}"/>
 			                <field name="supplier_id" domain="[('supplier','=',1)]" options="{'create': false, 'create_edit': false}"/>
 						</group>
@@ -1852,8 +1858,8 @@
 	            </header>   
 	            	<sheet>
 	            		<group col="4" colspan="2">
-	            			<field name="name"/>
-							<field name="rfq_date"/>
+	            			<field name="name"/> 
+							<field name="rfq_date" on_change="onchange_rfq_date(rfq_date)"/>
 							<field name="rfq_category"/>
 							<field name="create_on"/>
 							<field name="expect_quote_date"/>
@@ -2119,7 +2125,7 @@
 							<field name="doc_no"/>
 							<field name="name" domain="[('state','in',['done','partially'])]" on_change="onchange_material(name)" context="{'search_ma_request':1,'request_id':name}" options="{'create': false, 'create_edit': false}" />
 							<field name="date_request" on_change="onchange_date_expect(date_request)" />
-							<field name="date_expec"/>
+							<field name="date_expec" on_change="onchange_date_issue(date_expec)"/>
 							<field name="request_type" />
 							<field name="department_id" options="{'create': false, 'create_edit': false}" />
 							<field name="flag" invisible = '1'/>

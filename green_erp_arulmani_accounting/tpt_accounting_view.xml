@@ -161,10 +161,15 @@
 				
 				<xpath expr="//field[@name='date_invoice']" position="attributes">
 					<attribute name='string'>Posting Date</attribute>
+					<attribute name='required'>1</attribute>
 				</xpath>
 				<xpath expr="//field[@name='date_invoice']" position="after">
 					<field name='bill_number'/>
 					<field name='bill_date'/>
+					<field name='flag_bt_ed' invisible = '1'/>
+				</xpath>
+				<xpath expr="//button[@name='invoice_open']" position="after">
+					 <button name="bt_post_ed" type="object" string="Post ED" attrs="{'invisible':[('flag_bt_ed','=',False)]}" groups="green_erp_arulmani_accounting.group_vvti_accounting_user"/>
 				</xpath>
 				<xpath expr="//field[@name='partner_id']" position="attributes">
 					<attribute name='string'>Vendor</attribute>
@@ -175,7 +180,7 @@
 				</xpath>
 				<xpath expr="//field[@name='date_due']" position="after">
 					<field name="purchase_id" options="{'create': false, 'create_edit': false}"/>
-					<field name="vendor_ref" />
+					<field name="vendor_ref" required='1'/>
 				</xpath>  
 				<xpath expr="//field[@name='account_id']" position="attributes">
 					<attribute name='invisible'>1</attribute>
@@ -198,6 +203,7 @@
 				</xpath>
 				<xpath expr="//page[@string='Invoice']/group/field[@name='amount_tax']" position="after">
 					<field name="fright" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+					<field name="amount_round_off" widget="monetary" options="{'currency_field': 'currency_id'}"/>
 				</xpath>
 				<xpath expr="//page[@string='Invoice']/group/field[@name='residual']" position="attributes">
 					<attribute name='invisible'>1</attribute>
@@ -426,10 +432,11 @@
                               on_change="onchange_partner_id(type,partner_id,date_invoice,payment_term, partner_bank_id,company_id)"
                               context="{'default_customer': 0, 'search_default_supplier': 1, 'default_supplier': 1}"
                               domain="[('supplier', '=', True)]" options="{'create': false, 'create_edit': false}"/>
-                            <field name="vendor_ref"/>
+                            <field name="vendor_ref" required='1'/>
                             <field name="is_tds_applicable" invisible = '1'/>
                             <field name="tds_id" attrs="{'invisible': [('is_tds_applicable','=',False)]}" options="{'create': false, 'create_edit': false}" invisible = '1'/>
                             <field name="create_uid" options="{'create': false, 'create_edit': false}"/>
+                            <field name="cost_center_id" required='1' options="{'create': false, 'create_edit': false}"/>
                             <field name="fiscal_position" widget="selection" invisible = '1'/>
                             <field name="origin" invisible = '1'/>
                             <field name="supplier_invoice_number" invisible = '1'/>
@@ -440,7 +447,7 @@
                             </div>
                         </group>
                         <group>
-                            <field name="date_invoice" string="Posting Date"/>
+                            <field name="date_invoice" string="Posting Date" required='1' on_change="onchange_date_invoice(date_invoice)"/>
                             <field name='bill_number'/>
 							<field name='bill_date'/>
                             <field name="date_due"/>
@@ -500,6 +507,7 @@
                                 <field name="amount_tax" nolabel="1" widget="monetary" options="{'currency_field': 'currency_id'}"/>
                                 <field name="fright" widget="monetary"/>
                                 <field name="amount_total_tds" widget="monetary"/>
+                                <field name="amount_round_off" widget="monetary"/>
                                 <field name="amount_total" class="oe_subtotal_footer_separator" widget="monetary" options="{'currency_field': 'currency_id'}"/>
                                 <field name="amount_total_inr" class="oe_subtotal_footer_separator" widget="monetary" attrs="{'invisible': [('amount_total','=','amount_total_inr')]}"/>
 								<field name="residual" widget="monetary" options="{'currency_field': 'currency_id'}" invisible = '1'/>
@@ -649,10 +657,11 @@
                               on_change="onchange_partner_id(type,partner_id,date_invoice,payment_term, partner_bank_id,company_id)"
                               context="{'default_customer': 0, 'search_default_supplier': 1, 'default_supplier': 1}"
                               domain="[('supplier', '=', True)]" options="{'create': false, 'create_edit': false}"/>
-                            <field name="vendor_ref"/>
+                            <field name="vendor_ref" required='1'/>
                             <field name="is_tds_applicable" invisible = '1'/>
                             <field name="tds_id" attrs="{'invisible': [('is_tds_applicable','=',False)]}" options="{'create': false, 'create_edit': false}" invisible = '1'/>
                             <field name="create_uid" options="{'create': false, 'create_edit': false}"/>
+                            <field name="cost_center_id" required='1' options="{'create': false, 'create_edit': false}"/>
                             <field name="fiscal_position" widget="selection" invisible = '1'/>
                             <field name="origin" invisible = '1'/>
                             <field name="supplier_invoice_number" invisible = '1'/>
@@ -663,7 +672,7 @@
                             </div>
                         </group>
                         <group>
-                            <field name="date_invoice" string="Posting Date"/>
+                            <field name="date_invoice" string="Posting Date" required='1' on_change="onchange_date_invoice(date_invoice)"/>
                             <field name='bill_number'/>
 							<field name='bill_date'/>
                             <field name="date_due"/>
@@ -724,6 +733,7 @@
                                 <field name="amount_tax_credit" widget="monetary"/>
                                 <field name="fright" widget="monetary"/>
                                 <field name="amount_total_tds" widget="monetary"/>
+                                <field name="amount_round_off" widget="monetary"/>
                                 <field name="amount_total" class="oe_subtotal_footer_separator" widget="monetary" options="{'currency_field': 'currency_id'}"/>
                                 <field name="amount_total_inr" class="oe_subtotal_footer_separator" widget="monetary" attrs="{'invisible': [('amount_total','=','amount_total_inr')]}"/>
 								<field name="residual" widget="monetary" options="{'currency_field': 'currency_id'}" invisible = '1'/>
@@ -878,7 +888,7 @@
                               on_change="onchange_partner_id(type,partner_id,date_invoice,payment_term, partner_bank_id,company_id)"
                               context="{'default_customer': 0, 'search_default_supplier': 1, 'default_supplier': 1}"
                               domain="[('supplier', '=', True)]" options="{'create': false, 'create_edit': false}"/>
-                            <field name="vendor_ref"/>
+                            <field name="vendor_ref" required='1'/>
                             <field name="is_tds_applicable" invisible = '1'/>
                             <field name="tds_id" attrs="{'invisible': [('is_tds_applicable','=',False)]}" options="{'create': false, 'create_edit': false}" invisible = '1'/>
                             <field name="create_uid" options="{'create': false, 'create_edit': false}"/>
@@ -892,7 +902,7 @@
                             </div>
                         </group>
                         <group>
-                            <field name="date_invoice" string="Posting Date"/>
+                            <field name="date_invoice" string="Posting Date" required='1' on_change="onchange_date_invoice(date_invoice)"/>
                             <field name='bill_number'/>
 							<field name='bill_date'/>
                             <field name="date_due"/>
@@ -955,6 +965,7 @@
                                 <field name="amount_tax_debit" widget="monetary" invisible = '0' options="{'currency_field': 'currency_id'}"/>
                                 <field name="amount_tax_credit" widget="monetary" invisible = '0' options="{'currency_field': 'currency_id'}"/>
                                 <field name="amount_total_tds_2" widget="monetary" invisible = '0' options="{'currency_field': 'currency_id'}" />
+                                <field name="amount_round_off" widget="monetary"/>
                                 <field name="amount_total" class="oe_subtotal_footer_separator" widget="monetary" options="{'currency_field': 'currency_id'}"/>
 								<field name="residual" widget="monetary" options="{'currency_field': 'currency_id'}" invisible = '1'/>
                                 <field name="reconciled" invisible="1"/>
@@ -1081,18 +1092,18 @@
                   <sheet string="Bank Transaction">
                     <group col="4" colspan="4">
                         <field name="name" string = "Document No" readonly = '1'/>
-                        <field name="date" on_change="onchange_date(date, currency_id, payment_rate_currency_id, amount, company_id)"/>
+                        <field name="date" required='1' on_change="onchange_date(date, currency_id, payment_rate_currency_id, amount, company_id)"/>
                         <field name="journal_id" domain="[('type','=','bank')]" widget="selection" readonly = '1' on_change="onchange_journal_voucher(line_ids, tax_id, amount, partner_id, journal_id, type)" options="{'create': false, 'create_edit': false}"/>
                         <field name="type_trans" required="1"/>
                         <field name="account_id" string = "Bank GL Account" domain = "[('user_type.name','=','Bank')]" options="{'create': false, 'create_edit': false}"/>
                         <field name="company_id" widget="selection" groups="base.group_multi_company"/>
-                        <field name="reference"/>
+                        <field name="reference" required='1'/>
                         <field name="sum_amount"/>
                         <field name="cheque_date"/>
                         <field name="cheque_no"/>
-                        <field name="employee_id" options="{'create': false, 'create_edit': false}" />
+                        <field name="employee_id" required='1' options="{'create': false, 'create_edit': false}" />
                         <field name="cost_center_id" required="1" options="{'create': false, 'create_edit': false}" />
-                        <field name="payee"/>
+                        <field name="payee" required='1'/>
                         <field name="payment_rate_currency_id" invisible="1"/>
                         <field name="partner_id" invisible = '1' on_change="onchange_journal_voucher(line_ids, tax_id, amount, partner_id, journal_id, type)"/>
                     	<field name="type" required="0" invisible = '1'/>
@@ -1112,7 +1123,7 @@
                                 </tree>
                             </field>
                             <group>
-                                <field name="narration" nolabel="1" placeholder="Internal Notes"/>
+                                <field name="narration" required='1' nolabel="1" placeholder="Internal Notes"/>
                                 <group class="oe_subtotal_footer oe_right" attrs="{'invisible':[('type','in',['payment', 'receipt', False])]}">
                                     <field name="tax_id" on_change="onchange_price(line_ids, tax_id, partner_id)" widget="selection" nolabel="1"/>
                                     <field name="tax_amount" nolabel="1"/>
@@ -1215,18 +1226,18 @@
                   <sheet string="Cash Transaction">
                     <group col="4" colspan="4">
                         <field name="name" string = "Document No" readonly = '1'/>
-                        <field name="date" on_change="onchange_date(date, currency_id, payment_rate_currency_id, amount, company_id)"/>
+                        <field name="date" required='1' on_change="onchange_date(date, currency_id, payment_rate_currency_id, amount, company_id)"/>
                         <field name="journal_id" domain="[('type','=','cash')]" widget="selection" readonly = '1' on_change="onchange_journal_voucher(line_ids, tax_id, amount, partner_id, journal_id, type)" options="{'create': false, 'create_edit': false}"/>
                         <field name="type_trans" required="1"/>
                         <field name="account_id" string = "Cash GL Account" domain = "[('user_type.name','=','Cash')]" options="{'create': false, 'create_edit': false}"/>
                         <field name="company_id" widget="selection" groups="base.group_multi_company"/>
-                        <field name="reference"/>
+                        <field name="reference" required='1'/>
                         <field name="sum_amount"/>
                         <field name="cheque_date"/>
                         <field name="cheque_no"/>
                         <field name="employee_id" options="{'create': false, 'create_edit': false}" />
-                        <field name="cost_center_id" required="1" options="{'create': false, 'create_edit': false}" />
-                        <field name="payee"/>
+                        <field name="cost_center_id" options="{'create': false, 'create_edit': false}" />
+                        <field name="payee" required='1'/>
                         <field name="payment_rate_currency_id" invisible="1"/>
                         <field name="partner_id" invisible = '1' on_change="onchange_journal_voucher(line_ids, tax_id, amount, partner_id, journal_id, type)"/>
                     	<field name="type" required="0" invisible = '1'/>
@@ -1656,6 +1667,10 @@
 						<attribute name='invisible'>1</attribute>
 					</xpath>
 					
+					<xpath expr="//field[@name='date']" position="attributes">
+						<attribute name='on_change'>onchange_tpt_date(date)</attribute>
+					</xpath>
+					
                 </data>
 			</field>
 		</record>
@@ -1751,7 +1766,7 @@
                             <field name="partner_id" invisible="1"/>
                         </group>
                         <group>
-                            <field name="ref"/>
+                            <field name="ref" required='1'/>
                             <field name="date"/>
                             <field name="to_check" invisible="1"/>
                             <field name="amount" invisible="1"/>
@@ -1844,7 +1859,7 @@
                                     <field name="reconcile_partial_id"/>
                                 </tree>
                             </field>
-                            <field name="narration" colspan="4" placeholder="Add an internal note..." nolabel="1" height="50"/>
+                            <field name="narration" required='1' colspan="4" placeholder="Add an internal note..." nolabel="1" height="50"/>
                         </page>
                     </notebook>
                     </sheet>
@@ -1906,7 +1921,7 @@
             action="action_move_journal_line_editable"
             id="menu_action_move_journal_line_editable"
             parent="account.menu_configuration_misc"
-            groups="base.group_no_one"
+            groups="base.group_no_one,green_erp_arulmani_accounting.group_vvti_accounting_user"
             sequence="5"/>
 		
 		<record id="view_move_line_tree_inherit" model="ir.ui.view">
@@ -2492,10 +2507,10 @@
             <field name="inherit_id" ref="green_erp_arulmani_hrm.view_tpt_hr_payroll_approve_reject_form_vew"/>
             <field name="arch" type="xml">
             	<xpath expr="//button[@name='reject_payroll']" position="attributes">
-					<attribute name='groups'>green_erp_arulmani_accounting.group_vvti_accounting_gm,green_erp_arulmani_hrm.group_vvti_hrm_gm</attribute>
+					<attribute name='groups'>green_erp_arulmani_accounting.group_vvti_accounting_gm,green_erp_arulmani_hrm.group_vvti_hrm_gm,green_erp_arulmani_accounting.group_vvti_accounting_mgr</attribute>
 				</xpath>
 				<xpath expr="//button[@name='approve_payroll']" position="attributes">
-					<attribute name='groups'>green_erp_arulmani_accounting.group_vvti_accounting_gm,green_erp_arulmani_hrm.group_vvti_hrm_gm</attribute>
+					<attribute name='groups'>green_erp_arulmani_accounting.group_vvti_accounting_gm,green_erp_arulmani_hrm.group_vvti_hrm_gm,green_erp_arulmani_accounting.group_vvti_accounting_mgr</attribute>
 				</xpath>
 		     </field>   
        </record>
@@ -2576,7 +2591,7 @@
 				</xpath>
 				
 				<xpath expr="//button[@name='action_revert_done']" position="attributes">
-					<attribute name='groups'>base.user_root</attribute>
+					<attribute name='groups'>green_erp_arulmani_purchase.group_vvti_purchase_store_mgr</attribute>
 				</xpath>
 				
 				<xpath expr="//button[@name='action_process']" position="attributes">
@@ -2666,7 +2681,60 @@
 							<field name="journal_vouchers"/>
 							<field name="production_declaration"/>
 							<field name="payroll"/>
-s						</group>
+						</group>
+					</sheet>
+		         </form>
+			</field>
+		</record>
+		
+	  <record id="view_tpt_ed_invoice_positing_tree" model="ir.ui.view">
+			<field name="name">tpt.ed.invoice.positing.tree</field>
+			<field name="model">tpt.ed.invoice.positing</field>
+			<field name="arch" type="xml">
+				<tree string="ED Invoice Posting">
+						<field name="name"/>
+						<field name="ed_type"/>
+						<field name="supplier_id" options="{'create': false, 'create_edit': false}" />
+						<field name="date"/>
+						<field name="invoice_id" options="{'create': false, 'create_edit': false}" />
+						<field name="created_on"  />
+						<field name="create_uid" options="{'create': false, 'create_edit': false}" />
+						<field name="state"/>
+				</tree>
+			</field>
+	  </record>
+	  
+	  <record id="view_tpt_ed_invoice_positing_form" model="ir.ui.view">
+            <field name="name">tpt.ed.invoice.positing.form</field>
+            <field name="model">tpt.ed.invoice.positing</field>
+            <field name="arch" type="xml">
+	            <form string="ED Invoice Posting" version="7.0" create = 'false'>   
+	            <header>
+	            		<button name="bt_validate" states='draft' string="Validate" type="object" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin,green_erp_arulmani_purchase.group_vvti_hrm_plant_mm_user"/>
+	                    <field name="state" widget="statusbar" statusbar_visible="draft,posted" statusbar_colors='{"posted":"blue"}'/>
+	            </header> 
+	            	<sheet>
+						<group col="4" colspan="2">
+							<field name="name"/>
+							<field name="ed_type"/>
+							<field name="supplier_id" options="{'create': false, 'create_edit': false}" />
+							<field name="date"/>
+							<field name="invoice_id" options="{'create': false, 'create_edit': false}" />
+							<field name="created_on"  />
+							<field name="create_uid" options="{'create': false, 'create_edit': false}" />
+						</group>
+						<notebook>
+							<page string = "ED Invoice Posting - Line Tab">
+								<field name="tpt_ed_invoice_positing_line" nolabel='1'>
+									<tree editable='bottom' create = 'false'>
+										<field name="gl_account_id" options="{'create': false, 'create_edit': false}" />
+										<field name="gl_desc" />
+										<field name="debit" sum = 'Total'/>
+										<field name="credit" sum = 'Total'/>
+									</tree>
+								</field>
+							</page>
+						</notebook>
 		         	</sheet>
 		         </form>
 			</field>
@@ -2685,6 +2753,46 @@ s						</group>
             id="menu_action_tpt_auto_posting_form_view"
             parent="menu_tpt_accounting" sequence="20"
             groups="base.user_root"/>
+		
+		<record id="action_view_tpt_ed_invoice_positing_form" model="ir.actions.act_window">
+            <field name="name">ED Invoice Posting</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.ed.invoice.positing</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="domain">[]</field>
+            <field name="view_id" ref="view_tpt_ed_invoice_positing_tree"/>
+        </record>
+        <menuitem action="action_view_tpt_ed_invoice_positing_form"
+            id="menu_action_view_tpt_ed_invoice_positing_form"
+            parent="green_erp_arulmani_accounting.menu_tpt_accounting" sequence="10" />
+            
+       	<record id="inher_view_arul_hr_payroll_executions_form_vew" model="ir.ui.view">
+            <field name="name">inher.arul.hr.payroll.executions.form</field>
+            <field name="model">arul.hr.payroll.executions</field>
+            <field name="inherit_id" ref="green_erp_arulmani_hrm.view_arul_hr_payroll_executions_form_vew"/>
+            <field name="arch" type="xml">
+            	<xpath expr="//button[@name='rollback_payroll']" position="attributes">
+					<attribute name='groups'>green_erp_arulmani_hrm.group_vvti_hrm_payroll_controller,green_erp_arulmani_accounting.group_vvti_accounting_mgr</attribute>
+				</xpath>
+				
+				<xpath expr="//button[@name='confirm_payroll']" position="attributes">
+					<attribute name='groups'>green_erp_arulmani_hrm.group_vvti_hrm_payroll_controller,green_erp_arulmani_accounting.group_vvti_accounting_mgr</attribute>
+				</xpath>
+				
+            </field>
+	  </record>
+	  
+	  <record id="inher_view_tpt_purchase_indent_line_form_hod" model="ir.ui.view">
+            <field name="name">inher.tpt.purchase.indent.line.form</field>
+            <field name="model">tpt.purchase.product</field>
+            <field name="inherit_id" ref="green_erp_arulmani_purchase.view_tpt_purchase_indent_line_form_hod"/>
+            <field name="arch" type="xml">
+            	<xpath expr="//button[@name='%(green_erp_arulmani_purchase.action_reject_pur_line_form)d']" position="attributes">
+					<attribute name='groups'>green_erp_arulmani_production.group_vvti_production_mgr</attribute>
+				</xpath>
+            </field>
+	  </record>
 	  
     </data>
 </openerp>

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <openerp>
     <data>
-        <record model="ir.cron" id="auto_account_posting_config">
+        <!--<record model="ir.cron" id="auto_account_posting_config">
 	        <field name="name">Auto Account Posting Configuration</field>
 	        <field name="interval_number">1</field>
 	        <field name="interval_type">days</field>
@@ -10,7 +10,7 @@
 	        <field name="model" eval="'tpt.auto.posting'"/>
 	        <field name="function" eval="'auto_posting'"/>
 	        <field name="args" eval="'()'" />
-        </record>      
+        </record>-->      
         
     </data>
 </openerp>

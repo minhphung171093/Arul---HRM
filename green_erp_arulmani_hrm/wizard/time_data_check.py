@@ -19,7 +19,7 @@ class time_data_check(osv.osv_memory):
                  where  
                 io.a_shift_count1=0 and io.g1_shift_count1 =0 
                 and io.g2_shift_count1 =0  and io.b_shift_count1 =0  and io.c_shift_count1 =0  and 
-                io.total_shift_worked1 =0 and io.total_hours<10    and actual_work_shift_id=
+                io.total_shift_worked1 =0 and io.total_hours<11.20    and actual_work_shift_id=
                 (select id from arul_hr_capture_work_shift where code='A')  )
 
                 '''
@@ -63,7 +63,13 @@ class time_data_check(osv.osv_memory):
                 (select id from arul_hr_capture_work_shift where code='G2')  )
         '''
         cr.execute(sql)
-        
+        sql = '''
+            update arul_hr_permission_onduty set shift_type='G2' where 
+            total_shift_worked=1
+            and EXTRACT(year FROM date) = 2015 AND EXTRACT(month FROM date) = 7
+            and shift_type is null
+        '''
+        cr.execute(sql)
         return {'type': 'ir.actions.act_window_close'}  
         
 time_data_check()

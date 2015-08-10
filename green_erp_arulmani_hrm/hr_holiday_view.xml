@@ -360,9 +360,10 @@
 							<field name="non_availability_type_id" options="{'create': false, 'create_edit': false}"/>
 							<newline/>
 							<field name="date" attrs="{'invisible':[('non_availability_type_id','!=','permission'),('parent_id','=',False)],'required':[('non_availability_type_id','=','permission')]}"/>
+							<field name="perm_out_date" attrs="{'invisible':[('non_availability_type_id','!=','permission'),('parent_id','=',False)]}"/>
 							<field name="from_date" attrs="{'invisible':['|',('non_availability_type_id','!=','on_duty'),('parent_id','!=',False)],'required':[('non_availability_type_id','=','on_duty')]}"/>
 							<field name="to_date" attrs="{'invisible':['|',('non_availability_type_id','!=','on_duty'),('parent_id','!=',False)],'required':[('non_availability_type_id','=','on_duty')]}"/>
-							<field name="duty_location"/>
+							<field name="duty_location" attrs="{'invisible':['|',('non_availability_type_id','!=','on_duty'),('parent_id','!=',False)]}"/>
 							<field name="start_time" widget="float_time"/>
 							<field name="end_time" widget="float_time"/>
 							<field name="time_total" widget="float_time"/>
@@ -524,7 +525,7 @@
 			<field name="name">arul.hr.employee.attendence.details.search</field>
 			<field name="model">arul.hr.employee.attendence.details</field>
 			<field name="arch" type="xml">
-				<search string="Employee Attendence Details">
+				<search string="Employee Attendance Details">
 					<field name="employee_id"/>					
 				</search>
 			</field>
@@ -533,7 +534,7 @@
 			<field name="name">arul.hr.employee.attendence.details.tree</field>
 			<field name="model">arul.hr.employee.attendence.details</field>
 			<field name="arch" type="xml">
-				<tree string="Employee Attendence Details" >
+				<tree string="Employee Attendance Details" >
 						<field name="employee_id" options="{'create': false, 'create_edit': false}"/>
 						<field name="employee_category_id" options="{'create': false, 'create_edit': false}"/>
 						<field name="sub_category_id" options="{'create': false, 'create_edit': false}"/>
@@ -550,7 +551,7 @@
             <field name="name">arul.hr.employee.attendence.details.form</field>
             <field name="model">arul.hr.employee.attendence.details</field>
             <field name="arch" type="xml">
-	            <form string="Employee Attendence Details" version="7.0" create='false' edit='false'>   
+	            <form string="Employee Attendance Details" version="7.0" create='false' edit='false'>   
 	            	<sheet>
 		                <group col='4' colspan='2'>    
 			                <field name="employee_id" context="{'search_employee_id':True}"  on_change="onchange_attendence_datails_employee_id(employee_id)"/>
@@ -634,7 +635,7 @@
 		</record>
           
 		<record id="action_arul_hr_employee_attendence_details_form" model="ir.actions.act_window">
-            <field name="name">Employee Attendence Details</field>
+            <field name="name">Employee Attendance Details</field>
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">arul.hr.employee.attendence.details</field>
             <field name="view_type">form</field>
@@ -754,7 +755,7 @@
 		                    		<tree create='false' edit='false'>
 		                    			<field name="num_of_month" invisible="1"/>
 		                    			<field name="employee_id"/>
-		                    			<field name="day_1"/>
+		                    			<field name="day_1" required='1'/>
 	                    				<field name="day_2"/>
 	                    				<field name="day_3"/>
 	                    				<field name="day_4"/>
@@ -1473,7 +1474,7 @@
 					<field name="payroll_area_id"/>
 					<field name="month"/>
 					<field name="year"/>
-					<field name="state" invisible='1' />
+					<field name="state" />
 					<field name="create_date"/>
 					<field name="create_uid"/>
 				</tree>
@@ -1486,9 +1487,10 @@
             <field name="arch" type="xml">
 	            <form string="Approve Reject Payroll" version="7.0">  
 	            <header>
-	            	<field name="state" widget="statusbar" invisible='1' statusbar_visible="draft,done" statusbar_colors='{"draft":"blue","done":"blue"}'/>
-	                <button name="submit_evaluate" string="Submit" type="object" class="oe_highlight" groups="green_erp_arulmani_hrm.group_vvti_hrm_hr_user,green_erp_arulmani_hrm.group_vvti_hrm_time_user"/>
+	                <button name="submit_evaluate" string="Submit" attrs="{'invisible':[('state','=','done')]}" type="object" class="oe_highlight" groups="green_erp_arulmani_hrm.group_vvti_hrm_hr_user,green_erp_arulmani_hrm.group_vvti_hrm_time_user"/>
+	                <button name="tpt_submit_evaluate" string="Date Range Submit" attrs="{'invisible':[('state','=','done')]}" type="object" class="oe_highlight" groups="green_erp_arulmani_hrm.group_vvti_hrm_hr_user,green_erp_arulmani_hrm.group_vvti_hrm_time_user"/>
 	                <button name="bt_confirm" state='draft' string="Confirmation" type="object" class="oe_highlight" attrs="{'invisible':[('state','=','done')]}" groups="green_erp_arulmani_hrm.group_vvti_hrm_hr_user,green_erp_arulmani_hrm.group_vvti_hrm_time_user"/>
+	            	<field name="state" widget="statusbar" invisible='0' statusbar_visible="draft,done" statusbar_colors='{"draft":"blue","done":"red"}'/>
 	            </header>    
 	            <sheet>
 		           <group col = '4' colspan = '2'>    
@@ -1497,6 +1499,7 @@
 						<field name="year"/>
 						<field name="create_date"/>
 						<field name="create_uid"/>
+						<field name="state"/>
 		           </group> 
 		           <group col = '4' colspan = '2' string="Time Evaluation Report">    
 						<field name="shift_time_id" editable="top" nolabel="1">

@@ -541,6 +541,8 @@ class stock_movement_analysis(osv.osv_memory):
             date_from = o.date_from
             categ = o.categ_id.cate_name
             opening_stock_value = 0
+            production_value = 0
+            product = self.pool.get('product.product').browse(cr,uid,product_id)
             if categ=='raw':
                 parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
                 locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw Material','Raw Materials','Raw material']),('location_id','=',parent_ids[0])])
@@ -569,7 +571,19 @@ class stock_movement_analysis(osv.osv_memory):
                 '''%(locat_ids[0],product_id,date_from)
                 cr.execute(sql)
                 product_isu_qty = cr.fetchone()[0]
-                opening_stock_value = total_cost-(product_isu_qty)
+                
+                if product.default_code == 'M0501060001':
+                   sql = '''
+                       select case when sum(st.price_unit*st.product_qty)!=0 then sum(st.price_unit*st.product_qty) else 0 end total_cost
+                        from stock_move st
+                        where st.state='done' and st.location_id=%s and st.product_id=%s and to_char(date, 'YYYY-MM-DD')<'%s'
+                        and issue_id is null and picking_id is null and inspec_id is null 
+                        and id in (select move_id from mrp_production_move_ids)
+                            
+                   '''%(locat_ids[0],product.id,date_from)
+                   cr.execute(sql)
+                   production_value = cr.fetchone()[0]
+                opening_stock_value = total_cost-(product_isu_qty)-production_value
             if categ =='spares':
                 parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
                 locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Spares','Spare','spares']),('location_id','=',parent_ids[0])])            
@@ -598,7 +612,18 @@ class stock_movement_analysis(osv.osv_memory):
                 '''%(locat_ids[0],product_id,date_from)
                 cr.execute(sql)
                 product_isu_qty = cr.fetchone()[0]
-                opening_stock_value = total_cost-(product_isu_qty)
+                if product.default_code == 'M0501060001':
+                   sql = '''
+                       select case when sum(st.price_unit*st.product_qty)!=0 then sum(st.price_unit*st.product_qty) else 0 end total_cost
+                        from stock_move st
+                        where st.state='done' and st.location_id=%s and st.product_id=%s and to_char(date, 'YYYY-MM-DD')<'%s'
+                        and issue_id is null and picking_id is null and inspec_id is null 
+                        and id in (select move_id from mrp_production_move_ids)
+                            
+                   '''%(locat_ids[0],product.id,date_from)
+                   cr.execute(sql)
+                   production_value = cr.fetchone()[0]
+                opening_stock_value = total_cost-(product_isu_qty)-production_value
             return opening_stock_value    
         
         def get_closing_stock(o, receipt,consum,opening):
@@ -615,11 +640,15 @@ class stock_movement_analysis(osv.osv_memory):
             parent_ids_spares = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
             locat_ids_spares = self.pool.get('stock.location').search(cr, uid, [('name','in',['Spares','Spare','spares']),('location_id','=',parent_ids_spares[0])])
             sql = '''
-                select * from account_move where doc_type in ('freight', 'good', 'grn') 
+                select * from account_move where doc_type in ('good', 'grn', 'product') 
+                    and date between '%(date_from)s' and '%(date_to)s'
                     and ( id in (select move_id from account_move_line where (move_id in (select move_id from account_invoice where to_char(date_invoice, 'YYYY-MM-DD') between '%(date_from)s' and '%(date_to)s' and id in (select invoice_id from account_invoice_line where product_id=%(product_id)s)))
                         or (LEFT(name,17) in (select name from stock_picking where id in (select picking_id from stock_move where to_char(date, 'YYYY-MM-DD') between '%(date_from)s' and '%(date_to)s' and product_id=%(product_id)s)))
                     ) or material_issue_id in (select id from tpt_material_issue where date_expec between '%(date_from)s' and '%(date_to)s' and warehouse in (%(location_row_id)s,%(location_spare_id)s) and id in (select material_issue_id from tpt_material_issue_line where product_id=%(product_id)s)) 
-                        ) order by date, doc_type desc, id
+                        )
+                        or product_dec in (select id from mrp_production where date_planned between '%(date_from)s' and '%(date_to)s' and id in (select production_id from mrp_production_move_ids where move_id in (select id from stock_move where product_id = %(product_id)s and location_id in (%(location_row_id)s,%(location_spare_id)s) ))
+                         )
+                         order by date,doc_type = 'grn' desc, doc_type = 'good' desc, doc_type = 'product' desc, id
             '''%{'date_from':date_from,
                  'date_to':date_to,
                  'product_id':product_id.id,
@@ -653,6 +682,8 @@ class stock_movement_analysis(osv.osv_memory):
                                     move_sql2 = cr.fetchall()
                                     if move_sql2:
                                         move_line.append(line)
+                elif line['doc_type'] == 'product' and product_id.code == 'M0501060001':
+                    move_line.append(line)
                 else:
                     move_line.append(line)
             return move_line 
@@ -683,7 +714,7 @@ class stock_movement_analysis(osv.osv_memory):
                     name = qty['name']
             return name
         
-        def get_transaction_qty(o, move_id, material_issue_id, move_type, product_id):
+        def get_transaction_qty(o, move_id, material_issue_id, product_dec, move_type, product_id):
             date_from = o.date_from
             date_to = o.date_to
             categ = product_id.categ_id.cate_name
@@ -694,6 +725,12 @@ class stock_movement_analysis(osv.osv_memory):
                 locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw Material','Raw Materials','Raw material']),('location_id','=',parent_ids[0])])
                 if move_type == 'freight':
                     quantity = 0
+                if move_type == 'product':
+                    production_id = self.pool.get('mrp.production').browse(cr,uid,product_dec)
+                    for line in production_id.move_lines2:
+                        if line.product_id.id == product_id.id:
+                            quantity += line.product_qty
+                    quantity = -quantity
                 if move_type == 'good':
                     sql = '''
                         select case when sum(-1*product_isu_qty)!=0 then sum(-1*product_isu_qty) else 0 end product_isu_qty, product_id from tpt_material_issue_line
@@ -736,6 +773,12 @@ class stock_movement_analysis(osv.osv_memory):
                 locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Spares','Spare','spares']),('location_id','=',parent_ids[0])])
                 if move_type == 'freight':
                     quantity = 0
+                if move_type == 'product':
+                    production_id = self.pool.get('mrp.production').browse(cr,uid,product_dec)
+                    for line in production_id.move_lines2:
+                        if line.product_id.id == product_id.id:
+                            quantity += line.product_qty
+                    quantity = -quantity
                 if move_type == 'good':
                     sql = '''
                         select case when sum(-1*product_isu_qty)!=0 then sum(-1*product_isu_qty) else 0 end product_isu_qty, product_id from tpt_material_issue_line
@@ -968,12 +1011,13 @@ class stock_movement_analysis(osv.osv_memory):
             stock_in_out_line = []
             good = 0
             current = 0
+            product = 0
             for seq, phuoc in enumerate(get_detail_lines(stock, line)):
-                trans_qty = get_transaction_qty(stock,phuoc['id'], phuoc['material_issue_id'], phuoc['doc_type'], line)
+                trans_qty = get_transaction_qty(stock,phuoc['id'], phuoc['material_issue_id'], phuoc['product_dec'], phuoc['doc_type'], line)
                 if phuoc['doc_type']=='good':
                     qty = 0
                     value = 0
-                    opening_stock = get_opening_stock(stock,line.id)
+                    opening_stock = get_opening_stock(stock,line.id)-get_qty_opening_chuaro(stock, line.id)
                     opening_stock_value = get_opening_stock_value(stock,line.id)
                     for l in stock_in_out_line:
                         qty += l[2]['transaction_quantity'] 
@@ -984,6 +1028,20 @@ class stock_movement_analysis(osv.osv_memory):
                         st = (qty+opening_stock) and cur/(qty+opening_stock) or 0
                     st_value = (st)*(trans_qty)
                     good += (-st_value)
+                elif phuoc['doc_type']=='product':
+                    qty = 0
+                    value = 0
+                    opening_stock = get_opening_stock(stock,line.id)-get_qty_opening_chuaro(stock, line.id)
+                    opening_stock_value = get_opening_stock_value(stock,line.id)
+                    for l in stock_in_out_line:
+                        qty += l[2]['transaction_quantity'] 
+                        value += l[2]['stock_value']
+                    if seq == 0:
+                        st = (qty+opening_stock) and (value+opening_stock_value)/(qty+opening_stock) or 0
+                    else:
+                        st = (qty+opening_stock) and cur/(qty+opening_stock) or 0
+                    st_value = (st)*(trans_qty)
+                    product += (-st_value)
                 else:
                     st_value = stock_value(line, phuoc['id'], phuoc['doc_type'])
                 self.st_sum_value += st_value
@@ -1008,13 +1066,13 @@ class stock_movement_analysis(osv.osv_memory):
                 'open_value': get_opening_stock_value(stock,line.id),
                 'receipt_qty':get_qty(stock,line.id),
                 'receipt_value':get_receipt_value(stock,line.id),
-                'consum_qty':get_qty_out(stock,line.id) ,
+                'consum_qty':get_qty_out(stock,line.id) + get_qty_chuaro(stock,line.id),
 #phuoc grn                'consum_value': (get_qty(stock,line.id)*get_qty_out(stock,line.id)) and (get_receipt_value(stock,line.id)/get_qty(stock,line.id)*get_qty_out(stock,line.id)) or 0,
 #                 'consum_value':(get_opening_stock(stock,line.id)+get_qty(stock,line.id)) and ((get_receipt_value(stock,line.id)+get_opening_stock_value(stock,line.id))/(get_opening_stock(stock,line.id)+get_qty(stock,line.id))*get_qty_out(stock,line.id)) or 0 ,    
-                'consum_value': good , 
-                'close_stock':get_qty(stock,line.id) - get_qty_out(stock,line.id) + (get_opening_stock(stock,line.id)-get_qty_opening_chuaro(stock, line.id)) - get_qty_chuaro(stock,line.id),
+                'consum_value': good + product , 
+                'close_stock':get_qty(stock,line.id) - (get_qty_out(stock,line.id) + get_qty_chuaro(stock,line.id)) + (get_opening_stock(stock,line.id)-get_qty_opening_chuaro(stock, line.id)) ,
 #phuoc grn                'close_value': get_opening_stock_value(stock,line.id)+get_receipt_value(stock,line.id)-(get_qty(stock,line.id) and (get_receipt_value(stock,line.id)/get_qty(stock,line.id)*get_qty_out(stock,line.id)) or 0)
-                'close_value': get_opening_stock_value(stock,line.id)+get_receipt_value(stock,line.id)-(good),   
+                'close_value': get_opening_stock_value(stock,line.id)+get_receipt_value(stock,line.id)-(good)-product,   
             
             }))
         vals = {

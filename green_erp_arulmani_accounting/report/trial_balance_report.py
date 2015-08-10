@@ -42,8 +42,8 @@ class Parser(report_sxw.rml_parse):
         self.sum_credit = 0.00
         self.result_acc = []
         self.localcontext.update({
-            'sum_debit':self._sum_debit,
-            'sum_credit':self._sum_credit,
+            #'sum_debit':self._sum_debit, #YuVi
+            #'sum_credit':self._sum_credit, #YuVi
             'lines': self.lines,
             'get_account':self.get_account,
             'get_account_name':self.get_account_name,
@@ -150,7 +150,9 @@ class Parser(report_sxw.rml_parse):
     def lines(self,ids):
         done = {}
         state = ''
-        def _process_child(accounts, disp_acc, parent, date, state, context=None):
+        def _process_child(accounts, disp_acc, parent, from_date, to_date, state, context=None):
+            open_sumdebit = 0 #YuVi
+            open_sumcredit = 0 #YuVi
             sumdebit = 0
             sumcredit = 0
             if context is None:
@@ -163,30 +165,68 @@ class Parser(report_sxw.rml_parse):
 #                 account_obj = self.pool.get('account.account')
             child_ids = self.pool.get('account.account')._get_children_and_consol(self.cr, self.uid, [account_rec['id']], context=context)
 #                 strdate =  date[:4] + '-' + date[5:7] + '-' + date[8:10]
+
             if child_ids:
                 acc_ids = str(child_ids).replace("[","(")
                 acc_ids = str(acc_ids).replace("]",")")
-                sql = ''' 
-                    select case when sum(debit)!=0 then sum(debit) else 0 end sumdebit 
-                    from account_move_line where account_id in %s and date < '%s' 
-                        and move_id in (select id from account_move where state in %s) 
-                '''%(acc_ids,date,state)
-                self.cr.execute(sql)
-#                 self.cr.execute('''
+                #YuVi@ Code commented on 24/07/15, closing balance issue
+#                 sql = ''' 
 #                     select case when sum(debit)!=0 then sum(debit) else 0 end sumdebit 
-#                     from account_move_line where account_id in %s and date < '%s'
-#                         ''',(tuple(child_ids),strdate),)
-                sumdebit = self.cr.fetchone()[0]
-                
-#                 self.cr.execute('''
+#                     from account_move_line where account_id in %s and date < '%s' 
+#                         and move_id in (select id from account_move where state in %s) 
+#                 '''%(acc_ids,date,state)
+#                 self.cr.execute(sql)
+# #                 self.cr.execute('''
+# #                     select case when sum(debit)!=0 then sum(debit) else 0 end sumdebit 
+# #                     from account_move_line where account_id in %s and date < '%s'
+# #                         ''',(tuple(child_ids),strdate),)
+#                 sumdebit = self.cr.fetchone()[0]
+#                 
+# #                 self.cr.execute('''
+# #                     select case when sum(credit)!=0 then sum(debit) else 0 end sumcredit 
+# #                     from account_move_line where account_id in %s and date < '%s'
+# #                         ''',(tuple(child_ids),strdate),)
+#                 sql = ''' 
 #                     select case when sum(credit)!=0 then sum(debit) else 0 end sumcredit 
 #                     from account_move_line where account_id in %s and date < '%s'
-#                         ''',(tuple(child_ids),strdate),)
+#                         and move_id in (select id from account_move where state in %s) 
+#                 '''%(acc_ids,date,state)
+#                 self.cr.execute(sql)
+#                 sumcredit = self.cr.fetchone()[0]
+                
                 sql = ''' 
-                    select case when sum(credit)!=0 then sum(debit) else 0 end sumcredit 
-                    from account_move_line where account_id in %s and date < '%s'
-                        and move_id in (select id from account_move where state in %s) 
-                '''%(acc_ids,date,state)
+                    select case when sum(aml.debit)!=0 then sum(aml.debit) else 0 end open_sumdebit
+                    from account_move_line aml
+                    join account_move am on (am.id=aml.move_id)
+                    where aml.account_id in %s and aml.date < '%s'and am.state in %s 
+                '''%(acc_ids,from_date,state)               
+                self.cr.execute(sql)
+                open_sumdebit = self.cr.fetchone()[0]
+ 
+                sql = ''' 
+                    select case when sum(aml.credit)!=0 then sum(aml.credit) else 0 end open_sumcredit
+                    from account_move_line aml
+                    join account_move am on (am.id=aml.move_id)
+                    where aml.account_id in %s and aml.date < '%s'and am.state in %s 
+                '''%(acc_ids,from_date,state)
+                self.cr.execute(sql)
+                open_sumcredit = self.cr.fetchone()[0]
+                
+                sql = ''' 
+                    select case when sum(aml.debit)!=0 then sum(aml.debit) else 0 end sumdebit
+                    from account_move_line aml
+                    join account_move am on (am.id=aml.move_id)
+                    where aml.account_id in %s and aml.date between '%s' and '%s' and am.state in %s 
+                '''%(acc_ids,from_date,to_date,state)
+                self.cr.execute(sql)
+                sumdebit = self.cr.fetchone()[0]
+                
+                sql = ''' 
+                    select case when sum(aml.credit)!=0 then sum(aml.credit) else 0 end sumcredit
+                    from account_move_line aml
+                    join account_move am on (am.id=aml.move_id)
+                    where aml.account_id in %s and aml.date between '%s' and '%s' and am.state in %s 
+                '''%(acc_ids,from_date,to_date,state)
                 self.cr.execute(sql)
                 sumcredit = self.cr.fetchone()[0]
             
@@ -196,16 +236,19 @@ class Parser(report_sxw.rml_parse):
                 'code': account_rec['code'],
                 'name': account_rec['name'],
                 'level': account_rec['level'],
-                'open_debit': sumdebit,
-                'open_credit': sumcredit,
-                'debit': account_rec['debit'],
-                'credit': account_rec['credit'],
-                'balance': account_rec['balance'],
+                'open_debit': open_sumdebit,
+                'open_credit': open_sumcredit,
+                #'debit': account_rec['debit'],
+                'debit': sumdebit, #YuVi
+                #'credit': account_rec['credit'],
+                'credit': sumcredit, #YuVi
+                #'balance': account_rec['balance'],
+                'balance': (open_sumdebit+sumdebit)-(open_sumcredit+sumcredit), #YuVi
                 'parent_id': account_rec['parent_id'],
                 'bal_type': '',
             }
-            self.sum_debit += account_rec['debit']
-            self.sum_credit += account_rec['credit']
+            #self.sum_debit += account_rec['debit'] #YuVi
+            #self.sum_credit += account_rec['credit'] #YuVi
             if disp_acc == 'movement':
                 if not currency_obj.is_zero(self.cr, self.uid, currency, res['credit']) or not currency_obj.is_zero(self.cr, self.uid, currency, res['debit']) or not currency_obj.is_zero(self.cr, self.uid, currency, res['balance']):
                     self.result_acc.append(res)
@@ -216,7 +259,7 @@ class Parser(report_sxw.rml_parse):
                 self.result_acc.append(res)
             if account_rec['child_id']:
                 for child in account_rec['child_id']:
-                    _process_child(accounts,disp_acc,child,date,state,context=context)
+                    _process_child(accounts,disp_acc,child,from_date,to_date,state,context=context) #YuVi
 
         obj_account = self.pool.get('account.account')
         if not ids:
@@ -253,7 +296,7 @@ class Parser(report_sxw.rml_parse):
                 if parent in done:
                     continue
                 done[parent] = 1
-                _process_child(accounts,form['display_account'],parent,ctx['date_from'], state, ctx)
+                _process_child(accounts,form['display_account'],parent,ctx['date_from'],ctx['date_to'], state, ctx) #YuVi
         return self.result_acc
     
     

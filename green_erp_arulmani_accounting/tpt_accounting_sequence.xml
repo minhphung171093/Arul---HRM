@@ -188,6 +188,21 @@
             <field name="implementation">no_gap</field>
         </record>
         
+<!-- ED Invoice Positing -->
+        <record id="tpt_sequence_ed_invoice_positing" model="ir.sequence.type">
+            <field name="name">ED Invoice Positing</field>
+            <field name="code">tpt.ed.invoice.positing.import</field>
+        </record>
+        
+        <record id="tpt_sequence_ed_invoice_positing_item" model="ir.sequence">
+            <field name="name">ED Invoice Positing</field>
+            <field name="code">tpt.ed.invoice.positing.import</field>
+            <field name="prefix">ED/</field>
+            <field name="padding">7</field>
+            <field name="number_next_actual">1</field>
+            <field name="implementation">no_gap</field>
+        </record>
+        
               
 	</data>
 </openerp>

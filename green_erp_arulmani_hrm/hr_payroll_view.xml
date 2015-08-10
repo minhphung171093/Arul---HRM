@@ -223,9 +223,9 @@
 			                />
 			                <newline/>
 							<field name="employee_category_id" on_change="onchange_employee_category_id(employee_category_id,sub_category_id)" 
-							attrs="{'readonly':[('flag','=',False)]}" options="{'create': true, 'create_edit': true}"							
+							attrs="{'readonly':[('flag','=',True)]}" options="{'create': true, 'create_edit': true}"							
 							/>
-							<field name="sub_category_id" attrs="{'readonly':[('flag','=',False)]}" domain="[('category_id','=',employee_category_id)]" options="{'create': true, 'create_edit': true}"/>
+							<field name="sub_category_id" attrs="{'readonly':[('flag','=',True)]}" domain="[('category_id','=',employee_category_id)]" options="{'create': true, 'create_edit': true}"/>
 
 							<field name ="create_date"/>
 							<field name ="write_date"/>
@@ -403,6 +403,7 @@
 				<tree string="Approve Reject Payroll">
 					<field name="year"/>
 					<field name="month"/>
+					<field name="post_date" />
 					<field name="create_date"/>
 					<field name="create_uid"/>
 					<field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","done":"blue"}'/>
@@ -424,6 +425,7 @@
 		           <group col = '4' colspan = '2'>    
 						<field name="year" />
 						<field name="month" />
+						<field name="post_date" />
 						<field name="create_date"/>
 						<field name="create_uid"/>
 		           </group> 
@@ -627,7 +629,122 @@
             id="menu_action_arul_hr_payroll_structure_configuration_form"
             parent="menu_hr_payroll_management" sequence="6"/>
 
+         <!-- TPT-START -->   
+         <record id="view_tpt_hr_ptax_tree_vew" model="ir.ui.view">
+			<field name="name">tpt.hr.ptax.tree</field>
+			<field name="model">tpt.hr.ptax</field>
+			<field name="arch" type="xml">
+				<tree string="Proffesional Tax">	
+					<field name="name" />	
+					<field name="from_date" />	
+					<field name="to_date" />		
+				</tree>
+			</field>
+	   </record>
+	   
+	   <record id="view_tpt_hr_ptax_form_vew" model="ir.ui.view">
+            <field name="name">tpt.hr.ptax.form</field>
+            <field name="model">tpt.hr.ptax</field>
+            <field name="arch" type="xml">
+	            <form string="PTax " version="7.0">  
+	            <sheet>
+		           <group col='4' colspan='2'>
+		           		<field name="name" readonly='1' />
+		           </group>
+		           		<group col='4' colspan='2' string="PTax Period">
+						<field name="from_date" required='1'/>
+						<field name="to_date" required='1'/>
+		            </group>
+					<group col='4' colspan='2' string="Effective Payroll Executions Period">
+						<field name="month" required='1'/>
+						<field name="year" />
+		            </group>	
+					
+					<group col='4' colspan='2'>
+					<field name ="create_date"/>
+                	<field name ="create_uid"/>
+                	 </group>
+		           <notebook>
+							<page string = "PTax Slab">
+								<field name="ptax_line" nolabel='1'>
+									<tree editable='top'>
+										<field name="slab_id" />
+										<field name="ptax_amt" />
+									</tree>
+								</field>
+							</page>
+				   </notebook>
+				</sheet>
+		        </form>
+		     </field>   
+       </record>
+       
+       <record id="action_tpt_hr_ptax_form" model="ir.actions.act_window">
+            <field name="name">Professional Tax</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.hr.ptax</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_tpt_hr_ptax_tree_vew"/> 
+        </record>       
+       
             
+       <menuitem action="action_tpt_hr_ptax_form"
+            id="menu_action_tpt_hr_ptax_form"
+            parent="menu_hr_payroll_management" sequence="92"/>   
+            <!--  -->
+            <record id="view_tpt_hr_ptax_slab_tree_vew" model="ir.ui.view">
+			<field name="name">tpt.hr.ptax.slab.tree</field>
+			<field name="model">tpt.hr.ptax.slab</field>
+			<field name="arch" type="xml">
+				<tree string="Proffesional Tax Slab">	
+					<field name="name" />	
+					<field name="from_range" />
+					<field name="to_range" />
+					<field name ="create_date"/>
+                	<field name ="create_uid"/>
+				</tree>
+			</field>
+	   </record>
+	   
+	   <record id="view_tpt_hr_ptax_slab_form_vew" model="ir.ui.view">
+            <field name="name">tpt.hr.ptax.slab.form</field>
+            <field name="model">tpt.hr.ptax.slab</field>
+            <field name="arch" type="xml">
+	            <form string="PTax Slab Range" version="7.0">   
+	            <sheet>
+		           <group col='4' colspan='2' string="PTax Range">
+						<field name="from_range" required='1'/>
+						<field name="to_range" required='1'/>
+						<field name="is_active" />
+		            </group>	
+		            <group col='4' colspan='2' string="PTax Amount">
+						<field name="ptax_amt" />
+		            </group>	
+					<newline/>
+					<group col='4' colspan='2' >
+						<field name ="create_date"/>
+	                	<field name ="create_uid"/>
+                	 </group>	
+				</sheet>
+		        </form>
+		     </field>   
+       </record>
+       
+       <record id="action_tpt_hr_ptax_slab_form" model="ir.actions.act_window">
+            <field name="name">PTax Slab Range</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.hr.ptax.slab</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_tpt_hr_ptax_slab_tree_vew"/> 
+        </record>       
+       
+            
+       <menuitem action="action_tpt_hr_ptax_slab_form"
+            id="menu_action_tpt_hr_ptax_slab_form"
+            parent="menu_hr_payroll_management" sequence="93"/>  
+         <!-- TPT-END -->
     </data>
     
 </openerp>

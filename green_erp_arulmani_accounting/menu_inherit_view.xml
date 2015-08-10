@@ -498,7 +498,8 @@
 		<record model="ir.ui.menu" id="green_erp_arulmani_accounting.menu_action_batch_wise_stock_view">
 		    <field name="groups_id" eval="[(6, 0, [ref('group_vvti_accounting_user'),
 		    									ref('green_erp_arulmani_sale.group_vvti_sale_user'),
-		    									ref('green_erp_arulmani_sale.group_vvti_marketing_user')])]" />
+		    									ref('green_erp_arulmani_sale.group_vvti_marketing_user'),
+		    									ref('green_erp_arulmani_production.group_vvti_production_user')])]" />
 		</record>
 		
 		<record model="ir.ui.menu" id="green_erp_arulmani_crm.menu_list_employee_report">
@@ -510,6 +511,10 @@
 		    <field name="groups_id" eval="[(6, 0, [ref('green_erp_arulmani_hrm.group_vvti_hrm_hr_user'),
 		    									ref('green_erp_arulmani_hrm.group_vvti_hrm_time_user'),
 		    									ref('green_erp_arulmani_hrm.group_vvti_hrm_payroll_controller')])]" />
+		</record>
+		
+		<record model="ir.ui.menu" id="green_erp_arulmani_hrm.menu_action_arul_hr_payroll_executions_form">
+		    <field name="groups_id" eval="[(4, ref('green_erp_arulmani_accounting.group_vvti_accounting_mgr'))]" />
 		</record>
 		
     </data>

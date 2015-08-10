@@ -167,9 +167,11 @@ class account_balance_report(osv.osv_memory):
             done = {}
             state = ''
             result_acc = []
-            def _process_child(accounts, disp_acc, parent, date, state, context=None):
+            def _process_child(accounts, disp_acc, parent, from_date,to_date, state, context=None): #YuVi
                 sumdebit = 0
                 sumcredit = 0
+                open_sumdebit = 0 #Yuvi
+                open_sumcredit = 0 #Yuvi
                 if context is None:
                     context = {}
                 account_rec = [acct for acct in accounts if acct['id']==parent][0]
@@ -183,29 +185,80 @@ class account_balance_report(osv.osv_memory):
                 if child_ids:
                     acc_ids = str(child_ids).replace("[","(")
                     acc_ids = str(acc_ids).replace("]",")")
+                    
                     sql = ''' 
-                        select case when sum(debit)!=0 then sum(debit) else 0 end sumdebit 
-                        from account_move_line where account_id in %s and date < '%s' 
-                            and move_id in (select id from account_move where state in %s) 
-                    '''%(acc_ids,date,state)
+                        select case when sum(aml.debit)!=0 then sum(aml.debit) else 0 end open_sumdebit
+                        from account_move_line aml
+                        join account_move am on (am.id=aml.move_id)
+                        where aml.account_id in %s and aml.date < '%s'and am.state in %s 
+                    '''%(acc_ids,from_date,state)
                     cr.execute(sql)
     #                 self.cr.execute('''
     #                     select case when sum(debit)!=0 then sum(debit) else 0 end sumdebit 
     #                     from account_move_line where account_id in %s and date < '%s'
     #                         ''',(tuple(child_ids),strdate),)
-                    sumdebit = cr.fetchone()[0]
+                    open_sumdebit = cr.fetchone()[0]
+                    
+                    sql = ''' 
+                        select case when sum(aml.credit)!=0 then sum(aml.credit) else 0 end open_sumcredit
+                        from account_move_line aml
+                        join account_move am on (am.id=aml.move_id)
+                        where aml.account_id in %s and aml.date < '%s'and am.state in %s 
+                    '''%(acc_ids,from_date,state)
+                    cr.execute(sql)
+   
+                    open_sumcredit = cr.fetchone()[0]
                     
     #                 self.cr.execute('''
     #                     select case when sum(credit)!=0 then sum(debit) else 0 end sumcredit 
     #                     from account_move_line where account_id in %s and date < '%s'
     #                         ''',(tuple(child_ids),strdate),)
                     sql = ''' 
-                        select case when sum(credit)!=0 then sum(debit) else 0 end sumcredit 
-                        from account_move_line where account_id in %s and date < '%s'
-                            and move_id in (select id from account_move where state in %s) 
-                    '''%(acc_ids,date,state)
+                         select case when sum(aml.debit)!=0 then sum(aml.debit) else 0 end sumdebit
+                        from account_move_line aml
+                        join account_move am on (am.id=aml.move_id)
+                        where aml.account_id in %s and aml.date between '%s' and '%s' and am.state in %s 
+                    '''%(acc_ids,from_date,to_date,state)
+                    cr.execute(sql)
+                    sumdebit = cr.fetchone()[0]
+                    
+                    sql = ''' 
+                         select case when sum(aml.credit)!=0 then sum(aml.credit) else 0 end sumcredit
+                        from account_move_line aml
+                        join account_move am on (am.id=aml.move_id)
+                        where aml.account_id in %s and aml.date between '%s' and '%s' and am.state in %s 
+                    '''%(acc_ids,from_date,to_date,state)
                     cr.execute(sql)
                     sumcredit = cr.fetchone()[0]
+                    #TPT-Code commented for closing balance                
+    #===========================================================================
+    #                 
+    #                 sql = ''' 
+    #                     select case when sum(debit)!=0 then sum(debit) else 0 end sumdebit 
+    #                     from account_move_line where account_id in %s and date < '%s' 
+    #                         and move_id in (select id from account_move where state in %s) 
+    #                 '''%(acc_ids,date,state)
+    #                 cr.execute(sql)
+    # #                 self.cr.execute('''
+    # #                     select case when sum(debit)!=0 then sum(debit) else 0 end sumdebit 
+    # #                     from account_move_line where account_id in %s and date < '%s'
+    # #                         ''',(tuple(child_ids),strdate),)
+    #                 sumdebit = cr.fetchone()[0]
+    #                 
+    # #                 self.cr.execute('''
+    # #                     select case when sum(credit)!=0 then sum(debit) else 0 end sumcredit 
+    # #                     from account_move_line where account_id in %s and date < '%s'
+    # #                         ''',(tuple(child_ids),strdate),)
+    #                 sql = ''' 
+    #                     select case when sum(credit)!=0 then sum(debit) else 0 end sumcredit 
+    #                     from account_move_line where account_id in %s and date < '%s'
+    #                         and move_id in (select id from account_move where state in %s) 
+    #                 '''%(acc_ids,date,state)
+    #                 cr.execute(sql)
+    #                 sumcredit = cr.fetchone()[0]
+    #===========================================================================
+    
+                    
                 
                 res = {
                     'id': account_rec['id'],
@@ -213,11 +266,11 @@ class account_balance_report(osv.osv_memory):
                     'code': account_rec['code'],
                     'name': account_rec['name'],
                     'level': account_rec['level'],
-                    'open_debit': sumdebit,
-                    'open_credit': sumcredit,
-                    'debit': account_rec['debit'],
-                    'credit': account_rec['credit'],
-                    'balance': account_rec['balance'],
+                    'open_debit': open_sumdebit, # YuVi
+                    'open_credit': open_sumcredit, # YuVi
+                    'debit': sumdebit,  # YuVi
+                    'credit': sumcredit, # YuVi
+                    'balance': (open_sumdebit+sumdebit)-(open_sumcredit+sumcredit), # YuVi
                     'parent_id': account_rec['parent_id'],
                     'bal_type': '',
                 }
@@ -233,7 +286,7 @@ class account_balance_report(osv.osv_memory):
                     result_acc.append(res)
                 if account_rec['child_id']:
                     for child in account_rec['child_id']:
-                        _process_child(accounts,disp_acc,child,date,state,context=context)
+                        _process_child(accounts,disp_acc,child,from_date,to_date,state,context=context) #YuVi
     
             obj_account = self.pool.get('account.account')
 #             if not ids:
@@ -270,7 +323,7 @@ class account_balance_report(osv.osv_memory):
                     if parent in done:
                         continue
                     done[parent] = 1
-                    _process_child(accounts,o.display_account,parent,ctx['date_from'], state, ctx)
+                    _process_child(accounts,o.display_account,parent,ctx['date_from'],ctx['date_to'],state, ctx)
             return result_acc
     
         cr.execute('delete from tpt_account_balance_report')

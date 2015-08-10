@@ -42,6 +42,9 @@
         'wizard/input_register_form_view.xml',
         'wizard/review_posting_view.xml',
         'wizard/account_report_common_view.xml',
+        'wizard/service_tax_register_view.xml',
+        'wizard/ed_type_pop_up_view.xml',
+        'wizard/daywise_consumption_view.xml',#TPT-P
         'tpt_accounting_sequence.xml',
         'auto_posting_schedule.xml',
         'report/daily_sale_report_view.xml',
@@ -56,6 +59,8 @@
         'report/input_register_report_view.xml',
         'report/trial_balance_report_view.xml',
         'report/tds_for_view.xml',
+        'report/service_tax_report_view.xml',
+        'report/daywise_consumption_for_report_view.xml',#TPT-P
         'import_view.xml',
         'accounting_data.xml',
         'tpt_accounting_view.xml',

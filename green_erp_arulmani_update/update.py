@@ -1986,6 +1986,9 @@ class tpt_update_stock_move_report(osv.osv):
         amount_ed=0.0
         amount_fright=0.0
         line_net = 0.0
+        base = 0.0
+        tax_debit_amount = 0.0
+        tax_credit_amount = 0.0
         account_inv_obj = self.pool.get('account.invoice.line')
         sql='''
             select id from account_invoice_line
@@ -2023,7 +2026,25 @@ class tpt_update_stock_move_report(osv.osv):
                 tax_amounts = [r.amount for r in line.invoice_line_tax_id]
                 for tax in tax_amounts:
                     amount_total_tax += tax/100
+                ###
+                amount_total_tax = (amount_basic + amount_p_f + amount_ed)*(amount_total_tax)
+                ###
                 line_net = amount_total_tax+amount_fright+amount_ed+amount_p_f+amount_basic+line.aed_id_1
+                
+                ###
+                if line.invoice_id.sup_inv_id and line.invoice_id.type=='in_invoice':
+                    if line.fright_fi_type == '2':
+                        base = line.fright
+                        tax_debit_amount = base*(line.tax_id and line.tax_id.amount/100 or 0)
+                        tax_credit_amount = base*(line.tax_credit and line.tax_credit.amount/100 or 0)
+#                         tax_tds_amount = base*(line.tds_id_2 and line.tds_id_2.amount/100 or 0)
+                    else:
+                        base = line.fright*line.quantity
+                        tax_debit_amount = base*(line.tax_id and line.tax_id.amount/100 or 0)
+                        tax_credit_amount = base*(line.tax_credit and line.tax_credit.amount/100 or 0)
+#                         tax_tds_amount = base*(line.tds_id_2 and line.tds_id_2.amount/100 or 0)
+                    line_net = base+tax_debit_amount-tax_credit_amount
+                ###
                 
                 sql = '''
                     update account_invoice_line set line_net = %s where id = %s
@@ -2379,7 +2400,8 @@ class tpt_update_stock_move_report(osv.osv):
     
     def create_one_issue_one_posting(self, cr, uid, ids, context=None):
         sql = '''
-            select id from tpt_material_issue where state = 'done' and id not in (select material_issue_id from account_move where doc_type='good' and material_issue_id is not null) limit 500
+            select id from tpt_material_issue where state = 'done' and id not in (select material_issue_id from account_move where doc_type='good' and material_issue_id is not null) 
+            limit 500
         '''
         cr.execute(sql)
         issue_ids = [r[0] for r in cr.fetchall()]
@@ -2395,56 +2417,54 @@ class tpt_update_stock_move_report(osv.osv):
             cr.execute(sql)
             journal_ids = [r[0] for r in cr.fetchall()]
             sql = '''
-                select id from account_period where '%s' between date_start and date_stop
+                select id from account_period where '%s' between date_start and date_stop and special is False
             '''%(date_period)
             cr.execute(sql)
             period_ids = [r[0] for r in cr.fetchall()]
              
             if not period_ids:
                 raise osv.except_osv(_('Warning!'),_('Period is not null, please configure it in Period master !'))
-            for period_id in self.pool.get('account.period').browse(cr,uid,period_ids):
-                
-                for mater in line.material_issue_line:
-    #                 price += mater.product_id.standard_price * mater.product_isu_qty
-                    acc_expense = mater.product_id and mater.product_id.property_account_expense and mater.product_id.property_account_expense.id or False
-                    acc_asset = mater.product_id and mater.product_id.product_asset_acc_id and mater.product_id.product_asset_acc_id.id or False
-                    if not acc_expense or not acc_asset:
-                        raise osv.except_osv(_('Warning!'),_('Please configure Expense Account and Product Asset Account for all materials!'))
-                    avg_cost_ids = self.pool.get('tpt.product.avg.cost').search(cr, uid, [('product_id','=',mater.product_id.id),('warehouse_id','=',line.warehouse.id)])
-                    unit = 1
-                    if avg_cost_ids:
-                        avg_cost_id = self.pool.get('tpt.product.avg.cost').browse(cr, uid, avg_cost_ids[0])
-                        unit = avg_cost_id.avg_cost or 0
-                    sql = '''
-                        select price_unit from stock_move where product_id=%s and product_qty=%s and issue_id=%s
-                    '''%(mater.product_id.id,mater.product_isu_qty,mater.material_issue_id.id)
-                    cr.execute(sql)
-                    move_price = cr.fetchone()
-                    if move_price and move_price[0] and move_price[0]>0:
-                        unit=move_price[0]
-                    if not unit or unit<0:
-                        unit=1
+            for mater in line.material_issue_line:
+#                 price += mater.product_id.standard_price * mater.product_isu_qty
+                acc_expense = mater.product_id and mater.product_id.property_account_expense and mater.product_id.property_account_expense.id or False
+                acc_asset = mater.product_id and mater.product_id.product_asset_acc_id and mater.product_id.product_asset_acc_id.id or False
+                if not acc_expense or not acc_asset:
+                    raise osv.except_osv(_('Warning!'),_('Please configure Expense Account and Product Asset Account for all materials!'))
+                avg_cost_ids = self.pool.get('tpt.product.avg.cost').search(cr, uid, [('product_id','=',mater.product_id.id),('warehouse_id','=',line.warehouse.id)])
+                unit = 1
+                if avg_cost_ids:
+                    avg_cost_id = self.pool.get('tpt.product.avg.cost').browse(cr, uid, avg_cost_ids[0])
+                    unit = avg_cost_id.avg_cost or 0
+                sql = '''
+                    select price_unit from stock_move where product_id=%s and product_qty=%s and issue_id=%s
+                '''%(mater.product_id.id,mater.product_isu_qty,mater.material_issue_id.id)
+                cr.execute(sql)
+                move_price = cr.fetchone()
+                if move_price and move_price[0] and move_price[0]>0:
+                    unit=move_price[0]
+                if not unit or unit<0:
+                    unit=1
 #                     price += unit * mater.product_isu_qty
-                    product_price = unit * mater.product_isu_qty
-                    
-                    journal_line.append((0,0,{
-                                            'name':line.doc_no + ' - ' + mater.product_id.name, 
-                                            'account_id': acc_asset,
-                                            'debit':0,
-                                            'credit':product_price,
-                                            'product_id':mater.product_id.id,
-                                             
-                                           }))
-                    journal_line.append((0,0,{
-                                'name':line.doc_no + ' - ' + mater.product_id.name, 
-                                'account_id': acc_expense,
-                                'credit':0,
-                                'debit':product_price,
-                                'product_id':mater.product_id.id,
-                            }))
+                product_price = unit * mater.product_isu_qty
+                
+                journal_line.append((0,0,{
+                                        'name':line.doc_no + ' - ' + mater.product_id.name, 
+                                        'account_id': acc_asset,
+                                        'debit':0,
+                                        'credit':product_price,
+                                        'product_id':mater.product_id.id,
+                                         
+                                       }))
+                journal_line.append((0,0,{
+                            'name':line.doc_no + ' - ' + mater.product_id.name, 
+                            'account_id': acc_expense,
+                            'credit':0,
+                            'debit':product_price,
+                            'product_id':mater.product_id.id,
+                        }))
             value={
                     'journal_id':journal_ids[0],
-                    'period_id':period_id.id ,
+                    'period_id':period_ids[0] ,
                     'ref': line.doc_no,
                     'date': date_period,
                     'material_issue_id': line.id,
@@ -2456,7 +2476,78 @@ class tpt_update_stock_move_report(osv.osv):
             dem+=1
         return self.write(cr, uid, ids, {'result':'create_one_issue_one_posting Remaining'})    
     
-               
+    def update_invoice_do_sale_blanket(self, cr, uid, ids, context=None):
+        sql = '''
+            update account_invoice set partner_id=4968,commercial_partner_id=4968 where id=1200;
+            update account_invoice_line set partner_id=4968 where invoice_id=1200;
+            
+            update account_move set partner_id=4968  where id in (select move_id from account_invoice where id=1200);
+            update account_move_line set partner_id=4968 where move_id in (select move_id from account_invoice where id=1200);
+            
+            update stock_picking set partner_id=4968 where id in (select delivery_order_id from account_invoice where id=1200);
+            update stock_move set partner_id=4968 where picking_id in (select delivery_order_id from account_invoice where id=1200);
+            
+            update account_move set partner_id=4968 where id in (select move_id from account_move_line where name=(select name from stock_picking where id in (select delivery_order_id from account_invoice where id=1200)));
+            update account_move_line set partner_id=4968 where name=(select name from stock_picking where id in (select delivery_order_id from account_invoice where id=1200));
+            
+            update sale_order set partner_id=4968,partner_invoice_id=4968,partner_shipping_id=4968 where id in (select sale_id from stock_picking where id in (select delivery_order_id from account_invoice where id=1200));
+            update sale_order_line set order_partner_id=4968 where order_id in (select id from sale_order where id in (select sale_id from stock_picking where id in (select delivery_order_id from account_invoice where id=1200)));
+            update tpt_blanket_order set customer_id=4968 where id in (select blanket_id from sale_order where id in (select sale_id from stock_picking where id in (select delivery_order_id from account_invoice where id=1200)));
+        '''
+        cr.execute(sql)
+        return self.write(cr, uid, ids, {'result':'update_invoice_do_sale_blanket Done'})
+    
+    def config_GRN_2183(self, cr, uid, ids, context=None):
+        invoice_obj = self.pool.get('account.invoice')
+        inspec_obj = self.pool.get('tpt.quanlity.inspection')
+        picking_obj = self.pool.get('stock.picking')
+        move_obj = self.pool.get('account.move')
+        sql = '''
+            select id from stock_picking where name = 'VVTi/GRN/00002183'
+        '''
+        cr.execute(sql)
+        num = cr.fetchone()[0]
+        if num:
+            sql='''
+                select id from account_invoice where grn_no = %s
+            '''%(num)
+            cr.execute(sql)
+            inv_id = cr.fetchone()[0]
+            invoice_id = invoice_obj.browse(cr, uid, inv_id)
+            move_obj.button_cancel(cr, uid, [invoice_id.move_id.id])
+            cr.execute(''' delete from account_move_line where move_id = %s''',(invoice_id.move_id.id,))
+            cr.execute(''' delete from account_invoice_line where invoice_id = %s''',(invoice_id.id,))
+            cr.execute(''' delete from account_invoice where id = %s''',(invoice_id.id,))
+            cr.execute(''' delete from account_move where id = %s''',(invoice_id.move_id.id,))
+            
+            sql = '''
+                delete from account_move_line where left(name,17)=(select name from stock_picking where id = %s)
+            '''%(num)
+            cr.execute(sql)
+            sql = '''
+                delete from account_move where ref = 'VVTi/GRN/00002183'
+            '''
+            cr.execute(sql)
+            sql='''
+                select id from tpt_quanlity_inspection where need_inspec_id in (select id from stock_move where picking_id = %s)
+            '''%(num)
+            cr.execute(sql)
+            inspec_ids = [row[0] for row in cr.fetchall()]
+            if inspec_ids:
+                for move in inspec_ids:
+                    sql='''
+                        select id from stock_move where inspec_id = %s
+                    '''%(move)
+                    cr.execute(sql)
+                    move_ids = [row[0] for row in cr.fetchall()]
+                    if move_ids:
+                        cr.execute('delete from stock_move where id in %s',(tuple(move_ids),))
+                cr.execute('delete from tpt_quanlity_inspection where id in %s',(tuple(inspec_ids),))
+            cr.execute(''' update stock_picking set invoice_state ='2binvoiced' where id = %s''',(num,))
+            picking_obj.action_revert_done(cr, uid, [num], context)
+
+        
+        return self.write(cr, uid, ids, {'result':'config_GRN_2183 Done'})    
     
     def update_price_unit_from_quanlity_inspection(self, cr, uid, ids, context=None):
         sql = '''
@@ -2510,15 +2601,15 @@ class tpt_update_stock_move_report(osv.osv):
                         where st.state='done' and st.product_id=%s
                             and st.location_dest_id != st.location_id
                             and  (action_taken = 'direct'
-                            or inspec_id is not null 
+                            or (inspec_id is not null and location_dest_id = %s)
                             or issue_id is not null
-                            or (st.id in (select move_id from stock_inventory_move_rel))
+                            or (id in (select move_id from stock_inventory_move_rel where inventory_id != 173))
                             and id not in (select id
                                 from stock_move where product_id = %s and state = 'done' and issue_id is null 
                                 and picking_id is null and inspec_id is null and location_id = %s 
                                 and location_id != location_dest_id)
                     )order by to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD'), inspec_id, picking_id, issue_id
-            '''%(product_id.id, product_id.id, locat_ids[0])
+            '''%(product_id.id, locat_ids[0], product_id.id, locat_ids[0])
             cr.execute(sql)
             for move in cr.dictfetchall():
                 if move['issue_id']:
@@ -2548,6 +2639,84 @@ class tpt_update_stock_move_report(osv.osv):
                     
                         
         return self.write(cr, uid, ids, {'result':'update_price_unit_for_good_issue Done'})  
+    
+    def update_price_unit_for_production_COAL(self, cr, uid, ids, context=None):
+        if context is None:
+            context = {}
+        
+#         inout_obj = self.pool.get('stock.inward.outward.report')
+#         inout_id = inout_obj.create(cr, uid, {'product_id':10756,'date_from':'2015-01-01','date_to':'2015-12-31'})
+#         context.update({'update_price_unit_for_production_COAL':True})
+#         inout_val = inout_obj.print_report(cr, uid, [inout_id], context)
+#         print inout_val
+        
+        stock_move = []
+        parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+        locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw Material','Raw Materials','Raw material']),('location_id','=',parent_ids[0])])
+        sql = '''
+            select id, inspec_id, picking_id, issue_id, product_qty, price_unit, location_id, product_id, date
+                        from stock_move
+                        where state='done' and product_id in (select id from product_product where default_code = 'M0501060001')
+                            and location_dest_id != location_id
+                            and  (action_taken = 'direct'
+                            or (inspec_id is not null and location_dest_id = %s)
+                            or issue_id is not null
+                            or (id in (select move_id from stock_inventory_move_rel where inventory_id != 173))
+                            or (location_id = %s and id in (select move_id from mrp_production_move_ids))
+                    )order by to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD'), inspec_id, picking_id, issue_id
+        '''%(locat_ids[0], locat_ids[0])
+        cr.execute(sql)
+        for move in cr.dictfetchall():
+            if move['issue_id']:
+                qty = 0
+                value = 0
+                for line in stock_move:
+                    qty += line[2]['quantity'] 
+                    value += line[2]['price']
+                price = qty and value/qty or 0
+                sql = '''
+                    update stock_move set price_unit = %s where id = %s
+                '''%(price, move['id'])
+                cr.execute(sql)
+                stock_move.append((0,0,{
+                                        'quantity': -move['product_qty'],
+                                        'price': -(move['product_qty']*price),
+                                        }))
+            elif not move['issue_id'] and not move['picking_id'] and not move['inspec_id'] and move['location_id'] == locat_ids[0]:
+                qty = 0
+                value = 0
+                for line in stock_move:
+                    qty += line[2]['quantity'] 
+                    value += line[2]['price']
+                price = qty and value/qty or 0
+                sql = '''
+                    update stock_move set price_unit = %s where id = %s
+                '''%(price, move['id'])
+                cr.execute(sql)
+                stock_move.append((0,0,{
+                                        'quantity': -move['product_qty'],
+                                        'price': -(move['product_qty']*price),
+                                        }))
+            else:
+                stock_move.append((0,0,{
+                                        'quantity': move['product_qty'],
+                                        'price': move['product_qty']*move['price_unit'],
+                                        }))
+#             sql = '''
+#                    select case when sum(line_net)!=0 then sum(line_net) else 0 end line_net, product_id from account_invoice_line 
+#                    where product_id = %s and invoice_id in (select id from account_invoice where date_invoice = '%s' and sup_inv_id is not null)
+#                    group by product_id
+#                '''%(move['product_id'], move['date'])
+#             cr.execute(sql)
+#             for inventory in cr.dictfetchall():
+#                 freight_cost = inventory['line_net'] or 0
+#             if freight_cost:
+#                 stock_move.append((0,0,{
+#                                         'quantity': 0,
+#                                         'price': freight_cost,
+#                                         }))
+            
+        return self.write(cr, uid, ids, {'result':'update_price_unit_for_production_COAL Done'}) 
     
     def update_issue_line_for_request_6000028 (self, cr, uid, ids, context=None):
         sql = '''
@@ -2713,6 +2882,518 @@ class tpt_update_stock_move_report(osv.osv):
             print 'Phuoc: ',dem, new_jour_id
             dem+=1
         return self.write(cr, uid, ids, {'result':'create_posting_6000028 Done'})   
+    
+    def delete_issue_1000750(self, cr, uid, ids, context=None):
+        sql = '''
+            delete from account_move_line where move_id in (select id from account_move 
+            where material_issue_id in (select id from tpt_material_issue where doc_no in ('1000750/2015'))) 
+        '''
+        cr.execute(sql)
+        sql = '''
+            delete from account_move 
+            where material_issue_id in (select id from tpt_material_issue where doc_no in ('1000750/2015'))
+        '''
+        cr.execute(sql)
+        sql = '''
+            delete from stock_move where issue_id in (select id from tpt_material_issue where doc_no in ('1000750/2015'))
+        '''
+        cr.execute(sql)
+        sql = '''
+            delete from tpt_material_issue_line 
+            where material_issue_id in (select id from tpt_material_issue where doc_no in ('1000750/2015'))
+        '''
+        cr.execute(sql)
+        sql = '''
+            delete from tpt_material_issue where doc_no in ('1000750/2015')
+        '''
+        cr.execute(sql)
+        return self.write(cr, uid, ids, {'result':'delete_issue_1000750 Done'}) 
+    
+    def update_grn_stockmove_qty_for_may(self, cr, uid, ids, context=None):
+        sql = '''
+            delete from stock_move where id = 37688
+        '''
+        cr.execute(sql)
+        sql = '''
+            delete from stock_inventory_move_rel where move_id = 37688 and inventory_id = 173
+        '''
+        cr.execute(sql)
+        return self.write(cr, uid, ids, {'result':'update_grn_stockmove_qty_33.34_for_may Done'}) 
+    
+    def update_SULPHURIC_ACID_for_june(self, cr, uid, ids, context=None):
+        sql = '''
+            delete from stock_inventory_move_rel where move_id = 37599 and inventory_id = 173
+        '''
+        cr.execute(sql)
+        
+        sql = '''
+            delete from stock_move where id = 37599
+        '''
+        cr.execute(sql)
+        
+        return self.write(cr, uid, ids, {'result':'update SULPHURIC ACID qty 10.025 for June Done'}) 
+    
+    def update_PP_HDPE_for_june(self, cr, uid, ids, context=None):
+        sql = '''
+            delete from stock_inventory_move_rel where inventory_id in (165,166,175,177)
+        '''
+        cr.execute(sql)
+        
+        sql = '''
+            delete from stock_move where id in (34593, 34811, 39229, 39540)
+        '''
+        cr.execute(sql)
+        
+        sql = '''
+            delete from stock_inventory where id in (165,166,175,177)
+        '''
+        cr.execute(sql)
+        
+        return self.write(cr, uid, ids, {'result':'update PP/HDPE for June Done'}) 
+    
+    def delete_account_move_production(self, cr, uid, ids, context=None):
+        sql = '''
+            delete from account_move_line where move_id in (select id from account_move where doc_type = 'product')
+        '''
+        cr.execute(sql)
+        
+        sql = '''
+            delete from account_move where doc_type = 'product'
+        '''
+        cr.execute(sql)
+        
+        return self.write(cr, uid, ids, {'result':'delete_account_move_production Done'}) 
+    
+    def delete_account_move_production(self, cr, uid, ids, context=None):
+        sql = '''
+            delete from account_move_line where move_id in (select id from account_move where doc_type = 'product')
+        '''
+        cr.execute(sql)
+        
+        sql = '''
+            delete from account_move where doc_type = 'product'
+        '''
+        cr.execute(sql)
+        
+        return self.write(cr, uid, ids, {'result':'delete_account_move_production Done'}) 
+    
+    def create_one_production_one_posting(self, cr, uid, ids, context=None):
+        production_obj = self.pool.get('mrp.production')
+        account_move_obj = self.pool.get('account.move')
+        period_obj = self.pool.get('account.period')
+        journal_obj = self.pool.get('account.journal')
+        avg_cost_obj = self.pool.get('tpt.product.avg.cost')
+        journal_line = []
+        credit = 0
+        price = 0
+        sql = '''
+            select id from mrp_production where state = 'done' and id not in (select product_dec from account_move where doc_type = 'product' and product_dec is not null) limit 150
+        '''
+        cr.execute(sql)
+        production_ids = [r[0] for r in cr.fetchall()]
+        dem = 1
+        if not production_ids:
+            self.write(cr, uid, ids, {'result':'create_one_production_one_posting Done'}) 
+        for line in production_obj.browse(cr,uid,production_ids):
+            sql = '''
+                    select id from account_journal
+            '''
+            cr.execute(sql)
+            journal_ids = [r[0] for r in cr.fetchall()]
+            date_period = line.date_planned,
+            sql = '''
+                select id from account_period where '%s' between date_start and date_stop and special is False
+            '''%(date_period)
+            cr.execute(sql)
+            period_ids = [r[0] for r in cr.fetchall()]
+            
+            if not period_ids:
+                raise osv.except_osv(_('Warning!'),_('Period is not null, please configure it in Period master !'))
+        
+            if line.state=='done':
+                for mat in line.move_lines2:
+                    cost = mat.price_unit * mat.product_qty
+                    price += cost
+                    if cost:
+                        if mat.product_id.purchase_acc_id:
+                            journal_line.append((0,0,{
+                                            'name':mat.product_id.code, 
+                                            'account_id': mat.product_id.purchase_acc_id and mat.product_id.purchase_acc_id.id,
+                                            'debit':cost,
+                                            'credit':0,
+                                           }))
+                        else:
+                            raise osv.except_osv(_('Warning!'),_("Purchase GL Account is not configured for Product '%s'! Please configured it!")%(mat.product_id.code))
+                for act in line.bom_id.activities_line:
+                    if act.activities_id.act_acc_id:
+                        credit += act.product_cost
+                        journal_line.append((0,0,{
+                                                'name':act.activities_id.code, 
+                                                'account_id': act.activities_id.act_acc_id and act.activities_id.act_acc_id.id,
+                                                'debit':act.product_cost or 0,
+                                                'credit':0,
+                                               }))
+                    else:
+                        raise osv.except_osv(_('Warning!'),_("Activity Account is not configured for Activity '%s'! Please configured it!")%(act.activities_id.code))
+                credit += price
+                if credit:
+                    if line.product_id.product_asset_acc_id:
+                        journal_line.append((0,0,{
+                                                'name':line.product_id.code, 
+                                                'account_id': line.product_id.product_asset_acc_id and line.product_id.product_asset_acc_id.id,
+                                                'debit': 0,
+                                                'credit':credit ,
+                                               }))
+                    else:
+                        raise osv.except_osv(_('Warning!'),_("Product Asset Account is not configured for Product '%s'! Please configured it!")%(line.product_id.code))
+            value={
+                        'journal_id':journal_ids[0],
+                        'period_id':period_ids[0] ,
+                        'doc_type':'product',
+                        'date': line.date_planned,
+                        'line_id': journal_line,
+                        'product_dec': line.id,
+                        'ref': line.name,
+                    }
+            new_jour_id = account_move_obj.create(cr,uid,value)
+            print 'Phuoc: ', dem, line.id
+            dem += 1
+            sql = '''
+                update mrp_production set produce_cost = %s where id=%s 
+            '''%(credit,line.id)
+            cr.execute(sql)
+        return self.write(cr, uid, ids, {'result':'create_one_production_one_posting Remaining'}) 
+    
+    def update_date_between_production_and_stockmove(self, cr, uid, ids, context=None):
+        sql = '''
+            select production_id from mrp_production_move_ids where production_id is not null
+        '''
+        cr.execute(sql)
+        production_ids = cr.fetchall()
+        cr.execute("select id, date_planned from mrp_production where id in %s",(tuple(production_ids),))
+        for production in cr.dictfetchall():
+            sql = '''
+                update stock_move set date = '%s' where id in (select move_id from mrp_production_move_ids where production_id = %s)
+            '''%(production['date_planned'], production['id'])
+            cr.execute(sql)
+        return self.write(cr, uid, ids, {'result':'update_date_between_production_and_stockmove Done'})  
+    
+    def update_date_between_freight_and_accountmove(self, cr, uid, ids, context=None):
+        sql = '''
+            update account_move set date = (select date_invoice from account_invoice where move_id = account_move.id and sup_inv_id is not null) where doc_type = 'freight'
+        '''
+        cr.execute(sql)
+        return self.write(cr, uid, ids, {'result':'update_date_between_freight_and_accountmove Done'})  
+    
+    def config_GRN_1155(self, cr, uid, ids, context=None):
+        invoice_obj = self.pool.get('account.invoice')
+        inspec_obj = self.pool.get('tpt.quanlity.inspection')
+        picking_obj = self.pool.get('stock.picking')
+        move_obj = self.pool.get('account.move')
+        sql = '''
+            select id from stock_picking where name = 'VVTi/GRN/00001155'
+        '''
+        cr.execute(sql)
+        num = cr.fetchone()[0]
+        if num:
+            sql='''
+                select id from account_invoice where grn_no = %s
+            '''%(num)
+            cr.execute(sql)
+            inv_id = cr.fetchone()[0]
+            invoice_id = invoice_obj.browse(cr, uid, inv_id)
+            move_obj.button_cancel(cr, uid, [invoice_id.move_id.id])
+            cr.execute(''' delete from account_move_line where move_id = %s''',(invoice_id.move_id.id,))
+            cr.execute(''' delete from account_invoice_line where invoice_id = %s''',(invoice_id.id,))
+            cr.execute(''' delete from account_invoice where id = %s''',(invoice_id.id,))
+            cr.execute(''' delete from account_move where id = %s''',(invoice_id.move_id.id,))
+            
+            sql = '''
+                delete from account_move_line where left(name,17)=(select name from stock_picking where id = %s)
+            '''%(num)
+            cr.execute(sql)
+            sql = '''
+                delete from account_move where ref = 'VVTi/GRN/00001155'
+            '''
+            cr.execute(sql)
+            sql='''
+                select id from tpt_quanlity_inspection where need_inspec_id in (select id from stock_move where picking_id = %s)
+            '''%(num)
+            cr.execute(sql)
+            inspec_ids = [row[0] for row in cr.fetchall()]
+            if inspec_ids:
+                for move in inspec_ids:
+                    sql='''
+                        select id from stock_move where inspec_id = %s
+                    '''%(move)
+                    cr.execute(sql)
+                    move_ids = [row[0] for row in cr.fetchall()]
+                    if move_ids:
+                        cr.execute('delete from stock_move where id in %s',(tuple(move_ids),))
+                cr.execute('delete from tpt_quanlity_inspection where id in %s',(tuple(inspec_ids),))
+            cr.execute(''' update stock_picking set invoice_state ='2binvoiced' where id = %s''',(num,))
+            picking_obj.action_revert_done(cr, uid, [num], context)
+            picking_obj.action_cancel(cr, uid, [num], context)
+
+        
+        return self.write(cr, uid, ids, {'result':'config_GRN_1155 Done'})  
+    
+    def update_SULPHURIC_ACID_2_for_june(self, cr, uid, ids, context=None):
+#         sql = '''select * from stock_inventory_move_rel where move_id in (select id from stock_move where product_id = 10749 and product_qty = 6) 
+#             and inventory_id in (select id from stock_inventory where name = 'TPT Update Stock Move')
+#             '''
+#         cr.execute(sql)
+        
+        sql = '''
+            delete from stock_inventory_move_rel where move_id = 37683 and inventory_id = 173
+        '''
+        cr.execute(sql)
+        
+        sql = '''
+            delete from stock_move where id = 37683
+        '''
+        cr.execute(sql)
+        
+        sql = '''
+            update tpt_quanlity_inspection set qty_approve = 16.025, remaining_qty = 0 where id = 1558 
+        '''
+        cr.execute(sql)
+        
+        return self.write(cr, uid, ids, {'result':'update SULPHURIC ACID qty 6.00 for June Done'}) 
+    
+    def update_all_grn_posting(self, cr, uid, ids, context=None):
+        sql = '''
+            delete from account_move where doc_type = 'grn'
+        '''
+        cr.execute(sql)
+        
+        return self.write(cr, uid, ids, {'result':'update all GRN posting Done'}) 
+    
+    def create_all_grn_posting(self, cr, uid, ids, context=None):
+        picking_obj = self.pool.get('stock.picking')
+        account_move_obj = self.pool.get('account.move')
+        period_obj = self.pool.get('account.period')
+        sql = '''
+            select id from stock_picking where type = 'in' and state = 'done' 
+                and id not in (select grn_id from account_move where doc_type='grn' and grn_id is not null) limit 500
+        '''
+        cr.execute(sql)
+        picking_ids = [r[0] for r in cr.fetchall()]
+        if not picking_ids:
+            return self.write(cr, uid, ids, {'result':'Create all GRN posting Done'}) 
+        for line in picking_obj.browse(cr,uid,picking_ids):
+            debit = 0.0
+            credit = 0.0
+            journal_line = []
+            for move in line.move_lines:
+                amount = move.purchase_line_id.price_unit * move.product_qty
+                debit += amount - (amount*move.purchase_line_id.discount)/100
+            date_period = line.date,
+            sql = '''
+                select id from account_period where special = False and '%s' between date_start and date_stop and special is False
+             
+            '''%(date_period)
+            cr.execute(sql)
+            period_ids = [r[0] for r in cr.fetchall()]
+            if not period_ids:
+                raise osv.except_osv(_('Warning!'),_('Period is not null, please configure it in Period master !'))
+             
+            sql_journal = '''
+            select id from account_journal
+            '''
+            cr.execute(sql_journal)
+            journal_ids = [r[0] for r in cr.fetchall()]
+            journal = self.pool.get('account.journal').browse(cr,uid,journal_ids[0])
+            for p in line.move_lines:
+                amount_cer = p.purchase_line_id.price_unit * p.product_qty
+                credit = amount_cer - (amount_cer*p.purchase_line_id.discount)/100
+                debit = amount_cer - (amount_cer*p.purchase_line_id.discount)/100
+                if not p.product_id.product_asset_acc_id:
+                    raise osv.except_osv(_('Warning!'),_('You need to define Product Asset GL Account for this product'))
+                journal_line.append((0,0,{
+                    'name':line.name + ' - ' + p.product_id.name, 
+                    'account_id': p.product_id.product_asset_acc_id and p.product_id.product_asset_acc_id.id,
+                    'partner_id': line.partner_id and line.partner_id.id or False,
+                    'credit':0,
+                    'debit':debit,
+                    'product_id':p.product_id.id,
+                }))
+                
+                if not p.product_id.purchase_acc_id:
+                    raise osv.except_osv(_('Warning!'),_('You need to define Purchase GL Account for this product'))
+                journal_line.append((0,0,{
+                    'name':line.name + ' - ' + p.product_id.name, 
+                    'account_id': p.product_id.purchase_acc_id and p.product_id.purchase_acc_id.id,
+                    'partner_id': line.partner_id and line.partner_id.id or False,
+                    'credit':credit,
+                    'debit':0,
+                    'product_id':p.product_id.id,
+                }))
+                 
+            value={
+                'journal_id':journal.id,
+                'period_id':period_ids[0] ,
+                'date': date_period,
+                'line_id': journal_line,
+                'doc_type':'grn',
+                'grn_id':line.id,
+                'ref': line.name,
+                }
+            new_jour_id = account_move_obj.create(cr,uid,value)
+        return self.write(cr, uid, ids, {'result':'Create all GRN posting Remaining'}) 
+    def update_all_do_posting(self, cr, uid, ids, context=None):
+        sql = '''
+            delete from account_move where doc_type = 'do'
+        '''
+        cr.execute(sql)
+        
+        return self.write(cr, uid, ids, {'result':'update all DO posting Done'}) 
+    def get_pro_account_id(self,cr,uid,name,channel):
+        account = False
+        account_obj = self.pool.get('account.account')
+        if name and channel:
+            product_name = name.strip()
+            dis_channel = channel.strip()
+            account_ids = []
+            if dis_channel in ['VVTi Domestic','VVTI Domestic']:
+                if product_name in ['TITANIUM DIOXIDE-ANATASE','TiO2','M0501010001']:
+                    account_ids = account_obj.search(cr, uid, [('code','=','0000810001')])
+                if product_name in ['FERROUS SULPHATE','FSH','M0501010002']:
+                    account_ids = account_obj.search(cr, uid, [('code','=','0000810031')])
+            if dis_channel in ['VVTi Direct Export','VVTI Direct Export']:
+                if product_name in ['TITANIUM DIOXIDE-ANATASE','TiO2','M0501010001']:
+                    account_ids = account_obj.search(cr, uid, [('code','=','0000810003')])
+                if product_name in ['FERROUS SULPHATE','FSH','M0501010002']:
+                    account_ids = account_obj.search(cr, uid, [('code','=','0000810032')])
+            if dis_channel in ['VVTi Indirect Export','VVTI Indirect Export']:
+                if product_name in ['TITANIUM DIOXIDE-ANATASE','TiO2','M0501010001']:
+                    account_ids = account_obj.search(cr, uid, [('code','=','0000810004')])
+                if product_name in ['FERROUS SULPHATE','FSH','M0501010002']:
+                    account_ids = account_obj.search(cr, uid, [('code','=','0000810033')])
+            if account_ids:
+                account = account_ids[0]
+        return account
+    def create_all_do_posting(self, cr, uid, ids, context=None):
+        picking_obj = self.pool.get('stock.picking')
+        account_move_obj = self.pool.get('account.move')
+        period_obj = self.pool.get('account.period')
+        sql = '''
+            select id from stock_picking where type = 'out' and state = 'done' 
+                
+        ''' #and name in (select ref from account_move where doc_type='do')
+        cr.execute(sql)
+        picking_ids = [r[0] for r in cr.fetchall()]
+        if not picking_ids:
+            return self.write(cr, uid, ids, {'result':'Create all GRN posting Done'}) 
+        for line in picking_obj.browse(cr,uid,picking_ids):
+            debit = 0.0
+            credit = 0.0
+            journal_line = []
+            #===================================================================
+            # for move in line.move_lines:
+            #     amount = move.purchase_line_id.price_unit * move.product_qty
+            #     debit += amount - (amount*move.purchase_line_id.discount)/100
+            #===================================================================
+            dis_channel = line.sale_id and line.sale_id.distribution_channel and line.sale_id.distribution_channel.name or False
+            date_period = line.date
+            account = False
+            asset_id = False
+            sql = '''
+                select id from account_period where special = False and '%s' between date_start and date_stop and special is False
+             
+            '''%(date_period)
+            cr.execute(sql)
+            period_ids = [r[0] for r in cr.fetchall()]
+            if not period_ids:
+                raise osv.except_osv(_('Warning!'),_('Period is not null, please configure it in Period master !'))
+             
+            sql_journal = '''
+            select id from account_journal
+            '''
+            cr.execute(sql_journal)
+            journal_ids = [r[0] for r in cr.fetchall()]
+            journal = self.pool.get('account.journal').browse(cr,uid,journal_ids[0])
+            for p in line.move_lines:
+                    if p.prodlot_id:
+                        sale_id = p.sale_line_id and p.sale_line_id.order_id.id or False 
+                        used_qty = p.product_qty or 0
+                        if sale_id:
+                            sql = '''
+                                select id from tpt_batch_allotment where sale_order_id = %s and state='confirm'
+                            '''%(sale_id) #TPT-By BalamuruganPurushothaman ON 29/07/2015 - TO TAKE CONFIRMED "BATCH ALLOTMENT" ONLY - SQL state='confirm is appended'
+                            cr.execute(sql)
+                            print "TEST1 : %s"%sql
+                            allot_ids = cr.dictfetchone()
+                            if allot_ids:
+                                allot_id = allot_ids['id']
+                                sql = '''
+                                select id from tpt_batch_allotment_line where sys_batch = %s and batch_allotment_id = %s
+                                '''%(p.prodlot_id.id,allot_id)
+                                cr.execute(sql)
+                                print 'TEST: %s'%sql
+                                allot_line_id = cr.dictfetchone()['id']
+                                line_id = self.pool.get('tpt.batch.allotment.line').browse(cr, uid, allot_line_id)
+                                used_qty += line_id.used_qty
+                                sql = '''
+                                    update tpt_batch_allotment_line set product_uom_qty = %s where id = %s
+                                '''%(used_qty,allot_line_id)
+                                cr.execute(sql)
+                                if line_id.product_uom_qty == line_id.used_qty:
+                                    sql = '''
+                                        update tpt_batch_allotment_line set is_deliver = 't' where id = %s
+                                    '''%(allot_line_id)
+                                    cr.execute(sql)
+                    
+                    #TPT START By BalamuruganPurushothaman ON 28/07/2015 - TO SET COST PRICE OF FINISHED PRODUCT IN JOURNAL POSTING INSTEAD OF SALES PROCE WHILE DO CONFIRM PROCESS
+                    #debit += p.sale_line_id and p.sale_line_id.price_unit * p.product_qty or 0  ##TPT COMMENTED
+                    product = self.pool.get('product.product').browse(cr, uid, p.product_id.id)
+                    debit += product.standard_price and product.standard_price * p.product_qty or 0
+                    #TPT END
+                    
+                    #product_name = p.product_id.name    # TPT - COMMENTED By BalamuruganPurushothaman ON 20/06/2015 
+                    product_name = p.product_id.default_code # TPT - Added By BalamuruganPurushothaman ON 20/06/2015 fto get GL code with respect to Product Code
+                    product_id = p.product_id.id
+                    account = self.get_pro_account_id(cr,uid,product_name,dis_channel)
+                    if not account:
+#                             raise osv.except_osv(_('Warning!'),_('Account is not created for this Distribution Channel! Please check it!'))
+                        if p.product_id.product_cose_acc_id:
+                            account = p.product_id.product_cose_acc_id.id
+                        else: 
+                            raise osv.except_osv(_('Warning!'),_('Product Cost of Goods Sold Account is not configured! Please configured it!'))
+                     
+                    if p.product_id.product_asset_acc_id:
+                        asset_id = p.product_id.product_asset_acc_id.id
+                    else:
+                        raise osv.except_osv(_('Warning!'),_('Product Asset Account is not configured! Please configured it!'))
+            journal_line.append((0,0,{
+                            'name':line.name, 
+                            'account_id': account,
+                            'partner_id': line.partner_id and line.partner_id.id,
+                            'credit':0,
+                            'debit':debit,
+                            'product_id':product_id,
+                        }))
+                 
+            journal_line.append((0,0,{
+                    'name':line.name, 
+                    'account_id': asset_id,
+                    'partner_id': line.partner_id and line.partner_id.id,
+                    'credit':debit,
+                    'debit':0,
+                    'product_id':product_id,
+                    }))
+                      
+            value={
+                    'journal_id':journal.id,
+                    'period_id':period_ids[0] ,
+                    'date': date_period,
+                    'line_id': journal_line,
+                    'doc_type':'do',
+                    'ref': line.name,
+                    'do_id':line.id,
+                    }
+            new_jour_id = account_move_obj.create(cr,uid,value)
+        return self.write(cr, uid, ids, {'result':'Create all GRN posting Remaining'}) 
 tpt_update_stock_move_report()
 
 

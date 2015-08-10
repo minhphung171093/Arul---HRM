@@ -666,7 +666,68 @@ class stock_picking(osv.osv):
         invoice_ids = []
         if not len(ids):
             return False
-        
+#         for pick in self.browse(cr, uid, ids, context=context):
+#             if pick.type == 'out':
+#                 sql ='''
+#                 select case when count(id)!=0 then count(id) else 0 end id from stock_picking where id =%s
+#                 and invoice_state ='invoiced'
+#                 '''%(ids[0])
+#                 cr.execute(sql)
+#                 num = cr.fetchone()[0]
+#                 if num:
+#                     sql ='''
+#                     select id from account_invoice where delivery_order_id = %s and state != 'cancel'
+#                     '''%(ids[0])
+#                     cr.execute(sql)
+#                     if cr.dictfetchone():
+#                         raise osv.except_osv(
+#                             _('Warning'),
+#                             _('You must first cancel all Invoice order(s) attached to this sales order.'))
+#                     else:
+#                         cr.execute(''' update stock_picking set invoice_state ='2binvoiced' where id = %s''',(ids[0],))
+#                         do = self.browse(cr, uid, ids[0], context=context)
+#                         if do:
+#                             line_obj = self.pool.get('account.move.line')
+#                             line_ids = line_obj.search(cr, uid, [('name','=',do.name)])
+#                             if line_ids:
+#                                 line_id = line_obj.browse(cr, uid, line_ids[0])
+#                                 move_id = line_id.move_id.id 
+#                                 if move_id:
+#                                     cr.execute(''' delete from account_move where id = %s''',(move_id,))
+#             if pick.type == 'in':
+#                 sql ='''
+#                 select case when count(id)!=0 then count(id) else 0 end id from stock_picking where id =%s
+#                 and invoice_state ='invoiced'
+#                 '''%(ids[0])
+#                 cr.execute(sql)
+#                 num1 = cr.fetchone()[0]
+#                 if num1:
+#                     sql ='''
+#                     select id from account_invoice where grn_no = %s and state != 'cancel'
+#                     '''%(ids[0])
+#                     cr.execute(sql)
+#                     if cr.dictfetchone():
+#                         raise osv.except_osv(
+#                             _('Warning'),
+#                             _('You must first cancel all Invoice order(s) attached to this sales order.'))
+#                     else:
+#                         cr.execute(''' update stock_picking set invoice_state ='2binvoiced' where id = %s''',(ids[0],))
+#                         grn = self.browse(cr, uid, ids[0], context=context)
+#                         if grn:
+#                             line_obj = self.pool.get('account.move.line')
+#                             sql='''
+#                                 select id from account_move_line where left(name,17) = '%s'
+#                             '''%(grn.name)
+# #                             line_ids = line_obj.search(cr, uid, [('name','=',do.name)])
+#                             cr.execute()
+#                             line_ids = cr.fetchone()
+#                             if line_ids:
+#                                 line_id = line_obj.browse(cr, uid, line_ids[0])
+#                                 move_id = line_id.move_id.id 
+#                                 if move_id:
+#                                     cr.execute(''' delete from account_move where id = %s''',(move_id,))
+                            
+                            
         sql ='''
         select count(id) as id from stock_picking where id =%s
         and invoice_state ='invoiced'
@@ -680,11 +741,31 @@ class stock_picking(osv.osv):
         for picking in self.browse(cr, uid, ids, context):
             for line in picking.move_lines:
                 if self.has_valuation_moves(cr, uid, line):
-                    raise osv.except_osv(
-                        _('Error'),
-                        _('Line %s has valuation moves (%s). \
-                            Remove them first') % (line.name,
-                                                   line.picking_id.name))
+                    account_ids = self.has_valuation_moves(cr, uid, line)
+                    cr.execute("delete from account_move_line where move_id in %s",(tuple(account_ids),))
+                    cr.execute("delete from account_move where id in %s",(tuple(account_ids),))
+                    sql='''
+                        select id from tpt_quanlity_inspection where need_inspec_id in (select id from stock_move where picking_id = %s)
+                    '''%(picking.id)
+                    cr.execute(sql)
+                    inspec_ids = [row[0] for row in cr.fetchall()]
+                    if inspec_ids:
+                        for move in inspec_ids:
+                            sql='''
+                                select id from stock_move where inspec_id = %s
+                            '''%(move)
+                            cr.execute(sql)
+                            move_ids = [row[0] for row in cr.fetchall()]
+                            if move_ids:
+                                cr.execute('delete from stock_move where id in %s',(tuple(move_ids),))
+                        cr.execute('delete from tpt_quanlity_inspection where id in %s',(tuple(inspec_ids),))
+#                     raise osv.except_osv(
+#                         _('Error'),
+#                         _('Line %s has valuation moves (%s). \
+#                             Remove them first') % (line.name,
+#                                                    line.picking_id.name))
+                    
+                    
                 line.write({'state': 'draft'})
             self.write(cr, uid, [picking.id], {'state': 'draft','invoice_state':'2binvoiced'})
             wf_service = netsvc.LocalService("workflow")
@@ -1177,19 +1258,38 @@ class account_invoice(osv.osv):
     def onchange_date_invoice(self, cr, uid, ids, date_invoice=False, context=None):
         vals = {}
         warning = {}
+        current = time.strftime('%Y-%m-%d')
         if date_invoice:
-            sql = '''
-                select date_invoice from account_invoice where type='out_invoice' order by date_invoice desc
-            ''' 
-            cr.execute(sql)
-            date_invoices = [row[0] for row in cr.fetchall()]
-            if date_invoices and date_invoice < date_invoices[0]:
+#             sql = '''
+#                 select date_invoice from account_invoice where type='out_invoice' order by date_invoice desc
+#             ''' 
+#             cr.execute(sql)
+#             date_invoices = [row[0] for row in cr.fetchall()]
+#             if date_invoices and date_invoice < date_invoices[0]:
+#                 warning = {
+#                     'title': _('Warning!'),
+#                     'message': _('Not allow to create back date invoices')
+#                 }
+#                 vals = {'date_invoice':False}
+            if date_invoice > current:
+                vals = {'date_invoice':current}
                 warning = {
                     'title': _('Warning!'),
-                    'message': _('Not allow to create back date invoices')
+                    'message': _('Posting Date: Not allow future date!')
                 }
-                vals = {'date_invoice':False}
         return {'value': vals,'warning':warning}
+    
+#     def onchange_bill_date(self, cr, uid, ids, bill_date=False, context=None):
+#         vals = {}
+#         current = time.strftime('%Y-%m-%d')
+#         warning = {}
+#         if bill_date and bill_date > current:
+#             vals = {'bill_date':current}
+#             warning = {
+#                 'title': _('Warning!'),
+#                 'message': _('Bill Date: Not allow future date!')
+#             }
+#         return {'value':vals,'warning':warning}
     
     def onchange_delivery_order_id(self, cr, uid, ids, delivery_order_id=False, context=None):
         vals = {}

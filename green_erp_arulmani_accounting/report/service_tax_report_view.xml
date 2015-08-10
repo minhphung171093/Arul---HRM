@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+    	<record id="service_tax_report" model="ir.actions.report.xml">
+	        <field name="name">service_tax_report</field>
+	        <field name="type">ir.actions.report.xml</field>
+	        <field name="model">service.tax.register</field>
+	        <field name="report_name">service_tax_report</field>
+	        <field name="report_type">aeroo</field>
+	        <field name="in_format">oo-ods</field>
+	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-xls')]"/>
+	        <field name="parser_loc">green_erp_arulmani_accounting/report/service_tax_report.py</field>
+	        <field name="report_rml">green_erp_arulmani_accounting/report/service_tax_report.ods</field>
+	        <field name="parser_state">loc</field>
+	        <field name="tml_source">file</field>
+	        <field name="attachment_use" eval="0"/>
+    	</record>		    
+		
+		<report 
+			auto="True" 
+			menu="False"
+			id="service_tax_report" 
+			model="service.tax.register" 
+			name="service_tax_report"
+	        string="Service tax Report"
+	        rml="green_erp_arulmani_accounting/report/service_tax_report.ods"/>
+	        
+	   <record id="service_tax_report_pdf" model="ir.actions.report.xml">
+	        <field name="name">service_tax_report_pdf</field>
+	        <field name="type">ir.actions.report.xml</field>
+	        <field name="model">service.tax.register</field>
+	        <field name="report_name">service_tax_report_pdf</field>
+	        <field name="report_type">aeroo</field>
+	        <field name="in_format">oo-ods</field>
+	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-pdf'),('compatible_types','=','oo-ods')]"/>
+	        <field name="parser_loc">green_erp_arulmani_accounting/report/service_tax_report.py</field>
+	        <field name="report_rml">green_erp_arulmani_accounting/report/service_tax_report.ods</field>
+	        <field name="parser_state">loc</field>
+	        <field name="tml_source">file</field>
+	        <field name="attachment_use" eval="0"/>
+    	</record>		    
+		
+		<report 
+			auto="True" 
+			menu="False"
+			id="service_tax_report_pdf" 
+			model="service.tax.register" 
+			name="service_tax_report_pdf"
+	        string="Service tax Report"
+	        rml="green_erp_arulmani_accounting/report/service_tax_report.ods"/>	
+	        
+	    
+	    <record id="view_service_tax_register_form" model="ir.ui.view">
+	        <field name="name">tpt.service.tax.form</field>
+	        <field name="model">tpt.service.tax</field>
+	        <field name="arch" type="xml">
+	            <form version='7.0' string="service tax report" create="false" edit="false" delete="false">
+	            	<header>
+	            		<button name="print_xls" string="Print (.xls)" type="object" class="oe_highlight" />
+	            		<button name="print_pdf" string="Print (.pdf)" type="object" class="oe_highlight" />
+	            	</header>
+	            	<sheet>
+	            		<div class="oe_text_center">
+            				<b>NAME OF THE ASSESSEE : V.V.TITANIUM PIGMENTS PRIVATE LTD</b>
+            			</div>
+            			<div class="oe_text_center">
+            				SERVICE TAX REGISTRATION NUMBER : AADCV7723PSD001
+            			</div>
+            			
+            			<div class="oe_text_center oe_bold">
+            				Service Tax Report for the Period :<field name="date_from" nolabel="1" class = "oe_inline"/> - <field name="date_to" nolabel="1" class = "oe_inline"/>
+            			</div>
+            			<div class="oe_text_center">
+            				<field name="account_id" nolabel="1" class = "oe_inline"/>
+            			</div>
+	                	
+	                	 <div>  <!-- </div>col='4' colspan='4' class='oe_green_erp_scroll'> -->
+		                	<field name="service_line" nolabel='1'>
+		                		<tree create="false" edit="false" delete="false">
+		                			<field name="date"/>
+		                			<field name="bill_no"/>                			
+		                			<field name="bill_date"/>
+		                			<field name="number"/>
+		                			<field name="party_name"/>
+		                			<field name="open_bal"/>
+		                			<field name="taxable_amount"/>
+		                			<field name="service_tax_rate"/>
+		                			<field name="service_tax"/>
+		                			<field name="total"/>
+		                			<field name="debit"/>
+		                			<field name="closing_bal"/>
+		                			<!-- <field name="debit_1"/> -->
+		                			<!-- <field name="debit_2"/> -->
+		                		</tree>
+		                	</field>
+		                	</div>
+	                	
+	               	</sheet>
+	           </form>
+	        </field>
+	    </record>
+    </data>
+</openerp>

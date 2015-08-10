@@ -85,6 +85,9 @@ access_vvti_production_68,crm.application.line,green_erp_arulmani_production.mod
 
 mrp.access_stock_picking_mrp_worker,stock.picking mrp_worker,stock.model_stock_picking,mrp.group_mrp_user,1,1,1,0
 
+access_vvti_production_69,stock.move,stock.model_stock_move,green_erp_arulmani_production.group_vvti_production_user,True,True,True,True
+
+
 
 
 

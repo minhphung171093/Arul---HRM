@@ -31,8 +31,6 @@
             <field name="arch" type="xml">
 				<xpath expr="//field[@name='purchase_id']" position="attributes">
 					<attribute name='options'>{'create': false, 'create_edit': false}</attribute>
-				</xpath>
-				<xpath expr="//field[@name='purchase_id']" position="attributes">
 					<attribute name='on_change'>onchange_purchase_id(purchase_id)</attribute>
 					<attribute name='readonly'>1</attribute>
 				</xpath>
@@ -212,6 +210,11 @@
 				<xpath expr="//field[@name='amount_total']" position="after">
 					<field name="amount_total_inr" readonly="1" class="oe_subtotal_footer_separator" widget="monetary" attrs="{'invisible': [('amount_total','=','amount_total_inr')]}"/>
 				</xpath>
+				
+				<xpath expr="//field[@name='date_invoice']" position="attributes">
+					<attribute name="on_change">onchange_date_invoice(date_invoice)</attribute>
+				</xpath>
+				
             </field>
         </record>
         

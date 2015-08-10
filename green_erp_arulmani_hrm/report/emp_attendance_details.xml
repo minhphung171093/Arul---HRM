@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+    	<record id="report_emp_attn" model="ir.actions.report.xml">
+	        <field name="name">report_cash_book</field>
+	        <field name="type">ir.actions.report.xml</field>
+	        <field name="model">tpt.emp.attendance</field>
+	        <field name="report_name">report_cash_book</field>
+	        <field name="report_type">aeroo</field>
+	        <field name="in_format">oo-ods</field>
+	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-pdf'),('compatible_types','=','oo-ods')]"/>
+	        <field name="parser_loc">green_erp_arulmani_hrm/report/emp_attendance_details.py</field>
+	        <field name="report_rml">green_erp_arulmani_hrm/report/emp_attendance_details.ods</field>
+	        <field name="parser_state">loc</field>
+	        <field name="tml_source">file</field>
+	        <field name="attachment_use" eval="0"/>
+    	</record>		    
+		
+		<report 
+			auto="True" 
+			menu="False"
+			id="report_emp_attn" 
+			model="tpt.emp.attendance" 
+			name="report_emp_attn"
+	        string="Cash Book Report"
+	        rml="green_erp_arulmani_hrm/report/emp_attendance_details.ods"/>
+	    
+	    <record id="report_emp_attn_xls" model="ir.actions.report.xml">
+	        <field name="name">report_emp_attn_xls</field>
+	        <field name="type">ir.actions.report.xml</field>
+	        <field name="model">tpt.emp.attendance</field>
+	        <field name="report_name">report_emp_attn_xls</field>
+	        <field name="report_type">aeroo</field>
+	        <field name="in_format">oo-ods</field>
+	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-xls'),('compatible_types','=','oo-ods')]"/>
+	        <field name="parser_loc">green_erp_arulmani_hrm/report/emp_attendance_details.py</field>
+	        <field name="report_rml">green_erp_arulmani_hrm/report/emp_attendance_details.ods</field>
+	        <field name="parser_state">loc</field>
+	        <field name="tml_source">file</field>
+	        <field name="attachment_use" eval="0"/>
+    	</record>		    
+		
+		<report 
+			auto="True" 
+			menu="False"
+			id="report_cash_book_xls" 
+			model="tpt.emp.attendance" 
+			name="report_cash_book_xls"
+	        string="Cash Book Report"
+	        rml="green_erp_arulmani_hrm/report/emp_attendance_details.ods"/>
+	    
+	    <record id="view_tpt_emp_attn_form" model="ir.ui.view">
+	        <field name="name">tpt.emp.attendance.form</field>
+	        <field name="model">tpt.emp.attendance</field>
+	        <field name="arch" type="xml">
+	            <form version='7.0' string="Cash Book" create="false" edit="false" delete="false">
+	            	<header>
+	            		<button name="print_xls" string="Print (.xls)" type="object" class="oe_highlight" />
+	            		<button name="print_pdf" string="Print (.pdf)" type="object" class="oe_highlight" />
+	            	</header>
+	            	<sheet>
+	            		<div class="oe_text_center">
+            				<b>V.V. Titanium Pigments Pvt Ltd,</b>
+            			</div>
+            			<div class="oe_text_center">
+            				A-81, SIPCOT Industrial Complex
+            			</div>
+            			<div class="oe_text_center">
+            				THOOTHUKKUDI
+            			</div>
+            			<div class="oe_text_center oe_bold">
+            				<!-- <field name="name" nolabel="1" class="oe_text_center oe_inline"/>  -->
+            				<field name="date_from" nolabel="1" class = "oe_inline"/> - <field name="date_to" nolabel="1" class = "oe_inline"/>
+            			</div>
+            			
+	                	
+	                	
+		                	<field name="attn_line_id" nolabel='1'>
+		                		<tree create="false" edit="false" delete="false">
+		                			<field name="work_date"/>
+		                			<field name="planned_shift"/>
+		                			<field name="actual_shift"/>
+		                			<field name="in_time" widget="float_time"/>
+		                			<field name="out_time" widget="float_time"/>
+		                			<field name="sub_total"/>
+		                			<field name="a_shift_count"/>
+		                			<field name="g1_shift_count"/>
+		                			<field name="g2_shift_count"/>
+		                			<field name="b_shift_count"/>
+		                			<field name="c_shift_count"/>
+		                			<field name="total_shift_worked"/>
+		                			
+		                		</tree>
+		                	</field>
+		                	
+	                	
+	               	</sheet>
+	           </form>
+	        </field>
+	    </record>
+	    
+    </data>
+</openerp>
