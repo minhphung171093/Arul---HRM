@@ -176,7 +176,8 @@ class tpt_do_adj(osv.osv_memory):
                     #product_name = p.product_id.name    # TPT - COMMENTED By BalamuruganPurushothaman ON 20/06/2015 
                 product_name = p.product_id.default_code # TPT - Added By BalamuruganPurushothaman ON 20/06/2015 fto get GL code with respect to Product Code
                 product_id = p.product_id.id
-                account = self.get_pro_account_id(cr,uid,product_name,dis_channel)
+                #account = self.get_pro_account_id(cr,uid,product_name,dis_channel)
+                account = p.product_id.product_cose_acc_id.id
                 if not account:
                     if p.product_id.product_cose_acc_id:
                         account = p.product_id.product_cose_acc_id.id
