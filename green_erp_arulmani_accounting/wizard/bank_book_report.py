@@ -194,7 +194,10 @@ class bank_book_report(osv.osv_memory):
                             cr.execute('''
                                 select aa.name as acc_name,aml.account_id,sum(aml.debit) as debit,sum(aml.credit) as credit,
                                 av.name as voucher_name,av.date as voucher_date,aml.ref as ref, aml.name as voucher_desc,
-                                av.cheque_no cheque_no, av.cheque_date cheque_date,av.number as voucher_no,av.narration as desc
+                                av.cheque_no cheque_no_1,
+                                case when av.cheque_no is null then av.cheque_number
+                                else av.cheque_no end as cheque_no,
+                                av.cheque_date cheque_date,av.number as voucher_no,av.narration as desc
                                 from account_move_line aml
                                 inner join account_move am on (am.id=aml.move_id)
                                 inner join account_account aa on (aa.id=aml.account_id)
@@ -206,7 +209,7 @@ class bank_book_report(osv.osv_memory):
                                 )a on (a.cash_header_id=am.id and cash_account_id<>aml.account_id)
                                 where av.type in ('payment') and av.state in ('posted') and av.date between %s and %s 
                                 group by aa.name,aml.account_id,av.name,av.date,aml.ref,av.payee,aml.name,av.cheque_no, av.cheque_date,
-                                av.number,av.narration
+                                av.number,av.narration,av.cheque_number
                                 order by av.date
                             ''',(account_id.id,date_from, date_to,))
                             return cr.dictfetchall()
@@ -214,7 +217,10 @@ class bank_book_report(osv.osv_memory):
                             cr.execute('''
                                 select aa.name as acc_name,aml.account_id,sum(aml.debit) as debit,sum(aml.credit) as credit,
                                 av.name as voucher_name,av.date as voucher_date,aml.ref as ref, aml.name as voucher_desc,
-                                av.cheque_no cheque_no, av.cheque_date cheque_date,av.number as voucher_no,av.narration as desc
+                                av.cheque_no cheque_no_1,
+                                case when av.cheque_no is null then av.cheque_number
+                                else av.cheque_no end as cheque_no,
+                                av.cheque_date cheque_date,av.number as voucher_no,av.narration as desc
                                 from account_move_line aml
                                 inner join account_move am on (am.id=aml.move_id)
                                 inner join account_account aa on (aa.id=aml.account_id)
@@ -226,7 +232,7 @@ class bank_book_report(osv.osv_memory):
                                 )a on (a.cash_header_id=am.id and cash_account_id<>aml.account_id)
                                 where av.type in ('receipt') and av.state in ('posted') and av.date between %s and %s  
                                 group by aa.name,aml.account_id,av.name,av.date,aml.ref,av.payee,aml.name,av.cheque_no, av.cheque_date,
-                                av.number,av.narration
+                                av.number,av.narration,av.cheque_number
                                 order by av.date
                             
                             ''',(account_id.id,date_from, date_to,))
@@ -235,7 +241,10 @@ class bank_book_report(osv.osv_memory):
                             cr.execute('''
                                 select aa.name as acc_name,aml.account_id,sum(aml.debit) as debit,sum(aml.credit) as credit,
                                 av.name as voucher_name,av.date as voucher_date,aml.ref as ref, aml.name as voucher_desc,
-                                av.cheque_no cheque_no, av.cheque_date cheque_date,av.number as voucher_no,av.narration as desc
+                                av.cheque_no cheque_no_1,
+                                case when av.cheque_no is null then av.cheque_number
+                                else av.cheque_no end as cheque_no,
+                                av.cheque_date cheque_date,av.number as voucher_no,av.narration as desc
                                 from account_move_line aml
                                 inner join account_move am on (am.id=aml.move_id)
                                 inner join account_account aa on (aa.id=aml.account_id)
@@ -247,7 +256,7 @@ class bank_book_report(osv.osv_memory):
                                 )a on (a.cash_header_id=am.id and cash_account_id<>aml.account_id)
                                 where av.type in ('payment','receipt') and av.state in ('posted') and av.date between %s and %s 
                                 group by aa.name,aml.account_id,av.name,av.date,aml.ref,av.payee,aml.name,av.cheque_no, av.cheque_date,
-                                av.number,av.narration
+                                av.number,av.narration,av.cheque_number
                                 order by av.date
                             ''',(account_id.id,date_from, date_to,))
                             return cr.dictfetchall()
@@ -257,7 +266,10 @@ class bank_book_report(osv.osv_memory):
                             cr.execute('''
                                 select aa.name as acc_name,aml.account_id,sum(aml.debit) as debit,sum(aml.credit) as credit,
                                 av.name as voucher_name,av.date as voucher_date,aml.ref as ref, aml.name as voucher_desc,
-                                av.cheque_no cheque_no, av.cheque_date cheque_date,av.number as voucher_no,av.narration as desc
+                                av.cheque_no cheque_no_1,
+                                case when av.cheque_no is null then av.cheque_number
+                                else av.cheque_no end as cheque_no, 
+                                av.cheque_date cheque_date,av.number as voucher_no,av.narration as desc
                                 from account_move_line aml
                                 inner join account_move am on (am.id=aml.move_id)
                                 inner join account_account aa on (aa.id=aml.account_id)
@@ -269,7 +281,7 @@ class bank_book_report(osv.osv_memory):
                                 )a on (a.cash_header_id=am.id and cash_account_id<>aml.account_id)
                                 where av.type in ('payment') and av.state in ('draft','posted') and av.date between %s and %s  
                                 group by aa.name,aml.account_id,av.name,av.date,aml.ref,av.payee,aml.name,av.cheque_no, av.cheque_date,
-                                av.number,av.narration
+                                av.number,av.narration,av.cheque_number
                                 order by av.date
                             ''',(account_id.id,date_from, date_to,))
                             return cr.dictfetchall()
@@ -277,7 +289,10 @@ class bank_book_report(osv.osv_memory):
                             cr.execute('''
                                 select aa.name as acc_name,aml.account_id,sum(aml.debit) as debit,sum(aml.credit) as credit,
                                 av.name as voucher_name,av.date as voucher_date,aml.ref as ref, aml.name as voucher_desc,
-                                av.cheque_no cheque_no, av.cheque_date cheque_date,av.number as voucher_no,av.narration as desc
+                                av.cheque_no cheque_no_1,
+                                case when av.cheque_no is null then av.cheque_number
+                                else av.cheque_no end as cheque_no, 
+                                av.cheque_date cheque_date,av.number as voucher_no,av.narration as desc
                                 from account_move_line aml
                                 inner join account_move am on (am.id=aml.move_id)
                                 inner join account_account aa on (aa.id=aml.account_id)
@@ -289,7 +304,7 @@ class bank_book_report(osv.osv_memory):
                                 )a on (a.cash_header_id=am.id and cash_account_id<>aml.account_id)
                                 where av.type in ('receipt') and av.state in ('draft','posted') and av.date between %s and %s  
                                 group by aa.name,aml.account_id,av.name,av.date,aml.ref,av.payee,aml.name,av.cheque_no, av.cheque_date,
-                                av.number,av.narration
+                                av.number,av.narration,av.cheque_number
                                 order by av.date
                             ''',(account_id.id,date_from, date_to,))
                             return cr.dictfetchall()
@@ -297,7 +312,10 @@ class bank_book_report(osv.osv_memory):
                             cr.execute('''
                                 select aa.name as acc_name,aml.account_id,sum(aml.debit) as debit,sum(aml.credit) as credit,
                                 av.name as voucher_name,av.date as voucher_date,aml.ref as ref, aml.name as voucher_desc,
-                                av.cheque_no cheque_no, av.cheque_date cheque_date,av.number as voucher_no,av.narration as desc
+                                av.cheque_no cheque_no_1,
+                                case when av.cheque_no is null then av.cheque_number
+                                else av.cheque_no end as cheque_no,                 
+                                av.cheque_date cheque_date,av.number as voucher_no,av.narration as desc
                                 from account_move_line aml
                                 inner join account_move am on (am.id=aml.move_id)
                                 inner join account_account aa on (aa.id=aml.account_id)
@@ -309,7 +327,7 @@ class bank_book_report(osv.osv_memory):
                                 )a on (a.cash_header_id=am.id and cash_account_id<>aml.account_id)
                                 where av.type in ('receipt','payment') and av.state in ('draft','posted') and av.date between %s and %s  
                                 group by aa.name,aml.account_id,av.name,av.date,aml.ref,av.payee,aml.name,av.cheque_no, av.cheque_date,
-                                av.number,av.narration
+                                av.number,av.narration,av.cheque_number
                                 order by av.date
                             ''',(account_id.id,date_from, date_to,))
                             return cr.dictfetchall()

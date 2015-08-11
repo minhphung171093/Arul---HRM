@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>   
+        <record id="grn_request_line_form" model="ir.ui.view">
+            <field name="name">grn.request.line.form</field>
+            <field name="model">grn.detail.line.report</field>
+            <field name="arch" type="xml">
+                <form string="Grn Line Details Report" version="7.0">
+                	<group>
+	                <field name="date_from"/>
+	                <field name="date_to"/>
+	                <field name="po_no"/>
+	                <field name="grn_no"/>
+	                <field name="requisitioner"/>
+	                <field name="project_id"/>
+	                <field name="project_section_id"/>
+	                <field name="pend_qty"/> 
+	                <field name="state"/>      	                                      
+                 	</group>
+                    <footer>
+                        <button name="print_report" string="Print" type="object" class="oe_highlight" context="{'type':'appointments'}"/>
+                        <button string="Cancel" class="oe_link" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>        
+        <record id="action_grn_request_line_form" model="ir.actions.act_window">            
+            <field name="name">GRN Line Details Report</field>         
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">grn.detail.line.report</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="grn_request_line_form" />
+            <field name="target">new</field>
+        </record>
+        
+        <menuitem action="action_grn_request_line_form" 
+        id="menu_action_grn_request_line_form" 
+        parent="stock.menu_stock_warehouse_mgmt" sequence="18"/>
+    
+    </data>
+</openerp>

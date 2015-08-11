@@ -55,36 +55,35 @@
 	        <field name="view_id" ref="alert_mgnt_warning_form_view" />
 	        <field name="target">new</field>
 	    </record>
-	    
-	    <record id="alert_mgnt_warning_form_view" model="ir.ui.view">
-	        <field name="name">do.mgnt.confirm</field>
-	        <field name="model">do.mgnt.confirm</field>
-	        <field eval="20" name="priority"/>
-	        <field name="arch" type="xml">
-	            <form string="Alert" version="7.0">
-	            	<!--<label string="Not able to process DO due to exceed of credit limit. Need management approval to proceed further!"/>-->
-	                
-	                <field name='reason' required='1' placeholder="Please Type here the reason"/>
-	              
-	                <footer>
-	                    <!-- <button name="action_confirm" string="Confirm" class="oe_highlight" special="cancel" /> -->
-	                <button name="action_confirm" type='object' string="Confirm" class="oe_highlight"/>
-	                    or
-	                    <button string="Cancel" class="oe_highlight" special="cancel" />
-	                
-	                </footer>
-	            </form>
-	        </field>
-    	</record>
-
-	    <record model="ir.actions.act_window" id="action_mgnt_alert_warning">
-	        <field name="name">Alert</field>
-	        <field name="res_model">do.mgnt.confirm</field>
-	        <field name="view_type">form</field>
-	        <field name="view_mode">form</field>
-	        <field name="view_id" ref="alert_mgnt_warning_form_view" />
-	        <field name="target">new</field>
-	    </record>
+	    <!-- TPT - DO -->
+	    <record id="view_do_adj_process" model="ir.ui.view">
+            <field name="name">tpt.do.adj.process</field>
+            <field name="model">tpt.do.adj</field>
+            <field name="arch" type="xml">
+                <form string="DO Adj" version="7.0">
+                	<group>
+	                    <field name='month'/>  
+	                    <field name='year'/>	                    	                                              
+                 	</group>
+                    <footer>
+                        <button name="confirm_do_adj" string="Process-DO-Posting" type="object" class="oe_highlight" context="{'type':'appointments'}"/>
+                        <button name="cleanup_do_posting" string="Clean-UP" type="object" class="oe_highlight" context="{'type':'appointments'}"/>
+                        <button string="Cancel" class="oe_link" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>        
+        <record id="action_do_adj_process" model="ir.actions.act_window">
+            <field name="name">DO Posting Adjustment</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.do.adj</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+        </record>
+        <menuitem action="action_do_adj_process"
+            id="menu_action_do_adj_process"
+            parent="menu_hr_sale_management" sequence="36"/>
     </data>
 </openerp>
 
