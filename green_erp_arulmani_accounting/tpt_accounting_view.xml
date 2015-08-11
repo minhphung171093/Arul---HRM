@@ -2693,6 +2693,7 @@
             <field name="arch" type="xml">
                 <tree string="Bank Reconciliation">
                     <field name="name"/>
+                    <field name="date"/>
                     <field name="state"/>
                 </tree>
             </field>
@@ -2709,7 +2710,8 @@
                   </header>
                   <sheet>
                     <group col="4" colspan="4">
-                        <field name="name" on_change="onchange_account(name)" domain="[('user_type.code','=','bank')]" options="{'create': false, 'create_edit': false}"/>
+                        <field name="name" on_change="onchange_account(name, date)" domain="[('user_type.code','=','bank')]" options="{'create': false, 'create_edit': false}"/>
+                    	<field name="date" on_change="onchange_account(name, date)"/>
                     </group>
                     <notebook colspan="4">
                         <page>
@@ -2720,12 +2722,14 @@
 	                                    <field name="partner_id" readonly='1'/>
 	                                    <field name="name" string="Voucher No" readonly='1'/>
 	                                    <field name="date" string="Payment Date" readonly='1'/>
-	                                    <field name="reference" string="Payment Ref"  readonly='1'/>
-	                                    <field name="cheque_date" readonly='1'/>
-	                                    <field name="cheque_no" readonly='1'/>
+	                         <!--           <field name="reference" string="Payment Ref"  readonly='1'/>  -->
 	                                    <field name="account_id" readonly='1'/>
 	                                    <field name="amount" readonly='1'/>
-	                                    <field name="reconciliation_date"/>
+	                                    <field name="cheque_date" readonly='1'/>
+	                                    <field name="cheque_no" readonly='1'/>
+	                                    <field name="debit" readonly='1'/>
+	                                    <field name="credit" readonly='1'/>
+	                                    <field name="reconciliation_date" attrs="{'readonly': [('cheque_no','in',['Total','Net Balance'])]}"/>
 	                                </tree>
 	                            </field>
                             </div>
