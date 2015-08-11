@@ -644,7 +644,8 @@ class stock_picking(osv.osv):
                     #product_name = p.product_id.name    # TPT - COMMENTED By BalamuruganPurushothaman ON 20/06/2015 
                     product_name = p.product_id.default_code # TPT - Added By BalamuruganPurushothaman ON 20/06/2015 fto get GL code with respect to Product Code
                     product_id = p.product_id.id
-                    account = self.get_pro_account_id(cr,uid,product_name,dis_channel)
+                    #account = self.get_pro_account_id(cr,uid,product_name,dis_channel)
+                    account = p.product_id.product_cose_acc_id.id ## TPT - Added By BalamuruganPurushothaman ON 11/08/2015 - To post Product Asset GL for debit entries
                     if not account:
 #                             raise osv.except_osv(_('Warning!'),_('Account is not created for this Distribution Channel! Please check it!'))
                         if p.product_id.product_cose_acc_id:

@@ -101,8 +101,7 @@ class input_register_form(osv.osv_memory):
             return decamount
         #YuVi
             
-        def get_grn_date(inv_id):
-            print inv_id           
+        def get_grn_date(inv_id):       
             sql = '''
                   select date from stock_picking where id in (select grn_no from account_invoice where id = %s)
                   '''%(inv_id)
@@ -133,16 +132,13 @@ class input_register_form(osv.osv_memory):
                 return "VV Out Service PO"
             
         def get_total(value):
-            #print value
             sum = 0.0
             for line in value:
                 sum += line.quantity*line.price_unit   
             return sum
         
         def get_cate_type():
-            type = sls.product_cate_id.id         
-            #pro_cat_obj = self.pool.get('product.category')
-            #category = pro_cat_obj.browse(cr,uid,type[0])
+            type = sls.product_cate_id.id          
             if type == 3:
                 return "Monthly Return Cenvat on Input"
             if type == 5:
@@ -153,10 +149,6 @@ class input_register_form(osv.osv_memory):
             date_from = sls.date_from
             date_to = sls.date_to
             product_cate_id = sls.product_cate_id.id
-            #wizard_data = self.localcontext['data']['form']
-            #date_from = wizard_data['date_from']
-            #date_to = wizard_data['date_to']
-            #product_cate_id = wizard_data['product_cate_id']
             invoice_obj = self.pool.get('account.invoice.line')
             invoice_ids = []
             if product_cate_id:

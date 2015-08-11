@@ -91,11 +91,8 @@ class day_wise_register(osv.osv_memory):
         if wiz_br.date_from and wiz_br.date_to:
                     date_format = "%Y-%m-%d"
                     date_from = datetime.strptime(wiz_br.date_from, date_format)
-                    print date_from
                     date_to = datetime.strptime(wiz_br.date_to, date_format)
-                    print date_from
-                    days_diff = date_to - date_from
-                    print days_diff
+                    days_diff = date_to - date_from 
         if days_diff.days > 15:
                     raise osv.except_osv(_('Error!'), _('Dates difference is not greater than 15 days!.'))
         elif days_diff.days < 0:
@@ -104,11 +101,8 @@ class day_wise_register(osv.osv_memory):
         
     
     def print_report(self, cr, uid, ids, context=None):
-        
         def get_norms(cb):
-        #wizard_data = self.localcontext['data']['form']
             norms=cb.name.id
-            #print norms
             sql = '''
                    Select name as norm_name from mrp_bom where id = %s
                   '''%(norms[0])
@@ -118,9 +112,7 @@ class day_wise_register(osv.osv_memory):
             return norm_name1 or ''
     
         def get_raw_mat(cb):
-            #wizard_data = self.localcontext['data']['form']
             raw = cb.product_id.id
-            #print raw[0]
             if raw:
                 sql = '''
                        select default_code as code,name_template as name from product_product where cate_name = 'raw' and id = '%s'
@@ -138,9 +130,7 @@ class day_wise_register(osv.osv_memory):
             date_from = cb.date_from
             date_to = cb.date_to      
             raw_mat=cb.product_id.id
-            print raw_mat
             norms= cb.name.id
-            print norms
             res = []
             #date_from += datetime.timedelta(1)
             #datenext = wizard_data['date_from'] + 1
