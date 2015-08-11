@@ -109,8 +109,7 @@ class Parser(report_sxw.rml_parse):
                     return count or 0.000
     
     
-    def get_on_hand_qty(self,line_id):        
-        print line_id
+    def get_on_hand_qty(self,line_id):                
         res = {}
         req_line_obj = self.pool.get('tpt.material.request.line')
         line = req_line_obj.browse(self.cr,self.uid,line_id)        
@@ -191,7 +190,6 @@ class Parser(report_sxw.rml_parse):
                         )foo
                 '''%(line.product_id.id,location_id,line.product_id.id,location_id)
                 self.cr.execute(sql)
-                print sql
                 onhand_qty = self.cr.dictfetchone()['onhand_qty']
                 
         res[line.id] = {
