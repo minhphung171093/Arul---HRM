@@ -78,11 +78,8 @@ class Parser(report_sxw.rml_parse):
     def get_gl_acct(self):
         wizard_data = self.localcontext['data']['form']
         gl_account = wizard_data['account_id']
-        print gl_account
         acc_obj = self.pool.get('account.account')
         acc = acc_obj.browse(self.cr,self.uid,gl_account[0])
-        print acc.code
-        print acc.name
         gl_act = acc.code +''+acc.name
         return gl_act
     #YuVi
