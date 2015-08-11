@@ -63,40 +63,40 @@
 	            		<div class="oe_text_center">
             			<b><field name="name" nolabel="1" class="oe_text_center oe_inline"/></b>
             			</div>	            		
-            			<div class="oe_bold oe_text_center"> 
-            			<field name="date_from_title" nolabel = '1' class="oe_text_center oe_inline"/>           			
-            			<field name="date_from" class="oe_text_center oe_inline"/>            			
+            			<div class="oe_bold oe_text_left"> 
+            			<field name="date_from_title" nolabel = '1' class="oe_text_left oe_inline"/>           			
+            			<field name="date_from" class="oe_text_left oe_inline"/>            			
             			</div>
-            			<div class="oe_bold oe_text_center">
-            			<field name="date_to_title" nolabel = '1' class="oe_text_center oe_inline"/>
-            			<field name="date_to" class="oe_text_center oe_inline"/> 
+            			<div class="oe_bold oe_text_left">
+            			<field name="date_to_title" nolabel = '1' class="oe_text_left oe_inline"/>
+            			<field name="date_to" class="oe_text_left oe_inline"/> 
             			</div>
-            			<div class="oe_bold oe_text_center">            			
-            			<field name="material_request_id" class="oe_text_center oe_inline"/>
+            			<div class="oe_bold oe_text_left">            			
+            			<field name="material_request_id" class="oe_text_left oe_inline"/>
             			</div>
-            			<div class="oe_bold oe_text_center">            			
-            			<field name="cost_center_id" class="oe_text_center oe_inline"/>
+            			<div class="oe_bold oe_text_left">            			
+            			<field name="cost_center_id" class="oe_text_left oe_inline"/>
             			</div>
-            			<div class="oe_bold oe_text_center">            			
-            			<field name="requisitioner" class="oe_text_center oe_inline"/>
+            			<div class="oe_bold oe_text_left">            			
+            			<field name="requisitioner" class="oe_text_left oe_inline"/>
             			</div>            			
-            			<div class="oe_bold oe_text_center">            			
-            			<field name="department_id" class="oe_text_center oe_inline"/>
+            			<div class="oe_bold oe_text_left">            			
+            			<field name="department_id" class="oe_text_left oe_inline"/>
             			</div>
-            			<div class="oe_bold oe_text_center">            			
-            			<field name="section_id" class="oe_text_center oe_inline"/>
+            			<div class="oe_bold oe_text_left">            			
+            			<field name="section_id" class="oe_text_left oe_inline"/>
             			</div>
-            			<div class="oe_bold oe_text_center">            			
-            			<field name="state" class="oe_text_center oe_inline"/>
+            			<div class="oe_bold oe_text_left">            			
+            			<field name="state" class="oe_text_left oe_inline"/>
             			</div>
-            			<div class="oe_bold oe_text_center">            			
-            			<field name="product_id" class="oe_text_center oe_inline"/>
+            			<div class="oe_bold oe_text_left">            			
+            			<field name="product_id" class="oe_text_left oe_inline"/>
             			</div>
-            			<div class="oe_bold oe_text_center">            			
-            			<field name="project_id" class="oe_text_center oe_inline"/>
+            			<div class="oe_bold oe_text_left">            			
+            			<field name="project_id" class="oe_text_left oe_inline"/>
             			</div>
-            			<div class="oe_bold oe_text_center">            			
-            			<field name="project_section_id" class="oe_text_center oe_inline"/>
+            			<div class="oe_bold oe_text_left">            			
+            			<field name="project_section_id" class="oe_text_left oe_inline"/>
             			</div>             			
             			
             			<group>
