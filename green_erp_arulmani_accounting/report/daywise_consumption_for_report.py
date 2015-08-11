@@ -61,7 +61,6 @@ class Parser(report_sxw.rml_parse):
     def get_norms(self):
         wizard_data = self.localcontext['data']['form']
         norms=wizard_data['name']
-        #print norms
         sql = '''
                Select name as norm_name from mrp_bom where id = %s
               '''%(norms[0])
@@ -73,7 +72,6 @@ class Parser(report_sxw.rml_parse):
     def get_raw_mat(self):
         wizard_data = self.localcontext['data']['form']
         raw = wizard_data['product_id']
-        #print raw[0]
         if raw:
             sql = '''
                    select default_code as code,name_template as name from product_product where cate_name = 'raw' and id = '%s'
