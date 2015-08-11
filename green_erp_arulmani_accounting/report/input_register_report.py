@@ -164,7 +164,6 @@ class Parser(report_sxw.rml_parse):
 #             return datercvd
         
     def get_total(self, value):
-        print value
         sum = 0.0
         for line in value:
             sum += line.quantity*line.price_unit   

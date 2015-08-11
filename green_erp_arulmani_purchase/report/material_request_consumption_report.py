@@ -50,13 +50,19 @@ class Parser(report_sxw.rml_parse):
         
     def get_date_from(self):
         wizard_data = self.localcontext['data']['form']
-        date = datetime.strptime(wizard_data['date_from'], DATE_FORMAT)        
-        return date.strftime('%d/%m/%Y')
+        if wizard_data['date_from']:
+            date = datetime.strptime(wizard_data['date_from'], DATE_FORMAT)        
+            return date.strftime('%d/%m/%Y')
+        else:
+            return ''
     
     def get_date_to(self):
         wizard_data = self.localcontext['data']['form']
-        date = datetime.strptime(wizard_data['date_to'], DATE_FORMAT)
-        return date.strftime('%d/%m/%Y')
+        if wizard_data['date_to']:
+            date = datetime.strptime(wizard_data['date_to'], DATE_FORMAT)
+            return date.strftime('%d/%m/%Y')
+        else:
+            return ''
     
     def get_req_name_code(self,name,code,lname):
         req_name = name
@@ -109,8 +115,7 @@ class Parser(report_sxw.rml_parse):
                     return count or 0.000
     
     
-    def get_on_hand_qty(self,line_id):        
-        print line_id
+    def get_on_hand_qty(self,line_id):
         res = {}
         req_line_obj = self.pool.get('tpt.material.request.line')
         line = req_line_obj.browse(self.cr,self.uid,line_id)        
@@ -191,7 +196,6 @@ class Parser(report_sxw.rml_parse):
                         )foo
                 '''%(line.product_id.id,location_id,line.product_id.id,location_id)
                 self.cr.execute(sql)
-                print sql
                 onhand_qty = self.cr.dictfetchone()['onhand_qty']
                 
         res[line.id] = {
