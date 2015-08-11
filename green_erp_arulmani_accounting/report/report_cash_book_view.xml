@@ -25,7 +25,7 @@
 	        string="Cash Book Report"
 	        rml="green_erp_arulmani_accounting/report/report_cash_book.ods"/>
 	    
-	    <record id="report_cash_book_xls" model="ir.actions.report.xml">
+	 <!--   <record id="report_cash_book_xls" model="ir.actions.report.xml">
 	        <field name="name">report_cash_book_xls</field>
 	        <field name="type">ir.actions.report.xml</field>
 	        <field name="model">tpt.cash.book</field>
@@ -46,6 +46,30 @@
 			id="report_cash_book_xls" 
 			model="tpt.cash.book" 
 			name="report_cash_book_xls"
+	        string="Cash Book Report"
+	        rml="green_erp_arulmani_accounting/report/report_cash_book.ods"/>  -->
+	        
+	    <record id="report_cash_book_xls_test" model="ir.actions.report.xml">
+	        <field name="name">report_cash_book_xls_test</field>
+	        <field name="type">ir.actions.report.xml</field>
+	        <field name="model">tpt.cash.book</field>
+	        <field name="report_name">report_cash_book_xls_test</field>
+	        <field name="report_type">aeroo</field>
+	        <field name="in_format">oo-ods</field>
+	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-xls'),('compatible_types','=','oo-ods')]"/>
+	        <field name="parser_loc">green_erp_arulmani_accounting/report/report_cash_book.py</field>
+	        <field name="report_rml">green_erp_arulmani_accounting/report/report_cash_book.ods</field>
+	        <field name="parser_state">loc</field>
+	        <field name="tml_source">file</field>
+	        <field name="attachment_use" eval="0"/>
+    	</record>		    
+		
+		<report 
+			auto="True" 
+			menu="False"
+			id="report_cash_book_xls_test" 
+			model="tpt.cash.book" 
+			name="report_cash_book_xls_test"
 	        string="Cash Book Report"
 	        rml="green_erp_arulmani_accounting/report/report_cash_book.ods"/>
 	    
