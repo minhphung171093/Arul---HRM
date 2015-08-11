@@ -7,14 +7,14 @@
             <field name="arch" type="xml">
                 <form string="Grn Line Details Report" version="7.0">
                 	<group>
+                	
 	                <field name="date_from"/>
 	                <field name="date_to"/>
-	                <field name="po_no"/>
-	                <field name="grn_no"/>
-	                <field name="requisitioner"/>
-	                <field name="project_id"/>
-	                <field name="project_section_id"/>
-	                <field name="pend_qty"/> 
+	                <field name="po_no"  domain="[('state','=','approved')]" options="{'create': false, 'create_edit': false}"/>
+	                <field name="grn_no" domain="[('type','=','in')]" options="{'create': false, 'create_edit': false}"/>
+	                <field name="requisitioner" options="{'create': false, 'create_edit': false}"/>
+	                <field name="project_id" options="{'create': false, 'create_edit': false}"/>
+	                <field name="project_section_id" options="{'create': false, 'create_edit': false}"/>
 	                <field name="state"/>      	                                      
                  	</group>
                     <footer>
