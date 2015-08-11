@@ -726,7 +726,7 @@ class account_invoice(osv.osv):
     def bt_post_ed(self, cr, uid, ids, context=None):
         for post in self.browse(cr,uid,ids):
             sql = '''
-                select id from tpt_ed_invoice_positing where invoice_id = %s
+                select id from tpt_ed_invoice_positing where invoice_id = %s and state != 'cancel'
             '''%(post.id)
             cr.execute(sql)
             ed_invoice_ids = cr.dictfetchall()
@@ -963,8 +963,29 @@ class account_invoice(osv.osv):
                     'uos_id': line.uos_id.id,
                     'price_unit': line.price_unit,
                 })
+        
         new_write = super(account_invoice, self).write(cr, uid,ids, vals, context)
         for new in self.browse(cr,uid,ids):
+            if vals.get('state','')=='cancel' and 'state' in vals:
+                sql = '''
+                    select id from account_move where ed_invoice_id in (select id from tpt_ed_invoice_positing where invoice_id = %s)
+                '''%(new.id)
+                cr.execute(sql)
+                for move in cr.dictfetchall():
+                    sql = '''
+                        delete from account_move_line where move_id = %s
+                    '''%(move['id'])
+                    cr.execute(sql)
+                    sql = '''
+                        delete from account_move where id = %s
+                    '''%(move['id'])
+                    cr.execute(sql)
+                sql = '''
+                    select id from tpt_ed_invoice_positing where invoice_id = %s
+                '''%(new.id)
+                cr.execute(sql)
+                for ed in cr.dictfetchall():
+                    self.pool.get('tpt.ed.invoice.positing').bt_cancel(cr,uid,[ed['id']])
 #             if new.purchase_id:
 #                 for invoice_line in new.invoice_line:
 #                     if not invoice_line.ed and not invoice_line.aed_id_1:
@@ -2806,7 +2827,7 @@ class tpt_ed_invoice_positing(osv.osv):
                          ('raw_ed_aed', 'Raw material ED value with AED'),
                          ('raw_ed_12.5', 'Raw material ED value of 12.5%')],
                         'ED Type', readonly=True),
-        'state':fields.selection([('draft', 'Draft'),('posted', 'Posted')],'Status', readonly=True),
+        'state':fields.selection([('draft', 'Draft'),('posted', 'Posted'),('cancel', 'Cancelled')],'Status', readonly=True),
         }
     _defaults= {
         'state': 'draft',
@@ -2814,39 +2835,42 @@ class tpt_ed_invoice_positing(osv.osv):
                 }
     
     def bt_validate(self, cr, uid, ids, context=None):
-#         for ed in self.browse(cr, uid, ids):
-#             move_line = []
-#             for ed_line in ed.tpt_ed_invoice_positing_line:
-#                 move_line.append((0,0,
-#                                   {
-#                                    'name': ed.name,
-#                                    'account_id': ed_line.gl_account_id.id,
-#                                    'debit': ed_line.debit,
-#                                    'credit': ed_line.credit,
-#                                    }))
-#             sql = '''
-#                 select id from account_journal
-#             '''
-#             cr.execute(sql)
-#             journal_ids = [r[0] for r in cr.fetchall()]
-#             sql = '''
-#                 select id from account_period where '%s' between date_start and date_stop
-#             '''%(ed.date)
-#             cr.execute(sql)
-#             period_ids = [r[0] for r in cr.fetchall()]
-#             if not period_ids:
-#                 raise osv.except_osv(_('Warning!'),_('Period is not null, please configure it in Period master !'))
-#             value={
-#                     'journal_id':journal_ids[0],
-#                     'period_id':period_ids[0] ,
-#                     'ref': ed.name,
-#                     'date': ed.date,
-#                     'ed_invoice_id': ed.id,
-#                     'line_id': move_line,
-#                     'doc_type': False
-#                     }
-#             new_jour_id = self.pool.get('account.move').create(cr,uid,value)
+        for ed in self.browse(cr, uid, ids):
+            move_line = []
+            for ed_line in ed.tpt_ed_invoice_positing_line:
+                move_line.append((0,0,
+                                  {
+                                   'name': ed.name,
+                                   'account_id': ed_line.gl_account_id.id,
+                                   'debit': ed_line.debit,
+                                   'credit': ed_line.credit,
+                                   }))
+            sql = '''
+                select id from account_journal
+            '''
+            cr.execute(sql)
+            journal_ids = [r[0] for r in cr.fetchall()]
+            sql = '''
+                select id from account_period where '%s' between date_start and date_stop
+            '''%(ed.date)
+            cr.execute(sql)
+            period_ids = [r[0] for r in cr.fetchall()]
+            if not period_ids:
+                raise osv.except_osv(_('Warning!'),_('Period is not null, please configure it in Period master !'))
+            value={
+                    'journal_id':journal_ids[0],
+                    'period_id':period_ids[0] ,
+                    'ref': ed.name,
+                    'date': ed.date,
+                    'ed_invoice_id': ed.id,
+                    'line_id': move_line,
+                    'doc_type': False
+                    }
+            new_jour_id = self.pool.get('account.move').create(cr,uid,value)
         return self.write(cr, uid, ids,{'state':'posted'})
+    
+    def bt_cancel(self, cr, uid, ids, context=None):
+        return self.write(cr, uid, ids,{'state':'cancel'})
     
     def _check_date(self, cr, uid, ids, context=None):
         for ed in self.browse(cr, uid, ids, context=context):
