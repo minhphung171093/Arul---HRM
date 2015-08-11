@@ -12,15 +12,14 @@ from openerp.tools import DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_DATETIME_FO
 class grn_details_report(osv.osv_memory):
     _name = "grn.details.report"
     _columns = {
-             'name':fields.char(''),  
-             'date_from':fields.date('Date From'),
-             'date_to':fields.date('Date To'),
+             'date_from':fields.date('Date From', required=True),
+             'date_to':fields.date('Date To', required=True),
              'po_no': fields.many2one('purchase.order' ,string='Po Number'),          
              'grn_no': fields.many2one('stock.picking','GRN No', size = 1024),
              'requisitioner':fields.many2one('hr.employee','Requisitioner'),
              'project_id': fields.many2one('tpt.project','Project Title'),
              'project_section_id': fields.many2one('tpt.project.section','Project Sub Category'),
-            
+             'pend_qty': fields.float('Pending Qty'), 
              'state':fields.selection([('waiting', 'Draft'),('cancel', 'Cancelled'),('confirmed', 'Waiting Availability'),('assigned', 'Ready to Receive'),('done', 'Received')], string='State'),
                              
              'grn_line_id': fields.one2many('grn.line.details.report', 'grn_lines_id', 'GRN Line Details'),
@@ -78,14 +77,14 @@ class grn_detail_line_report(osv.osv_memory):
      _name = "grn.detail.line.report"
      
      _columns = {
-              'name':fields.char(''),    
-             'date_from':fields.date('Date From'),
-             'date_to':fields.date('Date To'),
+             'date_from':fields.date('Date From', required=True),
+             'date_to':fields.date('Date To', required=True),
              'po_no': fields.many2one('purchase.order','Purchase Order No', size = 1024),             
-             'grn_no': fields.many2one('stock.picking','GRN No', size = 1024 ),
+             'grn_no': fields.many2one('stock.picking','GRN No', size = 1024),
              'requisitioner':fields.many2one('hr.employee','Requisitioner'),
              'project_id': fields.many2one('tpt.project','Project Title'),
              'project_section_id': fields.many2one('tpt.project.section','Project Sub Category'),
+             'pend_qty': fields.float('Pending Qty'), 
              'state':fields.selection([('waiting', 'Draft'),('cancel', 'Cancelled'),('confirmed', 'Waiting Availability'),('assigned', 'Ready to Receive'),('done', 'Received')], string='State'),                      
      }
  
@@ -96,7 +95,7 @@ class grn_detail_line_report(osv.osv_memory):
                  return False
          return True
      _constraints = [
-      #   (_check_date, 'identical data', []),
+         (_check_date, 'identical data', []),
      ]
      
      
@@ -137,15 +136,15 @@ class grn_detail_line_report(osv.osv_memory):
                
         def get_status(type):
                 if type == 'cancel':
-                    res = 'Cancelled'
+                    res = 'cancelled'
                 if type == 'done':
-                    res = 'Received'
+                    res = 'received'
                 if type == 'assigned':
-                    res = 'Ready to Receive'
+                    res = 'ready to receive'
                 if type == 'confirmed':
-                    res = 'Waiting Availability'
+                    res = 'waiting availability'
                 if type == 'waiting':
-                    res = 'Draft'    
+                    res = 'draft'    
                 return res or ''
          
         def get_invoice(cb):
@@ -153,12 +152,14 @@ class grn_detail_line_report(osv.osv_memory):
                 date_from = cb.date_from
                 date_to = cb.date_to      
                 po_no= cb.po_no 
+                     
+                #===============================================================
                 grn_no= cb.grn_no                
+                #===============================================================
                 requisitioner= cb.requisitioner.id
                 state= cb.state
-                project_id= cb.project_id
-                project_section_id = cb.project_section_id
-               
+                
+                #mat_desc=wizard_data['dec_material']
                          
                 sql = '''
                     select sp.name grn_no,sp.date as grn_date,po.name po_no, rp.name supplier,
@@ -174,57 +175,31 @@ class grn_detail_line_report(osv.osv_memory):
                       inner join product_uom pu on sm.product_uom=pu.id 
                       inner join product_product pp on sm.product_id=pp.id 
                       inner join product_template pt on sm.product_id=pt.id 
-                      inner join hr_employee emp on pi.requisitioner=emp.id                       
-                    '''
-                
-                
-                if date_from or date_to or po_no or grn_no or requisitioner or project_id or project_section_id or state:
-                    str = "where "
+                      inner join hr_employee emp on pi.requisitioner=emp.id
+                      where sp.date between '%s' and '%s' 
+                    '''%(date_from, date_to)
+                       
+                if po_no:
+                    str = " and sp.purchase_id = %s"%(po_no.id)
                     sql = sql+str
-                    
-                if (date_from and not date_to and not po_no and not grn_no and not requisitioner and not project_id and not project_section_id and not state ) or (date_from and not date_to and (po_no or grn_no or requisitioner or project_id or project_section_id or state )):
-                    str = " sp.date <= '%s'"%(date_from)
-                    sql = sql+str                  
-                
-                if (date_to and not date_from and not po_no and not grn_no and not requisitioner and not project_id and not project_section_id and not state ) or (date_to and not date_from and (po_no or grn_no or requisitioner or project_id or project_section_id or state )):
-                    str = " sp.date <= '%s'"%(date_to)
+                if grn_no:
+                    str = " and sp.purchase_id = %s"%(grn_no.purchase_id.id)
                     sql = sql+str
-                
-                
-                if (date_to and date_from and not po_no and not grn_no and not requisitioner and not project_id and not project_section_id and not state) or ((date_to and date_from) and (po_no or grn_no or requisitioner or project_id or project_section_id or state )):
-                    str = "sp.date between '%s' and '%s' "%(date_from, date_to)
-                    sql = sql+str
-                    
-                if grn_no and not po_no and not date_to and not date_from and not requisitioner and not project_id and not project_section_id and not state :
-                    str = " sp.id = %s"%(grn_no[0])
-                    sql = sql+str
-                if grn_no and (date_to or date_from or po_no) and (date_to or date_from or po_no or requisitioner or project_id or project_section_id or state):
-                    str = " and sp.id = %s "%(grn_no[0])
-                    sql = sql+str         
-                
-                if po_no and not date_to and not date_from and not grn_no and not requisitioner and not project_id and not project_section_id and not state :
-                    str = " sp.purchase_id = %s"%(po_no[0])
-                    sql = sql+str 
-                if po_no and (date_to or date_from) and (date_to or date_from or grn_no or requisitioner or project_id or project_section_id or state):
-                    str = " and sp.purchase_id = %s"%(po_no[0])
-                    sql = sql+str
-                    
-                if state and not po_no and not date_to and not date_from and not grn_no and not requisitioner and not project_id and not project_section_id :
-                    str = " sm.state = '%s'"%(state)
-                    sql = sql+str
-                if state and (date_to or date_from or po_no or grn_no or requisitioner or project_id or project_section_id) and (date_to or date_from or po_no or grn_no or requisitioner or project_id or project_section_id ):
-                    str = " and sm.state = '%s' "%(state)
-                    sql = sql+str
-                    
-                if requisitioner and not po_no and not date_to and not date_from and not grn_no and not project_id and not project_section_id and not state :
-                    str = " pi.requisitioner = '%s'"%(requisitioner)
-                    sql = sql+str
-                if requisitioner and (date_to or date_from or po_no or grn_no) and (date_to or date_from or po_no or grn_no or project_id or project_section_id or state):
-                    str = " and pi.requisitioner = %s "%(requisitioner)
-                    sql = sql+str 
-                
+                #===============================================================
+                # if grn_no:
+                #     str = " and sm.picking_id = %s "%(cost_cent)
+                #     sql = sql+str
+                # if requisitioner:
+                #     str = " and mr.requisitioner = %s "%(requisitioner)
+                #     sql = sql+str
+                # if state:
+                #     str = " and mr.state = '%s' "%(state)
+                #     sql = sql+str 
+                #===============================================================
+                     
                 sql=sql+" order by sp.date"                    
                 cr.execute(sql)
+                print sql
                 return cr.dictfetchall()
              
         cr.execute('delete from grn_details_report')
@@ -255,16 +230,14 @@ class grn_detail_line_report(osv.osv_memory):
                 }))
              
         vals = {
-                    'name': 'GRN Line Details Report',
+                    'name': 'grn line details report',
                     'date_from': cb.date_from,
                     'date_to': cb.date_to, 
                     'project_id':cb.project_id.id,
                     'project_section_id':cb.project_section_id.id,               
                     'requisitioner': cb.requisitioner.id,
-                    'grn_no': cb.grn_no.id,       
+                            
                     'state': cb.state,
-                    'po_no': cb.po_no.id,
-                    
                     'grn_line_id': cb_line,
                 }
         cb_id = cb_obj.create(cr, uid, vals)
