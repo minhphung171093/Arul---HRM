@@ -46,6 +46,7 @@
         'wizard/ed_type_pop_up_view.xml',
         'wizard/daywise_consumption_view.xml',#TPT-P
         'tpt_accounting_sequence.xml',
+        'auto_posting_schedule.xml',
         'report/daily_sale_report_view.xml',
         'report/report_cash_book_view.xml',
         'report/report_bank_book_view.xml',
