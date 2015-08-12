@@ -52,6 +52,7 @@ class Parser(report_sxw.rml_parse):
             'get_debit_balance':self.get_debit_balance,
             'get_total_service_tax':self.get_total_service_tax,
             'get_invoice_details':self.get_invoice_details,
+            'get_total':self.get_total,
 #             'get_sale_line': self.get_sale_line,
         })
         
@@ -69,7 +70,7 @@ class Parser(report_sxw.rml_parse):
         wizard_data = self.localcontext['data']['form']
         date = datetime.strptime(wizard_data['date_to'], DATE_FORMAT)
         return date.strftime('%d/%m/%Y')
-    #commentted by YuVi
+    #commentted by TPT-Y
     #===========================================================================
     # def get_tax_desc(self,line):        
     #     sr_obj = self.pool.get('account.invoice.line')
@@ -173,8 +174,8 @@ class Parser(report_sxw.rml_parse):
         for move in self.cr.dictfetchall():
              debit = move['debit']
              #tax_amnt = move['debit']
-             #tot_ser_tax = linet * (tax_amnt/100) #Commented by YuVi on 28/07/15, for roundoff issue
-             #tot_ser_tax = round(linet * (tax_amnt/100),0) #YuVi on 28/07/15, for roundoff issue            
+             #tot_ser_tax = linet * (tax_amnt/100) #Commented by TPT-Y on 28/07/15, for roundoff issue
+             #tot_ser_tax = round(linet * (tax_amnt/100),0) #TPT-Y on 28/07/15, for roundoff issue            
              return debit or 0.00
          
     def get_tot_closing_bal(self):

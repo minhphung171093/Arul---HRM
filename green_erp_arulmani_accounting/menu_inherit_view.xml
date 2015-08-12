@@ -513,13 +513,13 @@
 		    									ref('green_erp_arulmani_hrm.group_vvti_hrm_payroll_controller')])]" />
 		</record>
 		
-		<menuitem action="action_tpt_bank_reconciliation"
-            id="menu_action_tpt_bank_reconciliation"
-            parent="menu_tpt_accounting" sequence="25"/>
-            
 		<record model="ir.ui.menu" id="green_erp_arulmani_hrm.menu_action_arul_hr_payroll_executions_form">
 		    <field name="groups_id" eval="[(4, ref('green_erp_arulmani_accounting.group_vvti_accounting_mgr'))]" />
 		</record>
+		
+		<menuitem action="action_tpt_bank_reconciliation"
+            id="menu_action_tpt_bank_reconciliation"
+            parent="menu_tpt_accounting" sequence="25"/>
 		
     </data>
 </openerp>

@@ -59,8 +59,9 @@
 	            		<button name="print_report_pdf" string="Print (.pdf)" type="object" class="oe_highlight" />
 	            	</header>
 	            	<sheet>
-	            	
-	            			            		
+	            	    <div class="oe_bold oe_text_center"> 
+	            		<field name="name"/>
+	            		</div>           		
             			<div class="oe_bold oe_text_left"> 
             			      			
             			<field name="date_from" class="oe_text_left oe_inline"/>            			
@@ -84,9 +85,7 @@
             			<div class="oe_bold oe_text_left">            			
             			<field name="project_section_id" class="oe_text_left oe_inline"/>
             			</div>
-            			<div class="oe_bold oe_text_left">            			
-            			<field name="pend_qty" class="oe_text_left oe_inline"/>
-            			</div>
+            			
             			<div class="oe_bold oe_text_left">            			
             			<field name="state" class="oe_text_left oe_inline"/>
             			</div>

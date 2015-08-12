@@ -1480,7 +1480,6 @@
                     
                     <xpath expr="//field[@name='company_id']" position="after">
                     	<field name="cheque_number" attrs="{'invisible': [('tpt_journal','&lt;&gt;','bank')]}"/>
-                    	<field name="reconciliation_date"/>
                     	<field name="tpt_journal" invisible = "1"/>
                     </xpath>
                     
@@ -1563,7 +1562,6 @@
                     
                     <xpath expr="//field[@name='company_id']" position="after">
                     	<field name="cheque_number" attrs="{'invisible': [('tpt_journal','&lt;&gt;','bank')]}"/>
-                    	<field name="reconciliation_date"/>
                     	<field name="tpt_journal" invisible = "1"/>
                     </xpath>
                     

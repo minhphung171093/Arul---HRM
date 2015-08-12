@@ -213,7 +213,7 @@ access_vvti_accounting_179,arul.hr.payroll.earning.structures,green_erp_arulmani
 access_vvti_accounting_180,arul.hr.payroll.other.deductions,green_erp_arulmani_hrm.model_arul_hr_payroll_other_deductions,green_erp_arulmani_accounting.group_vvti_accounting_mgr,True,True,True,False
 access_vvti_accounting_181,arul.hr.payroll.executions,green_erp_arulmani_hrm.model_arul_hr_payroll_executions,green_erp_arulmani_accounting.group_vvti_accounting_mgr,True,True,True,False
 
-
+access_vvti_accounting_182,tpt.auto.posting,green_erp_arulmani_accounting.model_tpt_auto_posting,base.group_user,True,True,True,False
 
 
 
