@@ -1093,7 +1093,7 @@
                         <field name="sum_amount"/>
                         <field name="cheque_date"/>
                         <field name="cheque_no"/>
-                        <field name="employee_id" required='1' options="{'create': false, 'create_edit': false}" />
+                        <field name="employee_id" required='0' options="{'create': false, 'create_edit': false}" />
                         <field name="cost_center_id" required="1" options="{'create': false, 'create_edit': false}" />
                         <field name="payee" required='1'/>
                         <field name="reconciliation_date"/>
@@ -1854,7 +1854,7 @@
                                     <field name="reconcile_partial_id"/>
                                 </tree>
                             </field>
-                            <field name="narration" required='1' colspan="4" placeholder="Add an internal note..." nolabel="1" height="50"/>
+                            <field name="narration" required='0' colspan="4" placeholder="Add an internal note..." nolabel="1" height="50"/>
                         </page>
                     </notebook>
                     </sheet>
