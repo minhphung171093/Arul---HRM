@@ -78,7 +78,7 @@ class grn_detail_line_report(osv.osv_memory):
      _name = "grn.detail.line.report"
      
      _columns = {
-              'name':fields.char(''),    
+             'name':fields.char(''),    
              'date_from':fields.date('Date From'),
              'date_to':fields.date('Date To'),
              'po_no': fields.many2one('purchase.order','Purchase Order No', size = 1024),             
@@ -169,7 +169,7 @@ class grn_detail_line_report(osv.osv_memory):
                       inner join stock_picking sp on sm.picking_id=sp.id
                       inner join purchase_order po on sp.purchase_id=po.id
                       inner join res_partner rp on (sp.partner_id = rp.id)
-                      inner join purchase_order_line pol on po.id=pol.order_id--pi.id = pol.po_indent_no
+                      inner join purchase_order_line pol on po.id=pol.order_id and sm.description=pol.description
                       inner join tpt_purchase_indent pi on pol.po_indent_no=pi.id
                       inner join product_uom pu on sm.product_uom=pu.id 
                       inner join product_product pp on sm.product_id=pp.id 
@@ -192,21 +192,24 @@ class grn_detail_line_report(osv.osv_memory):
                 
                 
                 if (date_to and date_from and not po_no and not grn_no and not requisitioner and not project_id and not project_section_id and not state) or ((date_to and date_from) and (po_no or grn_no or requisitioner or project_id or project_section_id or state )):
-                    str = "sp.date between '%s' and '%s' "%(date_from, date_to)
+                    if date_to==date_from:
+                        str = "extract(day from sp.date)=%s and extract(month from sp.date)=%s and extract(year from sp.date)=%s "%(int(date_from[8:10]), int(date_from[5:7]), date_from[:4])
+                    else:
+                        str = "sp.date between '%s' and '%s' "%(date_from, date_to) 
                     sql = sql+str
                     
                 if grn_no and not po_no and not date_to and not date_from and not requisitioner and not project_id and not project_section_id and not state :
                     str = " sp.id = %s"%(grn_no[0])
                     sql = sql+str
                 if grn_no and (date_to or date_from or po_no) and (date_to or date_from or po_no or requisitioner or project_id or project_section_id or state):
-                    str = " and sp.id = %s "%(grn_no[0])
+                    str = " and sp.id = %s "%(grn_no.id)
                     sql = sql+str         
                 
                 if po_no and not date_to and not date_from and not grn_no and not requisitioner and not project_id and not project_section_id and not state :
-                    str = " sp.purchase_id = %s"%(po_no[0])
+                    str = " sp.id = %s"%(po_no[0])
                     sql = sql+str 
                 if po_no and (date_to or date_from) and (date_to or date_from or grn_no or requisitioner or project_id or project_section_id or state):
-                    str = " and sp.purchase_id = %s"%(po_no[0])
+                    str = " and sp.purchase_id = %s"%(po_no.id)
                     sql = sql+str
                     
                 if state and not po_no and not date_to and not date_from and not grn_no and not requisitioner and not project_id and not project_section_id :

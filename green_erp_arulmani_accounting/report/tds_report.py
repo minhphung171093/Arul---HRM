@@ -73,7 +73,33 @@ class Parser(report_sxw.rml_parse):
     def decimal_convert(self, amount):       
         decamount = format(amount, '.2f')
         return decamount
-     
+    
+    #===========================================================================
+    # def get_doc_type(self):
+    #     wizard_data = self.localcontext['data']['form']
+    #     type = (wizard_data['invoice_type'])
+    #     type_obj = self.pool.get('account.move')
+    #     #vendor = ven_obj.browse(self.cr,self.uid,ven[0])
+    #     actmove = type_obj.browse(self.cr,self.uid,type[0])
+    #     print actmove.doc_type        
+    #     if actmove.doc_type == 'ser_inv':
+    #         return "Service Invoice"
+    #     if actmove.doc_type == 'sup_inv':
+    #         return "Supplier Invoice (Without PO)"
+    #     if actmove.doc_type == 'freight':
+    #         return "Freight Invoice"
+    #===========================================================================
+        #account.move
+        
+#         if doc_type == 'ser_inv':
+#             return "Service Invoice"
+#         if doc_type == 'sup_inv':
+#             return "Supplier Invoice (Without PO)" 
+#         if doc_type == 'freight':
+#             return "Freight Invoice"  
+    
+        
+    
     def get_cus(self):
         wizard_data = self.localcontext['data']['form']
         ven = (wizard_data['employee'])
@@ -991,6 +1017,7 @@ class Parser(report_sxw.rml_parse):
                     order by vendor_code
                 '''%(date_from,date_to)
             self.cr.execute(sql)
+            #print sql
             return self.cr.dictfetchall()            
                            
        
