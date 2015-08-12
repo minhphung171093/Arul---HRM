@@ -10,7 +10,7 @@
     "author" : "Tien",
     'category': 'GreenERP',
     'sequence': 14,
-    "depends" : [],
+    "depends" : ['green_erp_arulmani_hrm'],
     "init_xml" : [],
     "demo_xml" : [],
     "description": """

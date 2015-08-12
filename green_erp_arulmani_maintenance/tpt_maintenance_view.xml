@@ -10,9 +10,9 @@
 			<field name="name">tpt.equip.category.tree</field>
 			<field name="model">tpt.equip.category</field>
 			<field name="arch" type="xml">
-				<tree string="3.1 Equipment Category">
-						<field name="name"/>
-						<field name="code"/>
+				<tree string="Equipment Category">
+					<field name="name"/>
+					<field name="code"/>
 				</tree>
 			</field>
 	  </record>
@@ -44,5 +44,142 @@
         <menuitem action="action_tpt_equip_category_form_view"
             id="menu_action_tpt_equip_category_form_view"
             parent="menu_tpt_maint_mg" sequence="0"/>
+            
+        <record id="view_tpt_equipment_tree" model="ir.ui.view">
+			<field name="name">tpt.equipment.tree</field>
+			<field name="model">tpt.equipment</field>
+			<field name="arch" type="xml">
+				<tree string="Equipments">
+					<field name="name"/>
+					<field name="code"/>
+					<field name="equip_cate_id"/>
+					<field name="cost_id"/>
+					<field name="department_id"/>
+					<field name="section_id"/>
+					<field name="start_date"/>
+					<field name="end_date"/>
+				</tree>
+			</field>
+	  </record>
+	  
+	  <record id="view_tpt_equipment_form" model="ir.ui.view">
+            <field name="name">tpt.equipment.form</field>
+            <field name="model">tpt.equipment</field>
+            <field name="arch" type="xml">
+	            <form string="Equipments" version="7.0">   
+	            	<sheet>
+	            		<group col='4' colspan='2'>
+							<field name="name"/>
+							<field name="code"/>
+							<field name="equip_cate_id" options="{'create': false, 'create_edit': false}"/>
+							<field name="cost_id" options="{'create': false, 'create_edit': false}"/>
+							<field name="department_id" options="{'create': false, 'create_edit': false}"/>
+							<field name="section_id" options="{'create': false, 'create_edit': false}"/>
+							<field name="start_date"/>
+							<field name="end_date"/>
+						</group>
+						<notebook>
+							<page string = "Men Power Consumption">
+								<field name="men_power_line" nolabel='1'>
+									<tree editable='top'>
+										<field name="employee_id" options="{'create': false, 'create_edit': false}"/>
+										<field name="work_hour" widget="float_time"/>
+									</tree>
+								</field>
+							</page>
+							<page string = "Document Attachments">
+								<field name="document_attach_line" nolabel='1'>
+									<tree editable='top'>
+										<field name="description"/>
+									</tree>
+								</field>
+							</page>
+						</notebook>
+		         	</sheet>
+		         </form>
+			</field>
+		</record>
+		
+		<record id="action_tpt_equipment_form_view" model="ir.actions.act_window">
+            <field name="name">Equipments</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.equipment</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_tpt_equipment_tree"/>
+        </record>
+        
+        <menuitem action="action_tpt_equipment_form_view"
+            id="menu_action_tpt_equipment_form_view"
+            parent="menu_tpt_maint_mg" sequence="1"/>
+            
+        <record id="view_tpt_machineries_tree" model="ir.ui.view">
+			<field name="name">tpt.machineries.tree</field>
+			<field name="model">tpt.machineries</field>
+			<field name="arch" type="xml">
+				<tree string="Machineries">
+					<field name="name"/>
+					<field name="code"/>
+					<field name="equip_id"/>
+					<field name="cost_id"/>
+					<field name="department_id"/>
+					<field name="section_id"/>
+					<field name="start_date"/>
+					<field name="end_date"/>
+				</tree>
+			</field>
+	  </record>
+	  
+	  <record id="view_tpt_machineries_form" model="ir.ui.view">
+            <field name="name">tpt.machineries.form</field>
+            <field name="model">tpt.machineries</field>
+            <field name="arch" type="xml">
+	            <form string="Machineries" version="7.0">   
+	            	<sheet>
+	            		<group col='4' colspan='2'>
+							<field name="name"/>
+							<field name="code"/>
+							<field name="equip_id" options="{'create': false, 'create_edit': false}"/>
+							<field name="cost_id" options="{'create': false, 'create_edit': false}"/>
+							<field name="department_id" options="{'create': false, 'create_edit': false}"/>
+							<field name="section_id" options="{'create': false, 'create_edit': false}"/>
+							<field name="start_date"/>
+							<field name="end_date"/>
+						</group>
+						<notebook>
+							<page string = "Men Power Consumption">
+								<field name="men_power_line" nolabel='1'>
+									<tree editable='top'>
+										<field name="employee_id" options="{'create': false, 'create_edit': false}"/>
+										<field name="work_hour" widget="float_time"/>
+									</tree>
+								</field>
+							</page>
+							<page string = "Document Attachments">
+								<field name="document_attach_line" nolabel='1'>
+									<tree editable='top'>
+										<field name="description"/>
+									</tree>
+								</field>
+							</page>
+						</notebook>
+		         	</sheet>
+		         </form>
+			</field>
+		</record>
+		
+		<record id="action_tpt_machineries_form_view" model="ir.actions.act_window">
+            <field name="name">Machineries</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.machineries</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_tpt_machineries_tree"/>
+        </record>
+        
+        <menuitem action="action_tpt_machineries_form_view"
+            id="menu_action_tpt_machineries_form_view"
+            parent="menu_tpt_maint_mg" sequence="2"/>
+		
     </data>
 </openerp>
