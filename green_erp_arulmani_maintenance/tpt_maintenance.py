@@ -126,4 +126,36 @@ class tpt_machineries(osv.osv):
         (_check_name_code, 'Identical Data', ['name','code']),
     ]
 tpt_machineries()
+
+class tpt_notification(osv.osv):
+    _name = "tpt.notification"
+    _columns = {
+        'name':fields.char('Notification No', size = 1024,readonly=True),
+        'notif_type':fields.selection([
+                                ('prevent','Preventive Maintenance'),
+                                ('break','Breakdown')],'Notification Type',required = True),
+        'department_id': fields.many2one('hr.department', 'Department',required=True),
+        'section_id': fields.many2one('arul.hr.section', 'Section',required=True),
+        'equip_id': fields.many2one('tpt.equipment', 'Equipment',required=True),
+        'machine_id': fields.many2one('tpt.machineries', 'Machineries',required=True),
+        'issue_date': fields.date('Issue Dated on',required=True),
+        'issue_type':fields.selection([('draft', 'Draft')],'Issue Type'),
+        'priority':fields.selection([('high', 'High')],'Priority'),
+        'description':fields.text('Description'),
+        'schedule_line':fields.one2many('tpt.schedule','notification_id','Schedule'),
+        'state':fields.selection([('draft', 'Drafted'),('waiting', 'Waiting For Approval'),
+                                  ('in', 'In Progress'),('close','Closed')],'Status', readonly=True),
+    }
+tpt_notification()
+
+class tpt_schedule(osv.osv):
+    _name = "tpt.schedule"
+    _columns = {
+        'notification_id': fields.many2one('tpt.notification','Notification',ondelete='cascade'),
+        'schedule_date': fields.date('schedule Date',required=True),
+        'activities':fields.char('Activities', size = 1024,readonly=True),
+        'employee_id': fields.many2one('hr.employee', 'Responsible Person',required=True,ondelete='restrict'),
+    }
+    
+tpt_schedule()
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
