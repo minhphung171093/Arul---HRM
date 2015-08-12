@@ -1477,23 +1477,35 @@
             <field name="arch" type="xml">
                 <form string="Training Master" version="7.0">  
                 	<sheet>  
-                		<group>
-                			<field name ="name"/>
-                			<field name ="training_master_id"/>
+                		<group col='4' colspan='2'>
+                			<field name ="name" readonly='1'/>
+                			<newline/>
+                			<field name ="training_master_id" required='1' options="{'create': false, 'create_edit': false}"/>
                 			<field name ="site_name"/>
+                			<newline/>
                 			<field name ="effective_date"/>
                 			<field name ="deliver_date"/>
+                			<newline/>
+                			<field name="time_from" widget="float_time"/>
+                			<field name="time_to" widget="float_time"/>
                 			<field name ="training_company"/>
                 			<field name ="faculty_name"/>
+                			<newline/>
+                			<field name ="create_date"/>
+                			<field name ="create_uid"/>
                 		</group>
                 		<notebook>
 							<page string = "Employees">
 								<field name="training_line" nolabel='1'>
 									<tree editable='top'>
-										<field name="employee_id" />
-										<field name="designation_id" />
+										<field name="employee_id" required='1' on_change="onchange_employee_id(employee_id)" options="{'create': false, 'create_edit': false}"/>
+										<field name="designation_id" readonly='1'/>
 									</tree>
 								</field>
+							<group class="oe_subtotal_footer oe_right" colspan="2" name="employees_total">
+                                	<field name="no_of_emp" widget="monetary" />
+                            </group>  
+                            	<div class="oe_clear"/>  
 							</page>
 				   		</notebook>
                 	</sheet>
@@ -1521,7 +1533,9 @@
 			<field name="model">tpt.hr.training</field>
 			<field name="arch" type="xml">
 				<tree string="Training Master">
+					<field name ="code" />
 					<field name ="name" />
+					<field name ="desc" />
 				</tree>
 			</field>
 		</record>
@@ -1533,7 +1547,9 @@
                 <form string="Training Master" version="7.0">  
                 	<sheet>  
                 		<group>
-                			<field name ="name"/>
+                			<field name ="code" required='1'/>
+                			<field name ="name" required='1'/>
+                			<field name ="desc" />
                 		</group>
                 	</sheet>
 				</form>
@@ -1553,6 +1569,18 @@
             id="menu_tpt_hr_training_form"
             parent="hr.menu_hr_main" sequence="33"/>
 		<!-- TPT-END -->
-			
+		<record id="sequence_tpt_emp_training_import_code" model="ir.sequence.type">
+            <field name="name">Employee Training</field>
+            <field name="code">tpt.emp.training.import</field>
+        </record>
+        
+        <record id="sequence_tpt_emp_training_import_item" model="ir.sequence">
+            <field name="name">Employee Training</field>
+            <field name="code">tpt.emp.training.import</field>
+            <field name="prefix">VVTi/IS/</field> <!-- VVTi/ARE1/ -->
+            <field name="padding">6</field> <!-- 6 -->
+            <field name="number_next_actual">100001</field> <!-- 100001 -->
+            <field name="implementation">no_gap</field>
+            </record>
     </data>
 </openerp>

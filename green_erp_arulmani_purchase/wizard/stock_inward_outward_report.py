@@ -152,8 +152,8 @@ class stock_inward_outward_report(osv.osv_memory):
                 
                 sql = '''
                     select case when sum(product_isu_qty)!=0 then sum(product_isu_qty) else 0 end product_isu_qty from tpt_material_issue_line  
-                    where product_id = %s and material_issue_id in (select id from tpt_material_issue where date_expec < '%s' and state = 'done')
-                '''%(product_id.id, date_from)
+                        where product_id = %s and material_issue_id in (select id from tpt_material_issue where date_expec < '%s' and warehouse = %s and state = 'done')
+                '''%(product_id.id, date_from, locat_ids[0])
                 cr.execute(sql)
                 product_isu_qty = cr.dictfetchone()['product_isu_qty']
                 
@@ -186,8 +186,8 @@ class stock_inward_outward_report(osv.osv_memory):
                 
                 sql = '''
                     select case when sum(product_isu_qty)!=0 then sum(product_isu_qty) else 0 end product_isu_qty from tpt_material_issue_line  
-                    where product_id = %s and material_issue_id in (select id from tpt_material_issue where date_expec < '%s' and state = 'done')
-                '''%(product_id.id, date_from)
+                        where product_id = %s and material_issue_id in (select id from tpt_material_issue where date_expec < '%s' and warehouse = %s and state = 'done')
+                '''%(product_id.id, date_from, locat_ids[0])
                 cr.execute(sql)
                 product_isu_qty = cr.dictfetchone()['product_isu_qty']
 #                 sql = '''

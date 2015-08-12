@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data> 
+	    <record id="grn_line_report_pdf" model="ir.actions.report.xml">
+		        <field name="name">grn_line_report_pdf</field>
+		        <field name="type">ir.actions.report.xml</field>
+		        <field name="model">grn.details.report</field>
+		        <field name="report_name">grn_line_report_pdf</field>
+		        <field name="report_type">aeroo</field>
+		        <field name="in_format">oo-ods</field>
+		        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-pdf'),('compatible_types','=','oo-ods')]"/>
+		        <field name="parser_loc">green_erp_arulmani_purchase/report/grn_line_details_report.py</field>
+		        <field name="report_rml">green_erp_arulmani_purchase/report/grn_line_details_report.ods</field>
+		        <field name="parser_state">loc</field>
+		        <field name="tml_source">file</field>
+		        <field name="attachment_use" eval="0"/>
+	    	</record>		    
+			
+			<report 
+				auto="True" 
+				menu="False"
+				id="grn_line_report_pdf" 
+				model="grn.details.report" 
+				name="grn_line_report_pdf"
+		        string="GRN Line Details Report"
+		        rml="green_erp_arulmani_purchase/report/grn_line_details_report.ods"/>
+		        
+		<record id="grn_line_report_xls" model="ir.actions.report.xml">
+	        <field name="name">grn_line_report_xls</field>
+	        <field name="type">ir.actions.report.xml</field>
+	        <field name="model">grn.details.report</field>
+	        <field name="report_name">grn_line_report_xls</field>
+	        <field name="report_type">aeroo</field>
+	        <field name="in_format">oo-ods</field>
+	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-xls'),('compatible_types','=','oo-ods')]"/>
+	        <field name="parser_loc">green_erp_arulmani_purchase/report/grn_line_details_report.py</field>
+	        <field name="report_rml">green_erp_arulmani_purchase/report/grn_line_details_report.ods</field>
+	        <field name="parser_state">loc</field>
+	        <field name="tml_source">file</field>
+	        <field name="attachment_use" eval="0"/>
+    	</record>		    
+		
+		<report 
+			auto="True" 
+			menu="False"
+			id="grn_line_report_xls" 
+			model="grn.details.report" 
+			name="grn_line_report_xls"
+	        string="GRN Line Details Report"
+	        rml="green_erp_arulmani_purchase/report/grn_line_details_report.ods"/>    
+		    
+		<record id="view_grn_line_detail_report" model="ir.ui.view">
+	        <field name="name">grn.details.report</field>
+	        <field name="model">grn.details.report</field>
+	        <field name="arch" type="xml">
+	            <form version='7.0' string="GRN Line Details Report" create="false" edit="false" delete="false">
+	            	<header>
+	            		<button name="print_report_xls" string="Print (.xls)" type="object" class="oe_highlight" />
+	            		<button name="print_report_pdf" string="Print (.pdf)" type="object" class="oe_highlight" />
+	            	</header>
+	            	<sheet>
+	            	    <div class="oe_bold oe_text_center"> 
+	            		<field name="name"/>
+	            		</div>           		
+            			<div class="oe_bold oe_text_left"> 
+            			      			
+            			<field name="date_from" class="oe_text_left oe_inline"/>            			
+            			</div>
+            			<div class="oe_bold oe_text_left">
+            			
+            			<field name="date_to" class="oe_text_left oe_inline"/> 
+            			</div>
+            			<div class="oe_bold oe_text_left">            			
+            			<field name="po_no" class="oe_text_left oe_inline"/>
+            			</div>
+            			<div class="oe_bold oe_text_left">            			
+            			<field name="grn_no" class="oe_text_left oe_inline"/>
+            			</div>
+            			<div class="oe_bold oe_text_left">            			
+            			<field name="requisitioner" class="oe_text_left oe_inline"/>
+            			</div>
+            			<div class="oe_bold oe_text_left">            			
+            			<field name="project_id" class="oe_text_left oe_inline"/>
+            			</div>
+            			<div class="oe_bold oe_text_left">            			
+            			<field name="project_section_id" class="oe_text_left oe_inline"/>
+            			</div>
+            			
+            			<div class="oe_bold oe_text_left">            			
+            			<field name="state" class="oe_text_left oe_inline"/>
+            			</div>
+            			        			
+            			
+            			<group>
+		                	<field name="grn_line_id" nolabel='1'>
+		                		<tree create="false" edit="false" delete="false">
+		                			<field name="grn_no"/>
+		                			<field name="grn_date"/>                			
+		                			<field name="supplier"/>
+		                			<field name="doc_type"/>
+		                			<field name="po_no"/>		                			
+		                			<field name="po_indent_id"/>
+		                			<field name="description"/>
+		                			<field name="item_text"/>
+		                			<field name="product_id"/>
+		                			<field name="uom"/>
+		                			<field name="qty"/>
+		                			<field name="pend_qty"/>
+		                			<field name="action_taken"/>
+		                			<field name="bin"/>
+		                			<field name="state"/>
+		                		</tree>
+		                	</field>
+	                	</group>
+	               	</sheet>
+	           </form>
+	        </field>
+	    </record>       	
+    </data>
+</openerp>

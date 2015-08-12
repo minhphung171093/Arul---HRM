@@ -9,7 +9,9 @@ import datetime
 import math
 from openerp.tools import DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_DATETIME_FORMAT, DATETIME_FORMATS_MAP, float_compare
 import openerp.addons.decimal_precision as dp
-
+DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
+DATE_FORMAT = "%Y-%m-%d"
+from datetime import datetime, timedelta
 
 
 class arul_hr_payroll_area(osv.osv):
@@ -2806,10 +2808,19 @@ class tpt_hr_ptax(osv.osv):
         'name': fields.char('Name'), 
         'ptax_line': fields.one2many('tpt.hr.ptax.line', 'ptax_id', 'PTax Slab'),
         'from_date': fields.date('From Date'),
-        'to_date': fields.date('To Date'),    
+        'to_date': fields.date('To Date'),   
+        'year': fields.selection([(num, str(num)) for num in range(1951, 2026)], 'Year', required = True,),
+        'month': fields.selection([('1', 'January'),('2', 'February'), ('3', 'March'), ('4','April'), ('5','May'), ('6','June'), ('7','July'), ('8','August'), ('9','September'), ('10','October'), ('11','November'), ('12','December')], 'Month'),
+        'create_date': fields.datetime('Created Date',readonly = True), 
+        'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True), 
     }
+    def get_date(self, date=False):
+        if not date:
+            date = time.strftime(DATE_FORMAT)
+        date = datetime.strptime(date, DATE_FORMAT)
+        return date.strftime('%d-%m-%Y')
     def create(self, cr, uid, vals, context=None):
-        vals.update({'name':'From '+str(vals['from_date'])+ ' to '+str(vals['to_date']),
+        vals.update({'name':'From '+str(self.get_date(vals['from_date']))+ ' to '+str(self.get_date(vals['to_date'])),
                         })
         return super(tpt_hr_ptax, self).create(cr, uid, vals, context)
     
@@ -2817,10 +2828,10 @@ class tpt_hr_ptax(osv.osv):
         ptax_obj = self.pool.get('tpt.hr.ptax') 
         ptax_obj_id = ptax_obj.browse(cr,uid,ids[0])
         if 'from_date' in vals :
-            vals.update({'name':'From '+str(vals['from_date'])+ ' to '+str(ptax_obj_id.to_date),
+            vals.update({'name':'From '+str(self.get_datevals['from_date'])+ ' to '+str(self.get_date(ptax_obj_id.to_date)),
                          })
         if 'to_date' in vals :
-            vals.update({'name':'From '+str(ptax_obj_id.from_date)+ ' to '+str(vals['to_date']),
+            vals.update({'name':'From '+str(self.get_date(ptax_obj_id.from_date))+ ' to '+str(self.get_date(vals['to_date'])),
                          })
         new_write = super(tpt_hr_ptax, self).write(cr, uid,ids, vals, context)
         return new_write
@@ -2844,7 +2855,12 @@ class tpt_hr_ptax_slab(osv.osv):
         'name': fields.char('Name'), 
         'from_range': fields.float('Salary Amt From'),
         'to_range': fields.float('Salary Amt To'),   
+        'ptax_amt': fields.float('PTax Amount'),  
+        'is_active': fields.boolean('Is Active'),  
+        'create_date': fields.datetime('Created Date',readonly = True), 
+        'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True), 
     }
+    
     def create(self, cr, uid, vals, context=None):
         vals.update({'name':'Between Rs.'+str(vals['from_range'])+ ' to Rs.'+str(vals['to_range']),
                         })

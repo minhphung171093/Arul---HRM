@@ -4,7 +4,7 @@
     	<record id="report_bank_book" model="ir.actions.report.xml">
 	        <field name="name">report_bank_book</field>
 	        <field name="type">ir.actions.report.xml</field>
-	        <field name="model">bank.book.report</field>
+	        <field name="model">tpt.bank.book</field>
 	        <field name="report_name">report_bank_book</field>
 	        <field name="report_type">aeroo</field>
 	        <field name="in_format">oo-ods</field>
@@ -20,7 +20,7 @@
 			auto="True" 
 			menu="False"
 			id="report_bank_book" 
-			model="bank.book.report" 
+			model="tpt.bank.book" 
 			name="report_bank_book"
 	        string="Bank Book Report"
 	        rml="green_erp_arulmani_accounting/report/report_bank_book.ods"/>	

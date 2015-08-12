@@ -575,6 +575,14 @@ class stock_picking(osv.osv):
                     'ref': line.name,
                     }
                 new_jour_id = account_move_obj.create(cr,uid,value)
+                auto_ids = self.pool.get('tpt.auto.posting').search(cr, uid, [])
+                if auto_ids:
+                    auto_id = self.pool.get('tpt.auto.posting').browse(cr, uid, auto_ids[0], context=context)
+                    if auto_id.grn:
+                        try:
+                            account_move_obj.button_validate(cr,uid, [new_jour_id], context)
+                        except:
+                            pass
             if 'state' in vals and line.type == 'out' and line.state=='done':
                 debit = 0.0
 #                 so_id = line.sale_id and line.sale_id.id or False
@@ -605,7 +613,7 @@ class stock_picking(osv.osv):
                         if sale_id:
                             sql = '''
                                 select id from tpt_batch_allotment where sale_order_id = %s and state='confirm'
-                            '''%(sale_id) #TPT-By BalamuruganPurushothaman ON 29/07/2015 - TO TAKE CONFIRMED BATCH ALLOTMENT ONLY NOT IN CANCEL STATE
+                            '''%(sale_id) #TPT-By BalamuruganPurushothaman ON 29/07/2015 - TO TAKE CONFIRMED "BATCH ALLOTMENT" ONLY - SQL state='confirm is appended'
                             cr.execute(sql)
                             allot_ids = cr.dictfetchone()
                             if allot_ids:
@@ -675,6 +683,14 @@ class stock_picking(osv.osv):
                     'ref': line.name,
                     }
                 new_jour_id = account_move_obj.create(cr,uid,value)
+                auto_ids = self.pool.get('tpt.auto.posting').search(cr, uid, [])
+                if auto_ids:
+                    auto_id = self.pool.get('tpt.auto.posting').browse(cr, uid, auto_ids[0], context=context)
+                    if auto_id.delivery_order:
+                        try:
+                            account_move_obj.button_validate(cr,uid, [new_jour_id], context)
+                        except:
+                            pass
 #                     if so_id:
 #                         sql = '''
 #                         update sale_order set journal_flag = True where id = %s
@@ -726,7 +742,7 @@ class account_invoice(osv.osv):
     def bt_post_ed(self, cr, uid, ids, context=None):
         for post in self.browse(cr,uid,ids):
             sql = '''
-                select id from tpt_ed_invoice_positing where invoice_id = %s
+                select id from tpt_ed_invoice_positing where invoice_id = %s and state != 'cancel'
             '''%(post.id)
             cr.execute(sql)
             ed_invoice_ids = cr.dictfetchall()
@@ -963,8 +979,29 @@ class account_invoice(osv.osv):
                     'uos_id': line.uos_id.id,
                     'price_unit': line.price_unit,
                 })
+        
         new_write = super(account_invoice, self).write(cr, uid,ids, vals, context)
         for new in self.browse(cr,uid,ids):
+            if vals.get('state','')=='cancel' and 'state' in vals:
+                sql = '''
+                    select id from account_move where ed_invoice_id in (select id from tpt_ed_invoice_positing where invoice_id = %s)
+                '''%(new.id)
+                cr.execute(sql)
+                for move in cr.dictfetchall():
+                    sql = '''
+                        delete from account_move_line where move_id = %s
+                    '''%(move['id'])
+                    cr.execute(sql)
+                    sql = '''
+                        delete from account_move where id = %s
+                    '''%(move['id'])
+                    cr.execute(sql)
+                sql = '''
+                    select id from tpt_ed_invoice_positing where invoice_id = %s
+                '''%(new.id)
+                cr.execute(sql)
+                for ed in cr.dictfetchall():
+                    self.pool.get('tpt.ed.invoice.positing').bt_cancel(cr,uid,[ed['id']])
 #             if new.purchase_id:
 #                 for invoice_line in new.invoice_line:
 #                     if not invoice_line.ed and not invoice_line.aed_id_1:
@@ -1141,6 +1178,7 @@ class account_invoice(osv.osv):
                 name = inv['name'] or inv['supplier_invoice_number'] or '/'
                 if inv.purchase_id:
                     if inv.purchase_id.po_document_type != 'service':
+                        # sup inv
                         iml += invoice_line_obj.move_line_fright_change_si(cr, uid, inv.id)
                         iml += invoice_line_obj.move_line_amount_untaxed(cr, uid, inv.id) 
                         iml += invoice_line_obj.move_line_amount_tax(cr, uid, inv.id)
@@ -1148,6 +1186,7 @@ class account_invoice(osv.osv):
                         iml += invoice_line_obj.move_line_tds_amount_without_po(cr, uid, inv.id) 
                         iml += invoice_line_obj.move_line_amount_round_off(cr, uid, inv.id)
                     if inv.purchase_id.po_document_type == 'service':
+                        # service inv
                         iml += invoice_line_obj.move_line_fright(cr, uid, inv.id)
                         iml += invoice_line_obj.move_line_amount_untaxed(cr, uid, inv.id) 
                         iml += invoice_line_obj.move_line_amount_tax(cr, uid, inv.id)
@@ -1157,6 +1196,7 @@ class account_invoice(osv.osv):
                         iml += invoice_line_obj.move_line_tds_amount_without_po(cr, uid, inv.id) 
                         iml += invoice_line_obj.move_line_amount_round_off(cr, uid, inv.id)
                 else:
+                # sup inv without po
                     iml += invoice_line_obj.move_line_fright(cr, uid, inv.id)
                     iml += invoice_line_obj.move_line_amount_untaxed_without_po(cr, uid, inv.id) 
                     iml += invoice_line_obj.move_line_amount_tax(cr, uid, inv.id)
@@ -1171,7 +1211,8 @@ class account_invoice(osv.osv):
                 iml += invoice_line_obj.move_line_customer_product_price(cr, uid, inv.id)
                 name = inv['vvt_number'] or '/'
                 
-            if (inv.type == 'in_invoice' and inv.sup_inv_id): 
+            if (inv.type == 'in_invoice' and inv.sup_inv_id):
+                # freight invoice 
                 iml = invoice_line_obj.move_line_fi_base(cr, uid, inv.id)
                 iml += invoice_line_obj.move_line_fi_debit(cr, uid, inv.id) 
 #                 iml += invoice_line_obj.move_line_fi_debit_deducte(cr, uid, inv.id) 
@@ -1354,6 +1395,45 @@ class account_invoice(osv.osv):
                         raise osv.except_osv(_('Error!'), _('Please define a sequence on the journal.'))
                     if new_name:
                         move_obj.write(cr, uid, [move.id], {'name':new_name})
+                    # auto posting for journal entry
+                    auto_ids = self.pool.get('tpt.auto.posting').search(cr, uid, [])
+                    if auto_ids:
+                        auto_id = self.pool.get('tpt.auto.posting').browse(cr, uid, auto_ids[0], context=context)
+                        if inv.type == 'in_invoice' and not inv.sup_inv_id:
+                            if inv.purchase_id:
+                                if auto_id.supplier_invoice and inv.purchase_id.po_document_type != 'service':
+                                    # sup invoice
+                                    try:
+                                        move_obj.button_validate(cr,uid, [move.id], context)
+                                    except:
+                                        pass
+                                if auto_id.service_invoice and inv.purchase_id.po_document_type == 'service':
+                                    # service invoice
+                                    try:
+                                        move_obj.button_validate(cr,uid, [move.id], context)
+                                    except:
+                                        pass
+                            else:
+                                if auto_id.supplier_invoice_without:
+                                    # sup invoice without po
+                                    try:
+                                        move_obj.button_validate(cr,uid, [move.id], context)
+                                    except:
+                                        pass
+                        if inv.type == 'in_invoice' and inv.sup_inv_id:
+                            if auto_id.freight_invoice:
+                                # freight invoice
+                                try:
+                                    move_obj.button_validate(cr,uid, [move.id], context)
+                                except:
+                                    pass
+                        if inv.type == 'out_invoice':
+                            if auto_id.customer_invoice:
+                                # customer invoice
+                                try:
+                                    move_obj.button_validate(cr,uid, [move.id], context)
+                                except:
+                                    pass
 #             move_obj.post(cr, uid, [move_id], context=ctx)
         self._log_event(cr, uid, ids)
         return True
@@ -2806,7 +2886,7 @@ class tpt_ed_invoice_positing(osv.osv):
                          ('raw_ed_aed', 'Raw material ED value with AED'),
                          ('raw_ed_12.5', 'Raw material ED value of 12.5%')],
                         'ED Type', readonly=True),
-        'state':fields.selection([('draft', 'Draft'),('posted', 'Posted')],'Status', readonly=True),
+        'state':fields.selection([('draft', 'Draft'),('posted', 'Posted'),('cancel', 'Cancelled')],'Status', readonly=True),
         }
     _defaults= {
         'state': 'draft',
@@ -2814,39 +2894,42 @@ class tpt_ed_invoice_positing(osv.osv):
                 }
     
     def bt_validate(self, cr, uid, ids, context=None):
-#         for ed in self.browse(cr, uid, ids):
-#             move_line = []
-#             for ed_line in ed.tpt_ed_invoice_positing_line:
-#                 move_line.append((0,0,
-#                                   {
-#                                    'name': ed.name,
-#                                    'account_id': ed_line.gl_account_id.id,
-#                                    'debit': ed_line.debit,
-#                                    'credit': ed_line.credit,
-#                                    }))
-#             sql = '''
-#                 select id from account_journal
-#             '''
-#             cr.execute(sql)
-#             journal_ids = [r[0] for r in cr.fetchall()]
-#             sql = '''
-#                 select id from account_period where '%s' between date_start and date_stop
-#             '''%(ed.date)
-#             cr.execute(sql)
-#             period_ids = [r[0] for r in cr.fetchall()]
-#             if not period_ids:
-#                 raise osv.except_osv(_('Warning!'),_('Period is not null, please configure it in Period master !'))
-#             value={
-#                     'journal_id':journal_ids[0],
-#                     'period_id':period_ids[0] ,
-#                     'ref': ed.name,
-#                     'date': ed.date,
-#                     'ed_invoice_id': ed.id,
-#                     'line_id': move_line,
-#                     'doc_type': False
-#                     }
-#             new_jour_id = self.pool.get('account.move').create(cr,uid,value)
+        for ed in self.browse(cr, uid, ids):
+            move_line = []
+            for ed_line in ed.tpt_ed_invoice_positing_line:
+                move_line.append((0,0,
+                                  {
+                                   'name': ed.name,
+                                   'account_id': ed_line.gl_account_id.id,
+                                   'debit': ed_line.debit,
+                                   'credit': ed_line.credit,
+                                   }))
+            sql = '''
+                select id from account_journal
+            '''
+            cr.execute(sql)
+            journal_ids = [r[0] for r in cr.fetchall()]
+            sql = '''
+                select id from account_period where '%s' between date_start and date_stop
+            '''%(ed.date)
+            cr.execute(sql)
+            period_ids = [r[0] for r in cr.fetchall()]
+            if not period_ids:
+                raise osv.except_osv(_('Warning!'),_('Period is not null, please configure it in Period master !'))
+            value={
+                    'journal_id':journal_ids[0],
+                    'period_id':period_ids[0] ,
+                    'ref': ed.name,
+                    'date': ed.date,
+                    'ed_invoice_id': ed.id,
+                    'line_id': move_line,
+                    'doc_type': False
+                    }
+            new_jour_id = self.pool.get('account.move').create(cr,uid,value)
         return self.write(cr, uid, ids,{'state':'posted'})
+    
+    def bt_cancel(self, cr, uid, ids, context=None):
+        return self.write(cr, uid, ids,{'state':'cancel'})
     
     def _check_date(self, cr, uid, ids, context=None):
         for ed in self.browse(cr, uid, ids, context=context):
@@ -3714,6 +3797,41 @@ class account_voucher(osv.osv):
             })
             if voucher.journal_id.entry_posted:
                 move_pool.post(cr, uid, [move_id], context={})
+                
+            ###
+            auto_ids = self.pool.get('tpt.auto.posting').search(cr, uid, [])
+            if auto_ids:
+                auto_id = self.pool.get('tpt.auto.posting').browse(cr, uid, auto_ids[0], context=context)
+                if voucher.type_trans:
+                    if voucher.journal_id.type == 'cash' and auto_id.cash_transactions:
+                        try:
+#                             move_pool.button_validate(cr,uid, [move.id], context)
+                            move_pool.post(cr, uid, [move_id], context={})
+                        except:
+                            pass
+                        
+                    if voucher.journal_id.type == 'bank' and auto_id.bank_transactions:
+                        try:
+                            move_pool.post(cr, uid, [move_id], context={})
+                        except:
+                            pass
+                else: 
+                    if voucher.journal_id.type in ['bank', 'cash'] and  voucher.type=='receipt' and voucher.tpt_cus_reconcile==False and auto_id.customer_payment and voucher.type_cash_bank != 'journal':
+                        try:
+                            move_pool.post(cr, uid, [move_id], context={})
+                        except:
+                            pass
+                    if voucher.journal_id.type in ['bank', 'cash'] and  voucher.type=='payment' and voucher.tpt_sup_reconcile==False and auto_id.supplier_payment and voucher.type_cash_bank != 'journal':
+                        try:
+                            move_pool.post(cr, uid, [move_id], context={})
+                        except:
+                            pass
+                    if voucher.type_cash_bank == 'journal' and auto_id.journal_vouchers:
+                        try:
+                            move_pool.post(cr, uid, [move_id], context={})
+                        except:
+                            pass
+            ###
             # We automatically reconcile the account move lines.
             reconcile = False
             for rec_ids in rec_list_ids:
@@ -3769,13 +3887,13 @@ class account_voucher(osv.osv):
                     move['doc_type'] = 'cash_rec'
         else:
             if (voucher.journal_id.type == 'bank' or voucher.journal_id.type == 'cash'):
-                if voucher.type == 'receipt':
+                if voucher.type == 'receipt' and voucher.type_cash_bank != 'journal':
                     move['doc_type'] = 'cus_pay'
 #                     sql = '''
 #                         update account_voucher set type_trans = 'receipt', sum_amount = %s where id = %s
 #                     '''%(voucher_id, voucher.amount)
 #                     cr.execute(sql)
-                if voucher.type == 'payment':
+                if voucher.type == 'payment' and voucher.type_cash_bank != 'journal':
                     move['doc_type'] = 'sup_pay'
 #                     sql = '''
 #                         update account_voucher set type_trans = 'payment', sum_amount = %s where id = %s
@@ -4295,6 +4413,14 @@ class tpt_material_issue(osv.osv):
                 'doc_type':'good'
                 }
             new_jour_id = account_move_obj.create(cr,uid,value)
+            auto_ids = self.pool.get('tpt.auto.posting').search(cr, uid, [])
+            if auto_ids:
+                auto_id = self.pool.get('tpt.auto.posting').browse(cr, uid, auto_ids[0], context=context)
+                if auto_id.material_issue:
+                    try:
+                        account_move_obj.button_validate(cr,uid, [new_jour_id], context)
+                    except:
+                        pass
             self.write(cr, uid, ids,{'state':'done'})
         return True  
     
@@ -4383,6 +4509,14 @@ class tpt_material_issue(osv.osv):
                     'doc_type':'good'
                     }
                 new_jour_id = account_move_obj.create(cr,uid,value)
+                auto_ids = self.pool.get('tpt.auto.posting').search(cr, uid, [])
+                if auto_ids:
+                    auto_id = self.pool.get('tpt.auto.posting').browse(cr, uid, auto_ids[0], context=context)
+                    if auto_id.material_issue:
+                        try:
+                            account_move_obj.button_validate(cr,uid, [new_jour_id], context)
+                        except:
+                            pass
                 print 'TPT Create Done', line.id,line.doc_no
         return True
     
@@ -4780,6 +4914,14 @@ class tpt_hr_payroll_approve_reject(osv.osv):
                     'doc_type':'payroll'
                     }
                 new_s1_jour_id = account_move_obj.create(cr,uid,value_s1)
+                auto_ids = self.pool.get('tpt.auto.posting').search(cr, uid, [])
+                if auto_ids:
+                    auto_id = self.pool.get('tpt.auto.posting').browse(cr, uid, auto_ids[0], context=context)
+                    if auto_id.payroll:
+                        try:
+                            account_move_obj.button_validate(cr,uid, [new_s1_jour_id], context)
+                        except:
+                            pass
                 payroll_obj.write(cr, uid, excutive.id, {'state':'approve'})
             if payroll_staff_id:
                 staff = payroll_obj.browse(cr,uid,payroll_staff_id)
@@ -4930,6 +5072,14 @@ class tpt_hr_payroll_approve_reject(osv.osv):
                     'doc_type':'staff_payroll'
                     }
                 new_s2_jour_id = account_move_obj.create(cr,uid,value_s2)
+                auto_ids = self.pool.get('tpt.auto.posting').search(cr, uid, [])
+                if auto_ids:
+                    auto_id = self.pool.get('tpt.auto.posting').browse(cr, uid, auto_ids[0], context=context)
+                    if auto_id.payroll:
+                        try:
+                            account_move_obj.button_validate(cr,uid, [new_s2_jour_id], context)
+                        except:
+                            pass
                 payroll_obj.write(cr, uid, staff.id, {'state':'approve'})
             if payroll_workers_id:
                 workers = payroll_obj.browse(cr,uid,payroll_workers_id)
@@ -5081,6 +5231,14 @@ class tpt_hr_payroll_approve_reject(osv.osv):
                     'doc_type':'worker_payroll'
                     }
                 new_s3_jour_id = account_move_obj.create(cr,uid,value_s3)
+                auto_ids = self.pool.get('tpt.auto.posting').search(cr, uid, [])
+                if auto_ids:
+                    auto_id = self.pool.get('tpt.auto.posting').browse(cr, uid, auto_ids[0], context=context)
+                    if auto_id.payroll:
+                        try:
+                            account_move_obj.button_validate(cr,uid, [new_s3_jour_id], context)
+                        except:
+                            pass
                 payroll_obj.write(cr, uid, workers.id, {'state':'approve'})
         return self.write(cr, uid, line.id, {'state':'done'})
     
@@ -5385,6 +5543,14 @@ class mrp_production(osv.osv):
                             'ref': line.name,
                         }
                 new_jour_id = account_move_obj.create(cr,uid,value)
+                auto_ids = self.pool.get('tpt.auto.posting').search(cr, uid, [])
+                if auto_ids:
+                    auto_id = self.pool.get('tpt.auto.posting').browse(cr, uid, auto_ids[0], context=context)
+                    if auto_id.production_declaration:
+                        try:
+                            account_move_obj.button_validate(cr,uid, [new_jour_id], context)
+                        except:
+                            pass
                 sql = '''
                     update mrp_production set produce_cost = %s where id=%s 
                 '''%(credit,line.id)
@@ -5416,6 +5582,7 @@ class account_move(osv.osv):
         'material_issue_id': fields.many2one('tpt.material.issue','Material Issue',ondelete='restrict'), 
         'ed_invoice_id': fields.many2one('tpt.ed.invoice.positing','ED Invoice Posting',ondelete='restrict'),  
         'grn_id': fields.many2one('stock.picking','GRN',ondelete='restrict'),
+        'do_id': fields.many2one('stock.picking','DO',ondelete='restrict'), #TPT-BalamuruganPurushothaman
         'product_dec': fields.many2one('mrp.production','Production',ondelete='restrict'),  
                 }
     
@@ -5770,3 +5937,205 @@ class account_move(osv.osv):
     def write(self, cr, uid,ids, vals, context=None):
         return super(account_move, self).write(cr,1,ids,vals,context) 
 account_move()
+
+class tpt_auto_posting(osv.osv):
+    _name = "tpt.auto.posting"
+    _columns = {
+        'name':fields.char('Name', size = 1024),
+        'grn':fields.boolean('GRN'),
+        'supplier_invoice':fields.boolean('Supplier Invoice'),
+        'material_issue':fields.boolean('Material Issue'),
+        'delivery_order':fields.boolean('Delivery Order'),
+        'customer_invoice':fields.boolean('Customer Invoice'),
+        'supplier_payment':fields.boolean('Supplier Payment'),
+        'customer_payment':fields.boolean('Customer payment'),
+        'cash_transactions':fields.boolean('Cash Transactions'),
+        'bank_transactions':fields.boolean('Bank Transactions'),
+        'supplier_invoice_without':fields.boolean('Supplier Invoice (Without PO)'),
+        'service_invoice':fields.boolean('Service Invoice'),
+        'freight_invoice':fields.boolean('Freight Invoice'),
+        'journal_vouchers':fields.boolean('Journal Vouchers'),
+        'production_declaration':fields.boolean('Production Declaration'),
+        'payroll':fields.boolean('Payroll'),
+    }
+    _defaults = {
+        'name':'Auto Account Posting Configuration',
+    }
+    def _check_name(self, cr, uid, ids, context=None):
+        for auto in self.browse(cr, uid, ids, context=context):
+            auto_ids = self.search(cr, uid, [('id','!=',auto.id),('name','=',auto.name)])
+            if auto_ids:
+                raise osv.except_osv(_('Warning!'),_('Can not have more than one Auto Account Posting Configuration!'))           
+                return False
+            return True
+        
+    _constraints = [
+        (_check_name, 'Identical Data', ['name']),
+    ] 
+    
+#     def split_auto_posting(self,cr,uid,stri):
+#         move_obj = self.pool.get('account.move')
+#         grn_ids = move_obj.search(cr, uid,[('state','=','draft'),('doc_type','=',stri)])
+#         if grn_ids:
+#             try:
+#                 move_obj.button_validate(cr, uid, grn_ids, context)
+#             except:
+#                 pass
+#         return True
+    
+    def auto_posting(self, cr, uid, context=None):
+#         auto_ids = self.pool.get('tpt.auto.posting').search(cr, uid,[])
+#         if auto_ids:
+#             auto_id = self.pool.get('tpt.auto.posting').browse(cr, uid, auto_ids[0], context=context)
+#             move_obj = self.pool.get('account.move')
+#             if auto_id.grn:
+# #                 stri = 'grn'
+# #                 self.split_auto_posting(cr,uid,stri)
+#                 grn_ids = move_obj.search(cr, uid,[('state','=','draft'),('doc_type','=','grn')])
+#                 for grn_id in grn_ids:
+#                     try:
+#                         move_obj.button_validate(cr, uid, [grn_id], context)
+#                     except:
+#                         pass
+#                     
+#             if auto_id.customer_payment:
+#                 cus_ids = move_obj.search(cr, uid,[('state','=','draft'),('doc_type','=','cus_pay')])
+#                 for cus_id in cus_ids:
+#                     try:
+#                         move_obj.button_validate(cr, uid, [cus_id], context)
+#                     except:
+#                         pass
+#                     
+#             if auto_id.supplier_payment:
+#                 sup_ids = move_obj.search(cr, uid,[('state','=','draft'),('doc_type','=','sup_pay')])
+#                 for sup_id in sup_ids:
+#                     try:
+#                         move_obj.button_validate(cr, uid, [sup_id], context)
+#                     except:
+#                         pass
+#                     
+#             if auto_id.supplier_invoice:
+#                 sup_inv_po_ids = move_obj.search(cr, uid,[('state','=','draft'),('doc_type','=','sup_inv_po')])
+#                 for sup_inv_po_id in sup_inv_po_ids:
+#                     try:
+#                         move_obj.button_validate(cr, uid, [sup_inv_po_id], context)
+#                     except:
+#                         pass
+#                     
+#             if auto_id.customer_invoice:
+#                 cus_inv_ids = move_obj.search(cr, uid,[('state','=','draft'),('doc_type','=','cus_inv')])
+#                 for cus_inv_id in cus_inv_ids:
+#                     try:
+#                         move_obj.button_validate(cr, uid, [cus_inv_id], context)
+#                     except:
+#                         pass
+#                     
+#             if auto_id.material_issue:
+#                 issue_ids = move_obj.search(cr, uid,[('state','=','draft'),('doc_type','=','good')])
+#                 for issue_id in issue_ids:
+#                     try:
+#                         move_obj.button_validate(cr, uid, [issue_id], context)
+#                     except:
+#                         pass
+#             if auto_id.delivery_order:
+#                 do_ids = move_obj.search(cr, uid,[('state','=','draft'),('doc_type','=','do')])
+#                 for do_id in do_ids:
+#                     try:
+#                         move_obj.button_validate(cr, uid, [do_id], context)
+#                     except:
+#                         pass
+#             
+#             if auto_id.cash_transactions:
+#                 cash_pay_ids = move_obj.search(cr, uid,[('state','=','draft'),('doc_type','=','cash_pay')])
+#                 for cash_pay_id in cash_pay_ids:
+#                     try:
+#                         move_obj.button_validate(cr, uid, [cash_pay_id], context)
+#                     except:
+#                         pass
+#                     
+#                 cash_rec_ids = move_obj.search(cr, uid,[('state','=','draft'),('doc_type','=','cash_rec')])
+#                 for cash_rec_id in cash_rec_ids:
+#                     try:
+#                         move_obj.button_validate(cr, uid, [cash_rec_id], context)
+#                     except:
+#                         pass
+#             
+#             if auto_id.bank_transactions:
+#                 bank_pay_ids = move_obj.search(cr, uid,[('state','=','draft'),('doc_type','=','bank_pay')])
+#                 for bank_pay_id in bank_pay_ids:
+#                     try:
+#                         move_obj.button_validate(cr, uid, [bank_pay_id], context)
+#                     except:
+#                         pass
+#                     
+#                 bank_rec_ids = move_obj.search(cr, uid,[('state','=','draft'),('doc_type','=','bank_rec')])
+#                 for bank_rec_id in bank_rec_ids:
+#                     try:
+#                         move_obj.button_validate(cr, uid, [bank_rec_id], context)
+#                     except:
+#                         pass
+#             
+#             if auto_id.supplier_invoice_without:
+#                 sup_wi_ids = move_obj.search(cr, uid,[('state','=','draft'),('doc_type','=','sup_inv')])
+#                 for sup_wi_id in sup_wi_ids:
+#                     try:
+#                         move_obj.button_validate(cr, uid, [sup_wi_id], context)
+#                     except:
+#                         pass
+#                     
+#             if auto_id.service_invoice:
+#                 ser_inv_ids = move_obj.search(cr, uid,[('state','=','draft'),('doc_type','=','ser_inv')])
+#                 for ser_inv_id in ser_inv_ids:
+#                     try:
+#                         move_obj.button_validate(cr, uid, [ser_inv_id], context)
+#                     except:
+#                         pass
+#             
+#             if auto_id.freight_invoice:
+#                 freight_ids = move_obj.search(cr, uid,[('state','=','draft'),('doc_type','=','freight')])
+#                 for freight_id in freight_ids:
+#                     try:
+#                         move_obj.button_validate(cr, uid, [freight_id], context)
+#                     except:
+#                         pass
+#                     
+#             if auto_id.production_declaration:
+#                 product_ids = move_obj.search(cr, uid,[('state','=','draft'),('doc_type','=','product')])
+#                 for product_id in product_ids:
+#                     try:
+#                         move_obj.button_validate(cr, uid, [product_id], context)
+#                     except:
+#                         pass
+#                     
+#             if auto_id.journal_vouchers:
+#                 voucher_ids = move_obj.search(cr, uid,[('state','=','draft'),('doc_type','=',False)])
+#                 for voucher_id in voucher_ids:
+#                     try:
+#                         move_obj.button_validate(cr, uid, [voucher_id], context)
+#                     except:
+#                         pass
+#                     
+#             if auto_id.payroll:
+#                 payroll_ids = move_obj.search(cr, uid,[('state','=','draft'),('doc_type','=','payroll')])
+#                 for payroll_id in payroll_ids:
+#                     try:
+#                         move_obj.button_validate(cr, uid, [payroll_id], context)
+#                     except:
+#                         pass
+#                     
+#                 staff_payroll_ids = move_obj.search(cr, uid,[('state','=','draft'),('doc_type','=','staff_payroll')])
+#                 for staff_payroll_id in staff_payroll_ids:
+#                     try:
+#                         move_obj.button_validate(cr, uid, [staff_payroll_id], context)
+#                     except:
+#                         pass
+#                     
+#                 worker_payroll_ids = move_obj.search(cr, uid,[('state','=','draft'),('doc_type','=','worker_payroll')])
+#                 for worker_payroll_id in worker_payroll_ids:
+#                     try:
+#                         move_obj.button_validate(cr, uid, [worker_payroll_id], context)
+#                     except:
+#                         pass
+                    
+        return True  
+tpt_auto_posting()
