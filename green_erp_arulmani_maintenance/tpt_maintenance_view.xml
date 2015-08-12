@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+        <menuitem name="Maintenance"
+            id="menu_tpt_maintenance"
+            sequence="18"/>
+        <menuitem id="menu_tpt_maint_mg" name="Maintenance Management" parent="menu_tpt_maintenance" sequence="0"/>
+        
+        <record id="view_tpt_equip_category_tree" model="ir.ui.view">
+			<field name="name">tpt.equip.category.tree</field>
+			<field name="model">tpt.equip.category</field>
+			<field name="arch" type="xml">
+				<tree string="3.1 Equipment Category">
+						<field name="name"/>
+						<field name="code"/>
+				</tree>
+			</field>
+	  </record>
+	  
+	  <record id="view_tpt_equip_category_form" model="ir.ui.view">
+            <field name="name">tpt.equip.category.form</field>
+            <field name="model">tpt.equip.category</field>
+            <field name="arch" type="xml">
+	            <form string="Equipment Category" version="7.0">   
+	            	<sheet>
+	            		<group>
+							<field name="name"/>
+							<field name="code"/>
+						</group>
+		         	</sheet>
+		         </form>
+			</field>
+		</record>
+          
+		<record id="action_tpt_equip_category_form_view" model="ir.actions.act_window">
+            <field name="name">Equipment Category</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.equip.category</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_tpt_equip_category_tree"/>
+        </record>
+        
+        <menuitem action="action_tpt_equip_category_form_view"
+            id="menu_action_tpt_equip_category_form_view"
+            parent="menu_tpt_maint_mg" sequence="0"/>
+    </data>
+</openerp>
