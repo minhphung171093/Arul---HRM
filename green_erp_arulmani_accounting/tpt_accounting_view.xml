@@ -2720,8 +2720,8 @@
 	                                    <field name="name" string="Voucher No" readonly='1'/>
 	                                    <field name="date" string="Payment Date" readonly='1'/>
 	                         <!--           <field name="reference" string="Payment Ref"  readonly='1'/>  -->
-	                                    <field name="account_id" readonly='1'/>
-	                                    <field name="amount" readonly='1'/>
+	                                    <!--<field name="account_id" readonly='1'/>
+	                                    <field name="amount" readonly='1'/>-->
 	                                    <field name="cheque_date" readonly='1'/>
 	                                    <field name="cheque_no" readonly='1'/>
 	                                    <field name="debit" readonly='1'/>
