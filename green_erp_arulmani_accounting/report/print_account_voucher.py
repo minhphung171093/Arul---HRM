@@ -38,11 +38,21 @@ class Parser(report_sxw.rml_parse):
             
         })
         
-    def get_type(self,code):
+    def get_type(self,code,type):
         if code=='BNK1':
-            return 'CASH VOUCHER'
-        elif code=='BNK2':
-            return 'BANK VOUCHER'
+            if type=='payment':
+                return 'CASH PAYMENT VOUCHER'
+            elif type=='receipt':
+                return 'CASH RECEIPT VOUCHER'
+            else:
+                return 'CASH VOUCHER'
+        if code=='BNK2':
+            if type=='payment':
+                return 'BANK PAYMENT VOUCHER'
+            elif type=='receipt':
+                return 'BANK RECEIPT VOUCHER'
+            else:
+                return 'BANK VOUCHER'
         else:
             return ''
         
@@ -56,6 +66,7 @@ class Parser(report_sxw.rml_parse):
         dec_no = round(number - int(number), 2)
         dec_no = format(dec_no, '.2f') 
         return dec_no[2:]
+    
     def get_amt(self,value=False):
         locale.setlocale(locale.LC_NUMERIC, "en_IN")
         inr_comma_format = locale.format("%.2f", value, grouping=True)
