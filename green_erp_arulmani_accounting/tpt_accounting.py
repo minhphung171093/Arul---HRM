@@ -3195,7 +3195,33 @@ class account_voucher(osv.osv):
         'cost_center_id':fields.many2one('tpt.cost.center','Cost Center'),
         }
     
+    def voucher_print_button(self, cr, uid, ids, context={}):
+        '''This function prints the Journal Voucher in Accounting'''
+        for this_id in self.browse(cr, uid, ids, context):
+            datas = {
+                'model': 'account.voucher',
+                'ids': ids,
+                'form': self.read(cr, uid, ids[0], context=context),
+                }
+            return {'type': 'ir.actions.report.xml', 'report_name': 'voucher1.print', 'datas': datas, 'context': context, 'nodestroy': True}
     
+    def print_voucher(self, cr, uid, ids, context=None):
+        '''
+        This function prints the invoice and mark it as sent, so that we can see more easily the next step of the workflow
+        '''
+        assert len(ids) == 1, 'This option should only be used for a single id at a time.'
+        self.write(cr, uid, ids, {'sent': True}, context=context)
+        datas = {
+             'ids': ids,
+             'model': 'accout.voucher',
+             'form': self.read(cr, uid, ids[0], context=context)
+        }
+        
+        return {
+                'type': 'ir.actions.report.xml',
+                'report_name': 'account_voucher_report',
+            }     
+        
     def default_get(self, cr, uid, fields, context=None):
         if context is None:
             context = {}

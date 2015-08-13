@@ -61,6 +61,7 @@
         'report/tds_for_view.xml',
         'report/service_tax_report_view.xml',
         'report/daywise_consumption_for_report_view.xml',#TPT-P
+        'report/print_account_voucher_view.xml',
         'import_view.xml',
         'accounting_data.xml',
         'tpt_accounting_view.xml',
