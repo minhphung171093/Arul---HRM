@@ -41,18 +41,18 @@ class Parser(report_sxw.rml_parse):
     def get_type(self,code,type):
         if code=='BNK1':
             if type=='payment':
-                return 'CASH PAYMENT VOUCHER'
+                return 'Cash Payment Voucher'
             elif type=='receipt':
-                return 'CASH RECEIPT VOUCHER'
+                return 'Cash Receipt Voucher'
             else:
-                return 'CASH VOUCHER'
+                return 'Cash Voucher'
         if code=='BNK2':
             if type=='payment':
-                return 'BANK PAYMENT VOUCHER'
+                return 'Bank Payment Voucher'
             elif type=='receipt':
-                return 'BANK RECEIPT VOUCHER'
+                return 'Bank Receipt Voucher'
             else:
-                return 'BANK VOUCHER'
+                return 'Bank Voucher'
         else:
             return ''
         
