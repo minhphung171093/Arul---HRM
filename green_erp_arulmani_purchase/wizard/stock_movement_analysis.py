@@ -1002,59 +1002,123 @@ class stock_movement_analysis(osv.osv_memory):
                        avg_cost = hand_quantity and total_cost/hand_quantity or 0 
                return avg_cost
            
+        def get_consumption_value(o, product_id):
+            date_from = o.date_from
+            date_to = o.date_to
+#             product_id = o.product_id
+            categ = o.categ_id.cate_name
+            consum_value = 0
+            product = self.pool.get('product.product').browse(cr,uid,product_id)
+            print product_id, product.name
+            if categ == 'raw':
+                parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw Material','Raw Materials','Raw material']),('location_id','=',parent_ids[0])])
+                sql = '''
+                    select case when sum(product_qty * price_unit)!=0 then sum(product_qty * price_unit) else 0 end tong
+                        from stock_move st
+                        where st.state='done' and st.product_id=%s
+                            and st.location_dest_id != st.location_id
+                            and to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') between '%s' and '%s'
+                            and  (
+                                issue_id is not null
+                            and id not in (select id
+                                from stock_move where product_id = %s and state = 'done' and issue_id is null 
+                                and picking_id is null and inspec_id is null and location_id = %s 
+                                and location_id != location_dest_id)
+                    )
+                '''%(product_id, date_from, date_to, product_id, locat_ids[0])
+                cr.execute(sql)
+                consum_value = cr.dictfetchone()['tong']
+                
+                if product.default_code == 'M0501060001':
+                    sql = '''
+                        select case when sum(product_qty * price_unit)!=0 then sum(product_qty * price_unit) else 0 end tong
+                            from stock_move
+                            where state='done' and product_id in (select id from product_product where default_code = 'M0501060001')
+                                and location_dest_id != location_id
+                                and to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') between '%s' and '%s'
+                                and  (
+                                     issue_id is not null
+                                or (location_id = %s and id in (select move_id from mrp_production_move_ids))
+                        )
+                    '''%(date_from, date_to, locat_ids[0])
+                    cr.execute(sql)
+                    consum_value = cr.dictfetchone()['tong']
+                    
+            if categ == 'spares':
+                parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Spares','Spare','spares']),('location_id','=',parent_ids[0])])
+                sql = '''
+                    select case when sum(product_qty * price_unit)!=0 then sum(product_qty * price_unit) else 0 end tong
+                        from stock_move st
+                        where st.state='done' and st.product_id=%s
+                            and st.location_dest_id != st.location_id
+                            and to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') between '%s' and '%s'
+                            and  (
+                                issue_id is not null
+                            and id not in (select id
+                                from stock_move where product_id = %s and state = 'done' and issue_id is null 
+                                and picking_id is null and inspec_id is null and location_id = %s 
+                                and location_id != location_dest_id)
+                    )
+                '''%(product_id, date_from, date_to, product_id, locat_ids[0])
+                cr.execute(sql)
+                consum_value = cr.dictfetchone()['tong']
+            return consum_value
+           
             
         stock_obj = self.pool.get('tpt.form.movement.analysis')
         cr.execute('delete from tpt_form_movement_analysis')
         stock = self.browse(cr, uid, ids[0])
         move_analysis_line = []
         for line in get_categ(stock):
-            stock_in_out_line = []
-            good = 0
-            current = 0
-            product = 0
-            for seq, phuoc in enumerate(get_detail_lines(stock, line)):
-                trans_qty = get_transaction_qty(stock,phuoc['id'], phuoc['material_issue_id'], phuoc['product_dec'], phuoc['doc_type'], line)
-                if phuoc['doc_type']=='good':
-                    qty = 0
-                    value = 0
-                    opening_stock = get_opening_stock(stock,line.id)-get_qty_opening_chuaro(stock, line.id)
-                    opening_stock_value = get_opening_stock_value(stock,line.id)
-                    for l in stock_in_out_line:
-                        qty += l[2]['transaction_quantity'] 
-                        value += l[2]['stock_value']
-                    if seq == 0:
-                        st = (qty+opening_stock) and (value+opening_stock_value)/(qty+opening_stock) or 0
-                    else:
-                        st = (qty+opening_stock) and cur/(qty+opening_stock) or 0
-                    st_value = (st)*(trans_qty)
-                    good += (-st_value)
-                elif phuoc['doc_type']=='product':
-                    qty = 0
-                    value = 0
-                    opening_stock = get_opening_stock(stock,line.id)-get_qty_opening_chuaro(stock, line.id)
-                    opening_stock_value = get_opening_stock_value(stock,line.id)
-                    for l in stock_in_out_line:
-                        qty += l[2]['transaction_quantity'] 
-                        value += l[2]['stock_value']
-                    if seq == 0:
-                        st = (qty+opening_stock) and (value+opening_stock_value)/(qty+opening_stock) or 0
-                    else:
-                        st = (qty+opening_stock) and cur/(qty+opening_stock) or 0
-                    st_value = (st)*(trans_qty)
-                    product += (-st_value)
-                else:
-                    st_value = stock_value(line, phuoc['id'], phuoc['doc_type'])
-                self.st_sum_value += st_value
-                if seq == 0:
-                    cur = get_opening_stock_value(stock,line.id)+st_value+current
-                else:
-                    cur = st_value+current
-                current = cur
-                stock_in_out_line.append((0,0,{
-                    'transaction_quantity': trans_qty,
-                    'stock_value': st_value,
-                    'current_material_value':cur,
-                }))
+#             stock_in_out_line = []
+#             good = 0
+#             current = 0
+#             product = 0
+#             for seq, phuoc in enumerate(get_detail_lines(stock, line)):
+#                 trans_qty = get_transaction_qty(stock,phuoc['id'], phuoc['material_issue_id'], phuoc['product_dec'], phuoc['doc_type'], line)
+#                 if phuoc['doc_type']=='good':
+#                     qty = 0
+#                     value = 0
+#                     opening_stock = get_opening_stock(stock,line.id)-get_qty_opening_chuaro(stock, line.id)
+#                     opening_stock_value = get_opening_stock_value(stock,line.id)
+#                     for l in stock_in_out_line:
+#                         qty += l[2]['transaction_quantity'] 
+#                         value += l[2]['stock_value']
+#                     if seq == 0:
+#                         st = (qty+opening_stock) and (value+opening_stock_value)/(qty+opening_stock) or 0
+#                     else:
+#                         st = (qty+opening_stock) and cur/(qty+opening_stock) or 0
+#                     st_value = (st)*(trans_qty)
+#                     good += (-st_value)
+#                 elif phuoc['doc_type']=='product':
+#                     qty = 0
+#                     value = 0
+#                     opening_stock = get_opening_stock(stock,line.id)-get_qty_opening_chuaro(stock, line.id)
+#                     opening_stock_value = get_opening_stock_value(stock,line.id)
+#                     for l in stock_in_out_line:
+#                         qty += l[2]['transaction_quantity'] 
+#                         value += l[2]['stock_value']
+#                     if seq == 0:
+#                         st = (qty+opening_stock) and (value+opening_stock_value)/(qty+opening_stock) or 0
+#                     else:
+#                         st = (qty+opening_stock) and cur/(qty+opening_stock) or 0
+#                     st_value = (st)*(trans_qty)
+#                     product += (-st_value)
+#                 else:
+#                     st_value = stock_value(line, phuoc['id'], phuoc['doc_type'])
+#                 self.st_sum_value += st_value
+#                 if seq == 0:
+#                     cur = get_opening_stock_value(stock,line.id)+st_value+current
+#                 else:
+#                     cur = st_value+current
+#                 current = cur
+#                 stock_in_out_line.append((0,0,{
+#                     'transaction_quantity': trans_qty,
+#                     'stock_value': st_value,
+#                     'current_material_value':cur,
+#                 }))
             
             
             
@@ -1067,12 +1131,11 @@ class stock_movement_analysis(osv.osv_memory):
                 'receipt_qty':get_qty(stock,line.id),
                 'receipt_value':get_receipt_value(stock,line.id),
                 'consum_qty':get_qty_out(stock,line.id) + get_qty_chuaro(stock,line.id),
-#phuoc grn                'consum_value': (get_qty(stock,line.id)*get_qty_out(stock,line.id)) and (get_receipt_value(stock,line.id)/get_qty(stock,line.id)*get_qty_out(stock,line.id)) or 0,
-#                 'consum_value':(get_opening_stock(stock,line.id)+get_qty(stock,line.id)) and ((get_receipt_value(stock,line.id)+get_opening_stock_value(stock,line.id))/(get_opening_stock(stock,line.id)+get_qty(stock,line.id))*get_qty_out(stock,line.id)) or 0 ,    
-                'consum_value': good + product , 
+                'consum_value': get_consumption_value(stock, line.id),    
+#                 'consum_value': good + product , 
                 'close_stock':get_qty(stock,line.id) - (get_qty_out(stock,line.id) + get_qty_chuaro(stock,line.id)) + (get_opening_stock(stock,line.id)-get_qty_opening_chuaro(stock, line.id)) ,
 #phuoc grn                'close_value': get_opening_stock_value(stock,line.id)+get_receipt_value(stock,line.id)-(get_qty(stock,line.id) and (get_receipt_value(stock,line.id)/get_qty(stock,line.id)*get_qty_out(stock,line.id)) or 0)
-                'close_value': get_opening_stock_value(stock,line.id)+get_receipt_value(stock,line.id)-(good)-product,   
+                'close_value': get_opening_stock_value(stock,line.id)+get_receipt_value(stock,line.id)-get_consumption_value(stock,line.id),   
             
             }))
         vals = {
