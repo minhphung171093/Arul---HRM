@@ -30,19 +30,21 @@ class tpt_account_balance_report(osv.osv_memory):
     def print_xls(self, cr, uid, ids, context=None):
         if context is None:
             context = {}
-        datas = {'ids': context.get('active_ids', [])}
+#         datas = {'ids': context.get('active_ids', [])}
+        datas = {'ids': ids}
         datas['model'] = 'tpt.account.balance.report'
         datas['form'] = self.read(cr, uid, ids)[0]
-        datas['form'].update({'active_id':context.get('active_ids',False)})
+        datas['form'].update({'active_ids':ids})
+#         datas['form'].update({'active_id':context.get('active_ids',False)})
         return {'type': 'ir.actions.report.xml', 'report_name': 'trial_balance_report', 'datas': datas}
     
     def print_pdf(self, cr, uid, ids, context=None):
         if context is None:
             context = {}
-        datas = {'ids': context.get('active_ids', [])}
+        datas = {'ids': ids}
         datas['model'] = 'tpt.account.balance.report'
         datas['form'] = self.read(cr, uid, ids)[0]
-        datas['form'].update({'active_id':context.get('active_ids',False)})
+        datas['form'].update({'active_ids':ids})
         return {'type': 'ir.actions.report.xml', 'report_name': 'trial_balance_report_pdf', 'datas': datas}
     
 tpt_account_balance_report()
