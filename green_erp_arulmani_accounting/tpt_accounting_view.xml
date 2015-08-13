@@ -1086,6 +1086,7 @@
                       <button name="%(action_review_posting_view)d" type="action" string="Review Posting" states="draft" context="{'tpt_voucher':True}"/>
                       <button name="cancel_voucher" string="Cancel Voucher" type="object" states="posted" confirm="Are you sure you want to unreconcile this record?"/>
                       <button name="cancel_voucher" string="Cancel Voucher" states="draft,proforma" />
+                      <button name="print_voucher" type="object" class="oe_highlight" string="Print"/>
                       <button name="action_cancel_draft" type="object" states="cancel" string="Set to Draft"/>
                       <field name="state" widget="statusbar" statusbar_visible="draft,posted" statusbar_colors='{"proforma":"blue"}'/>
                   </header>
@@ -1220,6 +1221,7 @@
                       <button name="%(action_review_posting_view)d" type="action" string="Review Posting" states="draft" context="{'tpt_voucher':True}"/>
                       <button name="cancel_voucher" string="Cancel Voucher" type="object" states="posted" confirm="Are you sure you want to unreconcile this record?"/>
                       <button name="cancel_voucher" string="Cancel Voucher" states="draft,proforma" />
+                      <button name="print_voucher" type="object" class="oe_highlight" string="Print"/>
                       <button name="action_cancel_draft" type="object" states="cancel" string="Set to Draft"/>
                       <field name="state" widget="statusbar" statusbar_visible="draft,posted" statusbar_colors='{"proforma":"blue"}'/>
                   </header>
@@ -1299,7 +1301,12 @@
                 </form>
             </field>
         </record>
-          
+        <!-- 
+       <report id="report_account_voucher_print" string="Voucher" 
+       model="account.voucher" name="voucher1.print" 
+       rml="green_erp_arulmani_accounting/report/account_voucher_print.rml" 
+       auto="False" header = "False" menu="True" multi="True"/>   
+        -->
        <record id="action_cash_transaction" model="ir.actions.act_window">
             <field name="name">Cash Transaction</field>
             <field name="type">ir.actions.act_window</field>
