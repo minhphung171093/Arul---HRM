@@ -133,19 +133,62 @@ class tpt_notification(osv.osv):
         'name':fields.char('Notification No', size = 1024,readonly=True),
         'notif_type':fields.selection([
                                 ('prevent','Preventive Maintenance'),
-                                ('break','Breakdown')],'Notification Type',required = True),
-        'department_id': fields.many2one('hr.department', 'Department',required=True),
-        'section_id': fields.many2one('arul.hr.section', 'Section',required=True),
-        'equip_id': fields.many2one('tpt.equipment', 'Equipment',required=True),
-        'machine_id': fields.many2one('tpt.machineries', 'Machineries',required=True),
-        'issue_date': fields.date('Issue Dated on',required=True),
-        'issue_type':fields.selection([('draft', 'Draft')],'Issue Type'),
-        'priority':fields.selection([('high', 'High')],'Priority'),
-        'description':fields.text('Description'),
-        'schedule_line':fields.one2many('tpt.schedule','notification_id','Schedule'),
+                                ('break','Breakdown')],'Notification Type',required = True,readonly = True,states={'draft': [('readonly', False)]}),
+        'department_id': fields.many2one('hr.department', 'Department',required=True,readonly = True,states={'draft': [('readonly', False)]}),
+        'section_id': fields.many2one('arul.hr.section', 'Section',required=True,readonly = True,states={'draft': [('readonly', False)]}),
+        'equip_id': fields.many2one('tpt.equipment', 'Equipment',required=True,readonly = True,states={'draft': [('readonly', False)]}),
+        'machine_id': fields.many2one('tpt.machineries', 'Machineries',required=True,readonly = True,states={'draft': [('readonly', False)]}),
+        'issue_date': fields.date('Issue Dated on',required=True,readonly = True,states={'draft': [('readonly', False)]}),
+        'issue_type':fields.selection([('draft', 'Draft')],'Issue Type',readonly = True,states={'draft': [('readonly', False)]}),
+        'priority':fields.selection([('high', 'High')],'Priority',readonly = True,states={'draft': [('readonly', False)]}),
+        'description':fields.text('Description',readonly = True,states={'draft': [('readonly', False)]}),
+        'create_uid':fields.many2one('res.users','Raised By', readonly = True),
+        'create_date': fields.datetime('Created Date',readonly = True),
+        'schedule_line':fields.one2many('tpt.schedule','notification_id','Schedule',readonly = True,states={'draft': [('readonly', False)]}),
         'state':fields.selection([('draft', 'Drafted'),('waiting', 'Waiting For Approval'),
                                   ('in', 'In Progress'),('close','Closed')],'Status', readonly=True),
     }
+    _defaults = {
+        'state':'draft',
+    }
+    def create(self, cr, uid, vals, context=None):
+        if vals.get('name','/')=='/':
+            sequence = self.pool.get('ir.sequence').get(cr, uid, 'tpt.notification.seq')
+            vals['name'] =  sequence
+        new_id = super(tpt_notification, self).create(cr, uid, vals, context=context)
+        if vals.get('notif_type',False)=='break':
+            sql = '''
+                delete from tpt_schedule where notification_id = %s
+            '''%(new_id)
+            cr.execute(sql)    
+        return new_id
+    
+    def onchange_notif_type(self, cr, uid, ids,notif_type=False, context=None):
+        vals = {'value':{
+                        'schedule_line':[],
+                      }
+                
+                }
+        for notif in self.browse(cr, uid, ids):
+            if notif.notif_type == 'break' and notif_type:
+                vals['schedule_line']=False
+                sql = '''
+                    delete from tpt_schedule where notification_id = %s
+                '''%(notif.id)
+                cr.execute(sql)
+                return {'value': {
+                        'schedule_line':False,
+                      }}
+        return True
+    
+    def bt_generate(self, cr, uid, ids, context=None):
+        return self.write(cr, uid, ids,{'state':'waiting'})
+    
+    def bt_approve(self, cr, uid, ids, context=None):
+        return self.write(cr, uid, ids,{'state':'in'})
+    
+    def bt_close(self, cr, uid, ids, context=None):
+        return self.write(cr, uid, ids,{'state':'close'})
 tpt_notification()
 
 class tpt_schedule(osv.osv):
@@ -153,9 +196,8 @@ class tpt_schedule(osv.osv):
     _columns = {
         'notification_id': fields.many2one('tpt.notification','Notification',ondelete='cascade'),
         'schedule_date': fields.date('schedule Date',required=True),
-        'activities':fields.char('Activities', size = 1024,readonly=True),
+        'activities':fields.char('Activities', size = 1024),
         'employee_id': fields.many2one('hr.employee', 'Responsible Person',required=True,ondelete='restrict'),
     }
-    
 tpt_schedule()
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

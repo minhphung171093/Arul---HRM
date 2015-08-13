@@ -206,12 +206,15 @@
             <field name="arch" type="xml">
 	            <form string="Notifications" version="7.0">   
 	            	<header>
+	            		<button name="bt_generate" states='draft' string="Generate Notification" type="object" class="oe_highlight"/>
+	            		<button name="bt_approve" states='waiting' string="Approve Notification" type="object" class="oe_highlight"/>
+	            		<button name="bt_close" states='in' string="Close Notification" type="object" class="oe_highlight"/>
 	                    <field name ="state" widget="statusbar" statusbar_visible="draft,waiting,in,close" statusbar_colors='{"draft":"blue","in":"red","close":"grey"}'/>
 	                </header>
 	            	<sheet>
 	            		<group col='4' colspan='2'>
 							<field name="name"/>
-							<field name="notif_type"/>
+							<field name="notif_type" on_change="onchange_notif_type(notif_type, context)"/>
 							<field name="department_id" options="{'create': false, 'create_edit': false}"/>
 							<field name="section_id" options="{'create': false, 'create_edit': false}"/>
 							<field name="equip_id" options="{'create': false, 'create_edit': false}"/>
@@ -219,8 +222,8 @@
 							<field name="issue_date"/>
 							<field name="issue_type"/>
 							<field name="priority"/>
-							<!--<field name="create_uid" readonly='1'/>
-							<field name="create_date" readonly='1'/>-->
+							<field name="create_uid"/>
+							<field name="create_date"/>
 						</group>
 						<group>
 							<field name="description"/>

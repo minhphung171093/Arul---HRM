@@ -16,6 +16,7 @@
     "description": """
     """,
     'update_xml': [
+        'mainten_seq.xml',
         'tpt_maintenance_view.xml',
     ],
     'test': [
