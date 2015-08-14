@@ -41,10 +41,7 @@ class Parser(report_sxw.rml_parse):
             'get_date_to':self.get_date_to,            
             'get_invoice':self.get_invoice,
             'get_status':self.get_status,
-            'get_pending_qty':self.get_pending_qty,
-           
-            
-            
+            'get_pending_qty':self.get_pending_qty,   
         })
         
     def get_date_from(self):
@@ -63,42 +60,32 @@ class Parser(report_sxw.rml_parse):
         else:
             return ''
     
-    def get_pending_qty(self,po_no,grn_no):
-            sql = '''
-            select purchase_id from stock_picking where id=%s
-            '''%grn_no
-            self.cr.execute(sql)
-            po_id = self.cr.fetchone()
-            po_id = po_id[0]
-            
+    def get_pending_qty(po_no,pol_id):
             po_qty = 0
             grn_qty = 0
-            
-            po_no = po_id
-               
             if po_no:
                 sql = '''
-                           select case when sum(sm.product_qty)>0 then sum(sm.product_qty) else 0 end product_qty from stock_move sm
-                            inner join stock_picking sp on sm.picking_id=sp.id
-                            inner join purchase_order po on sp.purchase_id=po.id
-                            inner join purchase_order_line pol on po.id=pol.order_id
-                            where po.id=%s
+                           select case when sum(sm.product_qty)>0 then sum(sm.product_qty) else 0 end product_qty 
+                           from stock_move sm
+                           inner join stock_picking sp on sm.picking_id=sp.id
+                           inner join purchase_order po on sp.purchase_id=po.id
+                           inner join purchase_order_line pol on po.id=pol.order_id
+                           where sm.state in ('assigned','cancel') and po.id=%s
                         '''%(po_no)
-                self.cr.execute(sql)
-                grn_qty = self.cr.fetchone()
+                cr.execute(sql)
+                grn_qty = cr.fetchone()
                 grn_qty = grn_qty[0]
                         
                 sql = '''
-                           select pol.product_qty po_qty from purchase_order_line pol
-                        where pol.order_id=(select id from purchase_order where id=%s)
-                        '''%(po_no)
-                self.cr.execute(sql)
-                po_qty = self.cr.fetchone()
-                po_qty = po_qty[0]
-      
-                return po_qty-grn_qty or 0.000
-    
-    
+                           select pol.product_qty po_qty 
+                           from purchase_order_line pol
+                           where pol.order_id=(select id from purchase_order where id=%s)
+                        '''%(pol_id)
+                cr.execute(sql)
+                po_qty = cr.fetchone()
+                po_qty = po_qty[0]      
+                return  grn_qty - po_qty or 0.000
+
     def get_status(self,type):
         if type == 'draft':
             res = 'Draft'
@@ -126,6 +113,7 @@ class Parser(report_sxw.rml_parse):
   
         sql = '''
                    select sp.id as grn_id, po.id as po_id,sp.name grn_no,sp.date as grn_date,po.name po_no, rp.name supplier,
+                   pr.name as proj_name,prs.name as proj_sec_name,
                       (case when po.po_document_type='raw' then 'VV Raw material PO' 
                        when po.po_document_type='asset' then 'VV Capital PO' 
                        when po.po_document_type='standard' then 'VV Standard PO'
@@ -145,7 +133,8 @@ class Parser(report_sxw.rml_parse):
                                    when sm.state ='confirmed' then 'Waiting Availability'
                                    when sm.state ='assigned' then 'Ready to Receive'    
                                    when sm.state ='done' then 'Received' else '' end)  as state, 
-                       emp.name_related requisitioner
+                       emp.name_related requisitioner,po.id as po_id,pol.order_id as order_line_id
+                       
                       from stock_move sm
                       inner join stock_picking sp on sm.picking_id=sp.id
                       inner join purchase_order po on sp.purchase_id=po.id
@@ -156,6 +145,8 @@ class Parser(report_sxw.rml_parse):
                       inner join product_product pp on sm.product_id=pp.id 
                       inner join product_template pt on sm.product_id=pt.id 
                       inner join hr_employee emp on pi.requisitioner=emp.id 
+                      left join tpt_project pr on  pi.project_id = pr.id
+                      left join tpt_project_section prs on pi.project_section_id = prs.id  
                     '''
         
         
@@ -177,7 +168,9 @@ class Parser(report_sxw.rml_parse):
                         str = "extract(day from sp.date)=%s and extract(month from sp.date)=%s and extract(year from sp.date)=%s "%(int(date_from[8:10]), int(date_from[5:7]), date_from[:4])
                     else:
                         str = "sp.date between '%s' and '%s' "%(date_from, date_to) 
-                    sql = sql+str       
+                    sql = sql+str
+                    
+                    
         if grn_no and not po_no and not date_to and not date_from and not requisitioner and not project_id and not project_section_id and not state :
                     str = " sp.id = %s"%grn_no[0]#(grn_no.purchase_id.id)
                     sql = sql+str
@@ -205,7 +198,20 @@ class Parser(report_sxw.rml_parse):
         if requisitioner and (date_to or date_from or po_no or grn_no) and (date_to or date_from or po_no or grn_no or project_id or project_section_id or state):
                     str = " and pi.requisitioner = %s "%(requisitioner)
                     sql = sql+str 
-        sql=sql+" order by sp.date asc"                 
+        if project_id and not po_no and not date_to and not date_from and not grn_no and not requisitioner and not state and not project_section_id: # or (project_sec_id):
+                    str = " pr.id = %s"%(project_id[0])
+                    sql = sql+str
+        if project_id and (date_to or date_from or po_no or grn_no or requisitioner  or state or project_section_id): # and (date_to or date_from or mat_req_no or cost_cent or requisitioner or department or section or state or mat_code or project_sec_id):
+                    str = " and pr.id = %s "%(project_id[0])
+                    sql = sql+str    
+        if project_section_id and not po_no and not date_to and not date_from and not grn_no and not requisitioner and not state and  not project_id:
+                    str = " prs.id = %s"%(project_section_id)
+                    sql = sql+str
+        if project_section_id and (date_to or date_from or po_no or grn_no or requisitioner or state or project_id):
+                    str = " and prs.id = %s "%(project_section_id)
+                    sql = sql+str               
+        sql=sql+" order by sp.date asc" 
+                        
         self.cr.execute(sql)
         return self.cr.dictfetchall()
                 

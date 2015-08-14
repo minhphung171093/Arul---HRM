@@ -173,7 +173,7 @@ class daily_sale_form(osv.osv_memory):
         def get_invoice(cb):
             res = {}
             product_id = cb.product_id.id
-            print cb.product_id.id
+            #print cb.product_id.id
             application_id = cb.application_id.id
             state_id = cb.state_id.id
             customer_id = cb.customer_id.id

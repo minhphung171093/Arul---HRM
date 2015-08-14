@@ -1492,7 +1492,6 @@ class arul_hr_audit_shift_time(osv.osv):
         WHERE employee_id=%s AND month='%s' AND year='%s' 
         '''%(vals['employee_id'],int(a_month),a_year)
         cr.execute(sql)
-        #print sql
         planne_work_shift = ''
         temp = cr.fetchall()      
         if temp:
@@ -1911,7 +1910,6 @@ class arul_hr_audit_shift_time(osv.osv):
             b_shift_half_total_time = b_work_shift1.time_total/2 
             
             #total_hrs_split = str(b_shift_half_total_time).split(':')
-            #print total_hrs_split
             #b_shift_half_total_time=datetime.timedelta(hours=int(total_hrs_split[0]), minutes=int(total_hrs_split[1]))
                 
             b_min_start_time = datetime.timedelta(hours=b_min_start_time)
@@ -3087,7 +3085,6 @@ class arul_hr_audit_shift_time(osv.osv):
             b_shift_half_total_time = b_work_shift1.time_total/2 
             
             #total_hrs_split = str(b_shift_half_total_time).split(':')
-            #print total_hrs_split
             #b_shift_half_total_time=datetime.timedelta(hours=int(total_hrs_split[0]), minutes=int(total_hrs_split[1]))
                 
             b_min_start_time = datetime.timedelta(hours=b_min_start_time)
@@ -10141,3 +10138,27 @@ class tpt_work_shift(osv.osv):
     
 tpt_work_shift()
 
+class tpt_coff_register(osv.osv):
+    _name='tpt.coff.register'
+    def _count_total(self, cr, uid, ids, field_name, arg, context=None):
+        res = {}
+        for time in self.browse(cr, uid, ids, context=context):
+            res[time.id] = {
+                'func_coff_count': 0.0,
+            }
+            if time.total_shift_worked > 1:
+                coff_count = time.total_shift_worked - 1
+                res[time.id]['func_coff_count'] = coff_count 
+        return res
+    
+    _columns={                                    
+              'employee_id': fields.many2one('hr.employee','Employee ID'),
+              'employee_category_id':fields.many2one('vsis.hr.employee.category','Employee Category',ondelete='restrict'),
+              'work_date': fields.date('Work Date'),
+              'total_shift_worked': fields.float('Total Shift Worked'),  
+              'coff_count': fields.float('C.Off Added'), 
+              #'func_coff_count': fields.function(_count_total,  string='TPT-C.Off Added', multi='sums', help="The total amount."),
+              #'punch_id' : fields.many2one('arul.hr.punch.in.out.time', 'Punch Details', ),   
+              } 
+
+tpt_coff_register()
