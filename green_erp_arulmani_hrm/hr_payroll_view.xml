@@ -656,7 +656,7 @@
 						<field name="to_date" required='1'/>
 		            </group>
 					<group col='4' colspan='2' string="Effective Payroll Executions Period">
-						<field name="month" required='1'/>
+						<field name="month" required='1' on_change="onchange_load_slabs(month)"/>
 						<field name="year" />
 		            </group>	
 					
@@ -668,7 +668,7 @@
 							<page string = "PTax Slab">
 								<field name="ptax_line" nolabel='1'>
 									<tree editable='top'>
-										<field name="slab_id" />
+										<field name="slab_id"  domain="[('is_active','=',True)]"/>
 										<field name="ptax_amt" />
 									</tree>
 								</field>

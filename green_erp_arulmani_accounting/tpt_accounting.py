@@ -3375,9 +3375,9 @@ class account_voucher(osv.osv):
 #             cr.execute(sql)
             for line in new.line_ids:
                 if line.type=='dr':
-                    total_debit += line.amount
+                    total_debit += round(line.amount,2)
                 if line.type=='cr':
-                    total_credit += line.amount 
+                    total_credit += round(line.amount,2) 
             if total_debit != total_credit:
                 raise osv.except_osv(_('Warning!'),
                     _('Total Debit must be equal Total Credit!'))
@@ -3420,9 +3420,9 @@ class account_voucher(osv.osv):
                 total_credit = 0
                 for line in voucher.line_ids:
                     if line.type=='dr':
-                        total_debit += line.amount
+                        total_debit += round(line.amount,2)
                     if line.type=='cr':
-                        total_credit += line.amount 
+                        total_credit += round(line.amount,2) 
                 if total_debit != total_credit:
                     raise osv.except_osv(_('Warning!'),
                         _('Total Debit must be equal Total Credit!'))
