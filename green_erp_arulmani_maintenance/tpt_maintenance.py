@@ -139,7 +139,7 @@ class tpt_notification(osv.osv):
         'equip_id': fields.many2one('tpt.equipment', 'Equipment',required=True,readonly = True,states={'draft': [('readonly', False)]}),
         'machine_id': fields.many2one('tpt.machineries', 'Machineries',required=True,readonly = True,states={'draft': [('readonly', False)]}),
         'issue_date': fields.date('Issue Dated on',required=True,readonly = True,states={'draft': [('readonly', False)]}),
-        'issue_type':fields.selection([('draft', 'Draft')],'Issue Type',readonly = True,states={'draft': [('readonly', False)]}),
+        'issue_type':fields.selection([('major', 'Major'),('minor', 'Minor'),('critical', 'Critical')],'Issue Type',readonly = True,states={'draft': [('readonly', False)]}),
         'priority':fields.selection([('high', 'High')],'Priority',readonly = True,states={'draft': [('readonly', False)]}),
         'description':fields.text('Description',readonly = True,states={'draft': [('readonly', False)]}),
         'create_uid':fields.many2one('res.users','Raised By', readonly = True),
