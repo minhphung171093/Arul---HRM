@@ -254,7 +254,7 @@ class Parser(report_sxw.rml_parse):
             
             ### END SL
             
-             ### START PL
+            ### START PL
             pl_count_pm = 0
             pl_count_total_days = 0
             pl_count_cb = 0
@@ -302,6 +302,54 @@ class Parser(report_sxw.rml_parse):
             
             ### END PL
             
+            ### START COFF
+            coff_count_pm = 0
+            coff_count_total_days = 0
+            coff_count_cb = 0
+            coff_open_bal = 0  
+            coff_count_ob = 0                          
+            sql = '''
+                SELECT CASE WHEN SUM(days_total)!=0 THEN 
+                SUM(days_total) ELSE 0 END days_total FROM 
+                arul_hr_employee_leave_details WHERE EXTRACT(year FROM date_from) = %s 
+                AND EXTRACT(month FROM date_from) = %s AND employee_id =%s AND
+                leave_type_id in (select id from arul_hr_leave_types where code in ('C.Off'))
+                and state='done'  
+            '''%(year,month,employee.id)
+            self.cr.execute(sql)
+            temp_coff = self.cr.fetchone()
+            coff_count_pm = temp_coff[0]
+            
+            sql = '''
+                select CASE WHEN SUM(total_day)!=0 THEN 
+            SUM(total_day) ELSE 0 END total_day from employee_leave_detail
+                where emp_leave_id in (select id from employee_leave where year = '%s'
+                and employee_id = (select id from hr_employee where id= %s) )
+                and leave_type_id = (select id from arul_hr_leave_types where code = 'C.Off')
+            '''%(year,employee.id)
+            self.cr.execute(sql)
+            temp_coff = self.cr.fetchone()
+            coff_count_total_days = temp_coff[0]
+            
+            sql = '''
+                SELECT CASE WHEN SUM(days_total)!=0 THEN 
+            SUM(days_total) ELSE 0 END days_total FROM 
+                arul_hr_employee_leave_details WHERE EXTRACT(year FROM date_from) = %s
+                AND EXTRACT(month FROM date_from) between 4 and %s-1 AND
+                 employee_id = (select id from hr_employee where id=%s) AND
+                leave_type_id in (select id from arul_hr_leave_types where code in ('C.Off'))
+                and state='done'
+            '''%(year,int(month),employee.id)
+            self.cr.execute(sql)
+            temp_coff = self.cr.fetchone()
+            coff_count_cb = temp_coff[0]  # CL Closing Balance for Prev Month
+            
+            coff_open_bal = coff_count_total_days - coff_count_cb
+            
+            coff_count_cb = coff_open_bal - coff_count_pm
+            
+            ### END COFF
+            
             
             res.append({
                         'employee_id':employee.employee_id,
@@ -319,6 +367,10 @@ class Parser(report_sxw.rml_parse):
                         'pl_count_total_days':pl_count_total_days,
                         'pl_count_cb':pl_count_cb,
                         'pl_count_ob':pl_open_bal,
+                        'coff_count_pm':coff_count_pm,
+                        'coff_count_total_days':coff_count_total_days,
+                        'coff_count_cb':coff_count_cb,
+                        'coff_count_ob':coff_open_bal,
                         'department_id':employee.department_id,
                         'employee_category_id':employee.employee_category_id,
                         

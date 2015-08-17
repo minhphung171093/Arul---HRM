@@ -3812,7 +3812,7 @@ class arul_hr_audit_shift_time(osv.osv):
                                       'work_date':line_id.date,#TPT CHANGED work_date AS from_date
                                       'in_time':line_id.start_time,
                                       'out_time':line_id.end_time,'approval':1}
-                                detail_obj4.create(cr, uid, val4)
+                                #detail_obj4.create(cr, uid, val4)
                             else:
                                 emp_attendence_obj.create(cr, uid, {'employee_id':line_id.employee_id.id,
                                                                         'punch_in_out_line':[(0,0,val)],
@@ -3845,7 +3845,7 @@ class arul_hr_audit_shift_time(osv.osv):
                                           'in_time':line_id.start_time,
                                           'out_time':line_id.end_time,
                                           'approval':1}
-                                    detail_obj4.create(cr, uid, val4)
+                                    #detail_obj4.create(cr, uid, val4)
                                 else:
                                     emp_attendence_obj.create(cr, uid, {'employee_id':line_id.employee_id.id,
                                                                         'punch_in_out_line':[(0,0,val)],
@@ -3894,7 +3894,7 @@ class arul_hr_audit_shift_time(osv.osv):
                                       'in_time':line_id.start_time,
                                       'out_time':line_id.end_time,
                                       'approval':1}
-                                detail_obj4.create(cr, uid, val4)
+                                #detail_obj4.create(cr, uid, val4) #BM
                             else:
                                     emp_attendence_obj.create(cr, uid, {'employee_id':line_id.employee_id.id,
                                                                         'punch_in_out_line':[(0,0,val)],
@@ -3914,7 +3914,7 @@ class arul_hr_audit_shift_time(osv.osv):
                             details_ids=emp_attendence_obj.search(cr, uid, [('employee_id','=',line_id.employee_id.id)])
                             if details_ids:
                                 val4={'punch_in_out_id':details_ids[0],'employee_id':line_id.employee_id.id,'planned_work_shift_id':line.planned_work_shift_id.id,'actual_work_shift_id':line.actual_work_shift_id.id,'work_date':line_id.date,'in_time':line_id.start_time,'out_time':line_id.end_time,'approval':1}
-                                detail_obj4.create(cr, uid, val4)
+                                #detail_obj4.create(cr, uid, val4)
                             else:
                                     emp_attendence_obj.create(cr, uid, {'employee_id':line_id.employee_id.id,
                                                                         'punch_in_out_line':[(0,0,val)],
