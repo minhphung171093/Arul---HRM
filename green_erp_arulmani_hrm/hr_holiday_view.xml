@@ -361,11 +361,13 @@
 							<newline/>
 							<field name="date" attrs="{'invisible':[('non_availability_type_id','!=','permission'),('parent_id','=',False)],'required':[('non_availability_type_id','=','permission')]}"/>
 							<field name="perm_out_date" attrs="{'invisible':[('non_availability_type_id','!=','permission'),('parent_id','=',False)]}"/>
+							<newline/>
 							<field name="from_date" attrs="{'invisible':['|',('non_availability_type_id','!=','on_duty'),('parent_id','!=',False)],'required':[('non_availability_type_id','=','on_duty')]}"/>
 							<field name="to_date" attrs="{'invisible':['|',('non_availability_type_id','!=','on_duty'),('parent_id','!=',False)],'required':[('non_availability_type_id','=','on_duty')]}"/>
-							<field name="duty_location" attrs="{'invisible':['|',('non_availability_type_id','!=','on_duty'),('parent_id','!=',False)]}"/>
+							<newline/>
 							<field name="start_time" widget="float_time"/>
 							<field name="end_time" widget="float_time"/>
+							<field name="duty_location" attrs="{'invisible':['|',('non_availability_type_id','!=','on_duty'),('parent_id','!=',False)]}"/>
 							<field name="time_total" widget="float_time"/>
 							<field name="approval"/>
 							<field name="create_date"/>
