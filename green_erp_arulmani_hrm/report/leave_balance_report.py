@@ -341,13 +341,14 @@ class Parser(report_sxw.rml_parse):
             self.cr.execute(sql)
             temp_coff = self.cr.fetchone()
             coff_count_total_days = temp_coff[0]
+            coff_available = coff_count_total_days
             
             sql = '''
                 SELECT CASE WHEN SUM(coff_count)!=0 THEN 
                 SUM(coff_count) ELSE 0 END coff_count FROM 
                 tpt_coff_register WHERE EXTRACT(year FROM work_date) = %s
                 AND EXTRACT(month FROM work_date) between 4 and %s-1 AND
-                 employee_id = (select id from hr_employee where id=%s)      
+                employee_id = (select id from hr_employee where id=%s)      
             '''%(year,int(month),employee.id)
             self.cr.execute(sql)
             temp_coff = self.cr.fetchone()
@@ -357,17 +358,18 @@ class Parser(report_sxw.rml_parse):
                 SELECT CASE WHEN SUM(days_total)!=0 THEN 
                 SUM(days_total) ELSE 0 END days_total FROM 
                 arul_hr_employee_leave_details WHERE EXTRACT(year FROM date_from) = %s 
-                AND AND EXTRACT(month FROM date_from) between 4 and %s-1 AND employee_id =%s AND
+                AND EXTRACT(month FROM date_from) between 4 and %s-1 AND employee_id =%s AND
                 leave_type_id in (select id from arul_hr_leave_types where code in ('C.Off'))
                 and state='done'  
             '''%(year,int(month),employee.id)
+            self.cr.execute(sql)
             temp_coff = self.cr.fetchone()
             total_coff_taken = temp_coff[0]  # Total Coff Leave taken upto prev of this month => int(month)
             
             
-            coff_open_bal = coff_count_total_days - coff_count_cb
+            coff_open_bal = coff_available - total_coff_raised + total_coff_taken
             
-            coff_count_cb = coff_open_bal - coff_count_pm
+            coff_count_cb = coff_open_bal + added_coff_count_pm - taken_coff_count_pm
             
             ### END COFF
             
