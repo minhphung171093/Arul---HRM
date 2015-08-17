@@ -91,11 +91,9 @@ class day_wise_register(osv.osv_memory):
         if wiz_br.date_from and wiz_br.date_to:
                     date_format = "%Y-%m-%d"
                     date_from = datetime.strptime(wiz_br.date_from, date_format)
-                    print date_from
                     date_to = datetime.strptime(wiz_br.date_to, date_format)
-                    print date_from
                     days_diff = date_to - date_from
-                    print days_diff
+                    
         if days_diff.days > 15:
                     raise osv.except_osv(_('Error!'), _('Dates difference is not greater than 15 days!.'))
         elif days_diff.days < 0:

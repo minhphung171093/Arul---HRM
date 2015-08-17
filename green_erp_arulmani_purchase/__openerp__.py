@@ -52,6 +52,8 @@
         'wizard/raw_material_stock_statement_report_view.xml',
         'wizard/material_request_line_view.xml',
         'wizard/grn_line_view.xml',
+        'wizard/purchase_indent_line_view.xml',
+        'report/purchase_indent_line_report_view.xml',
 
         'purchase_view.xml',
         'stock_view.xml',
