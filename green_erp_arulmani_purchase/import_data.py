@@ -108,26 +108,57 @@ class tpt_import_supplier(osv.osv):
 #                         vendor_code = False
                     if sh.cell(row, 5).value:
                         zip = str(sh.cell(row, 5).value).replace(" ","")
-                        ##############################################                         
-                    dem += 1
-                    partner_obj.create(cr, uid, {
-                        'vendor_code': sh.cell(row, 0).value or False,
-                        'country_id': country_id,
-                        'name': name.replace('"','') or False,
-                        'last_name': sh.cell(row, 2).value or False,
-                        'city': sh.cell(row, 8).value or False,
-                        'zip': zip,
-                        'state_id':state_id or False,
-                        'street': street.replace('"','') or False,
-                        'street2': sh.cell(row, 4).value or False,
-                        'phone': sh.cell(row, 12).value or False,
-                        'mobile': sh.cell(row, 13).value or False,
-                        'fax': sh.cell(row, 14).value or False,
-                        'title': title_id or False,
-                        'tin':sh.cell(row, 11).value or False,
-                        'cst':sh.cell(row, 10).value or False,
-                        'supplier': True,
-                    })
+                        ##############################################   
+                    #TPT    
+                    sql = '''
+                    select count(*) from res_partner where vendor_code = '%s'                   
+                    '''%(sh.cell(row, 0).value)
+                    cr.execute(sql)
+                    q_fetch = cr.fetchone()
+                    exist_custo_count = q_fetch[0]
+                    
+                    if exist_custo_count > 0:
+                        dem += 1
+                        sql = '''
+                        select id from res_partner where vendor_code = '%s'                   
+                        '''%(sh.cell(row, 0).value)
+                        cr.execute(sql)
+                        id = cr.fetchone()
+                        exist_custo_id = id[0]
+                    
+                        partner_obj.write(cr, uid,exist_custo_id, {
+                        'ecc':sh.cell(row, 1).value or False,
+                        'excise_reg_no':sh.cell(row, 2).value or False,
+                        'range':sh.cell(row, 3).value or False,
+                        'division':sh.cell(row, 4).value or False,
+                        'commissionerate':sh.cell(row, 5).value or False, 
+                        'cst': sh.cell(row, 6).value or False,
+                        'lst': sh.cell(row, 7).value or False,
+                        'pan_tin':sh.cell(row, 8).value or False,    
+                        
+                        'service_reg_no': sh.cell(row, 21).value or False,
+
+                        },context)   
+                    else:                     
+                        dem += 1
+                        partner_obj.create(cr, uid, {
+                            'vendor_code': sh.cell(row, 0).value or False,
+                            'country_id': country_id,
+                            'name': name.replace('"','') or False,
+                            'last_name': sh.cell(row, 2).value or False,
+                            'city': sh.cell(row, 8).value or False,
+                            'zip': zip,
+                            'state_id':state_id or False,
+                            'street': street.replace('"','') or False,
+                            'street2': sh.cell(row, 4).value or False,
+                            'phone': sh.cell(row, 12).value or False,
+                            'mobile': sh.cell(row, 13).value or False,
+                            'fax': sh.cell(row, 14).value or False,
+                            'title': title_id or False,
+                            'tin':sh.cell(row, 11).value or False,
+                            'cst':sh.cell(row, 10).value or False,
+                            'supplier': True,
+                        })
                     
 #                         
             except Exception, e:
