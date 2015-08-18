@@ -226,7 +226,7 @@
 							<field name="create_date"/>
 						</group>
 						<group>
-							<field name="description"/>
+							<field name="issue_reported"/>
 						</group>
 						<notebook attrs="{'invisible': [('notif_type', '=', 'break')]}">
 							<page string = "Schedule">
@@ -256,6 +256,216 @@
         <menuitem action="action_tpt_notification_form_view"
             id="menu_action_tpt_notification_form_view"
             parent="menu_tpt_maint_mg" sequence="3"/>
+        
+        <record id="view_tpt_service_entry_tree" model="ir.ui.view">
+			<field name="name">tpt.service.entry.tree</field>
+			<field name="model">tpt.service.entry</field>
+			<field name="arch" type="xml">
+				<tree string="Staff Service Entry">
+					<field name="name"/>
+					<field name="service_type"/>
+					<field name="work_taken"/>
+					<field name="create_uid" options="{'create': false, 'create_edit': false}"/>
+				</tree>
+			</field>
+	  </record>
+	  
+	  <record id="view_tpt_service_entry_form" model="ir.ui.view">
+            <field name="name">tpt.service.entry.form</field>
+            <field name="model">tpt.service.entry</field>
+            <field name="arch" type="xml">
+	            <form string="Staff Service Entry" version="7.0">   
+	            	<!--<header>
+	            		<button name="bt_generate" states='draft' string="Generate Notification" type="object" class="oe_highlight"/>
+	            		<button name="bt_approve" states='waiting' string="Approve Notification" type="object" class="oe_highlight"/>
+	            		<button name="bt_close" states='in' string="Close Notification" type="object" class="oe_highlight"/>
+	                    <field name ="state" widget="statusbar" statusbar_visible="draft,in,completed,put,close" statusbar_colors='{"draft":"blue","in":"red","close":"grey"}'/>
+	                </header>-->
+	            	<sheet>
+	            		<group col='4' colspan='2'>
+							<field name="name"/>
+							<field name="create_date"/>
+							<field name="maintenance_id" options="{'create': false, 'create_edit': false}"/>
+							<field name="service_type"/>
+							<field name="work_taken"/>
+							<field name="department_id" options="{'create': false, 'create_edit': false}"/>
+							<field name="section_id" options="{'create': false, 'create_edit': false}"/>
+							<field name="equip_id" options="{'create': false, 'create_edit': false}"/>
+							<field name="machine_id" options="{'create': false, 'create_edit': false}"/>
+							<field name="create_uid" options="{'create': false, 'create_edit': false}"/>
+						</group>
+						<notebook>
+							<page string = "Service Entry Lines">
+								<field name="service_entry_line" nolabel='1'>
+									<tree editable='top'>
+										<field name="line_no"/>
+										<field name="po_id" options="{'create': false, 'create_edit': false}"/>
+										<field name="po_line_id" domain="[('order_id','=',po_id)]" context="{'name_maintance_service_entry':True}" options="{'create': false, 'create_edit': false}"/>
+										<field name="uom_id" options="{'create': false, 'create_edit': false}"/>
+										<field name="product_uom_qty"/>
+										<field name="price_unit"/>
+										<field name="line_net"/>
+									</tree>
+								</field>
+							</page>
+						</notebook>
+						<group class="oe_subtotal_footer oe_right">
+							<field name="grand_total"/>
+						</group>
+		         	</sheet>
+		         </form>
+			</field>
+		</record>
+		
+		<record id="view_tpt_third_service_entry_tree" model="ir.ui.view">
+			<field name="name">tpt.third.service.entry.tree</field>
+			<field name="model">tpt.third.service.entry</field>
+			<field name="arch" type="xml">
+				<tree string="Third Party Service Entry">
+					<field name="name"/>
+					<field name="service_type"/>
+					<field name="work_taken"/>
+					<field name="create_uid" options="{'create': false, 'create_edit': false}"/>
+				</tree>
+			</field>
+	  </record>
+	  
+	  <record id="view_tpt_third_service_entry_form" model="ir.ui.view">
+            <field name="name">tpt.third.service.entry.form</field>
+            <field name="model">tpt.third.service.entry</field>
+            <field name="arch" type="xml">
+	            <form string="Third Party Service Entry" version="7.0">   
+	            	<sheet>
+	            		<group col='4' colspan='2'>
+							<field name="name"/>
+							<field name="create_date"/>
+							<field name="maintenance_id" options="{'create': false, 'create_edit': false}"/>
+							<field name="service_type"/>
+							<field name="work_taken"/>
+							<field name="department_id" options="{'create': false, 'create_edit': false}"/>
+							<field name="section_id" options="{'create': false, 'create_edit': false}"/>
+							<field name="equip_id" options="{'create': false, 'create_edit': false}"/>
+							<field name="machine_id" options="{'create': false, 'create_edit': false}"/>
+							<field name="create_uid" options="{'create': false, 'create_edit': false}"/>
+						</group>
+						<notebook>
+							<page string = "Service Entry Lines">
+								<field name="third_service_line" nolabel='1'>
+									<tree editable='top'>
+										<field name="create_date"/>
+										<field name="work_taken"/>
+										<field name="po_id" domain="[('po_document_type','=','service')]" options="{'create': false, 'create_edit': false}"/>
+										<field name="po_line_id" domain="[('order_id','=',po_id)]" context="{'name_maintance_service_entry':True}" options="{'create': false, 'create_edit': false}"/>
+										<field name="gl_account" options="{'create': false, 'create_edit': false}"/>
+										<field name="uom_id" options="{'create': false, 'create_edit': false}"/>
+										<field name="product_uom_qty"/>
+										<field name="price_unit"/>
+										<field name="line_net"/>
+									</tree>
+								</field>
+							</page>
+						</notebook>
+						<group class="oe_subtotal_footer oe_right">
+							<field name="grand_total"/>
+						</group>
+		         	</sheet>
+		         </form>
+			</field>
+		</record>
+		
+		
+		<record id="action_tpt_service_entry_form_view" model="ir.actions.act_window">
+            <field name="name">Staff Service Entry</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.service.entry</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_tpt_service_entry_form"/>
+            <field name="target">new</field>
+        </record>
+            
+        <record id="view_tpt_maintenance_oder_tree" model="ir.ui.view">
+			<field name="name">tpt.maintenance.oder.tree</field>
+			<field name="model">tpt.maintenance.oder</field>
+			<field name="arch" type="xml">
+				<tree string="Maintenance Order">
+					<field name="name"/>
+					<field name="issue_type"/>
+					<field name="notification_id"/>
+					<field name="create_date"/>
+					<field name="notif_type"/>
+					<field name="department_id"/>
+					<field name="section_id"/>
+					<field name="employee_id"/>
+					<field name="priority"/>
+					<field name="equip_id"/>
+					<field name="machine_id"/>
+					<field name="start_date"/>
+					<field name="completion_date"/> 
+					<field name="create_uid"/>
+					<field name="state"/>
+				</tree>
+			</field>
+	  </record>
+	  
+	  <record id="view_tpt_maintenance_oder_form" model="ir.ui.view">
+            <field name="name">tpt.maintenance.oder.form</field>
+            <field name="model">tpt.maintenance.oder</field>
+            <field name="arch" type="xml">
+	            <form string="Maintenance Order" version="7.0">   
+	            	<header>
+	            		<!--<button name="bt_generate" states='draft' string="Generate Notification" type="object" class="oe_highlight"/>
+	            		<button name="bt_approve" states='waiting' string="Approve Notification" type="object" class="oe_highlight"/>
+	            		<button name="bt_close" states='in' string="Close Notification" type="object" class="oe_highlight"/>
+	            		<button name="%(action_tpt_service_entry_form_view)d" type="action" string="open" states="draft"/>-->
+	                    <field name ="state" widget="statusbar" statusbar_visible="draft,in,completed,put,close" statusbar_colors='{"draft":"blue","in":"red","close":"grey"}'/>
+	                </header>
+	            	<sheet>
+	            		<group col='4' colspan='2'>
+							<field name="name"/>
+							<field name="issue_type"/>
+							<field name="notification_id" options="{'create': false, 'create_edit': false}"/>
+							<field name="create_date"/>
+							<field name="notif_type"/>
+							<field name="department_id" options="{'create': false, 'create_edit': false}"/>
+							<field name="section_id" options="{'create': false, 'create_edit': false}"/>
+							<field name="employee_id" options="{'create': false, 'create_edit': false}"/>
+							<field name="priority"/>
+							<field name="equip_id" options="{'create': false, 'create_edit': false}"/>
+							<field name="machine_id" options="{'create': false, 'create_edit': false}"/>
+							<field name="start_date"/>
+							<field name="completion_date"/> 
+							<field name="create_uid" options="{'create': false, 'create_edit': false}"/>
+						</group>
+						<group>
+							<field name="issue_reported"/>
+							<field name="issue_finding"/>
+						</group>
+						<notebook>
+							<page string = "Staff Service Entry">
+								<field name="service_entry_id" nolabel='1'/>
+							</page> 
+							<page string = "Third Party Service Entry">
+								<field name="third_service_id" nolabel='1'/>
+							</page>
+						</notebook>
+		         	</sheet>
+		         </form>
+			</field>
+		</record>
+		
+		<record id="action_tpt_maintenance_oder_form_view" model="ir.actions.act_window">
+            <field name="name">Maintenance Order</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.maintenance.oder</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_tpt_maintenance_oder_tree"/>
+        </record>
+        
+        <menuitem action="action_tpt_maintenance_oder_form_view"
+            id="menu_action_tpt_maintenance_oder_form_view"
+            parent="menu_tpt_maint_mg" sequence="4"/>
 		
     </data>
 </openerp>

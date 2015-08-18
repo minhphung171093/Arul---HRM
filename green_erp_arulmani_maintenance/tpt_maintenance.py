@@ -140,8 +140,8 @@ class tpt_notification(osv.osv):
         'machine_id': fields.many2one('tpt.machineries', 'Machineries',required=True,readonly = True,states={'draft': [('readonly', False)]}),
         'issue_date': fields.date('Issue Dated on',required=True,readonly = True,states={'draft': [('readonly', False)]}),
         'issue_type':fields.selection([('major', 'Major'),('minor', 'Minor'),('critical', 'Critical')],'Issue Type',readonly = True,states={'draft': [('readonly', False)]}),
-        'priority':fields.selection([('high', 'High')],'Priority',readonly = True,states={'draft': [('readonly', False)]}),
-        'description':fields.text('Description',readonly = True,states={'draft': [('readonly', False)]}),
+        'priority':fields.selection([('high', 'High'),('medium', 'Medium'),('low', 'Low')],'Priority',readonly = True,states={'draft': [('readonly', False)]}),
+        'issue_reported':fields.text('Issue Reported',readonly = True,states={'draft': [('readonly', False)]}),
         'create_uid':fields.many2one('res.users','Raised By', readonly = True),
         'create_date': fields.datetime('Created Date',readonly = True),
         'schedule_line':fields.one2many('tpt.schedule','notification_id','Schedule',readonly = True,states={'draft': [('readonly', False)]}),
@@ -200,4 +200,205 @@ class tpt_schedule(osv.osv):
         'employee_id': fields.many2one('hr.employee', 'Responsible Person',required=True,ondelete='restrict'),
     }
 tpt_schedule()
+
+class tpt_maintenance_oder(osv.osv):
+    _name = "tpt.maintenance.oder"
+    _columns = {
+        'name':fields.char('Order No', size = 1024,readonly=True),
+        'issue_type':fields.selection([('major', 'Major'),('minor', 'Minor'),('critical', 'Critical')],'Issue Type',states={'close': [('readonly', True)]}),
+        'notification_id':fields.many2one('tpt.notification','Notification No',states={'close': [('readonly', True)]}),
+        'create_date': fields.datetime('Created Date',readonly = True),
+        'notif_type':fields.selection([
+                                ('prevent','Preventive Maintenance'),
+                                ('break','Breakdown')],'Notification Type',required = True,states={'close': [('readonly', True)]}),
+        'department_id': fields.many2one('hr.department', 'Department',required=True,states={'close': [('readonly', True)]}),
+        'section_id': fields.many2one('arul.hr.section', 'Section',required=True,states={'close': [('readonly', True)]}),
+        'employee_id': fields.many2one('hr.employee', 'Assigned to',required=True,states={'close': [('readonly', True)]},ondelete='restrict'),
+        'priority':fields.selection([('high', 'High'),('medium', 'Medium'),('low', 'Low')],'Priority',states={'close': [('readonly', True)]}),
+        'equip_id': fields.many2one('tpt.equipment', 'Equipment',required=True,states={'close': [('readonly', True)]}),
+        'machine_id': fields.many2one('tpt.machineries', 'Machineries',required=True,states={'close': [('readonly', True)]}),
+        'start_date': fields.date('Work Start Date',required=True,states={'close': [('readonly', True)]}),
+        'completion_date': fields.date('Target Date of Completion',required=True,states={'close': [('readonly', True)]}),
+        'create_uid':fields.many2one('res.users','Raised By', readonly = True),
+        'issue_reported':fields.text('Issue Reported',states={'close': [('readonly', True)]}),
+        'issue_finding':fields.text('Issue Finding',states={'close': [('readonly', True)]}),
+        'service_entry_id':fields.one2many('tpt.service.entry','maintenance_id','Staff Service Entry',states={'close': [('readonly', True)]}),
+        'third_service_id':fields.one2many('tpt.third.service.entry','maintenance_id','Third Party Service Entry',states={'close': [('readonly', True)]}),
+        'state':fields.selection([('draft', 'Drafted'),
+                                  ('in', 'In Progress'),
+                                  ('completed', 'Completed'),
+                                  ('put', 'Put On Hold'),
+                                  ('close','Closed')],'Status', readonly=True),
+    }
+    _defaults = {
+        'state':'draft',
+    }
+    def create(self, cr, uid, vals, context=None):
+        if vals.get('name','/')=='/':
+            sequence = self.pool.get('ir.sequence').get(cr, uid, 'tpt.maintenance.oder.seq')
+            vals['name'] =  sequence
+        new_id = super(tpt_maintenance_oder, self).create(cr, uid, vals, context=context)
+        return new_id
+tpt_maintenance_oder()
+
+class tpt_service_entry(osv.osv):
+    _name = "tpt.service.entry"
+    def amount_all_line(self, cr, uid, ids, field_name, args, context=None):
+        res = {}
+        for line in self.browse(cr,uid,ids,context=context):
+            res[line.id] = {
+                'grand_total': 0.0,
+            }
+            grand_total = 0.0
+            amount_line = 0.0 
+            for service in line.service_entry_line:
+                amount_line = service.product_uom_qty * service.price_unit
+                grand_total += round(amount_line,2)
+            res[line.id]['grand_total'] = grand_total
+        return res
+    
+    def _get_order(self, cr, uid, ids, context=None):
+        result = {}
+        for line in self.pool.get('tpt.service.entry.line').browse(cr, uid, ids, context=context):
+            result[line.service_entry_id.id] = True
+        return result.keys()
+    
+    _columns = {
+        'name':fields.char('Document No', size = 1024,readonly=True),
+        'create_date': fields.datetime('Created on',readonly = True),
+        'maintenance_id':fields.many2one('tpt.maintenance.oder','Maintenance Order No',readonly = True),
+        'service_type':fields.selection([('internal','Third Party Internal'),('employee', 'Employee'),('external','Third Party External')],'Service Type'),
+        'work_taken': fields.date('Work Taken on',required=True),
+        'department_id': fields.many2one('hr.department', 'Department',required=True),
+        'section_id': fields.many2one('arul.hr.section', 'Section',required=True),
+        'equip_id': fields.many2one('tpt.equipment', 'Equipment',required=True),
+        'machine_id': fields.many2one('tpt.machineries', 'Machineries',required=True),
+        'create_uid':fields.many2one('res.users','Raised By', readonly = True),
+        'service_entry_line':fields.one2many('tpt.service.entry.line','service_entry_id','Service Entry Lines'),
+        'grand_total': fields.function(amount_all_line, multi='sums',string='Grand Total',digits=(16,3),
+                                         store={
+                'tpt.service.entry': (lambda self, cr, uid, ids, c={}: ids, ['service_entry_line'], 10),
+                'tpt.service.entry.line': (_get_order, ['product_uom_qty', 'uom_id', 'price_unit'], 10),})
+    }
+    
+    def create(self, cr, uid, vals, context=None):
+        if vals.get('name','/')=='/':
+            sequence = self.pool.get('ir.sequence').get(cr, uid, 'tpt.service.entry.seq')
+            vals['name'] =  sequence
+        new_id = super(tpt_service_entry, self).create(cr, uid, vals, context=context)
+        return new_id
+    
+tpt_service_entry()
+
+class tpt_service_entry_line(osv.osv):
+    _name = "tpt.service.entry.line"
+    def line_net_line(self, cr, uid, ids, field_name, args, context=None):
+        res = {}
+        for line in self.browse(cr,uid,ids,context=context):
+            line_net = 0.0
+            res[line.id] = {
+                    'line_net': 0.0,
+                }  
+            line_net = line.product_uom_qty * line.price_unit
+            res[line.id]['line_net'] = round(line_net,2)
+        return res
+    _columns = {
+        'service_entry_id': fields.many2one('tpt.service.entry','Service Entry',ondelete='cascade'),
+        'line_no': fields.integer('S.No', readonly = True),
+        'po_id':fields.many2one('purchase.order','Purchase Order', ondelete = 'restrict'),
+        'po_line_id':fields.many2one('purchase.order.line','Particulars', ondelete = 'restrict'),
+        'uom_id': fields.many2one('product.uom', 'UOM'),
+        'product_uom_qty': fields.float('Quantity',digits=(16,3)),   
+        'price_unit': fields.float('Unit Price',digits=(16,3)),
+        'line_net': fields.function(line_net_line, multi='deltas' ,digits=(16,3),string='Line Net'),
+    }
+    def unlink(self, cr, uid, ids, context=None):
+        for line in self.browse(cr, uid, ids):
+            update_ids = self.search(cr, uid,[('service_entry_id','=',line.service_entry_id.id),('line_no','>',line.line_no)])
+            if update_ids:
+                cr.execute("UPDATE tpt_service_entry_line SET line_no=line_no-1 WHERE id in %s",(tuple(update_ids),))
+        return super(tpt_service_entry_line, self).unlink(cr, uid, ids, context)  
+    
+    def create(self, cr, uid, vals, context=None):
+        if vals.get('service_entry_id',False):
+            vals['line_no'] = len(self.search(cr, uid,[('service_entry_id', '=', vals['service_entry_id'])])) + 1
+        return super(tpt_service_entry_line, self).create(cr, uid, vals, context)
+tpt_service_entry_line()
+
+class tpt_third_service_entry(osv.osv):
+    _name = "tpt.third.service.entry"
+    def amount_all_line(self, cr, uid, ids, field_name, args, context=None):
+        res = {}
+        for line in self.browse(cr,uid,ids,context=context):
+            res[line.id] = {
+                'grand_total': 0.0,
+            }
+            grand_total = 0.0
+            amount_line = 0.0 
+            for service in line.third_service_line:
+                amount_line = service.product_uom_qty * service.price_unit
+                grand_total += round(amount_line,2)
+            res[line.id]['grand_total'] = grand_total
+        return res
+    
+    def _get_order(self, cr, uid, ids, context=None):
+        result = {}
+        for line in self.pool.get('tpt.service.entry.line').browse(cr, uid, ids, context=context):
+            result[line.service_entry_id.id] = True
+        return result.keys()
+    
+    _columns = {
+        'name':fields.char('Document No', size = 1024,readonly=True),
+        'create_date': fields.datetime('Created on',readonly = True),
+        'maintenance_id':fields.many2one('tpt.maintenance.oder','Maintenance Order No',readonly = True),
+        'service_type':fields.selection([('internal','Third Party Internal'),('employee', 'Employee'),('external','Third Party External')],'Service Type'),
+        'work_taken': fields.date('Work Taken on',required=True),
+        'department_id': fields.many2one('hr.department', 'Department',required=True),
+        'section_id': fields.many2one('arul.hr.section', 'Section',required=True),
+        'equip_id': fields.many2one('tpt.equipment', 'Equipment',required=True),
+        'machine_id': fields.many2one('tpt.machineries', 'Machineries',required=True),
+        'create_uid':fields.many2one('res.users','Raised By', readonly = True),
+        'third_service_line':fields.one2many('tpt.third.service.entry.line','third_service_id','Service Entry Lines'),
+        'grand_total': fields.function(amount_all_line, multi='sums',string='Grand Total',digits=(16,3),
+                                         store={
+                'tpt.third.service.entry': (lambda self, cr, uid, ids, c={}: ids, ['third_service_line'], 10),
+                'tpt.third.service.entry.line': (_get_order, ['product_uom_qty', 'uom_id', 'price_unit'], 10),})
+    }
+    
+    def create(self, cr, uid, vals, context=None):
+        if vals.get('name','/')=='/':
+            sequence = self.pool.get('ir.sequence').get(cr, uid, 'tpt.third.service.entry.seq')
+            vals['name'] =  sequence
+        new_id = super(tpt_third_service_entry, self).create(cr, uid, vals, context=context)
+        return new_id
+    
+tpt_third_service_entry()
+
+class tpt_third_service_entry_line(osv.osv):
+    _name = "tpt.third.service.entry.line"
+    def line_net_line(self, cr, uid, ids, field_name, args, context=None):
+        res = {}
+        for line in self.browse(cr,uid,ids,context=context):
+            line_net = 0.0
+            res[line.id] = {
+                    'line_net': 0.0,
+                }  
+            line_net = line.product_uom_qty * line.price_unit
+            res[line.id]['line_net'] = round(line_net,2)
+        return res
+    _columns = {
+        'third_service_id': fields.many2one('tpt.third.service.entry','Third Party Service Entry',ondelete='cascade'),
+        'create_date': fields.datetime('Created Date',readonly = True),
+        'work_taken': fields.date('Work Taken Date',required=True),
+        'po_id':fields.many2one('purchase.order','Service PO',required=True,ondelete = 'restrict'),
+        'po_line_id':fields.many2one('purchase.order.line','Particulars',required=True, ondelete = 'restrict'),
+        'gl_account': fields.many2one('account.account', 'GL Account',required=True),
+        'uom_id': fields.many2one('product.uom', 'UOM'),
+        'product_uom_qty': fields.float('Quantity',digits=(16,3)),   
+        'price_unit': fields.float('Unit Price',digits=(16,3)),
+        'line_net': fields.function(line_net_line, multi='deltas' ,digits=(16,3),string='Total Amount'),
+    }
+tpt_third_service_entry_line()
+
+
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

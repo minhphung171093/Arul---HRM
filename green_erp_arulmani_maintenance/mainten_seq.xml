@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <openerp>
     <data noupdate='1'>
-<!-- Indent Purchase VV Level Based -->
+<!-- Notification -->
         <record id="sequence_notification" model="ir.sequence.type">
             <field name="name">Notification Seq</field>
             <field name="code">tpt.notification.seq</field>
@@ -16,5 +16,50 @@
             <field name="implementation">no_gap</field>
         </record>
         
+<!-- Maintenance Order -->
+        <record id="sequence_maintenance" model="ir.sequence.type">
+            <field name="name">Maintenance Order Seq</field>
+            <field name="code">tpt.maintenance.oder.seq</field>
+        </record>
+        
+        <record id="sequence_maintenance_item" model="ir.sequence">
+            <field name="name">Maintenance Order Seq</field>
+            <field name="code">tpt.maintenance.oder.seq</field>
+            <field name="prefix">VVTi/MO/</field>
+            <field name="padding">7</field>
+            <field name="number_next_actual">0000001</field>
+            <field name="implementation">no_gap</field>
+        </record>        
+        
+<!-- Service Entry -->
+        <record id="sequence_service_entry" model="ir.sequence.type">
+            <field name="name">Service Entry Seq</field>
+            <field name="code">tpt.service.entry.seq</field>
+        </record>
+        
+        <record id="sequence_service_entry_item" model="ir.sequence">
+            <field name="name">Service Entry Seq</field>
+            <field name="code">tpt.service.entry.seq</field>
+            <field name="prefix">VVTi/INSE/</field>
+            <field name="padding">6</field>
+            <field name="number_next_actual">000001</field>
+            <field name="implementation">no_gap</field>
+        </record> 
+        
+<!-- Third Party Service Entry  -->
+        <record id="sequence_third_service_entry" model="ir.sequence.type">
+            <field name="name">Third Party Service Entry Seq</field>
+            <field name="code">tpt.third.service.entry.seq</field>
+        </record>
+        
+        <record id="sequence_third_service_entry_item" model="ir.sequence">
+            <field name="name">Third Party Service Entry Seq</field>
+            <field name="code">tpt.third.service.entry.seq</field>
+            <field name="prefix">VVTi/EXSE/</field>
+            <field name="padding">6</field>
+            <field name="number_next_actual">000001</field>
+            <field name="implementation">no_gap</field>
+        </record>      
+            
 	</data>
 </openerp>
