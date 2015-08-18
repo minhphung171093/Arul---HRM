@@ -1520,6 +1520,9 @@
                     	<field name="is_tpt_currency" invisible='1'/>
                     	<field name="amount" attrs="{'invisible':[('is_tpt_currency','=',False)]}" class="oe_inline" string="Paid Amount" widget="monetary" options="{'currency_field': 'currency_id'}" on_change="onchange_amount(amount, payment_rate, partner_id, journal_id, currency_id, type, date, payment_rate_currency_id, company_id, context)"/>
                     	<field name="tpt_currency_amount" widget="monetary" options="{'currency_field': 'tpt_currency_id'}" on_change="onchange_tpt_currency_amount(tpt_currency_id,tpt_currency_amount,type,date,context)" attrs="{'invisible':[('is_tpt_currency','=',True)],'required':[('is_tpt_currency','=',False)]}"/>
+                    	<!-- TPT START - BalamuruganPurushothaman ON 18/08/2015 - To enable this field when other currency choseen for exchange rate-->
+                    	<field name="tpt_exchange_rate"  options="{'currency_field': 'tpt_currency_id'}"  attrs="{'invisible':[('is_tpt_currency','=',True)],'required':[('is_tpt_currency','=',False)]}"/>
+                    	<!-- TPT END-->
                     	<field name="tpt_amount" attrs="{'invisible':[('is_tpt_currency','=',True)]}" widget="monetary" options="{'currency_field': 'currency_id'}"/>
                     </xpath>
 					
@@ -1598,8 +1601,12 @@
 					<xpath expr="//field[@name='amount']" position="replace">
                     	<field name="tpt_currency_id" required="1" on_change="onchange_tpt_currency(tpt_currency_id,currency_id,type)"/>
                     	<field name="is_tpt_currency" invisible='1'/>
-                    	<field name="amount" attrs="{'invisible':[('is_tpt_currency','=',False)]}" class="oe_inline" string="Paid Amount" widget="monetary" options="{'currency_field': 'currency_id'}" on_change="onchange_amount(amount, payment_rate, partner_id, journal_id, currency_id, type, date, payment_rate_currency_id, company_id, context)"/>
-                    	<field name="tpt_currency_amount" widget="monetary" options="{'currency_field': 'tpt_currency_id'}" on_change="onchange_tpt_currency_amount(tpt_currency_id,tpt_currency_amount,type,date,context)" attrs="{'invisible':[('is_tpt_currency','=',True)],'required':[('is_tpt_currency','=',False)]}"/>
+                    	<field name="amount" attrs="{'invisible':[('is_tpt_currency','=',False)]}" class="oe_inline" string="Paid Amount" widget="monetary" options="{'currency_field': 'currency_id'}" on_change="onchange_amount(amount, payment_rate, partner_id, journal_id, currency_id, type, date, payment_rate_currency_id, company_id, context)"/>	
+                    	<field name="tpt_currency_amount" widget="monetary" 
+                    	options="{'currency_field': 'tpt_currency_id'}" 
+                    	on_change="onchange_tpt_currency_amount(tpt_currency_id,tpt_currency_amount,type,date,context)" 
+                    	attrs="{'invisible':[('is_tpt_currency','=',True)],'required':[('is_tpt_currency','=',False)]}"/>
+                    	
                     	<field name="tpt_amount" attrs="{'invisible':[('is_tpt_currency','=',True)]}" widget="monetary" options="{'currency_field': 'currency_id'}"/>
                     </xpath>
 					
