@@ -2200,6 +2200,7 @@
 		                <!-- <field name="lst_price" invisible="0"/>
 		                <field name="price" invisible="not context.get('pricelist',False)"/>  -->
 		                <field name="onhand_qty"/>
+		                <field name="onhand_qty_store"/>
 		                <field name="uom_id" string="UOM" groups="product.group_uom"/>
 		                <field name="bin_location"/>
 		                <field name="standard_price" string="Unit Price" invisible="0"/>
