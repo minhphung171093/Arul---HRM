@@ -215,8 +215,8 @@
 	            		<group col='4' colspan='2'>
 							<field name="name"/>
 							<field name="notif_type" on_change="onchange_notif_type(notif_type, context)"/>
-							<field name="department_id" options="{'create': false, 'create_edit': false}"/>
-							<field name="section_id" options="{'create': false, 'create_edit': false}"/>
+							<field name="department_id" on_change="onchange_department_id(department_id)" options="{'create': false, 'create_edit': false}"/>
+							<field name="section_id" domain="[('department_id','=',department_id)]" options="{'create': false, 'create_edit': false}"/>
 							<field name="equip_id" options="{'create': false, 'create_edit': false}"/>
 							<field name="machine_id" options="{'create': false, 'create_edit': false}"/>
 							<field name="issue_date"/>
@@ -275,12 +275,9 @@
             <field name="model">tpt.service.entry</field>
             <field name="arch" type="xml">
 	            <form string="Staff Service Entry" version="7.0">   
-	            	<!--<header>
-	            		<button name="bt_generate" states='draft' string="Generate Notification" type="object" class="oe_highlight"/>
-	            		<button name="bt_approve" states='waiting' string="Approve Notification" type="object" class="oe_highlight"/>
-	            		<button name="bt_close" states='in' string="Close Notification" type="object" class="oe_highlight"/>
-	                    <field name ="state" widget="statusbar" statusbar_visible="draft,in,completed,put,close" statusbar_colors='{"draft":"blue","in":"red","close":"grey"}'/>
-	                </header>-->
+	            	<header>
+	            		<button name="bt_service_invoice" string="Create Service Invoice" type="object" attrs="{'invisible':[('service_type','=','employee')]}" class="oe_highlight"/>
+	                </header>
 	            	<sheet>
 	            		<group col='4' colspan='2'>
 							<field name="name"/>
@@ -299,8 +296,8 @@
 								<field name="service_entry_line" nolabel='1'>
 									<tree editable='top'>
 										<field name="line_no"/>
-										<field name="po_id" options="{'create': false, 'create_edit': false}"/>
-										<field name="po_line_id" domain="[('order_id','=',po_id)]" context="{'name_maintance_service_entry':True}" options="{'create': false, 'create_edit': false}"/>
+										<field name="po_id" domain="[('po_document_type','=','service')]" on_change="onchange_po_id(po_id,po_line_id)" options="{'create': false, 'create_edit': false}"/>
+										<field name="po_line_id" domain="[('order_id','=',po_id)]" on_change="onchange_po_line_id(po_line_id)" context="{'name_maintance_service_entry':True}" options="{'create': false, 'create_edit': false}"/>
 										<field name="uom_id" options="{'create': false, 'create_edit': false}"/>
 										<field name="product_uom_qty"/>
 										<field name="price_unit"/>
@@ -335,6 +332,9 @@
             <field name="model">tpt.third.service.entry</field>
             <field name="arch" type="xml">
 	            <form string="Third Party Service Entry" version="7.0">   
+	            	<header>
+	            		<button name="bt_service_invoice" string="Create Service Invoice" type="object" attrs="{'invisible':[('service_type','=','employee')]}" class="oe_highlight"/>
+	                </header>
 	            	<sheet>
 	            		<group col='4' colspan='2'>
 							<field name="name"/>
@@ -354,8 +354,8 @@
 									<tree editable='top'>
 										<field name="create_date"/>
 										<field name="work_taken"/>
-										<field name="po_id" domain="[('po_document_type','=','service')]" options="{'create': false, 'create_edit': false}"/>
-										<field name="po_line_id" domain="[('order_id','=',po_id)]" context="{'name_maintance_service_entry':True}" options="{'create': false, 'create_edit': false}"/>
+										<field name="po_id" domain="[('po_document_type','=','service')]" on_change="onchange_po_id(po_id,po_line_id)" options="{'create': false, 'create_edit': false}"/>
+										<field name="po_line_id" domain="[('order_id','=',po_id)]" on_change="onchange_po_line_id(po_line_id)" context="{'name_maintance_service_entry':True}" options="{'create': false, 'create_edit': false}"/>
 										<field name="gl_account" options="{'create': false, 'create_edit': false}"/>
 										<field name="uom_id" options="{'create': false, 'create_edit': false}"/>
 										<field name="product_uom_qty"/>
@@ -424,12 +424,12 @@
 	            		<group col='4' colspan='2'>
 							<field name="name"/>
 							<field name="issue_type"/>
-							<field name="notification_id" options="{'create': false, 'create_edit': false}"/>
+							<field name="notification_id" on_change="onchange_notification_id(notification_id)" options="{'create': false, 'create_edit': false}"/>
 							<field name="create_date"/>
-							<field name="notif_type"/>
-							<field name="department_id" options="{'create': false, 'create_edit': false}"/>
-							<field name="section_id" options="{'create': false, 'create_edit': false}"/>
-							<field name="employee_id" options="{'create': false, 'create_edit': false}"/>
+							<field name="notif_type"/> 
+							<field name="department_id" on_change="onchange_department_id(department_id,section_id,employee_id)" options="{'create': false, 'create_edit': false}"/>
+							<field name="section_id" domain="[('department_id','=',department_id)]" options="{'create': false, 'create_edit': false}"/>
+							<field name="employee_id" domain="[('department_id','=',department_id)]" options="{'create': false, 'create_edit': false}"/>
 							<field name="priority"/>
 							<field name="equip_id" options="{'create': false, 'create_edit': false}"/>
 							<field name="machine_id" options="{'create': false, 'create_edit': false}"/>
@@ -443,10 +443,10 @@
 						</group>
 						<notebook>
 							<page string = "Staff Service Entry">
-								<field name="service_entry_id" nolabel='1'/>
+								<field name="service_entry_id" nolabel='1' context="{'default_section_id':section_id,'default_department_id':department_id,'default_equip_id':equip_id,'default_machine_id':machine_id}"/>
 							</page> 
 							<page string = "Third Party Service Entry">
-								<field name="third_service_id" nolabel='1'/>
+								<field name="third_service_id" nolabel='1' context="{'default_section_id':section_id,'default_department_id':department_id,'default_equip_id':equip_id,'default_machine_id':machine_id}"/>
 							</page>
 						</notebook>
 		         	</sheet>

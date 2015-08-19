@@ -181,6 +181,11 @@ class tpt_notification(osv.osv):
                       }}
         return True
     
+    def onchange_department_id(self, cr, uid, ids,department_id=False):
+        res = {'value':{'section_id':False}}
+        if department_id:
+            return res
+    
     def bt_generate(self, cr, uid, ids, context=None):
         return self.write(cr, uid, ids,{'state':'waiting'})
     
@@ -206,7 +211,7 @@ class tpt_maintenance_oder(osv.osv):
     _columns = {
         'name':fields.char('Order No', size = 1024,readonly=True),
         'issue_type':fields.selection([('major', 'Major'),('minor', 'Minor'),('critical', 'Critical')],'Issue Type',states={'close': [('readonly', True)]}),
-        'notification_id':fields.many2one('tpt.notification','Notification No',states={'close': [('readonly', True)]}),
+        'notification_id':fields.many2one('tpt.notification','Notification No',required = True,states={'close': [('readonly', True)]}),
         'create_date': fields.datetime('Created Date',readonly = True),
         'notif_type':fields.selection([
                                 ('prevent','Preventive Maintenance'),
@@ -239,6 +244,48 @@ class tpt_maintenance_oder(osv.osv):
             vals['name'] =  sequence
         new_id = super(tpt_maintenance_oder, self).create(cr, uid, vals, context=context)
         return new_id
+    
+    def onchange_notification_id(self, cr, uid, ids,notification_id=False):
+        res = {'value':{
+                        'department_id':False,
+                        'section_id':False,
+                        'equip_id':False,
+                        'machine_id':False,
+                        'issue_reported':False,
+                        'issue_type':False,
+                        'priority':False,
+                        'notif_type':False,
+                      }
+               }
+        if notification_id:
+            no_id = self.pool.get('tpt.notification').browse(cr,uid,notification_id)
+            res['value'].update({
+                        'department_id':no_id.department_id and no_id.department_id.id or False,
+                        'section_id':no_id.section_id and no_id.section_id.id or False,
+                        'equip_id':no_id.equip_id and no_id.equip_id.id or False,
+                        'machine_id':no_id.machine_id and no_id.machine_id.id or False,
+                        'issue_reported':no_id.issue_reported or False,
+                        'issue_type':no_id.issue_type or False,
+                        'priority':no_id.priority or False,
+                        'notif_type':no_id.notif_type or False,
+            })
+        return res
+    
+    def onchange_department_id(self, cr, uid, ids,department_id=False,section_id=False,employee_id=False):
+        res = {'value':{}}
+        if department_id:
+            if section_id:
+                cr.execute('select id from arul_hr_section where department_id = %s and id = %s',(department_id,section_id,))
+                section = cr.fetchall()
+                if not section:
+                    res['value'].update({'section_id':False})
+            if employee_id:
+                cr.execute('select id from hr_employee where department_id = %s and id = %s',(department_id,employee_id,))
+                employee = cr.fetchall()
+                if not employee:
+                    res['value'].update({'employee_id':False})
+        return res
+    
 tpt_maintenance_oder()
 
 class tpt_service_entry(osv.osv):
@@ -269,10 +316,14 @@ class tpt_service_entry(osv.osv):
         'maintenance_id':fields.many2one('tpt.maintenance.oder','Maintenance Order No',readonly = True),
         'service_type':fields.selection([('internal','Third Party Internal'),('employee', 'Employee'),('external','Third Party External')],'Service Type'),
         'work_taken': fields.date('Work Taken on',required=True),
-        'department_id': fields.many2one('hr.department', 'Department',required=True),
-        'section_id': fields.many2one('arul.hr.section', 'Section',required=True),
-        'equip_id': fields.many2one('tpt.equipment', 'Equipment',required=True),
-        'machine_id': fields.many2one('tpt.machineries', 'Machineries',required=True),
+#         'department_id': fields.many2one('hr.department', 'Department',required=True),
+#         'section_id': fields.many2one('arul.hr.section', 'Section',required=True),
+#         'equip_id': fields.many2one('tpt.equipment', 'Equipment',required=True),
+#         'machine_id': fields.many2one('tpt.machineries', 'Machineries',required=True),
+        'department_id': fields.related('maintenance_id','department_id',type='many2one', relation='hr.department',string='Department', readonly = True),
+        'section_id': fields.related('maintenance_id','section_id',type='many2one', relation='arul.hr.section',string='Section', readonly = True),
+        'equip_id': fields.related('maintenance_id','equip_id',type='many2one', relation='tpt.equipment',string='Equipment', readonly = True),
+        'machine_id': fields.related('maintenance_id','machine_id',type='many2one', relation='tpt.machineries',string='Machineries', readonly = True),
         'create_uid':fields.many2one('res.users','Raised By', readonly = True),
         'service_entry_line':fields.one2many('tpt.service.entry.line','service_entry_id','Service Entry Lines'),
         'grand_total': fields.function(amount_all_line, multi='sums',string='Grand Total',digits=(16,3),
@@ -287,6 +338,9 @@ class tpt_service_entry(osv.osv):
             vals['name'] =  sequence
         new_id = super(tpt_service_entry, self).create(cr, uid, vals, context=context)
         return new_id
+    
+    def bt_service_invoice(self, cr, uid, ids, context=None):
+        return True
     
 tpt_service_entry()
 
@@ -323,6 +377,35 @@ class tpt_service_entry_line(osv.osv):
         if vals.get('service_entry_id',False):
             vals['line_no'] = len(self.search(cr, uid,[('service_entry_id', '=', vals['service_entry_id'])])) + 1
         return super(tpt_service_entry_line, self).create(cr, uid, vals, context)
+    
+    def onchange_po_line_id(self, cr, uid, ids,po_line_id=False):
+        res = {'value':{
+                        'uom_id':False,
+                        'product_uom_qty':False,
+                        'price_unit':False,
+                      }
+               }
+        if po_line_id:
+            no_id = self.pool.get('purchase.order.line').browse(cr,uid,po_line_id)
+            res['value'].update({
+                        'uom_id':no_id.product_uom and no_id.product_uom.id or False,
+                        'product_uom_qty':no_id.product_qty or False,
+                        'price_unit':no_id.price_unit or False,
+            })
+        return res
+    
+    def onchange_po_id(self, cr, uid, ids,po_id=False,po_line_id=False):
+        res = {'value':{}}
+        if po_id and po_line_id:
+            cr.execute('select id from purchase_order_line where order_id = %s and id = %s',(po_id,po_line_id,))
+            line = cr.fetchall()
+            if not line:
+                res['value'].update({'uom_id':False,
+                                    'product_uom_qty':False,
+                                    'price_unit':False,
+                                    'po_line_id':False,})
+        return res
+    
 tpt_service_entry_line()
 
 class tpt_third_service_entry(osv.osv):
@@ -353,10 +436,14 @@ class tpt_third_service_entry(osv.osv):
         'maintenance_id':fields.many2one('tpt.maintenance.oder','Maintenance Order No',readonly = True),
         'service_type':fields.selection([('internal','Third Party Internal'),('employee', 'Employee'),('external','Third Party External')],'Service Type'),
         'work_taken': fields.date('Work Taken on',required=True),
-        'department_id': fields.many2one('hr.department', 'Department',required=True),
-        'section_id': fields.many2one('arul.hr.section', 'Section',required=True),
-        'equip_id': fields.many2one('tpt.equipment', 'Equipment',required=True),
-        'machine_id': fields.many2one('tpt.machineries', 'Machineries',required=True),
+#         'department_id': fields.many2one('hr.department', 'Department',required=True),
+#         'section_id': fields.many2one('arul.hr.section', 'Section',required=True),
+#         'equip_id': fields.many2one('tpt.equipment', 'Equipment',required=True),
+#         'machine_id': fields.many2one('tpt.machineries', 'Machineries',required=True),
+        'department_id': fields.related('maintenance_id','department_id',type='many2one', relation='hr.department',string='Department', readonly = True),
+        'section_id': fields.related('maintenance_id','section_id',type='many2one', relation='arul.hr.section',string='Section', readonly = True),
+        'equip_id': fields.related('maintenance_id','equip_id',type='many2one', relation='tpt.equipment',string='Equipment', readonly = True),
+        'machine_id': fields.related('maintenance_id','machine_id',type='many2one', relation='tpt.machineries',string='Machineries', readonly = True),
         'create_uid':fields.many2one('res.users','Raised By', readonly = True),
         'third_service_line':fields.one2many('tpt.third.service.entry.line','third_service_id','Service Entry Lines'),
         'grand_total': fields.function(amount_all_line, multi='sums',string='Grand Total',digits=(16,3),
@@ -371,6 +458,9 @@ class tpt_third_service_entry(osv.osv):
             vals['name'] =  sequence
         new_id = super(tpt_third_service_entry, self).create(cr, uid, vals, context=context)
         return new_id
+    
+    def bt_service_invoice(self, cr, uid, ids, context=None):
+        return True
     
 tpt_third_service_entry()
 
@@ -398,6 +488,34 @@ class tpt_third_service_entry_line(osv.osv):
         'price_unit': fields.float('Unit Price',digits=(16,3)),
         'line_net': fields.function(line_net_line, multi='deltas' ,digits=(16,3),string='Total Amount'),
     }
+    
+    def onchange_po_line_id(self, cr, uid, ids,po_line_id=False):
+        res = {'value':{
+                        'uom_id':False,
+                        'product_uom_qty':False,
+                        'price_unit':False,
+                      }
+               }
+        if po_line_id:
+            no_id = self.pool.get('purchase.order.line').browse(cr,uid,po_line_id)
+            res['value'].update({
+                        'uom_id':no_id.product_uom and no_id.product_uom.id or False,
+                        'product_uom_qty':no_id.product_qty or False,
+                        'price_unit':no_id.price_unit or False,
+            })
+        return res
+    
+    def onchange_po_id(self, cr, uid, ids,po_id=False,po_line_id=False):
+        res = {'value':{}}
+        if po_id and po_line_id:
+            cr.execute('select id from purchase_order_line where order_id = %s and id = %s',(po_id,po_line_id,))
+            line = cr.fetchall()
+            if not line:
+                res['value'].update({'uom_id':False,
+                                    'product_uom_qty':False,
+                                    'price_unit':False,
+                                    'po_line_id':False,})
+        return res
 tpt_third_service_entry_line()
 
 
