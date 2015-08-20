@@ -86,6 +86,7 @@ class tpt_general_ledger_line(osv.osv_memory):
         'credit': fields.float('Credit',digits=(16,2)),
         'total':fields.float('Total',digits=(16,2)),
         'doc_no_line':fields.char('Document No',size=1024), #TPT-Y
+        'employee_id': fields.char('Employee', size = 1024), #TPT-Y
         
                                                         
     }
@@ -484,7 +485,22 @@ class general_ledger_statement(osv.osv_memory):
             gl_act = gl_account.code +''+gl_account.name
             return gl_act
         #TPT-Y
-        
+        def get_employee_id(cb,move_id):
+            employee_id = cb.employee_id
+            if employee_id:
+                return employee_id.employee_id+'-'+employee_id.name or ''
+            else:
+                return ''
+        def get_line_employee_id(cb,move_id):
+            if move_id:
+                av_obj = self.pool.get('account.voucher')
+                av_obj_ids = av_obj.search(cr, uid, [('move_id','=',move_id)])
+                av_obj1 = av_obj.browse(cr,uid,av_obj_ids[0])
+                if av_obj1.employee_id.employee_id:
+                    emp = str(av_obj1.employee_id.employee_id) +'-'+str(av_obj1.employee_id.name)
+                    return emp
+            else:
+                return ''
            
         cr.execute('delete from tpt_general_ledger_from')
         cb_obj = self.pool.get('tpt.general.ledger.from')
@@ -501,6 +517,7 @@ class general_ledger_statement(osv.osv_memory):
                     'narration': line.move_id.ref,
                     'emp': get_partner(line.partner_id) or False, #line.partner_id.name,#TPT-Y
                     'cost_center': get_voucher(cb, line.move_id.id),
+                    'employee_id': get_line_employee_id(cb, line.move_id.id),
                     'debit': line.debit,
                     'credit': line.credit,
             }))
