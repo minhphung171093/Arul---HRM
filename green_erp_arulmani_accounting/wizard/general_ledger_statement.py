@@ -19,6 +19,7 @@ class tpt_general_ledger_from(osv.osv_memory):
         'date_to_title': fields.char('', size = 1024), #TPT-Y
         'gl_code_desc': fields.char('', size = 1024), #TPT-Y
         'gl_desc': fields.char('', size = 1024), #TPT-Y
+        'emp_desc': fields.char('', size = 1024), #TPT-Y
         'doc_type': fields.selection([('cus_inv', 'Customer Invoice'),('cus_pay', 'Customer Payment'),
                                   ('sup_inv_po', 'Supplier Invoice(With PO)'),('sup_inv', 'Supplier Invoice(Without PO)'),('sup_pay', 'Supplier Payment'),
                                   ('payroll', 'Executives Payroll'),
@@ -46,6 +47,7 @@ class tpt_general_ledger_from(osv.osv_memory):
         'employee': fields.many2one('res.partner', 'Vendor/Customer',ondelete='restrict'),#TPT-Y
         'cost_center_id':fields.many2one('tpt.cost.center','Cost Center'),#TPT-Y   
         'is_posted': fields.boolean('Is Posted'),  #TPT-Y
+        'employee_id': fields.many2one('hr.employee', 'Employee Dimension',ondelete='restrict'),#TPT-Y
     }
     
     def print_report_pdf(self, cr, uid, ids, context=None):
@@ -125,7 +127,7 @@ class general_ledger_statement(osv.osv_memory):
                 'employee': fields.many2one('res.partner', 'Vendor/Customer',ondelete='restrict'),#TPT-Y
                 'cost_center_id':fields.many2one('tpt.cost.center','Cost Center'),#TPT-Y
                 'is_posted': fields.boolean('Is Posted'),  #TPT-Y
-                
+                'employee_id': fields.many2one('hr.employee', 'Employee Dimension',ondelete='restrict'),#TPT-Y
                 
                 }
     
@@ -226,6 +228,7 @@ class general_ledger_statement(osv.osv_memory):
             is_posted = cb.is_posted
             cost_center = cb.cost_center_id.id #TPT-Y
             emp_id=cb.employee.id
+            employee_id=cb.employee_id.id
             #emp=cb.employee.name     
             acc_obj = self.pool.get('account.account')
             acc = acc_obj.browse(cr,uid,gl_account)
@@ -254,6 +257,9 @@ class general_ledger_statement(osv.osv_memory):
                 sql = sql+str
             if emp_id:
                 str = " and ml.partner_id = %s"%(emp_id)
+                sql = sql+str
+            if employee_id:
+                str = " and av.employee_id = %s"%(employee_id)
                 sql = sql+str
             if cost_center:
                 str = " and cc.id = %s"%(cost_center)
@@ -511,10 +517,12 @@ class general_ledger_statement(osv.osv_memory):
             'date_from_title': 'Date From: ', #TPT-Y
             'date_to_title': 'Date To: ', #TPT-Y
             'gl_code_desc': 'GL Code With Description  : ', #TPT-Y
+            'emp_desc': 'Employee Dimension  : ', 
             'account_id': cb.account_id and cb.account_id.id or False,
             'doc_type': cb.doc_type and cb.doc_type or False,
             'doc_no':cb.doc_no and cb.doc_no or False,
             'employee':cb.employee.id, #get_emp(cb.employee.id), #cb.employee,#TPT-Y
+            'employee_id':cb.employee_id.id,
             'cost_center_id':cb.cost_center_id.id,#TPT-Y
             'narration':cb.narration and cb.narration or False,
             'date_from': cb.date_from,

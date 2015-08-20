@@ -536,7 +536,7 @@
 			<field name="name">arul.hr.employee.attendence.details.tree</field>
 			<field name="model">arul.hr.employee.attendence.details</field>
 			<field name="arch" type="xml">
-				<tree string="Employee Attendance Details" >
+				<tree string="Employee Attendance Details" create='false' edit='false'>
 						<field name="employee_id" options="{'create': false, 'create_edit': false}"/>
 						<field name="employee_category_id" options="{'create': false, 'create_edit': false}"/>
 						<field name="sub_category_id" options="{'create': false, 'create_edit': false}"/>

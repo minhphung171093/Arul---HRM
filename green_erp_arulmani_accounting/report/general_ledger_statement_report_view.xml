@@ -77,11 +77,17 @@
             				<field name="gl_code_desc" nolabel = '1' class=" oe_text_left oe_inline"/> 
             				<field name="gl_desc" class = "oe_text_left oe_inline"/>            				
             			</div>
+            			<!-- 
             			<div class="oe_bold oe_text_left">
             				<field name="employee" class = "oe_text_left oe_inline"/>            				
             			</div>
+            			 -->
             			<div class="oe_bold oe_text_left">
             				<field name="cost_center_id" class = "oe_text_left oe_inline"/>            				
+            			</div>
+            			<div class="oe_bold oe_text_left">
+            				<field name="emp_desc" nolabel = '1' class=" oe_text_left oe_inline"/> 
+            				<field name="employee_id" class = "oe_text_left oe_inline"/>            				
             			</div>
 	                	<group>
 		                	<field name="general_ledger_line" nolabel='1'>
@@ -95,7 +101,8 @@
 		                			<field name="emp"/>
 		                			<field name="debit"/>
 		                			<field name="credit"/>
-		                			<field name="cost_center"/>
+		                			<!-- <field name="cost_center"/>  -->
+		                			
 		                		</tree>
 		                	</field>
 	                	</group>
