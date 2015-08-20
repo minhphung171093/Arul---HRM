@@ -149,27 +149,28 @@ class general_ledger_statement(osv.osv_memory):
             emp_name = acc.name
             return emp_name
         
-        def get_partner(move_id):
-            emp_id = move_id.id
-            sql ='''
-                 select customer,name,customer_code,vendor_code from res_partner where id = %s
-                 '''%(emp_id)
-            cr.execute(sql)
-            for move in cr.dictfetchall():
-                 if move['customer'] == 't':
-                     if move['customer_code'] and move['name']:
-                        partner = move['customer_code'] +'-'+ move['name']
-                        return partner or ''
-                     elif move['name']:
-                         partner = move['name']
-                         return partner or ''
-                 else:
-                         if move['vendor_code'] and move['name']:
-                            partner = move['vendor_code'] +'-'+ move['name']
+        def get_partner(emp_id):
+            #emp_id = move_id.id
+            if emp_id:
+                sql ='''
+                     select customer,name,customer_code,vendor_code from res_partner where id = %s
+                     '''%(emp_id.id)
+                cr.execute(sql)
+                for move in cr.dictfetchall():
+                     if move['customer'] == 't':
+                         if move['customer_code'] and move['name']:
+                            partner = move['customer_code'] +'-'+ move['name']
                             return partner or ''
                          elif move['name']:
                              partner = move['name']
                              return partner or ''
+                     else:
+                             if move['vendor_code'] and move['name']:
+                                partner = move['vendor_code'] +'-'+ move['name']
+                                return partner or ''
+                             elif move['name']:
+                                 partner = move['name']
+                                 return partner or ''
             
             
         def convert_date_cash(date):
@@ -498,7 +499,7 @@ class general_ledger_statement(osv.osv_memory):
                     'doc_type': get_doc_type(line.move_id.doc_type),
                     #'gl_acc': line.account_id.code +' '+ line.account_id.name , #Comment by TPT-Y
                     'narration': line.move_id.ref,
-                    'emp': get_partner(line.partner_id), #line.partner_id.name,#TPT-Y
+                    'emp': get_partner(line.partner_id) or False, #line.partner_id.name,#TPT-Y
                     'cost_center': get_voucher(cb, line.move_id.id),
                     'debit': line.debit,
                     'credit': line.credit,
