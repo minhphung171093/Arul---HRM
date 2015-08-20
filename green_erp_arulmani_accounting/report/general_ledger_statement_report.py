@@ -66,25 +66,26 @@ class Parser(report_sxw.rml_parse):
     
     def get_partner(self,move_id):
             emp_id = move_id.id
-            sql ='''
-                 select customer,name,customer_code,vendor_code from res_partner where id = %s
-                 '''%(emp_id)
-            self.cr.execute(sql)
-            for move in self.cr.dictfetchall():
-                 if move['customer'] == 't':
-                     if move['customer_code'] and move['name']:
-                        partner = move['customer_code'] +'-'+ move['name']
-                        return partner or ''
-                     elif move['name']:
-                         partner = move['name']
-                         return partner or ''
-                 else:
-                         if move['vendor_code'] and move['name']:
-                            partner = move['vendor_code'] +'-'+ move['name']
+            if emp_id:
+                sql ='''
+                     select customer,name,customer_code,vendor_code from res_partner where id = %s
+                     '''%(emp_id)
+                self.cr.execute(sql)
+                for move in self.cr.dictfetchall():
+                     if move['customer'] == 't':
+                         if move['customer_code'] and move['name']:
+                            partner = move['customer_code'] +'-'+ move['name']
                             return partner or ''
                          elif move['name']:
                              partner = move['name']
                              return partner or ''
+                     else:
+                             if move['vendor_code'] and move['name']:
+                                partner = move['vendor_code'] +'-'+ move['name']
+                                return partner or ''
+                             elif move['name']:
+                                 partner = move['name']
+                                 return partner or ''
     
     def get_cost_center(self):
         wizard_data = self.localcontext['data']['form']
