@@ -414,17 +414,16 @@
             <field name="arch" type="xml">
 	            <form string="Maintenance Order" version="7.0">   
 	            	<header>
-	            		<!--<button name="bt_generate" states='draft' string="Generate Notification" type="object" class="oe_highlight"/>
-	            		<button name="bt_approve" states='waiting' string="Approve Notification" type="object" class="oe_highlight"/>
-	            		<button name="bt_close" states='in' string="Close Notification" type="object" class="oe_highlight"/>
-	            		<button name="%(action_tpt_service_entry_form_view)d" type="action" string="open" states="draft"/>-->
+	            		<button name="bt_process" string="Process Order" type="object" class="oe_highlight"/>
+	            		<button name="bt_close" string="Close Order" type="object" class="oe_highlight"/>
+	            		<!--<button name="%(action_tpt_service_entry_form_view)d" type="action" string="open" states="draft"/>-->
 	                    <field name ="state" widget="statusbar" statusbar_visible="draft,in,completed,put,close" statusbar_colors='{"draft":"blue","in":"red","close":"grey"}'/>
 	                </header>
 	            	<sheet>
 	            		<group col='4' colspan='2'>
 							<field name="name"/>
 							<field name="issue_type"/>
-							<field name="notification_id" on_change="onchange_notification_id(notification_id)" options="{'create': false, 'create_edit': false}"/>
+							<field name="notification_id" on_change="onchange_notification_id(notification_id)" domain="[('state','=','close')]" options="{'create': false, 'create_edit': false}"/>
 							<field name="create_date"/>
 							<field name="notif_type"/> 
 							<field name="department_id" on_change="onchange_department_id(department_id,section_id,employee_id)" options="{'create': false, 'create_edit': false}"/>
@@ -443,10 +442,10 @@
 						</group>
 						<notebook>
 							<page string = "Staff Service Entry">
-								<field name="service_entry_id" nolabel='1' context="{'default_section_id':section_id,'default_department_id':department_id,'default_equip_id':equip_id,'default_machine_id':machine_id}"/>
+								<field name="service_entry_line" nolabel='1' context="{'default_section_id':section_id,'default_department_id':department_id,'default_equip_id':equip_id,'default_machine_id':machine_id}"/>
 							</page> 
 							<page string = "Third Party Service Entry">
-								<field name="third_service_id" nolabel='1' context="{'default_section_id':section_id,'default_department_id':department_id,'default_equip_id':equip_id,'default_machine_id':machine_id}"/>
+								<field name="third_service_line" nolabel='1' context="{'default_section_id':section_id,'default_department_id':department_id,'default_equip_id':equip_id,'default_machine_id':machine_id}"/>
 							</page>
 						</notebook>
 		         	</sheet>

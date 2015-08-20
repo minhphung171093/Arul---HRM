@@ -227,8 +227,8 @@ class tpt_maintenance_oder(osv.osv):
         'create_uid':fields.many2one('res.users','Raised By', readonly = True),
         'issue_reported':fields.text('Issue Reported',states={'close': [('readonly', True)]}),
         'issue_finding':fields.text('Issue Finding',states={'close': [('readonly', True)]}),
-        'service_entry_id':fields.one2many('tpt.service.entry','maintenance_id','Staff Service Entry',states={'close': [('readonly', True)]}),
-        'third_service_id':fields.one2many('tpt.third.service.entry','maintenance_id','Third Party Service Entry',states={'close': [('readonly', True)]}),
+        'service_entry_line':fields.one2many('tpt.service.entry','maintenance_id','Staff Service Entry',states={'close': [('readonly', True)]}),
+        'third_service_line':fields.one2many('tpt.third.service.entry','maintenance_id','Third Party Service Entry',states={'close': [('readonly', True)]}),
         'state':fields.selection([('draft', 'Drafted'),
                                   ('in', 'In Progress'),
                                   ('completed', 'Completed'),
@@ -285,6 +285,12 @@ class tpt_maintenance_oder(osv.osv):
                 if not employee:
                     res['value'].update({'employee_id':False})
         return res
+    
+    def bt_process(self, cr, uid, ids, context=None):
+        return self.write(cr, uid, ids,{'state':'completed'})
+    
+    def bt_close(self, cr, uid, ids, context=None):
+        return self.write(cr, uid, ids,{'state':'close'})
     
 tpt_maintenance_oder()
 
