@@ -22,6 +22,9 @@
 	                <field name="currency_id"/>
 	                <field name="value"/>
 	                <field name="pending_quantity"/>
+	                <field name="po_indent_no"/>
+	                <field name="indent_date"/>
+	                <field name="indent_release_date"/>
 	           </tree>
 	        </field>
 	    </record>

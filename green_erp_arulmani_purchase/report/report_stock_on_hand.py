@@ -45,12 +45,18 @@ class Parser(report_sxw.rml_parse):
               'get_product':self.get_product,
               'get_ins_qty':self.get_ins_qty,
               'get_blo_qty':self.get_blo_qty,
-#               'get_categ_product':self.get_categ_product
-              
-              
-              
+              'get_mrp':self.get_mrp,
+              'get_mrp_type':self.get_mrp_type, 
+              'get_min_stock':self.get_min_stock,
+              'get_max_stock':self.get_max_stock,
+              'get_re_stock':self.get_re_stock,
+    
         })
-        
+    def convert_date(self,type):
+        if type:
+            date = datetime.strptime(date, DATE_FORMAT)
+            return date.strftime('%d/%m/%Y')
+            
     def convert_date(self,date):
         if date:
             date = datetime.strptime(date, DATE_FORMAT)
@@ -191,8 +197,51 @@ class Parser(report_sxw.rml_parse):
         self.cr.execute(sql)
         ton = self.cr.dictfetchone()
         return ton and ton['ton'] or 0        
-
-        
+    
+    def get_mrp(self):
+        wizard_data = self.localcontext['data']['form']
+        mrp = wizard_data['is_mrp']
+        if mrp is True:
+            return 'MRP Controlled Product'
+        else:
+            return 'Both MRP Controlled Product & Others' 
+    def get_mrp_type(self, line):
+        wizard_data = self.localcontext['data']['form']
+        mrp_type = wizard_data['is_mrp']    
+        sql = '''
+                        select mrp_control from product_product where id=%s
+                    '''%(line.id)
+        self.cr.execute(sql)
+        ton = self.cr.fetchone()
+        ton = ton[0]
+        if mrp_type=='t':
+            return 'Yes'
+        else:
+            return 'No'  
+    def get_min_stock(self, line):
+            sql = '''
+                select min_stock from product_product where id=%s
+                        '''%(line.id)
+            self.cr.execute(sql)
+            mrp = self.cr.fetchone()
+            min_stock = mrp[0]
+            return min_stock or 0
+    def get_max_stock(self, line):
+            sql = '''
+                select max_stock from product_product where id=%s
+                        '''%(line.id)
+            self.cr.execute(sql)
+            mrp = self.cr.fetchone()
+            max_stock = mrp[0]
+            return max_stock or 0
+    def get_re_stock(self, line):
+            sql = '''
+                select re_stock from product_product where id=%s
+                        '''%(line.id)
+            self.cr.execute(sql)
+            mrp = self.cr.fetchone()
+            re_stock = mrp[0]
+            return re_stock or 0    
     
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
 

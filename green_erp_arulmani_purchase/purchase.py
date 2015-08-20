@@ -900,27 +900,7 @@ class product_product(osv.osv):
                     where foo.loc in (select id from stock_location where name='%s'
                     and location_id in (select id from stock_location where name='Store'))
                     group by foo.loc,foo.prodlot_id,foo.id
-                '''%(prod.id,prod.id, prod_categ)
-                #===============================================================
-                # sql1 = '''
-                # SELECT sum(onhand_qty) onhand_qty
-                # From
-                # (SELECT
-                #        
-                #     case when loc1.usage != 'internal' and loc2.usage = 'internal'
-                #     then stm.primary_qty
-                #     else
-                #     case when loc1.usage = 'internal' and loc2.usage != 'internal'
-                #     then -1*stm.primary_qty 
-                #     else 0.0 end
-                #     end onhand_qty
-                #             
-                # FROM stock_move stm 
-                #     join stock_location loc1 on stm.location_id=loc1.id
-                #     join stock_location loc2 on stm.location_dest_id=loc2.id
-                # WHERE stm.state= 'done' and product_id=%s)foo
-                #    '''% (time.id)
-                #===============================================================
+                '''%(prod.id,prod.id, prod_categ) 
                 cr.execute(sql)
                 a = cr.fetchone()
                 if a:
