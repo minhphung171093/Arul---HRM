@@ -268,8 +268,7 @@ class Parser(report_sxw.rml_parse):
                     str = " and pp.state = '%s' "%(status)
                     sql = sql+str                           
                      
-        sql=sql+" order by pp.date_indent_relate,pi.name"
-        print sql       
+        sql=sql+" order by pp.date_indent_relate,pi.name"  
         self.cr.execute(sql)
         return self.cr.dictfetchall()
                 
