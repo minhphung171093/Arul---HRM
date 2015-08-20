@@ -3298,7 +3298,19 @@ class purchase_order_line(osv.osv):
        ids = self.search(cr, user, args, context=context, limit=limit)
        return self.name_get(cr, user, ids, context=context)
  
-      
+    def name_get(self, cr, uid, ids, context=None):
+        res = []
+        if context.get('name_maintance_service_entry'):
+            reads = self.read(cr, uid, ids, ['description'], context)
+            for record in reads:
+                name = record['description']
+                res.append((record['id'], name))
+        else:
+            reads = self.read(cr, uid, ids, ['name'], context)
+            for record in reads:
+                name = record['name']
+                res.append((record['id'], name))
+        return res 
 #     def onchange_product_id(self, cr, uid, ids, product_id=False, po_indent_no=False, context=None):
 #         vals = {}
 #         if po_indent_no and product_id: 
@@ -3425,7 +3437,7 @@ class tpt_good_return_request(osv.osv):
 #         if not ids:
 #             return res
 #         reads = self.read(cr, uid, ids, ['grn_no_id'], context)
-#   
+#    
 #         for record in reads:
 #             name = record['grn_no_id']
 #             res.append((record['id'], name))
