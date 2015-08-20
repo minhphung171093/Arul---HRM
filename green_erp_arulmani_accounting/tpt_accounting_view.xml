@@ -1278,8 +1278,8 @@
             <field name="res_model">account.invoice</field>
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
-            <field eval="False" name="view_id" ref="view_tpt_cform_invoice_tree"/>
-            <field name="domain">[('type','=','out_invoice'), ('sale_tax_id.name','=', 'CST')]</field>
+            <field eval="False" name="view_id" ref="view_tpt_cform_invoice_form"/>
+            <field name="domain">[('type','=','out_invoice'), ('sale_tax_id.name','=', 'VAT')]</field>
             <field name="context">{'default_type': 'out_invoice', 'type': 'out_invoice', 'journal_type': 'sales'}</field>
             <field name="search_view_id" ref="view_account_invoice_filter"/>
         </record>

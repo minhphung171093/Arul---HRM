@@ -3711,7 +3711,7 @@ class arul_hr_audit_shift_time(osv.osv):
                     on_duty_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','on_duty'),('from_date','<=',line.work_date),('to_date','>=',line.work_date),('employee_id','=',line.employee_id.id)])
                     leave_detail_ids = self.pool.get('arul.hr.employee.leave.details').search(cr, uid, [('date_from','<=',line.work_date),('date_to','>=',line.work_date),('employee_id','=',line.employee_id.id),('state','=','done')])
             
-                    if not permission_ids and not on_duty_ids and not leave_detail_ids:
+                    if not permission_ids and not on_duty_ids and not leave_detail_ids and not spl_date:
                         res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
                                                 'green_erp_arulmani_hrm', 'alert_permission_form_view')
                         return {
