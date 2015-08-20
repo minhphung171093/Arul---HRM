@@ -110,43 +110,44 @@ class grn_detail_line_report(osv.osv_memory):
                 return '['+req_name+']'
                 
                 
-        def get_pending_qty(po_no):
+        def get_pending_qty(po_no,pol_id):
             po_qty = 0
             grn_qty = 0
             if po_no:
                 sql = '''
-                           select case when sum(sm.product_qty)>0 then sum(sm.product_qty) else 0 end product_qty from stock_move sm
-                            inner join stock_picking sp on sm.picking_id=sp.id
-                            inner join purchase_order po on sp.purchase_id=po.id
-                            inner join purchase_order_line pol on po.id=pol.order_id
-                            where po.id=%s
-                        '''%(po_no.id)
+                           select case when sum(sm.product_qty)>0 then sum(sm.product_qty) else 0 end product_qty 
+                           from stock_move sm
+                           inner join stock_picking sp on sm.picking_id=sp.id
+                           inner join purchase_order po on sp.purchase_id=po.id
+                           inner join purchase_order_line pol on po.id=pol.order_id
+                           where sm.state in  ('assigned','cancel') and po.id=%s
+                        '''%(po_no)
                 cr.execute(sql)
                 grn_qty = cr.fetchone()
                 grn_qty = grn_qty[0]
                         
                 sql = '''
-                           select pol.product_qty po_qty from purchase_order_line pol
-                        where pol.order_id=(select id from purchase_order where id=%s)
-                        '''%(po_no.id)
+                           select pol.product_qty po_qty 
+                           from purchase_order_line pol
+                           where pol.order_id=(select id from purchase_order where id=%s)
+                        '''%(pol_id)
                 cr.execute(sql)
                 po_qty = cr.fetchone()
-                po_qty = po_qty[0]
-      
-                return po_qty-grn_qty or 0.000
+                po_qty = po_qty[0]      
+                return  grn_qty - po_qty or 0.000
                
         def get_status(type):
                 if type == 'cancel':
-                    res = 'Cancelled'
+                    return 'Cancelled'
                 if type == 'done':
-                    res = 'Received'
+                    return 'Received'
                 if type == 'assigned':
-                    res = 'Ready to Receive'
+                    return 'Ready to Receive'
                 if type == 'confirmed':
-                    res = 'Waiting Availability'
+                    return 'Waiting Availability'
                 if type == 'waiting':
-                    res = 'Draft'    
-                return res or ''
+                    return 'Draft'    
+                #return res or ''
          
         def get_invoice(cb):
                 res = {}                
@@ -162,9 +163,11 @@ class grn_detail_line_report(osv.osv_memory):
                          
                 sql = '''
                     select sp.name grn_no,sp.date as grn_date,po.name po_no, rp.name supplier,
+                    pr.name as proj_name,prs.name as proj_sec_name,
                       po.po_document_type as doc_type,pi.name as po_indent_no,pp.default_code||'-'||pt.name as product,
                       sm.item_text, sm.description, sm.product_qty as prod_qty,pu.name as product_uom,
-                      sm.action_taken as act_take,sm.bin_location,sm.state as state, emp.name_related requisitioner
+                      sm.action_taken as act_take,sm.bin_location,sm.state as state, emp.name_related requisitioner,
+                      po.id as po_id,pol.order_id as order_line_id
                       from stock_move sm
                       inner join stock_picking sp on sm.picking_id=sp.id
                       inner join purchase_order po on sp.purchase_id=po.id
@@ -174,7 +177,9 @@ class grn_detail_line_report(osv.osv_memory):
                       inner join product_uom pu on sm.product_uom=pu.id 
                       inner join product_product pp on sm.product_id=pp.id 
                       inner join product_template pt on sm.product_id=pt.id 
-                      inner join hr_employee emp on pi.requisitioner=emp.id                       
+                      inner join hr_employee emp on pi.requisitioner=emp.id
+                      left join tpt_project pr on  pi.project_id = pr.id
+                      left join tpt_project_section prs on pi.project_section_id = prs.id                         
                     '''
                 
                 
@@ -199,17 +204,17 @@ class grn_detail_line_report(osv.osv_memory):
                     sql = sql+str
                     
                 if grn_no and not po_no and not date_to and not date_from and not requisitioner and not project_id and not project_section_id and not state :
-                    str = " sp.id = %s"%(grn_no[0])
+                    str = " sp.id = %s"%(grn_no.id)
                     sql = sql+str
                 if grn_no and (date_to or date_from or po_no) and (date_to or date_from or po_no or requisitioner or project_id or project_section_id or state):
                     str = " and sp.id = %s "%(grn_no.id)
                     sql = sql+str         
                 
                 if po_no and not date_to and not date_from and not grn_no and not requisitioner and not project_id and not project_section_id and not state :
-                    str = " sp.id = %s"%(po_no[0])
+                    str = " sp.id = %s"%(po_no.id)
                     sql = sql+str 
                 if po_no and (date_to or date_from) and (date_to or date_from or grn_no or requisitioner or project_id or project_section_id or state):
-                    str = " and sp.purchase_id = %s"%(po_no.id)
+                    str = " and sp.id = %s"%(po_no.id)
                     sql = sql+str
                     
                 if state and not po_no and not date_to and not date_from and not grn_no and not requisitioner and not project_id and not project_section_id :
@@ -225,7 +230,18 @@ class grn_detail_line_report(osv.osv_memory):
                 if requisitioner and (date_to or date_from or po_no or grn_no) and (date_to or date_from or po_no or grn_no or project_id or project_section_id or state):
                     str = " and pi.requisitioner = %s "%(requisitioner)
                     sql = sql+str 
-                
+                if project_id and not po_no and not date_to and not date_from and not grn_no and not requisitioner and not state and not project_section_id: # or (project_sec_id):
+                    str = " pr.id = %s"%(project_id.id)
+                    sql = sql+str
+                if project_id and (date_to or date_from or po_no or grn_no or requisitioner  or state or project_section_id): # and (date_to or date_from or mat_req_no or cost_cent or requisitioner or department or section or state or mat_code or project_sec_id):
+                    str = " and prs.id = %s "%(project_id.id)
+                    sql = sql+str    
+                if project_section_id and not po_no and not date_to and not date_from and not grn_no and not requisitioner and not state and  not project_id:
+                    str = " prs.id = %s"%(project_section_id.id)
+                    sql = sql+str
+                if project_section_id and (date_to or date_from or po_no or grn_no or requisitioner or state or project_id):
+                    str = " and prs.id = %s "%(project_section_id.id)
+                    sql = sql+str     
                 sql=sql+" order by sp.date"                    
                 cr.execute(sql)
                 return cr.dictfetchall()
@@ -253,7 +269,7 @@ class grn_detail_line_report(osv.osv_memory):
                             'qty': line['prod_qty'] or 0.000,
                             'bin': line['bin_location'],
                             'state': get_status(line['state']) or '',
-                            'pend_qty':get_pending_qty(cb.grn_no.purchase_id),     
+                            'pend_qty':get_pending_qty(line['po_id'],line['order_line_id']),     
                                              
                 }))
              

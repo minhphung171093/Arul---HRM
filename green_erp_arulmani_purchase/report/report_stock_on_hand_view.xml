@@ -77,6 +77,7 @@
                 			<field name="product_id"/>
                 			<field name="location_id"/>
                 			<field name="as_date"/>
+                			<field name="is_mrp"/>
             			</group>
 	                	<group>
 		                	<field name="stock_line" nolabel='1'>
@@ -88,6 +89,11 @@
 		                			<field name="onhand_qty"/>
 		                			<field name="ins_qty"/>
 		                			<field name="bl_qty"/>
+		                			<field name="mrp"/>
+		                			<field name="unit_price"/>
+		                			<field name="min_stock"/>
+		                			<field name="max_stock"/>
+		                			<field name="re_stock"/>
 		                		</tree>
 		                	</field>
 	                	</group>

@@ -361,11 +361,13 @@
 							<newline/>
 							<field name="date" attrs="{'invisible':[('non_availability_type_id','!=','permission'),('parent_id','=',False)],'required':[('non_availability_type_id','=','permission')]}"/>
 							<field name="perm_out_date" attrs="{'invisible':[('non_availability_type_id','!=','permission'),('parent_id','=',False)]}"/>
+							<newline/>
 							<field name="from_date" attrs="{'invisible':['|',('non_availability_type_id','!=','on_duty'),('parent_id','!=',False)],'required':[('non_availability_type_id','=','on_duty')]}"/>
 							<field name="to_date" attrs="{'invisible':['|',('non_availability_type_id','!=','on_duty'),('parent_id','!=',False)],'required':[('non_availability_type_id','=','on_duty')]}"/>
-							<field name="duty_location" attrs="{'invisible':['|',('non_availability_type_id','!=','on_duty'),('parent_id','!=',False)]}"/>
+							<newline/>
 							<field name="start_time" widget="float_time"/>
 							<field name="end_time" widget="float_time"/>
+							<field name="duty_location" attrs="{'invisible':['|',('non_availability_type_id','!=','on_duty'),('parent_id','!=',False)]}"/>
 							<field name="time_total" widget="float_time"/>
 							<field name="approval"/>
 							<field name="create_date"/>
@@ -534,7 +536,7 @@
 			<field name="name">arul.hr.employee.attendence.details.tree</field>
 			<field name="model">arul.hr.employee.attendence.details</field>
 			<field name="arch" type="xml">
-				<tree string="Employee Attendance Details" >
+				<tree string="Employee Attendance Details" create='false' edit='false'>
 						<field name="employee_id" options="{'create': false, 'create_edit': false}"/>
 						<field name="employee_category_id" options="{'create': false, 'create_edit': false}"/>
 						<field name="sub_category_id" options="{'create': false, 'create_edit': false}"/>
@@ -1790,7 +1792,68 @@
         <menuitem action="action_tpt_hr_new_work_shift_master_form"
             id="menu_action_tpt_hr_new_work_shift_master_form"
             parent="menu_hr_leave_management" sequence="35"
-            groups="group_vvti_hrm_hr_key_user,group_vvti_hrm_time_user,group_vvti_hrm_hr_manager,group_vvti_hrm_payroll_controller"/>  
+            
+            groups="group_vvti_hrm_hr_manager,group_vvti_hrm_payroll_controller,group_vvti_hrm_time_key_user"
+            />  
+        <!-- Coff Reg -->   
+        <record id="view_tpt_coff_register_tree_veiw" model="ir.ui.view">
+			<field name="name">tpt.coff.register.tree</field>
+			<field name="model">tpt.coff.register</field>
+			<field name="arch" type="xml">
+				<tree string="Coff Register">	
+					<field name="employee_id" />
+					<field name="work_date" />
+					<field name="total_shift_worked" />
+					<field name="coff_count" />
+				</tree>
+			</field>
+		</record>
+		<record id="view_tpt_coff_register_search_vew" model="ir.ui.view">
+        	<field name="name">tpt.coff.register.search</field>
+            <field name="model">tpt.coff.register</field>
+            <field name="arch" type="xml">
+                <search string="COff Register">
+                	<field name="employee_id"/>
+					<field name="work_date"/>					
+            		<filter string="Staff(s2)" name="employee_category_s2" domain="[('employee_category_id.code','=','S2')]"/>
+            		<filter string="Workers (S3)" name="employee_category_s3" domain="[('employee_category_id.code','=','S3')]"/>
+					<group expand="0" string="Group By...">
+						<filter string="Employee" icon="terp-personal" domain="[]" context="{'group_by':'employee_id'}"/>   
+                        <filter string="Work Date" name="group_work_date" icon="terp-personal" domain="[]" context="{'group_by':'work_date'}"/>     
+                        <filter string="Work Group" icon="terp-gtk-select-all" domain="[]" context="{'group_by':'employee_category_id'}"/>               
+                    </group> 
+                </search>
+            </field>
+        </record>
+		<record id="view_tpt_coff_register_form_veiw" model="ir.ui.view">
+            <field name="name">tpt.coff.register.form</field>
+            <field name="model">tpt.coff.register</field>
+            <field name="arch" type="xml">
+	            <form string="Coff Register" version="7.0">   
+	            	<sheet>
+						<group col='4' colspan='2' string="Shift">
+							<field name="employee_id" />
+							<field name="work_date" />					
+							<field name="total_shift_worked" />
+							<field name="coff_count" />
+							</group>
+		         	</sheet>
+		         </form>
+			</field>
+		</record>
+          
+		<record id="action_tpt_coff_register_form" model="ir.actions.act_window">
+            <field name="name">C.Off Register</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.coff.register</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_tpt_coff_register_tree_veiw"/>
+            </record>
+        <menuitem action="action_tpt_coff_register_form"
+            id="menu_action_tpt_coff_register_form"
+            parent="menu_hr_leave_management" sequence="36"
+            /> 
+        <!-- End -->
 	</data>
 </openerp>
-

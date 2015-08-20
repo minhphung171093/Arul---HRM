@@ -50,6 +50,7 @@ class Parser(report_sxw.rml_parse):
             'get_emp':self.get_emp, #TPT-Y
             'get_cost_center':self.get_cost_center,
             'get_partner':self.get_partner,
+            'get_employee_id':self.get_employee_id,
         })
         
     def get_emp(self):
@@ -65,25 +66,26 @@ class Parser(report_sxw.rml_parse):
     
     def get_partner(self,move_id):
             emp_id = move_id.id
-            sql ='''
-                 select customer,name,customer_code,vendor_code from res_partner where id = %s
-                 '''%(emp_id)
-            self.cr.execute(sql)
-            for move in self.cr.dictfetchall():
-                 if move['customer'] == 't':
-                     if move['customer_code'] and move['name']:
-                        partner = move['customer_code'] +'-'+ move['name']
-                        return partner or ''
-                     elif move['name']:
-                         partner = move['name']
-                         return partner or ''
-                 else:
-                         if move['vendor_code'] and move['name']:
-                            partner = move['vendor_code'] +'-'+ move['name']
+            if emp_id:
+                sql ='''
+                     select customer,name,customer_code,vendor_code from res_partner where id = %s
+                     '''%(emp_id)
+                self.cr.execute(sql)
+                for move in self.cr.dictfetchall():
+                     if move['customer'] == 't':
+                         if move['customer_code'] and move['name']:
+                            partner = move['customer_code'] +'-'+ move['name']
                             return partner or ''
                          elif move['name']:
                              partner = move['name']
                              return partner or ''
+                     else:
+                             if move['vendor_code'] and move['name']:
+                                partner = move['vendor_code'] +'-'+ move['name']
+                                return partner or ''
+                             elif move['name']:
+                                 partner = move['name']
+                                 return partner or ''
     
     def get_cost_center(self):
         wizard_data = self.localcontext['data']['form']
@@ -95,6 +97,20 @@ class Parser(report_sxw.rml_parse):
             cost_name = cc.name
             return cost_name
         return ''
+    def get_employee_id(self):
+        wizard_data = self.localcontext['data']['form']
+        if wizard_data['employee_id']:
+            employee_id = wizard_data['employee_id']
+            #emp_emp = emp_id[0]
+            emp_obj = self.pool.get('hr.employee')
+            #acc = cc_obj.browse(self.cr,self.uid,emp_obj[0])
+            emp_obj_ids = emp_obj.search(self.cr, self.uid, [('id','=',employee_id[0])])
+            emp_obj1 = emp_obj.browse(self.cr,self.uid,emp_obj_ids[0])
+            employee_id = emp_obj1.employee_id   
+            
+            return employee_id+emp_obj1.name or ''
+        else:
+            return ''
         
     def get_voucher(self,move_id):
         wizard_data = self.localcontext['data']['form']
@@ -241,6 +257,7 @@ class Parser(report_sxw.rml_parse):
         is_posted = wizard_data['is_posted']
         emp_id = wizard_data['employee']
         cost_center = wizard_data['cost_center_id']
+        employee_id = wizard_data['employee_id']
         acount_move_line_obj = self.pool.get('account.move.line')
         acount_move_obj = self.pool.get('account.move')
         cus_ids = []
@@ -266,6 +283,9 @@ class Parser(report_sxw.rml_parse):
             sql = sql+str
         if emp_id:
             str = " and ml.partner_id = %s"%(emp_id[0])
+            sql = sql+str
+        if employee_id:
+            str = " and av.employee_id = %s"%(employee_id[0])
             sql = sql+str
         if cost_center:
             str = " and cc.id = %s"%(cost_center[0])

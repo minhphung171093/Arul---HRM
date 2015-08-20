@@ -3140,19 +3140,36 @@ class account_voucher(osv.osv):
         
 # end
     
+    #TPT-START
+    #TPT - Commented By BalamuruganPurushothaman - ON 18/08/2015- TO TAKE REALIZATION RATE AS EXCHANGE RATE
+    
+    #===========================================================================
+    # def _get_tpt_currency_amount(self, cr, uid, ids, name, args, context=None):
+    #     res = {}
+    #     if context is None:
+    #         context = {}
+    #     for voucher in self.browse(cr, uid, ids, context=context):
+    #         amount = 0
+    #         if voucher.tpt_currency_id and voucher.tpt_currency_amount:
+    #             context.update({'date': voucher.date or time.strftime('%Y-%m-%d')})
+    #             voucher_rate = self.pool.get('res.currency').read(cr, uid, voucher.tpt_currency_id.id, ['rate'], context=context)['rate']
+    #             amount = voucher.tpt_currency_amount/voucher_rate
+    #         res[voucher.id] = amount
+    #     return res
+    #===========================================================================
+    
+    #TPT - Commented By BalamuruganPurushothaman - ON 18/08/2015- TO TAKE REALIZATION RATE AS EXCHANGE RATE
     def _get_tpt_currency_amount(self, cr, uid, ids, name, args, context=None):
         res = {}
         if context is None:
             context = {}
         for voucher in self.browse(cr, uid, ids, context=context):
             amount = 0
-            if voucher.tpt_currency_id and voucher.tpt_currency_amount:
-                context.update({'date': voucher.date or time.strftime('%Y-%m-%d')})
-                voucher_rate = self.pool.get('res.currency').read(cr, uid, voucher.tpt_currency_id.id, ['rate'], context=context)['rate']
-                amount = voucher.tpt_currency_amount/voucher_rate
+            if voucher.tpt_currency_id and voucher.tpt_currency_amount and voucher.tpt_exchange_rate:       
+                amount = voucher.tpt_currency_amount/voucher.tpt_exchange_rate
             res[voucher.id] = amount
         return res
-    
+    #TPT-END
     _columns = {
         'name': fields.char( 'Journal no.',size = 256),
         'memo':fields.char('Memo', size=256, readonly=True, states={'draft':[('readonly',False)]}),
@@ -3193,6 +3210,7 @@ class account_voucher(osv.osv):
         'payee':fields.char('Payee', size=1024),
         'employee_id':fields.many2one('hr.employee','Employee'),
         'cost_center_id':fields.many2one('tpt.cost.center','Cost Center'),
+        'tpt_exchange_rate':fields.float('Realization Rate', digits=(12,14),),#TPT
         }
     
     def voucher_print_button(self, cr, uid, ids, context={}):
@@ -3475,7 +3493,8 @@ class account_voucher(osv.osv):
 #/phuoc
         else:
             if voucher.type in ('purchase', 'payment'):
-                credit = voucher.paid_amount_in_company_currency
+                #credit = voucher.paid_amount_in_company_currency #TPT-Commented By BalamuruganPurushothaman ON 18/08/2015- TO TAKE REALIZATION RATE AS EXCHANGE RATE
+                credit = voucher.tpt_amount #TPT-Added By BalamuruganPurushothaman ON 18/08/2015- TO TAKE REALIZATION RATE AS EXCHANGE RATE
                 if voucher.type == 'payment':
                     if voucher.journal_id.type == 'cash':
                         sql = '''
@@ -3498,7 +3517,8 @@ class account_voucher(osv.osv):
                 else:
                     account_id = voucher.account_id.id
             elif voucher.type in ('sale', 'receipt'):
-                debit = voucher.paid_amount_in_company_currency
+                #debit = voucher.paid_amount_in_company_currency #TPT-Commented By BalamuruganPurushothaman ON 18/08/2015- TO TAKE REALIZATION RATE AS EXCHANGE RATE
+                debit = voucher.tpt_amount #TPT-Added By BalamuruganPurushothaman ON 18/08/2015- TO TAKE REALIZATION RATE AS EXCHANGE RATE
                 if voucher.type == 'receipt':
                     if voucher.journal_id.type == 'cash':
                         sql = '''

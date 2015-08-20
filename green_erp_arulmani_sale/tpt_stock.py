@@ -1239,6 +1239,9 @@ class account_invoice(osv.osv):
         'final_desti': fields.char('Final Destination', size = 1024, readonly=True, states={'draft':[('readonly',False)]}),
         'agency_comm': fields.char('Agency Commission', size = 1024),
         'epcg_no': fields.char('EPCG License No', size = 1024),
+        
+        'cform_comments': fields.char('Comments', size = 1024, ),
+        
         #TPT
         'street3':fields.char('Street3',size=128),
         'fsh_grade':fields.char('FSH Grade',size=128),

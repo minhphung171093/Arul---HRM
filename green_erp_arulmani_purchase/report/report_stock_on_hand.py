@@ -45,12 +45,19 @@ class Parser(report_sxw.rml_parse):
               'get_product':self.get_product,
               'get_ins_qty':self.get_ins_qty,
               'get_blo_qty':self.get_blo_qty,
-#               'get_categ_product':self.get_categ_product
-              
-              
-              
+              'get_mrp':self.get_mrp,
+              'get_mrp_type':self.get_mrp_type, 
+              'get_min_stock':self.get_min_stock,
+              'get_max_stock':self.get_max_stock,
+              'get_re_stock':self.get_re_stock, 
+              'get_unit_price':self.get_unit_price,
+    
         })
-        
+    def convert_date(self,type):
+        if type:
+            date = datetime.strptime(date, DATE_FORMAT)
+            return date.strftime('%d/%m/%Y')
+            
     def convert_date(self,date):
         if date:
             date = datetime.strptime(date, DATE_FORMAT)
@@ -88,49 +95,92 @@ class Parser(report_sxw.rml_parse):
         loc = wizard_data['location_id']
         categ = wizard_data['categ_id']
         product = wizard_data['product_id']
+        is_mrp = wizard_data['is_mrp']
         pro_obj = self.pool.get('product.product')
         categ_ids = []
 
-        if categ and product:
-            sql='''
-                        select product_product.id 
-                        from product_product,product_template 
-                        where product_template.categ_id in(select product_category.id from product_category where product_category.id = %s) 
-                        and product_product.product_tmpl_id = product_template.id and product_product.id = %s ;
-            '''%(categ[0],product[0])
-            self.cr.execute(sql)
-            categ_ids += [r[0] for r in self.cr.fetchall()]
-            return self.pool.get('product.product').browse(self.cr,self.uid,categ_ids)
-        if categ:
-            sql='''
-                        select product_product.id 
-                        from product_product,product_template 
-                        where product_template.categ_id in(select product_category.id from product_category where product_category.id = %s) 
-                        and product_product.product_tmpl_id = product_template.id;
-            '''%(categ[0])
-            self.cr.execute(sql)
-            categ_ids += [r[0] for r in self.cr.fetchall()]
-            return pro_obj.browse(self.cr,self.uid,categ_ids)
-        if product and not categ:
-            sql='''
-                        select product_product.id 
-                        from product_product,product_template 
-                        where product_template.categ_id in(select product_category.id from product_category) 
-                        and product_product.product_tmpl_id = product_template.id and product_product.id = %s ;
-            '''%(product[0])
-            self.cr.execute(sql)
-            categ_ids += [r[0] for r in self.cr.fetchall()]
-            return self.pool.get('product.product').browse(self.cr,self.uid,categ_ids)
-        if not product and not categ :
-            sql='''
-                        select product_product.id 
-                        from product_product,product_template 
-                        where product_template.categ_id in(select product_category.id from product_category) 
-                        and product_product.product_tmpl_id = product_template.id  ;
-            '''
-            self.cr.execute(sql)
-            categ_ids += [r[0] for r in self.cr.fetchall()]
-            return self.pool.get('product.product').browse(self.cr,self.uid,categ_ids)
+        if is_mrp:
+            if categ and product:
+                sql='''
+                            select product_product.id 
+                            from product_product,product_template 
+                            where product_template.categ_id in(select product_category.id from product_category where product_category.id = %s) 
+                            and product_product.product_tmpl_id = product_template.id and product_product.id = %s and product_product.mrp_control='t';
+                '''%(categ[0],product[0])
+                self.cr.execute(sql)
+                categ_ids += [r[0] for r in self.cr.fetchall()]
+                return self.pool.get('product.product').browse(self.cr,self.uid,categ_ids)
+            if categ:
+                sql='''
+                            select product_product.id 
+                            from product_product,product_template 
+                            where product_template.categ_id in(select product_category.id from product_category where product_category.id = %s) 
+                            and product_product.product_tmpl_id = product_template.id and product_product.mrp_control='t';
+                '''%(categ[0])
+                self.cr.execute(sql)
+                categ_ids += [r[0] for r in self.cr.fetchall()]
+                return pro_obj.browse(self.cr,self.uid,categ_ids)
+            if product and not categ:
+                sql='''
+                            select product_product.id 
+                            from product_product,product_template 
+                            where product_template.categ_id in(select product_category.id from product_category) 
+                            and product_product.product_tmpl_id = product_template.id and product_product.id = %s and product_product.mrp_control='t';
+                '''%(product[0])
+                self.cr.execute(sql)
+                categ_ids += [r[0] for r in self.cr.fetchall()]
+                return self.pool.get('product.product').browse(self.cr,self.uid,categ_ids)
+            if not product and not categ :
+                sql='''
+                            select product_product.id 
+                            from product_product,product_template 
+                            where product_template.categ_id in(select product_category.id from product_category) 
+                            and product_product.product_tmpl_id = product_template.id  and product_product.mrp_control='t';
+                '''
+                self.cr.execute(sql)
+                categ_ids += [r[0] for r in self.cr.fetchall()]
+                return self.pool.get('product.product').browse(self.cr,self.uid,categ_ids)
+        else:
+            if categ and product:
+                sql='''
+                            select product_product.id 
+                            from product_product,product_template 
+                            where product_template.categ_id in(select product_category.id from product_category where product_category.id = %s) 
+                            and product_product.product_tmpl_id = product_template.id and product_product.id = %s ;
+                '''%(categ[0],product[0])
+                self.cr.execute(sql)
+                categ_ids += [r[0] for r in self.cr.fetchall()]
+                return self.pool.get('product.product').browse(self.cr,self.uid,categ_ids)
+            if categ:
+                sql='''
+                            select product_product.id 
+                            from product_product,product_template 
+                            where product_template.categ_id in(select product_category.id from product_category where product_category.id = %s) 
+                            and product_product.product_tmpl_id = product_template.id;
+                '''%(categ[0])
+                self.cr.execute(sql)
+                categ_ids += [r[0] for r in self.cr.fetchall()]
+                return pro_obj.browse(self.cr,self.uid,categ_ids)
+            if product and not categ:
+                sql='''
+                            select product_product.id 
+                            from product_product,product_template 
+                            where product_template.categ_id in(select product_category.id from product_category) 
+                            and product_product.product_tmpl_id = product_template.id and product_product.id = %s ;
+                '''%(product[0])
+                self.cr.execute(sql)
+                categ_ids += [r[0] for r in self.cr.fetchall()]
+                return self.pool.get('product.product').browse(self.cr,self.uid,categ_ids)
+            if not product and not categ :
+                sql='''
+                            select product_product.id 
+                            from product_product,product_template 
+                            where product_template.categ_id in(select product_category.id from product_category) 
+                            and product_product.product_tmpl_id = product_template.id  ;
+                '''
+                self.cr.execute(sql)
+                categ_ids += [r[0] for r in self.cr.fetchall()]
+                return self.pool.get('product.product').browse(self.cr,self.uid,categ_ids)
         
     def get_ton_sl(self, line):
         wizard_data = self.localcontext['data']['form']
@@ -191,8 +241,56 @@ class Parser(report_sxw.rml_parse):
         self.cr.execute(sql)
         ton = self.cr.dictfetchone()
         return ton and ton['ton'] or 0        
-
-        
+    
+    def get_mrp(self):
+        wizard_data = self.localcontext['data']['form']
+        mrp = wizard_data['is_mrp']
+        if mrp is True:
+            return 'MRP Controlled Product'
+        else:
+            return 'Both MRP Controlled Product & Others' 
+    def get_mrp_type(self, line):
+        wizard_data = self.localcontext['data']['form']
+        mrp_type = wizard_data['is_mrp']    
+        sql = '''
+                        select mrp_control from product_product where id=%s
+                    '''%(line.id)
+        self.cr.execute(sql)
+        ton = self.cr.fetchone()
+        ton = ton[0]
+        if mrp_type is True:
+            return 'Yes'
+        else:
+            return 'No'  
+    def get_min_stock(self, line):
+            sql = '''
+                select min_stock from product_product where id=%s
+                        '''%(line.id)
+            self.cr.execute(sql)
+            mrp = self.cr.fetchone()
+            min_stock = mrp[0]
+            return min_stock or 0
+    def get_max_stock(self, line):
+            sql = '''
+                select max_stock from product_product where id=%s
+                        '''%(line.id)
+            self.cr.execute(sql)
+            mrp = self.cr.fetchone()
+            max_stock = mrp[0]
+            return max_stock or 0
+    def get_re_stock(self, line):
+            sql = '''
+                select re_stock from product_product where id=%s
+                        '''%(line.id)
+            self.cr.execute(sql)
+            mrp = self.cr.fetchone()
+            re_stock = mrp[0]
+            return re_stock or 0   
+    def get_unit_price(self, line):
+            prod_obj = self.pool.get('product.product')
+            acc = prod_obj.browse(self.cr,self.uid,line.id)
+            unit_price = acc.standard_price
+            return unit_price or 0 
     
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
 
