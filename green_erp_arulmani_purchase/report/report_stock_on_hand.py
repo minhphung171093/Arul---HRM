@@ -293,4 +293,3 @@ class Parser(report_sxw.rml_parse):
             return unit_price or 0 
     
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
-
