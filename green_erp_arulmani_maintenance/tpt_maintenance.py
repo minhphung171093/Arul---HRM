@@ -26,7 +26,7 @@ class tpt_equip_category(osv.osv):
             cr.execute(sql)
             equip_name_ids = [row[0] for row in cr.fetchall()]
             sql = '''
-                select id from tpt_equip_category where id != %s and code = '%s'
+                select id from tpt_equip_category where id != %s and lower(code) = lower('%s')
             '''%(equip_cat.id,equip_cat.code)
             cr.execute(sql)
             equip_code_ids = [row[0] for row in cr.fetchall()]
@@ -36,6 +36,17 @@ class tpt_equip_category(osv.osv):
     _constraints = [
         (_check_name_code, 'Identical Data', ['name','code']),
     ]
+    def create(self, cr, uid, vals, context=None):
+        if 'code' in vals:
+            code = vals['code'].replace(" ","")
+            vals['code'] = code
+        return super(tpt_equip_category, self).create(cr, uid, vals, context)
+    
+    def write(self, cr, uid, ids, vals, context=None):
+        if 'code' in vals:
+            code = vals['code'].replace(" ","")
+            vals['code'] = code
+        return super(tpt_equip_category, self).write(cr, uid,ids, vals, context)
 tpt_equip_category()
 
 class tpt_equipment(osv.osv):
@@ -60,7 +71,7 @@ class tpt_equipment(osv.osv):
             cr.execute(sql)
             equip_name_ids = [row[0] for row in cr.fetchall()]
             sql = '''
-                select id from tpt_equipment where id != %s and code = '%s'
+                select id from tpt_equipment where id != %s and lower(code) = lower('%s')
             '''%(equip.id,equip.code)
             cr.execute(sql)
             equip_code_ids = [row[0] for row in cr.fetchall()]
@@ -70,6 +81,18 @@ class tpt_equipment(osv.osv):
     _constraints = [
         (_check_name_code, 'Identical Data', ['name','code']),
     ]
+    
+    def create(self, cr, uid, vals, context=None):
+        if 'code' in vals:
+            code = vals['code'].replace(" ","")
+            vals['code'] = code
+        return super(tpt_equipment, self).create(cr, uid, vals, context)
+    
+    def write(self, cr, uid, ids, vals, context=None):
+        if 'code' in vals:
+            code = vals['code'].replace(" ","")
+            vals['code'] = code
+        return super(tpt_equipment, self).write(cr, uid,ids, vals, context)
 tpt_equipment()
 
 class tpt_men_power(osv.osv):
@@ -115,7 +138,7 @@ class tpt_machineries(osv.osv):
             cr.execute(sql)
             equip_name_ids = [row[0] for row in cr.fetchall()]
             sql = '''
-                select id from tpt_machineries where id != %s and code = '%s'
+                select id from tpt_machineries where id != %s and lower(code) = lower('%s')
             '''%(equip.id,equip.code)
             cr.execute(sql)
             equip_code_ids = [row[0] for row in cr.fetchall()]
@@ -125,6 +148,17 @@ class tpt_machineries(osv.osv):
     _constraints = [
         (_check_name_code, 'Identical Data', ['name','code']),
     ]
+    def create(self, cr, uid, vals, context=None):
+        if 'code' in vals:
+            code = vals['code'].replace(" ","")
+            vals['code'] = code
+        return super(tpt_machineries, self).create(cr, uid, vals, context)
+    
+    def write(self, cr, uid, ids, vals, context=None):
+        if 'code' in vals:
+            code = vals['code'].replace(" ","")
+            vals['code'] = code
+        return super(tpt_machineries, self).write(cr, uid,ids, vals, context)
 tpt_machineries()
 
 class tpt_notification(osv.osv):
