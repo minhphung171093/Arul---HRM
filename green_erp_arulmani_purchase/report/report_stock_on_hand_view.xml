@@ -90,6 +90,7 @@
 		                			<field name="ins_qty"/>
 		                			<field name="bl_qty"/>
 		                			<field name="mrp"/>
+		                			<field name="unit_price"/>
 		                			<field name="min_stock"/>
 		                			<field name="max_stock"/>
 		                			<field name="re_stock"/>

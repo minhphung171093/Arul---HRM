@@ -55,6 +55,7 @@ class tpt_stock_on_hand_line(osv.osv):
         'min_stock': fields.float('Min Stock',digits=(16,3)),
         'max_stock': fields.float('Max Stock',digits=(16,3)),
         're_stock': fields.float('Re-Order Stock',digits=(16,3)),
+        'unit_price': fields.float('Unit Price',),
     }
 
 tpt_stock_on_hand_line()
@@ -281,7 +282,7 @@ class stock_on_hand_report(osv.osv_memory):
             cr.execute(sql)
             mrp = cr.fetchone()
             mrp_type = mrp[0]
-            if mrp_type=='t':
+            if mrp_type is True:
                 return 'Yes'
             else:
                 return 'No'
@@ -309,6 +310,22 @@ class stock_on_hand_report(osv.osv_memory):
             mrp = cr.fetchone()
             re_stock = mrp[0]
             return re_stock or 0
+        def get_unit_price(o,line):
+            #===================================================================
+            # sql = '''
+            #     select standard_price from product_product where id=%s
+            #             '''%(line.id)
+            # cr.execute(sql) 
+            # obj = cr.fetchone()
+            # unit_price = obj[0]
+            #===================================================================
+            
+            ##
+            prod_obj = self.pool.get('product.product')
+            acc = prod_obj.browse(cr,uid,line.id)
+            unit_price = acc.standard_price
+            
+            return unit_price or 0
             
         
         cr.execute('delete from tpt_stock_on_hand')
@@ -328,6 +345,7 @@ class stock_on_hand_report(osv.osv_memory):
                 'min_stock': get_min_stock(stock,line),
                 'max_stock': get_max_stock(stock,line),
                 're_stock': get_re_stock(stock,line),
+                'unit_price': get_unit_price(stock,line),
                 
             }))
         vals = {
