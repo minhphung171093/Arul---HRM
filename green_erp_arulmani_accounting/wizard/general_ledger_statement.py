@@ -495,10 +495,11 @@ class general_ledger_statement(osv.osv_memory):
             if move_id:
                 av_obj = self.pool.get('account.voucher')
                 av_obj_ids = av_obj.search(cr, uid, [('move_id','=',move_id)])
-                av_obj1 = av_obj.browse(cr,uid,av_obj_ids[0])
-                if av_obj1.employee_id.employee_id:
-                    emp = str(av_obj1.employee_id.employee_id) +'-'+str(av_obj1.employee_id.name)
-                    return emp
+                if av_obj_ids:
+                    av_obj1 = av_obj.browse(cr,uid,av_obj_ids[0])
+                    if av_obj1.employee_id.employee_id:
+                        emp = str(av_obj1.employee_id.employee_id) +'-'+str(av_obj1.employee_id.name)
+                        return emp
             else:
                 return ''
            
