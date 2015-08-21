@@ -3518,6 +3518,8 @@ class arul_hr_audit_shift_time(osv.osv):
                 od_out = 0
                 start_time = 0
                 end_time = 0
+                perm_in_date = ''
+                perm_out_date = ''
                 
                 perm_total = 0
                 od_total = 0
@@ -3755,6 +3757,7 @@ class arul_hr_audit_shift_time(osv.osv):
                                     'target': 'new',
                                 }
                 ### C.OFF LOGIC
+                c_off_day = 0
                 if line.employee_id.employee_category_id.code!='S1':       
                     if shift_count>1:
                         c_off_day = shift_count-1
