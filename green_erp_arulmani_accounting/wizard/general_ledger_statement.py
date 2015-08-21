@@ -97,7 +97,7 @@ tpt_general_ledger_line()
 class general_ledger_statement(osv.osv_memory):
     _name = "general.ledger.statement"
     _columns = {    
-                'date_from': fields.date('Posting ate From', required=True),
+                'date_from': fields.date('Posting Date From', required=True),
                 'date_to': fields.date('To', required=True),
                 'account_id':fields.many2one('account.account','GL Account',required=True),
                 'doc_type': fields.selection([('cus_inv', 'Customer Invoice'),('cus_pay', 'Customer Payment'),
