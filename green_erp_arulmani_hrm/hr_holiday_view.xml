@@ -568,7 +568,7 @@
 						<notebook>
 							<page string = "Punch In/Punch Out Details">
 								<field name="punch_in_out_line" nolabel='1'>
-									<tree >
+									<tree create='false' edit='false'>
 										<field name="work_date"/>
 										<field name="planned_work_shift_id" options="{'create': false, 'create_edit': false}"/>
 										<field name="actual_work_shift_id" options="{'create': false, 'create_edit': false}"/>
@@ -604,7 +604,7 @@
 						
 							<page string = "Permission and On Duty Details">
 								<field name="permission_onduty_details_line" nolabel='1'>
-									<tree editable='top'>
+									<tree  create='false' edit='false'>
 										
 										<field name="non_availability_type_id" options="{'create': false, 'create_edit': false}"/>
 										<field name="date"/>										

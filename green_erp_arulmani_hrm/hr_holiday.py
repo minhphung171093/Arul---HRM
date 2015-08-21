@@ -6100,26 +6100,29 @@ class arul_hr_punch_in_out(osv.osv):
 				# TPT Changes - BalamuruganPurushothaman on 18/02/2015 - SQL Query is modified to check Grace Time for shift
                                     sql = '''
                                         select id from arul_hr_capture_work_shift where 
-					(%s between 
-					case when min_start_time>0.00 then (start_time-(start_time-min_start_time)) else start_time end
-					and 
-					case when max_start_time>0.00 then (start_time+(max_start_time-start_time)) else start_time end
-					)
-					and
-					(%s between
-					case when min_end_time>0.00 then (end_time-(end_time-min_end_time)) else end_time end
-					and 
-					case when max_end_time>0.00 then (end_time+(max_end_time-end_time)) else end_time end
-					)
+                    					(%s between 
+                    					case when min_start_time>0.00 then (start_time-(start_time-min_start_time)) else start_time end
+                    					and 
+                    					case when max_start_time>0.00 then (start_time+(max_start_time-start_time)) else start_time end
+                    					)
+                    					and
+                    					(%s between
+                    					case when min_end_time>0.00 then (end_time-(end_time-min_end_time)) else end_time end
+                    					and 
+                    					case when max_end_time>0.00 then (end_time+(max_end_time-end_time)) else end_time end
+                    					)
                                     '''%(in_time,out_time)
                                     cr.execute(sql)
                                     work_shift_ids = [row[0] for row in cr.fetchall()]
-				    #raise osv.except_osv(_('Warning!%s'),sql)
+                                    
+				                    #raise osv.except_osv(_('Warning!%s'),sql)
                                     if work_shift_ids and shift_id:
                                         if shift_id == work_shift_ids[0]:
                                             
                                             extra_hours = 0.0
                                             c_off_day = 0.0
+                                            flag = 0
+                                            
                                             shift = shift_obj.browse(cr, uid, shift_id)
                                             extra_hours = out_time - shift.end_time
                                             if extra_hours >= 4 and extra_hours < 8:
@@ -6130,6 +6133,57 @@ class arul_hr_punch_in_out(osv.osv):
                                                 c_off_day = 1.5
                                             if extra_hours >= 16:
                                                 c_off_day = 2
+                                            ## C.OFF LOGIC
+                                            sql=''' SELECT work_date FROM arul_hr_punch_in_out_time WHERE TO_CHAR(work_date,'YYYY-MM-DD') = ('%s') and employee_id=%s '''%(date,employee_ids[0])
+                                            cr.execute(sql)                
+                                            same_work_date=cr.fetchone()
+                                            if same_work_date:
+                                                flag = 1
+                                            sql=''' SELECT date FROM arul_hr_holiday_special WHERE TO_CHAR(date,'YYYY-MM-DD') = ('%s') and is_local_holiday='t' '''%date
+                                            cr.execute(sql)                
+                                            local_date=cr.fetchall()
+                                        
+                                            if local_date : 
+                                                flag = 1
+                                            sql=''' SELECT date FROM arul_hr_holiday_special WHERE TO_CHAR(date,'YYYY-MM-DD') = ('%s') and is_local_holiday='f' '''%date
+                                            cr.execute(sql)                
+                                            spl_date=cr.fetchall()
+                                        
+                                            if spl_date:
+                                                flag = 1
+                                                
+                                            ## END C.OFF LOGIC
+                                            ##
+                                            ##
+                                            sql = '''
+                                             select id,a_shift,g1_shift,g2_shift,b_shift,c_shift,shift_count,time_total from tpt_work_shift where 
+                                            (%s between min_start_time and max_start_time)
+                                            and
+                                            (%s between min_end_time and max_end_time)
+                                            '''%(in_time,out_time)
+                                            cr.execute(sql)
+                                            for k in cr.fetchall():
+                                                    id=k[0]
+                                                    a_shift=k[1]
+                                                    g1_shift=k[2]
+                                                    g2_shift=k[3]
+                                                    b_shift=k[4]
+                                                    c_shift=k[5]
+                                                    shift_count=k[6]
+                                                    recording_hrs=k[7]
+                                            ##
+                                            sql = '''
+                                            select ec.code from hr_employee emp
+                                            inner join vsis_hr_employee_category ec on emp.employee_category_id=ec.id
+                                            where emp.id=%s
+                                            '''%employee_ids[0]
+                                            cr.execute(sql)                
+                                            categ=cr.fetchone()
+                                            categ = categ[0]
+                                                
+                                            if flag==1 and categ!='S1':
+                                                c_off_day = shift_count
+                                            ##
                                             employee_leave_ids = employee_leave_obj.search(cr, uid, [('year','=',data1[7:11]),('employee_id','=',employee_ids[0])])
                                             leave_type_ids = leave_type_obj.search(cr, uid, [('code','=','C.Off')])
                                             if not leave_type_ids:
@@ -6158,17 +6212,45 @@ class arul_hr_punch_in_out(osv.osv):
                                                                                            })
                                                     
                                             val1['actual_work_shift_id']=shift_id
+                                            ## TPT START - AUTO APPROVE
+                                            
+                                            ##
                                             details_ids=detail_obj.search(cr, uid, [('employee_id','=',employee_ids[0])])
                                             if details_ids:
                                                 val4={'punch_in_out_id':details_ids[0],'planned_work_shift_id':shift_id,'actual_work_shift_id':shift_id,'employee_id':employee_ids[0],'work_date':date,
                                                       'in_time':in_time,'out_time':out_time,
                                                       'ref_in_time':in_time,'ref_out_time':out_time,
+                                                      
+                                                      'a_shift_count1':a_shift,
+                                                      'g1_shift_count1':g1_shift,
+                                                      'g2_shift_count1':g2_shift,
+                                                      'b_shift_count1':b_shift,
+                                                      'c_shift_count1':c_shift,
+                                                      'total_shift_worked1':shift_count,
+                                                      
                                                       'approval':1}
                                                 if date_2!=date:
                                                     val4.update({'diff_day':True})
                                                     val1.update({'diff_day':True})
-                                                detail_obj4.create(cr, uid, val4)
+                                                detail_obj4.create(cr, uid, val4) 
                                             else:
+                                                val1={
+                                                  'employee_id':employee_ids[0],
+                                                  'work_date':date,
+                                                  'planned_work_shift_id':shift_id,
+                                                  'actual_work_shift_id':shift_id,
+                                                  'in_time':in_time,
+                                                  'out_time':out_time,
+                                            
+                                                  'a_shift_count1':a_shift,
+                                                  'g1_shift_count1':g1_shift,
+                                                  'g2_shift_count1':g2_shift,
+                                                  'b_shift_count1':b_shift,
+                                                  'c_shift_count1':c_shift,
+                                                  'total_shift_worked1':shift_count,
+                                                  
+                                                  'approval':1,
+                                                  } 
                                                 employee = self.pool.get('hr.employee').browse(cr, uid, employee_ids[0])
                                                 detail_obj.create(cr, uid, {'employee_id':employee_ids[0],
                                                                             'employee_category_id':employee.employee_category_id and employee.employee_category_id.id or False,
@@ -6176,6 +6258,7 @@ class arul_hr_punch_in_out(osv.osv):
                                                                             'department_id':employee.department_id and employee.department_id.id or False,
                                                                             'designation_id':employee.job_id and employee.job_id.id or False,
                                                                             'punch_in_out_line':[(0,0,val1)]})
+                                            #END AUTO APPROVE
                                         else:
                                             if date_2!=date:
                                                 val1.update({'diff_day':True})
@@ -6184,20 +6267,7 @@ class arul_hr_punch_in_out(osv.osv):
                                             val1['employee_category_id'] = employee.employee_category_id.id
                                             val1['type']='punch'
                                             detail_obj2.create(cr, uid,val1)
-#                                         if work_shift_ids and shift_id and shift_id == work_shift_ids[0]:
-#                                             val1['actual_work_shift_id']=shift_id
-#                                             details_ids=detail_obj.search(cr, uid, [('employee_id','=',employee_ids[0])])
-#                                             if details_ids:
-#                                                 val4={'punch_in_out_id':details_ids[0],'planned_work_shift_id':shift_id,'actual_work_shift_id':shift_id,'employee_id':employee_ids[0],'work_date':date,'in_time':in_time,'out_time':out_time,'approval':1}
-#                                                 detail_obj4.create(cr, uid, val4)
-#                                             else:
-#                                                 employee = self.pool.get('hr.employee').browse(cr, uid, employee_ids[0])
-#                                                 detail_obj.create(cr, uid, {'employee_id':employee_ids[0],
-#                                                                             'employee_category_id':employee.employee_category_id and employee.employee_category_id.id or False,
-#                                                                             'sub_category_id':employee.employee_sub_category_id and employee.employee_sub_category_id.id or False,
-#                                                                             'department_id':employee.department_id and employee.department_id.id or False,
-#                                                                             'designation_id':employee.job_id and employee.job_id.id or False,
-#                                                                             'punch_in_out_line':[(0,0,val1)]})
+#                                         
                                     else:
                                         if date_2!=date:
                                             val1.update({'diff_day':True})
@@ -6220,15 +6290,7 @@ class arul_hr_punch_in_out(osv.osv):
                                      'employee_category_id':employee.employee_category_id.id,
                                      'type':'shift',}
                                 detail_obj2.create(cr, uid,val)
-#                             else:
-#                                 detail_obj2.create(cr, uid,{
-#                                     'employee_id': employee_ids[0],
-#                                     'planned_work_shift_id':shift_id,
-#                                     'work_date':date,
-#                                     'in_time':in_time,
-#                                     'employee_category_id':employee.employee_category_id.id,
-#                                     'type':'shift',
-#                                 })
+
                         if data1[:3]=='P20':
                             out_date = data1[7:11]+'-'+data1[11:13]+'-'+data1[13:15]
                             out_time = float(data1[15:17])+float(data1[17:19])/60+float(data1[19:21])/3600
@@ -6239,17 +6301,17 @@ class arul_hr_punch_in_out(osv.osv):
 				# TPT Changes - BalamuruganPurushothaman on 18/02/2015 - SQL Query is modified to check Grace Time for shift
                                 sql = '''
                                       	select id from arul_hr_capture_work_shift where 
-					(%s between 
-					case when min_start_time>0.00 then (start_time-(start_time-min_start_time)) else start_time end
-					and 
-					case when max_start_time>0.00 then (start_time+(max_start_time-start_time)) else start_time end
-					)
-					and
-					(%s between
-					case when min_end_time>0.00 then (end_time-(end_time-min_end_time)) else end_time end
-					and 
-					case when max_end_time>0.00 then (end_time+(max_end_time-end_time)) else end_time end
-					)
+                    					(%s between 
+                    					case when min_start_time>0.00 then (start_time-(start_time-min_start_time)) else start_time end
+                    					and 
+                    					case when max_start_time>0.00 then (start_time+(max_start_time-start_time)) else start_time end
+                    					)
+                    					and
+                    					(%s between
+                    					case when min_end_time>0.00 then (end_time-(end_time-min_end_time)) else end_time end
+                    					and 
+                    					case when max_end_time>0.00 then (end_time+(max_end_time-end_time)) else end_time end
+                    					)
                                         '''%(audit_shift.in_time,out_time)
                                 cr.execute(sql)
                                 audit_work_shift_ids = [row[0] for row in cr.fetchall()]

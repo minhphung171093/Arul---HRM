@@ -104,7 +104,6 @@
 		                			<field name="product_id"/>
 		                			<field name="uom"/>
 		                			<field name="qty"/>
-		                			<!-- <field name="pend_qty"/>  -->
 		                			<field name="action_taken"/>
 		                			<field name="bin"/>
 		                			<field name="state"/>
