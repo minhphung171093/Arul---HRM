@@ -775,54 +775,7 @@ class arul_hr_audit_shift_time(osv.osv):
                                     'target': 'new',
                                 }
                 
-                #===============================================================
-                # if line.total_hours < shift_hours and line.planned_work_shift_id.code!='W':
-                #     permission_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','permission'),('date','=',line.work_date),('employee_id','=',line.employee_id.id)])
-                #     on_duty_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','on_duty'),('from_date','<=',line.work_date),('to_date','>=',line.work_date),('employee_id','=',line.employee_id.id)])
-                #     leave_detail_ids = self.pool.get('arul.hr.employee.leave.details').search(cr, uid, [('date_from','<=',line.work_date),('date_to','>=',line.work_date),('employee_id','=',line.employee_id.id),('state','=','done')])
-                #     
-                #     if not permission_ids and not on_duty_ids and not leave_detail_ids:
-                #         res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
-                #                             'green_erp_arulmani_hrm', 'alert_permission_form_view')
-                #         #raise osv.except_osv(_('Warning!'),_('Insufficient Hours, Please Create any one of the following : Permission/OnDuty/Leave'))
-                #         return {
-                #                     'name': 'Alert Permission',
-                #                     'view_type': 'form',
-                #                     'view_mode': 'form',
-                #                     'view_id': res[1],
-                #                     'res_model': 'alert.form',
-                #                     'domain': [],
-                #                     'context': {'default_message':'Insufficient Hours, Please Create any one of the following : Permission/OnDuty/Leave','audit_id':line.id},
-                #                     'type': 'ir.actions.act_window',
-                #                     'target': 'new',
-                #                 }
-                #===============================================================
-                    
-            #End:TPT
-            # TPT: The system should block approval if total working time is not match with shit time - For Emp Categ S1
-                       #if extra_hours<shift_hours and line.employee_id.employee_category_id and line.employee_id.employee_category_id.code!='S1':
-                #===============================================================
-                # if extra_hours<shift_hours and line.employee_id.employee_category_id :
-                #     permission_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','permission'),('date','=',line.work_date),('employee_id','=',line.employee_id.id)])
-                #     on_duty_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','on_duty'),('from_date','<=',line.work_date),('to_date','>=',line.work_date),('employee_id','=',line.employee_id.id)])
-                #     leave_detail_ids = self.pool.get('arul.hr.employee.leave.details').search(cr, uid, [('date_from','<=',line.work_date),('date_to','>=',line.work_date),('employee_id','=',line.employee_id.id),('state','=','done')])
-                # 
-                #     if not permission_ids and not on_duty_ids and not leave_detail_ids:
-                #         res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
-                #                             'green_erp_arulmani_hrm', 'alert_permission_form_view')
-                #         #raise osv.except_osv(_('Warning!'),_('Insufficient Hours, Please Create any one of the following type: Permission/OnDuty/Leave'))
-                #         return {
-                #                     'name': 'Alert Permission',
-                #                     'view_type': 'form',
-                #                     'view_mode': 'form',
-                #                     'view_id': res[1],
-                #                     'res_model': 'alert.form',
-                #                     'domain': [],
-                #                     'context': {'default_message':'Insufficient Hours, Please Create any one of the following type: Permission/OnDuty/Leave','audit_id':line.id},
-                #                     'type': 'ir.actions.act_window',
-                #                     'target': 'new',
-                #                 }
-                #===============================================================
+               
                     
                     #if flag==1 or line.additional_shifts or (extra_hours>8 and line.employee_id.employee_category_id and line.employee_id.employee_category_id.code!='S1'): # Commented By BalamuruganPurushothaman - TO do not calculate COFF for S1 categ
                 if flag==1 or line.additional_shifts or (line.employee_id.employee_category_id and line.employee_id.employee_category_id.code!='S1'):
@@ -853,51 +806,54 @@ class arul_hr_audit_shift_time(osv.osv):
                     
                     
                     perm_onduty_count =   permission_count + onduty_count
-                    extra_hours = extra_hours + perm_onduty_count             
-                    if line.additional_shifts:
-                        if extra_hours >= 3.7 and extra_hours < 7.45:
-                            c_off_day = 0.5
-                        if extra_hours >= 7.45 and extra_hours < 11.175:
-                            c_off_day = 1
-                        if extra_hours >= 11.175 and extra_hours < 15.3:
-                            c_off_day = 1.5                       
-                        if extra_hours >= 15.3 and extra_hours < 19.00:
-                            c_off_day = 2 
-                        if extra_hours >= 19.00 and extra_hours < 22.75:
-                            c_off_day = 2.5 
-                        if extra_hours >= 25.75 and extra_hours < 28:
-                            c_off_day = 3
-                    else:
-                        extra_hours = extra_hours-shift_hours
-                        if extra_hours >= 3.7 and extra_hours < 7.45:
-                            c_off_day = 0.5
-                        if extra_hours >= 7.45 and extra_hours < 11.175:
-                            c_off_day = 1
-                        if extra_hours >= 11.175 and extra_hours < 15.3:
-                            c_off_day = 1.5                       
-                        if extra_hours >= 15.3 and extra_hours < 19.00:
-                            c_off_day = 2 
-                        if extra_hours >= 19.00 and extra_hours < 22.75:
-                            c_off_day = 2.5 
-                        if extra_hours >= 25.75 and extra_hours < 28:
-                            c_off_day = 3
-                    employee_leave_ids = employee_leave_obj.search(cr, uid, [('year','=',line.work_date[:4]),('employee_id','=',line.employee_id.id)])
-                    leave_type_ids = leave_type_obj.search(cr, uid, [('code','=','C.Off')])
-                    if not leave_type_ids:
-                        raise osv.except_osv(_('Warning!'),_('Can not find Leave Type C.Off. Please Create Leave Type C.Off before'))
-                    if employee_leave_ids:
-                        employee_leave_detail_ids = employee_leave_detail_obj.search(cr, uid, [('emp_leave_id','in',employee_leave_ids),('leave_type_id','=',leave_type_ids[0])])
-                        if employee_leave_detail_ids:
-                            sql = '''
-                                    update employee_leave_detail set total_day = total_day+%s where id = %s
-                                '''%(c_off_day,employee_leave_detail_ids[0])
-                            cr.execute(sql)
+                    extra_hours = extra_hours + perm_onduty_count     
+                    if line.employee_id.employee_category_id.code!='S1':         
+                        if line.additional_shifts:
+                            if extra_hours >= 3.7 and extra_hours < 7.45:
+                                c_off_day = 0.5
+                            if extra_hours >= 7.45 and extra_hours < 11.175:
+                                c_off_day = 1
+                            if extra_hours >= 11.175 and extra_hours < 15.3:
+                                c_off_day = 1.5                       
+                            if extra_hours >= 15.3 and extra_hours < 19.00:
+                                c_off_day = 2 
+                            if extra_hours >= 19.00 and extra_hours < 22.75:
+                                c_off_day = 2.5 
+                            if extra_hours >= 25.75 and extra_hours < 28:
+                                c_off_day = 3
                         else:
-                            employee_leave_detail_obj.create(cr, uid, {
-                                                                           'leave_type_id': leave_type_ids[0],
-                                                                           'emp_leave_id': employee_leave_ids[0],
-                                                                           'total_day': c_off_day,
-                                                                           })
+                            extra_hours = extra_hours-shift_hours
+                            if extra_hours >= 3.7 and extra_hours < 7.45:
+                                c_off_day = 0.5
+                            if extra_hours >= 7.45 and extra_hours < 11.175:
+                                c_off_day = 1
+                            if extra_hours >= 11.175 and extra_hours < 15.3:
+                                c_off_day = 1.5                       
+                            if extra_hours >= 15.3 and extra_hours < 19.00:
+                                c_off_day = 2 
+                            if extra_hours >= 19.00 and extra_hours < 22.75:
+                                c_off_day = 2.5 
+                            if extra_hours >= 25.75 and extra_hours < 28:
+                                c_off_day = 3
+                    #===========================================================
+                    # employee_leave_ids = employee_leave_obj.search(cr, uid, [('year','=',line.work_date[:4]),('employee_id','=',line.employee_id.id)])
+                    # leave_type_ids = leave_type_obj.search(cr, uid, [('code','=','C.Off')])
+                    # if not leave_type_ids:
+                    #     raise osv.except_osv(_('Warning!'),_('Can not find Leave Type C.Off. Please Create Leave Type C.Off before'))
+                    # if employee_leave_ids:
+                    #     employee_leave_detail_ids = employee_leave_detail_obj.search(cr, uid, [('emp_leave_id','in',employee_leave_ids),('leave_type_id','=',leave_type_ids[0])])
+                    #     if employee_leave_detail_ids:
+                    #         sql = '''
+                    #                 update employee_leave_detail set total_day = total_day+%s where id = %s
+                    #             '''%(c_off_day,employee_leave_detail_ids[0])
+                    #         cr.execute(sql)
+                    #     else:
+                    #         employee_leave_detail_obj.create(cr, uid, {
+                    #                                                        'leave_type_id': leave_type_ids[0],
+                    #                                                        'emp_leave_id': employee_leave_ids[0],
+                    #                                                        'total_day': c_off_day,
+                    #                                                        })
+                    #===========================================================
                     else:
                         employee_leave_detail_obj.create(cr, uid, {
                                                                        #'employee_id': employee_ids[0],
@@ -1176,7 +1132,32 @@ class arul_hr_audit_shift_time(osv.osv):
                                     'type': 'ir.actions.act_window',
                                     'target': 'new',
                                 }
-                    
+                ###
+                c_off_day = 0
+                if line.employee_id.employee_category_id.code!='S1':       
+                    if shift_count>1:
+                        c_off_day = shift_count-1
+                    elif flag==1:
+                        c_off_day = shift_count
+                employee_leave_ids = employee_leave_obj.search(cr, uid, [('year','=',line.work_date[:4]),('employee_id','=',line.employee_id.id)])
+                leave_type_ids = leave_type_obj.search(cr, uid, [('code','=','C.Off')])
+                if not leave_type_ids:
+                    raise osv.except_osv(_('Warning!'),_('Can not find Leave Type C.Off. Please Create Leave Type C.Off before'))
+                if employee_leave_ids:
+                    employee_leave_detail_ids = employee_leave_detail_obj.search(cr, uid, [('emp_leave_id','in',employee_leave_ids),('leave_type_id','=',leave_type_ids[0])])
+                    if employee_leave_detail_ids:
+                        sql = '''
+                                    update employee_leave_detail set total_day = total_day+%s where id = %s
+                                '''%(c_off_day,employee_leave_detail_ids[0])
+                        cr.execute(sql)
+                    else:
+                        employee_leave_detail_obj.create(cr, uid, {
+                                                                    'leave_type_id': leave_type_ids[0],
+                                                                    'emp_leave_id': employee_leave_ids[0],
+                                                                    'total_day': c_off_day,
+                                                                })
+                ###
+                            
                 employee_ids = emp_attendence_obj.search(cr, uid, [('employee_id','=',line.employee_id.id)])
                 if employee_ids:                        
                     val2={'punch_in_out_id':employee_ids[0], 
@@ -2306,34 +2287,35 @@ class arul_hr_audit_shift_time(osv.osv):
                     onduty_count = c[0]
                     
                     perm_onduty_count =   permission_count + onduty_count
-                    extra_hours = extra_hours + perm_onduty_count 		    
-                    if line.additional_shifts:
-                        if extra_hours >= 3.7 and extra_hours < 7.45:
-                            c_off_day = 0.5
-                        if extra_hours >= 7.45 and extra_hours < 11.175:
-                            c_off_day = 1
-                        if extra_hours >= 11.175 and extra_hours < 15.3:
-                            c_off_day = 1.5                       
-                        if extra_hours >= 15.3 and extra_hours < 19.00:
-                            c_off_day = 2 
-                        if extra_hours >= 19.00 and extra_hours < 22.75:
-                            c_off_day = 2.5 
-                        if extra_hours >= 25.75 and extra_hours < 28:
-                            c_off_day = 3
-                    else:
-                        extra_hours = extra_hours-shift_hours
-                        if extra_hours >= 3.7 and extra_hours < 7.45:
-                            c_off_day = 0.5
-                        if extra_hours >= 7.45 and extra_hours < 11.175:
-                            c_off_day = 1
-                        if extra_hours >= 11.175 and extra_hours < 15.3:
-                            c_off_day = 1.5                       
-                        if extra_hours >= 15.3 and extra_hours < 19.00:
-                            c_off_day = 2 
-                        if extra_hours >= 19.00 and extra_hours < 22.75:
-                            c_off_day = 2.5 
-                        if extra_hours >= 25.75 and extra_hours < 28:
-                            c_off_day = 3
+                    extra_hours = extra_hours + perm_onduty_count 
+                    if line.employee_id.employee_category_id.code!='S1': 		    
+                        if line.additional_shifts:
+                            if extra_hours >= 3.7 and extra_hours < 7.45:
+                                c_off_day = 0.5
+                            if extra_hours >= 7.45 and extra_hours < 11.175:
+                                c_off_day = 1
+                            if extra_hours >= 11.175 and extra_hours < 15.3:
+                                c_off_day = 1.5                       
+                            if extra_hours >= 15.3 and extra_hours < 19.00:
+                                c_off_day = 2 
+                            if extra_hours >= 19.00 and extra_hours < 22.75:
+                                c_off_day = 2.5 
+                            if extra_hours >= 25.75 and extra_hours < 28:
+                                c_off_day = 3
+                        else:
+                            extra_hours = extra_hours-shift_hours
+                            if extra_hours >= 3.7 and extra_hours < 7.45:
+                                c_off_day = 0.5
+                            if extra_hours >= 7.45 and extra_hours < 11.175:
+                                c_off_day = 1
+                            if extra_hours >= 11.175 and extra_hours < 15.3:
+                                c_off_day = 1.5                       
+                            if extra_hours >= 15.3 and extra_hours < 19.00:
+                                c_off_day = 2 
+                            if extra_hours >= 19.00 and extra_hours < 22.75:
+                                c_off_day = 2.5 
+                            if extra_hours >= 25.75 and extra_hours < 28:
+                                c_off_day = 3
                     employee_leave_ids = employee_leave_obj.search(cr, uid, [('year','=',line.work_date[:4]),('employee_id','=',line.employee_id.id)])
                     leave_type_ids = leave_type_obj.search(cr, uid, [('code','=','C.Off')])
                     if not leave_type_ids:
@@ -3436,51 +3418,54 @@ class arul_hr_audit_shift_time(osv.osv):
                     
                     
                     perm_onduty_count =   permission_count + onduty_count
-                    extra_hours = extra_hours + perm_onduty_count             
-                    if line.additional_shifts:
-                        if extra_hours >= 3.7 and extra_hours < 7.45:
-                            c_off_day = 0.5
-                        if extra_hours >= 7.45 and extra_hours < 11.175:
-                            c_off_day = 1
-                        if extra_hours >= 11.175 and extra_hours < 15.3:
-                            c_off_day = 1.5                       
-                        if extra_hours >= 15.3 and extra_hours < 19.00:
-                            c_off_day = 2 
-                        if extra_hours >= 19.00 and extra_hours < 22.75:
-                            c_off_day = 2.5 
-                        if extra_hours >= 25.75 and extra_hours < 28:
-                            c_off_day = 3
-                    else:
-                        extra_hours = extra_hours-shift_hours
-                        if extra_hours >= 3.7 and extra_hours < 7.45:
-                            c_off_day = 0.5
-                        if extra_hours >= 7.45 and extra_hours < 11.175:
-                            c_off_day = 1
-                        if extra_hours >= 11.175 and extra_hours < 15.3:
-                            c_off_day = 1.5                       
-                        if extra_hours >= 15.3 and extra_hours < 19.00:
-                            c_off_day = 2 
-                        if extra_hours >= 19.00 and extra_hours < 22.75:
-                            c_off_day = 2.5 
-                        if extra_hours >= 25.75 and extra_hours < 28:
-                            c_off_day = 3
-                    employee_leave_ids = employee_leave_obj.search(cr, uid, [('year','=',line.work_date[:4]),('employee_id','=',line.employee_id.id)])
-                    leave_type_ids = leave_type_obj.search(cr, uid, [('code','=','C.Off')])
-                    if not leave_type_ids:
-                        raise osv.except_osv(_('Warning!'),_('Can not find Leave Type C.Off. Please Create Leave Type C.Off before'))
-                    if employee_leave_ids:
-                        employee_leave_detail_ids = employee_leave_detail_obj.search(cr, uid, [('emp_leave_id','in',employee_leave_ids),('leave_type_id','=',leave_type_ids[0])])
-                        if employee_leave_detail_ids:
-                            sql = '''
-                                    update employee_leave_detail set total_day = total_day+%s where id = %s
-                                '''%(c_off_day,employee_leave_detail_ids[0])
-                            cr.execute(sql)
+                    extra_hours = extra_hours + perm_onduty_count      
+                    if line.employee_id.employee_category_id.code!='S1':       
+                        if line.additional_shifts:
+                            if extra_hours >= 3.7 and extra_hours < 7.45:
+                                c_off_day = 0.5
+                            if extra_hours >= 7.45 and extra_hours < 11.175:
+                                c_off_day = 1
+                            if extra_hours >= 11.175 and extra_hours < 15.3:
+                                c_off_day = 1.5                       
+                            if extra_hours >= 15.3 and extra_hours < 19.00:
+                                c_off_day = 2 
+                            if extra_hours >= 19.00 and extra_hours < 22.75:
+                                c_off_day = 2.5 
+                            if extra_hours >= 25.75 and extra_hours < 28:
+                                c_off_day = 3
                         else:
-                            employee_leave_detail_obj.create(cr, uid, {
-                                                                           'leave_type_id': leave_type_ids[0],
-                                                                           'emp_leave_id': employee_leave_ids[0],
-                                                                           'total_day': c_off_day,
-                                                                           })
+                            extra_hours = extra_hours-shift_hours
+                            if extra_hours >= 3.7 and extra_hours < 7.45:
+                                c_off_day = 0.5
+                            if extra_hours >= 7.45 and extra_hours < 11.175:
+                                c_off_day = 1
+                            if extra_hours >= 11.175 and extra_hours < 15.3:
+                                c_off_day = 1.5                       
+                            if extra_hours >= 15.3 and extra_hours < 19.00:
+                                c_off_day = 2 
+                            if extra_hours >= 19.00 and extra_hours < 22.75:
+                                c_off_day = 2.5 
+                            if extra_hours >= 25.75 and extra_hours < 28:
+                                c_off_day = 3
+                    #===========================================================
+                    # employee_leave_ids = employee_leave_obj.search(cr, uid, [('year','=',line.work_date[:4]),('employee_id','=',line.employee_id.id)])
+                    # leave_type_ids = leave_type_obj.search(cr, uid, [('code','=','C.Off')])
+                    # if not leave_type_ids:
+                    #     raise osv.except_osv(_('Warning!'),_('Can not find Leave Type C.Off. Please Create Leave Type C.Off before'))
+                    # if employee_leave_ids:
+                    #     employee_leave_detail_ids = employee_leave_detail_obj.search(cr, uid, [('emp_leave_id','in',employee_leave_ids),('leave_type_id','=',leave_type_ids[0])])
+                    #     if employee_leave_detail_ids:
+                    #         sql = '''
+                    #                 update employee_leave_detail set total_day = total_day+%s where id = %s
+                    #             '''%(c_off_day,employee_leave_detail_ids[0])
+                    #         cr.execute(sql)
+                    #     else:
+                    #         employee_leave_detail_obj.create(cr, uid, {
+                    #                                                        'leave_type_id': leave_type_ids[0],
+                    #                                                        'emp_leave_id': employee_leave_ids[0],
+                    #                                                        'total_day': c_off_day,
+                    #                                                        })
+                    #===========================================================
                     else:
                         employee_leave_detail_obj.create(cr, uid, {
                                                                        #'employee_id': employee_ids[0],
@@ -3711,7 +3696,7 @@ class arul_hr_audit_shift_time(osv.osv):
                     on_duty_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','on_duty'),('from_date','<=',line.work_date),('to_date','>=',line.work_date),('employee_id','=',line.employee_id.id)])
                     leave_detail_ids = self.pool.get('arul.hr.employee.leave.details').search(cr, uid, [('date_from','<=',line.work_date),('date_to','>=',line.work_date),('employee_id','=',line.employee_id.id),('state','=','done')])
             
-                    if not permission_ids and not on_duty_ids and not leave_detail_ids and not spl_date:
+                    if not permission_ids and not on_duty_ids and not leave_detail_ids and not spl_date and not local_date: # HALF A DAY SHIFT FIX
                         res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
                                                 'green_erp_arulmani_hrm', 'alert_permission_form_view')
                         return {
@@ -3753,7 +3738,30 @@ class arul_hr_audit_shift_time(osv.osv):
                                     'type': 'ir.actions.act_window',
                                     'target': 'new',
                                 }
-                    
+                ### C.OFF LOGIC
+                if line.employee_id.employee_category_id.code!='S1':       
+                    if shift_count>1:
+                        c_off_day = shift_count-1
+                    elif flag==1:
+                        c_off_day = shift_count
+                employee_leave_ids = employee_leave_obj.search(cr, uid, [('year','=',line.work_date[:4]),('employee_id','=',line.employee_id.id)])
+                leave_type_ids = leave_type_obj.search(cr, uid, [('code','=','C.Off')])
+                if not leave_type_ids:
+                    raise osv.except_osv(_('Warning!'),_('Can not find Leave Type C.Off. Please Create Leave Type C.Off before'))
+                if employee_leave_ids:
+                    employee_leave_detail_ids = employee_leave_detail_obj.search(cr, uid, [('emp_leave_id','in',employee_leave_ids),('leave_type_id','=',leave_type_ids[0])])
+                    if employee_leave_detail_ids:
+                        sql = '''
+                                    update employee_leave_detail set total_day = total_day+%s where id = %s
+                                '''%(c_off_day,employee_leave_detail_ids[0])
+                        cr.execute(sql)
+                    else:
+                        employee_leave_detail_obj.create(cr, uid, {
+                                                                           'leave_type_id': leave_type_ids[0],
+                                                                           'emp_leave_id': employee_leave_ids[0],
+                                                                           'total_day': c_off_day,
+                                                                           })
+                ###  C.OFF LOGIC  
                 employee_ids = emp_attendence_obj.search(cr, uid, [('employee_id','=',line.employee_id.id)])
                 if employee_ids:                        
                     val2={'punch_in_out_id':employee_ids[0], 
