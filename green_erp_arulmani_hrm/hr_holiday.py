@@ -3543,7 +3543,7 @@ class arul_hr_audit_shift_time(osv.osv):
                     shift_count=k[6]
                     
                 sql = '''
-                    SELECT start_time, end_time,time_total FROM arul_hr_permission_onduty WHERE 
+                    SELECT start_time, end_time,time_total, date, perm_out_date FROM arul_hr_permission_onduty WHERE 
                     non_availability_type_id='permission' 
                         AND TO_CHAR(date,'YYYY-MM-DD') = ('%s') and employee_id =%s and approval='t'
                         '''%(line.work_date,line.employee_id.id)
@@ -3555,6 +3555,8 @@ class arul_hr_audit_shift_time(osv.osv):
                     perm_in=perm[0]
                     perm_out=perm[1]
                     perm_total=perm[2]
+                    perm_in_date=perm[3]
+                    perm_out_date=perm[4]
                     
                     
                         ##end for loop
@@ -3657,6 +3659,20 @@ class arul_hr_audit_shift_time(osv.osv):
                             shifts_out_time = [shift_out,od_out]
                             start_time = max(shifts_in_time)
                             end_time = max(shifts_out_time)
+                    ## Punch In Out is same Date - Permission is another Day
+                if line.punch_in_date==line.punch_out_date and perm_in_date!=perm_out_date:
+                        if line.actual_work_shift_id.code=='G1':                       
+                            if perm_in>0 and perm_in>=8 and perm_out > 0:
+                                shifts_in_time = [shift_in,perm_in]
+                                shifts_out_time = [shift_out,perm_out]
+                                start_time = min(shifts_in_time)
+                                end_time = min(shifts_out_time)
+                            elif od_in>0 and od_in >=8:
+                                shifts_in_time = [shift_in,od_in]
+                                shifts_out_time = [shift_out,od_out]
+                                start_time = min(shifts_in_time)
+                                end_time = min(shifts_out_time)
+                    ##
                 ###
                 recording_hrs = 0     
                 sql = '''
@@ -5418,7 +5434,7 @@ class arul_hr_permission_onduty(osv.osv):
         return True    
     _constraints = [
         (_check_time, _(''), ['start_time', 'end_time']),
-        (_check_date_from_to, _(''), ['from_date', 'to_date']),
+        #(_check_date_from_to, _(''), ['from_date', 'to_date']),
         ]
     
    
