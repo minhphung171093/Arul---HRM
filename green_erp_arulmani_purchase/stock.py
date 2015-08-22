@@ -26,6 +26,7 @@ class stock_picking(osv.osv):
             ('direct','Direct Stock Update'),('move','Move to Consumption'),('need','Need Inspection')
             ], string='Action to be Taken'),
         'tpt_create_grn': fields.boolean('Create GRN'),
+        'gate_out_id':fields.many2one('tpt.gate.out.pass','Gate Out Pass'),
                 }
     
     def write(self, cr, uid, ids, vals, context=None):
@@ -294,6 +295,7 @@ class stock_picking_in(osv.osv):
             ('direct','Direct Stock Update'),('move','Move to Consumption'),('need','Need Inspection')
             ], string='Action to be Taken'),
         'tpt_create_grn': fields.boolean('Create GRN'),
+        'gate_out_id':fields.many2one('tpt.gate.out.pass','Gate Out Pass No'),
                 }
     
     def create(self, cr, uid, vals, context=None):
