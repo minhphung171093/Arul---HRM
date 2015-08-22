@@ -73,6 +73,7 @@
 		            	<button name="update_SULPHURIC_ACID_2_for_june" string="update SULPHURIC ACID qty 6.00 for June " type="object" class="oe_highlight"/>
 						<button name="update_all_grn_posting" string="update all GRN posting" type="object" class="oe_highlight"/>
 		            	<button name="create_all_grn_posting" string="Create all GRN posting" type="object" class="oe_highlight"/>
+		            	<button name="update_gate_out_pass_grn" string="Update Gate out pass GRN" type="object" class="oe_highlight"/>
 		            	<!-- 
 		            	<button name="update_all_do_posting" string="TPT-update all DO posting" type="object" class="oe_highlight"/>
 		            	<button name="create_all_do_posting" string="TPT-Create all DO posting" type="object" class="oe_highlight"/>

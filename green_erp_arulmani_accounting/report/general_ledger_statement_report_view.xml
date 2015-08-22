@@ -99,9 +99,11 @@
 		                			<field name="order_no"/>
 		                			<field name="narration"/>
 		                			<field name="emp"/>
+		                			<field name="cost_center"/>
+		                			<field name="employee_id"/>
 		                			<field name="debit"/>
 		                			<field name="credit"/>
-		                			<!-- <field name="cost_center"/>  -->
+		                			
 		                			
 		                		</tree>
 		                	</field>
