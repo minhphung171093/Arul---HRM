@@ -81,6 +81,7 @@
 				</xpath>
 				<xpath expr="//field[@name='date']" position="after">
 				<field name="header_text"/>
+				<field name="gate_out_id" readonly="1"/>
 				</xpath>
 				<xpath expr="//field[@name='backorder_id']" position="attributes">
 					<attribute name='invisible'>1</attribute>

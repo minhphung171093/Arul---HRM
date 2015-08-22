@@ -3405,6 +3405,18 @@ class tpt_update_stock_move_report(osv.osv):
                     }
             new_jour_id = account_move_obj.create(cr,uid,value)
         return self.write(cr, uid, ids, {'result':'Create all GRN posting Remaining'}) 
+    
+    def update_gate_out_pass_grn(self, cr, uid, ids, context=None):
+        move_obj = self.pool.get('stock.move')
+        move_ids = move_obj.search(cr, uid, [('gate_out_id','!=',False)])
+        for move in move_obj.browse(cr, uid, move_ids): 
+            sql = '''
+                update stock_picking set gate_out_id = %s, invoice_state = '2binvoiced' where id in (select picking_id from stock_move where id = %s)
+                        and id not in (select grn_no from account_invoice where grn_no is not null)
+            '''%(move.gate_out_id.id,move.id)
+            cr.execute(sql)
+        return self.write(cr, uid, ids, {'result':'update Gate out pass GRN Done'}) 
+    
 tpt_update_stock_move_report()
 
 
