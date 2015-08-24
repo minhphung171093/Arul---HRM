@@ -52,9 +52,9 @@ class tpt_stock_on_hand_line(osv.osv_memory):
         'ins_qty': fields.float('Ins.Qty',digits=(16,3)),
         'bl_qty': fields.float('Bl.Qty',digits=(16,3)),
         'mrp': fields.char('MRP'),
-        'min_stock': fields.float('Min Stock',digits=(16,3)),
-        'max_stock': fields.float('Max Stock',digits=(16,3)),
-        're_stock': fields.float('Re-Order Stock',digits=(16,3)),
+        'min_stock': fields.float('MRP Min Stock',digits=(16,3)),
+        'max_stock': fields.float('MRP Max Stock',digits=(16,3)),
+        're_stock': fields.float('MRP Re-Order Stock',digits=(16,3)),
         'unit_price': fields.float('Unit Price',),
         
         'onhand_qty_blocklist': fields.float('Block List',digits=(16,3)),
