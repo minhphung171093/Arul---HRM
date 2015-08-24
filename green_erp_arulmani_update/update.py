@@ -3417,6 +3417,18 @@ class tpt_update_stock_move_report(osv.osv):
             cr.execute(sql)
         return self.write(cr, uid, ids, {'result':'update Gate out pass GRN Done'}) 
     
+    def update_internal_move_1795(self, cr, uid, ids, context=None):
+        pick_obj = self.pool.get('stock.picking')
+        move_obj = self.pool.get('stock.move')
+        move_ids = move_obj.search(cr, uid, [('picking_id','=',1795)])
+        if move_ids:
+#             pick_obj.action_cancel(cr, uid, [1795], context)
+            move_obj.action_cancel(cr, uid, move_ids, context)
+            move_obj.unlink(cr,uid,move_ids)
+#             pick_obj.unlink(cr,uid,[1795])
+            cr.execute(''' delete from stock_picking where id= 1795 ''')
+        return self.write(cr, uid, ids, {'result':'update internal move 1795 Done'}) 
+    
 tpt_update_stock_move_report()
 
 
