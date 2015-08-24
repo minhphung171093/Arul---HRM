@@ -25,6 +25,7 @@ class stock_picking(osv.osv):
         'action_taken': fields.related('move_lines', 'action_taken', type='selection',selection=[
             ('direct','Direct Stock Update'),('move','Move to Consumption'),('need','Need Inspection')
             ], string='Action to be Taken'),
+        'gate_out_id':fields.many2one('tpt.gate.out.pass','Gate Out Pass'),
                 }
     
                 
@@ -294,6 +295,7 @@ class stock_picking_in(osv.osv):
         'action_taken': fields.related('move_lines', 'action_taken', type='selection',selection=[
             ('direct','Direct Stock Update'),('move','Move to Consumption'),('need','Need Inspection')
             ], string='Action to be Taken'),
+        'gate_out_id':fields.many2one('tpt.gate.out.pass','Gate Out Pass No'),
                 }
 
     def onchange_picking_date(self, cr, uid, ids, date=False, context=None):

@@ -3880,6 +3880,7 @@ class tpt_gate_out_pass(osv.osv):
             'move_lines' : move_lines,
             'document_type': good.grn_id.document_type or False,
             'po_date': good.grn_id.po_date or False,
+            'gate_out_id':good.id,
 #             'state':'assigned',
                    }
             new_picking_id = stock_picking_obj.create(cr,uid,value)
