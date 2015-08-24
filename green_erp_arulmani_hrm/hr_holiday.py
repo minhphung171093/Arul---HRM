@@ -3909,17 +3909,6 @@ class arul_hr_audit_shift_time(osv.osv):
                     val2={'permission_onduty_id':emp_attendence_ids[0], 'approval':1,
                                 }
                     punch_obj.write(cr,uid,[line_id.id],val2) 
-                    if(line_id.non_availability_type_id == 'permission'):
-                        if(line_id.time_total > 8)and(line_id.time_total < 12):
-                            val={'permission_onduty_id':emp_attendence_ids[0],'planned_work_shift_id':line.planned_work_shift_id.id,'actual_work_shift_id':line.actual_work_shift_id.id,'work_date':line_id.date,'in_time':line_id.start_time,'out_time':line_id.end_time,'approval':1}
-                            details_ids=emp_attendence_obj.search(cr, uid, [('employee_id','=',line_id.employee_id.id)])
-                            if details_ids:
-                                val4={'punch_in_out_id':details_ids[0],'employee_id':line_id.employee_id.id,
-                                      'planned_work_shift_id':line.planned_work_shift_id.id,
-                                      'actual_work_shift_id':line.actual_work_shift_id.id,
-                                      'work_date':line_id.date,#TPT CHANGED work_date AS from_date
-                                      'in_time':line_id.start_time,
-                                      'out_time':line_id.end_time,'approval':1}
                 else:
                     detail_vals = {'employee_id':line_id.employee_id.id,
                                        'employee_category_id':line_id.employee_id.employee_category_id and line_id.employee_id.employee_category_id.id or False,
