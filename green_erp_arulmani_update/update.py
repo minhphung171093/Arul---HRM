@@ -3423,6 +3423,7 @@ class tpt_update_stock_move_report(osv.osv):
         move_ids = move_obj.search(cr, uid, [('picking_id','=',1795)])
         if move_ids:
 #             pick_obj.action_cancel(cr, uid, [1795], context)
+            move_obj.action_cancel(cr, uid, move_ids, context)
             move_obj.unlink(cr,uid,move_ids)
 #             pick_obj.unlink(cr,uid,[1795])
             cr.execute(''' delete from stock_picking where id= 1795 ''')
