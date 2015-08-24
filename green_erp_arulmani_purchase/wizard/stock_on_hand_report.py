@@ -56,6 +56,14 @@ class tpt_stock_on_hand_line(osv.osv):
         'max_stock': fields.float('Max Stock',digits=(16,3)),
         're_stock': fields.float('Re-Order Stock',digits=(16,3)),
         'unit_price': fields.float('Unit Price',),
+        
+        'onhand_qty_blocklist': fields.float('Block List',digits=(16,3)),
+        'onhand_qty_pl_other': fields.float('Production Line / Other',digits=(16,3)),   
+        'onhand_qty_qa_ins': fields.float('Quality Inspection',digits=(16,3)),
+        'onhand_qty_st_fsh': fields.float('Store / FSH',digits=(16,3)),
+        'onhand_qty_st_rm': fields.float('Store / Raw Material',digits=(16,3)),
+        'onhand_qty_st_spare': fields.float('Store / Spare',digits=(16,3)),
+        'onhand_qty_st_tio2': fields.float('Store / TIO2',digits=(16,3)),
     }
 
 tpt_stock_on_hand_line()
@@ -65,7 +73,7 @@ class stock_on_hand_report(osv.osv_memory):
     _columns = {    
                 'categ_id': fields.many2one('product.category', 'Material Category'),
                 'product_id': fields.many2one('product.product', 'Material Name'),
-                'location_id':fields.many2one('stock.location', 'Warehouse Location', required=True),
+                'location_id':fields.many2one('stock.location', 'Warehouse Location',),
                 'is_mrp': fields.boolean('Is MRP Type'),
                 }
     def onchange_categ_id(self, cr, uid, ids,categ_id=False, context=None):
@@ -222,17 +230,38 @@ class stock_on_hand_report(osv.osv_memory):
         def get_ton_sl(o,line):
             loc = o.location_id.id
             location = self.pool.get('stock.location').browse(cr,uid,loc)
+            #===================================================================
+            # sql = '''
+            #                 select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton_sl from 
+            #                     (select st.product_qty
+            #                         from stock_move st 
+            #                         where st.state='done' and st.product_id = %s and st.location_dest_id = %s
+            #                     union all
+            #                     select st.product_qty*-1
+            #                         from stock_move st 
+            #                         where st.state='done' and st.product_id = %s and st.location_id = %s
+            #                     )foo
+            #             '''%(line.id,location.id,line.id,location.id)
+            #===================================================================
             sql = '''
-                            select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton_sl from 
-                                (select st.product_qty
-                                    from stock_move st 
-                                    where st.state='done' and st.product_id = %s and st.location_dest_id = %s
-                                union all
-                                select st.product_qty*-1
-                                    from stock_move st 
-                                    where st.state='done' and st.product_id = %s and st.location_id = %s
-                                )foo
-                        '''%(line.id,location.id,line.id,location.id)
+                SELECT sum(onhand_qty) ton_sl
+            From
+            (SELECT
+                   
+                case when loc1.usage != 'internal' and loc2.usage = 'internal'
+                then stm.primary_qty
+                else
+                case when loc1.usage = 'internal' and loc2.usage != 'internal'
+                then -1*stm.primary_qty 
+                else 0.0 end
+                end onhand_qty
+                        
+            FROM stock_move stm 
+                join stock_location loc1 on stm.location_id=loc1.id
+                join stock_location loc2 on stm.location_dest_id=loc2.id
+            WHERE stm.state= 'done' and product_id=%s)foo
+                   '''% (line.id)
+            
             cr.execute(sql)
             ton_sl = cr.dictfetchone()
             return ton_sl and ton_sl['ton_sl'] or 0
@@ -327,7 +356,128 @@ class stock_on_hand_report(osv.osv_memory):
             
             return unit_price or 0
             
+        ###
         
+        def get_blocklist(o,line):
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Block List','Block','Blocked List','Blocked']),('usage','=','view')])
+            locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Block List','Block','Blocked List','Blocked']),('location_id','=',parent_ids[0])])
+            sql = '''
+                            select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton from 
+                                (select st.product_qty
+                                    from stock_move st 
+                                    where st.state='done' and st.product_id = %s and st.location_dest_id = %s
+                                union all
+                                select st.product_qty*-1
+                                    from stock_move st 
+                                    where st.state='done' and st.product_id = %s and st.location_id = %s
+                                )foo
+                        '''%(line.id,locat_ids[0],line.id,locat_ids[0])
+            cr.execute(sql)
+            ton = cr.dictfetchone()
+            return ton and ton['ton'] or 0 
+        def get_pl_other(o,line):
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Other'),('usage','=','view')])
+            locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Other')])
+            sql = '''
+                            select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton from 
+                                (select st.product_qty
+                                    from stock_move st 
+                                    where st.state='done' and st.product_id = %s and st.location_dest_id = %s
+                                union all
+                                select st.product_qty*-1
+                                    from stock_move st 
+                                    where st.state='done' and st.product_id = %s and st.location_id = %s
+                                )foo
+                        '''%(line.id,locat_ids[0],line.id,locat_ids[0])
+            cr.execute(sql)
+            ton = cr.dictfetchone()
+            return ton and ton['ton'] or 0
+        def get_qa_ins(o,line):
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Quality Inspection'),('usage','=','view')])
+            locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Inspection']),('location_id','=',parent_ids[0])])
+            sql = '''
+                            select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton from 
+                                (select st.product_qty
+                                    from stock_move st 
+                                    where st.state='done' and st.product_id = %s and st.location_dest_id = %s
+                                union all
+                                select st.product_qty*-1
+                                    from stock_move st 
+                                    where st.state='done' and st.product_id = %s and st.location_id = %s
+                                )foo
+                        '''%(line.id,locat_ids[0],line.id,locat_ids[0])
+            cr.execute(sql)
+            ton = cr.dictfetchone()
+            return ton and ton['ton'] or 0
+        def get_st_fsh(o,line):
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','FSH'),('location_id','=',parent_ids[0])])
+            sql = '''
+                            select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton from 
+                                (select st.product_qty
+                                    from stock_move st 
+                                    where st.state='done' and st.product_id = %s and st.location_dest_id = %s
+                                union all
+                                select st.product_qty*-1
+                                    from stock_move st 
+                                    where st.state='done' and st.product_id = %s and st.location_id = %s
+                                )foo
+                        '''%(line.id,locat_ids[0],line.id,locat_ids[0])
+            cr.execute(sql)
+            ton = cr.dictfetchone()
+            return ton and ton['ton'] or 0 
+        def get_st_rm(o,line):
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Raw Material'),('location_id','=',parent_ids[0])])
+            sql = '''
+                            select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton from 
+                                (select st.product_qty
+                                    from stock_move st 
+                                    where st.state='done' and st.product_id = %s and st.location_dest_id = %s
+                                union all
+                                select st.product_qty*-1
+                                    from stock_move st 
+                                    where st.state='done' and st.product_id = %s and st.location_id = %s
+                                )foo
+                        '''%(line.id,locat_ids[0],line.id,locat_ids[0])
+            cr.execute(sql)
+            ton = cr.dictfetchone()
+            return ton and ton['ton'] or 0 
+        def get_st_spare(o,line):
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Spares'),('location_id','=',parent_ids[0])])
+            sql = '''
+                            select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton from 
+                                (select st.product_qty
+                                    from stock_move st 
+                                    where st.state='done' and st.product_id = %s and st.location_dest_id = %s
+                                union all
+                                select st.product_qty*-1
+                                    from stock_move st 
+                                    where st.state='done' and st.product_id = %s and st.location_id = %s
+                                )foo
+                        '''%(line.id,locat_ids[0],line.id,locat_ids[0])
+            cr.execute(sql)
+            ton = cr.dictfetchone()
+            return ton and ton['ton'] or 0 
+        def get_st_tio2(o,line):
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','TIO2'),('location_id','=',parent_ids[0])])
+            sql = '''
+                            select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton from 
+                                (select st.product_qty
+                                    from stock_move st 
+                                    where st.state='done' and st.product_id = %s and st.location_dest_id = %s
+                                union all
+                                select st.product_qty*-1
+                                    from stock_move st 
+                                    where st.state='done' and st.product_id = %s and st.location_id = %s
+                                )foo
+                        '''%(line.id,locat_ids[0],line.id,locat_ids[0])
+            cr.execute(sql)
+            ton = cr.dictfetchone()
+            return ton and ton['ton'] or 0 
+        ###
         cr.execute('delete from tpt_stock_on_hand')
         stock_obj = self.pool.get('tpt.stock.on.hand')
         stock = self.browse(cr, uid, ids[0])
@@ -346,6 +496,15 @@ class stock_on_hand_report(osv.osv_memory):
                 'max_stock': get_max_stock(stock,line),
                 're_stock': get_re_stock(stock,line),
                 'unit_price': get_unit_price(stock,line),
+                
+                'onhand_qty_blocklist': get_blocklist(stock,line),
+                'onhand_qty_pl_other': get_pl_other(stock,line),
+                'onhand_qty_qa_ins': get_qa_ins(stock,line),
+                'onhand_qty_st_fsh': get_st_fsh(stock,line),
+                'onhand_qty_st_rm': get_st_rm(stock,line),
+                'onhand_qty_st_spare': get_st_spare(stock,line),
+                'onhand_qty_st_tio2': get_st_tio2(stock,line),
+                
                 
             }))
         vals = {
