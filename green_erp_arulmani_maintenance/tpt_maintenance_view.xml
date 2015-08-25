@@ -73,8 +73,8 @@
 							<field name="code"/>
 							<field name="equip_cate_id" options="{'create': false, 'create_edit': false}"/>
 							<field name="cost_id" options="{'create': false, 'create_edit': false}"/>
-							<field name="department_id" options="{'create': false, 'create_edit': false}"/>
-							<field name="section_id" options="{'create': false, 'create_edit': false}"/>
+							<field name="department_id" on_change="onchange_department_id(department_id)" options="{'create': false, 'create_edit': false}"/>
+							<field name="section_id" domain="[('department_id','=',department_id)]" options="{'create': false, 'create_edit': false}"/>
 							<field name="start_date"/>
 							<field name="end_date"/>
 						</group>
@@ -139,7 +139,7 @@
 	            		<group col='4' colspan='2'>
 							<field name="name"/>
 							<field name="code"/>
-							<field name="equip_id" options="{'create': false, 'create_edit': false}"/>
+							<field name="equip_id" on_change="onchange_equip_id(equip_id)" options="{'create': false, 'create_edit': false}"/>
 							<field name="cost_id" options="{'create': false, 'create_edit': false}"/>
 							<field name="department_id" options="{'create': false, 'create_edit': false}"/>
 							<field name="section_id" options="{'create': false, 'create_edit': false}"/>
@@ -215,10 +215,10 @@
 	            		<group col='4' colspan='2'>
 							<field name="name"/>
 							<field name="notif_type" on_change="onchange_notif_type(notif_type, context)"/>
-							<field name="department_id" on_change="onchange_department_id(department_id)" options="{'create': false, 'create_edit': false}"/>
+							<field name="department_id" options="{'create': false, 'create_edit': false}"/>
 							<field name="section_id" domain="[('department_id','=',department_id)]" options="{'create': false, 'create_edit': false}"/>
-							<field name="equip_id" options="{'create': false, 'create_edit': false}"/>
-							<field name="machine_id" options="{'create': false, 'create_edit': false}"/>
+							<field name="equip_id" on_change="onchange_equip_id(equip_id)" options="{'create': false, 'create_edit': false}"/>
+							<field name="machine_id" domain="[('equip_id','=',equip_id)]" options="{'create': false, 'create_edit': false}"/>
 							<field name="issue_date"/>
 							<field name="issue_type"/>
 							<field name="priority"/>
@@ -426,7 +426,8 @@
 							<field name="notification_id" on_change="onchange_notification_id(notification_id)" domain="[('state','=','close')]" options="{'create': false, 'create_edit': false}"/>
 							<field name="create_date"/>
 							<field name="notif_type"/> 
-							<field name="department_id" on_change="onchange_department_id(department_id,section_id,employee_id)" options="{'create': false, 'create_edit': false}"/>
+							<!--<field name="department_id" on_change="onchange_department_id(department_id,section_id,employee_id)" options="{'create': false, 'create_edit': false}"/>-->
+							<field name="department_id" options="{'create': false, 'create_edit': false}"/>
 							<field name="section_id" domain="[('department_id','=',department_id)]" options="{'create': false, 'create_edit': false}"/>
 							<field name="employee_id" domain="[('department_id','=',department_id)]" options="{'create': false, 'create_edit': false}"/>
 							<field name="priority"/>

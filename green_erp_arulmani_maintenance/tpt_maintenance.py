@@ -93,6 +93,11 @@ class tpt_equipment(osv.osv):
             code = vals['code'].replace(" ","")
             vals['code'] = code
         return super(tpt_equipment, self).write(cr, uid,ids, vals, context)
+    
+    def onchange_department_id(self, cr, uid, ids,department_id=False):
+        res = {'value':{'section_id':False}}
+        if department_id:
+            return res
 tpt_equipment()
 
 class tpt_men_power(osv.osv):
@@ -123,12 +128,14 @@ class tpt_machineries(osv.osv):
         'code':fields.char('Machineries Code', size = 1024,required=True),
         'equip_id': fields.many2one('tpt.equipment', 'Equipment',required=True),
         'cost_id': fields.many2one('tpt.cost.center', 'Cost Center',required=True),
-        'department_id': fields.many2one('hr.department', 'Department',required=True),
-        'section_id': fields.many2one('arul.hr.section', 'Section',required=True),
+#         'department_id': fields.many2one('hr.department', 'Department',required=True),
+#         'section_id': fields.many2one('arul.hr.section', 'Section',required=True),
         'start_date': fields.date('Installation Start Date',required=True),
         'end_date': fields.date('Installation End Date',required=True),
         'men_power_line':fields.one2many('tpt.men.power','equipment_id','Men Power Consumption'),
         'document_attach_line':fields.one2many('tpt.document.attach','equipment_id','Document Attachments'),
+        'department_id': fields.related('equip_id','department_id',type='many2one', relation='hr.department',string='Department', readonly = True),
+        'section_id': fields.related('equip_id','section_id',type='many2one', relation='arul.hr.section',string='Section', readonly = True),
     }
     def _check_name_code(self, cr, uid, ids, context=None):
         for equip in self.browse(cr, uid, ids, context=context):
@@ -159,6 +166,20 @@ class tpt_machineries(osv.osv):
             code = vals['code'].replace(" ","")
             vals['code'] = code
         return super(tpt_machineries, self).write(cr, uid,ids, vals, context)
+    
+    def onchange_equip_id(self, cr, uid, ids,equip_id=False):
+        res = {'value':{
+                        'department_id':False,
+                        'section_id':False,
+                      }
+               }
+        if equip_id:
+            no_id = self.pool.get('tpt.equipment').browse(cr,uid,equip_id)
+            res['value'].update({
+                        'department_id':no_id.department_id and no_id.department_id.id or False,
+                        'section_id':no_id.section_id and no_id.section_id.id or False,
+            })
+        return res
 tpt_machineries()
 
 class tpt_notification(osv.osv):
@@ -168,8 +189,10 @@ class tpt_notification(osv.osv):
         'notif_type':fields.selection([
                                 ('prevent','Preventive Maintenance'),
                                 ('break','Breakdown')],'Notification Type',required = True,readonly = True,states={'draft': [('readonly', False)]}),
-        'department_id': fields.many2one('hr.department', 'Department',required=True,readonly = True,states={'draft': [('readonly', False)]}),
-        'section_id': fields.many2one('arul.hr.section', 'Section',required=True,readonly = True,states={'draft': [('readonly', False)]}),
+#         'department_id': fields.many2one('hr.department', 'Department',required=True,readonly = True,states={'draft': [('readonly', False)]}),
+#         'section_id': fields.many2one('arul.hr.section', 'Section',required=True,readonly = True,states={'draft': [('readonly', False)]}),
+        'department_id': fields.related('equip_id','department_id',type='many2one', relation='hr.department',string='Department', readonly = True),
+        'section_id': fields.related('equip_id','section_id',type='many2one', relation='arul.hr.section',string='Section', readonly = True),
         'equip_id': fields.many2one('tpt.equipment', 'Equipment',required=True,readonly = True,states={'draft': [('readonly', False)]}),
         'machine_id': fields.many2one('tpt.machineries', 'Machineries',required=True,readonly = True,states={'draft': [('readonly', False)]}),
         'issue_date': fields.date('Issue Dated on',required=True,readonly = True,states={'draft': [('readonly', False)]}),
@@ -220,6 +243,18 @@ class tpt_notification(osv.osv):
         if department_id:
             return res
     
+    def onchange_equip_id(self, cr, uid, ids,equip_id=False):
+        res = {'value':{'machine_id':False,
+                        'department_id':False,
+                        'section_id':False,}}
+        if equip_id:
+            no_id = self.pool.get('tpt.equipment').browse(cr,uid,equip_id)
+            res['value'].update({
+                        'department_id':no_id.department_id and no_id.department_id.id or False,
+                        'section_id':no_id.section_id and no_id.section_id.id or False,
+            })
+            return res
+        
     def bt_generate(self, cr, uid, ids, context=None):
         return self.write(cr, uid, ids,{'state':'waiting'})
     
@@ -250,12 +285,17 @@ class tpt_maintenance_oder(osv.osv):
         'notif_type':fields.selection([
                                 ('prevent','Preventive Maintenance'),
                                 ('break','Breakdown')],'Notification Type',required = True,states={'close': [('readonly', True)]}),
-        'department_id': fields.many2one('hr.department', 'Department',required=True,states={'close': [('readonly', True)]}),
-        'section_id': fields.many2one('arul.hr.section', 'Section',required=True,states={'close': [('readonly', True)]}),
+#         'department_id': fields.many2one('hr.department', 'Department',required=True,states={'close': [('readonly', True)]}),
+#         'section_id': fields.many2one('arul.hr.section', 'Section',required=True,states={'close': [('readonly', True)]}),
+        'department_id': fields.related('notification_id','department_id',type='many2one', relation='hr.department',string='Department', readonly = True),
+        'section_id': fields.related('notification_id','section_id',type='many2one', relation='arul.hr.section',string='Section', readonly = True),
+        'equip_id': fields.related('notification_id','equip_id',type='many2one', relation='tpt.equipment',string='Equipment', readonly = True),
+        'machine_id': fields.related('notification_id','machine_id',type='many2one', relation='tpt.machineries',string='Machineries', readonly = True),
+        
         'employee_id': fields.many2one('hr.employee', 'Assigned to',required=True,states={'close': [('readonly', True)]},ondelete='restrict'),
         'priority':fields.selection([('high', 'High'),('medium', 'Medium'),('low', 'Low')],'Priority',states={'close': [('readonly', True)]}),
-        'equip_id': fields.many2one('tpt.equipment', 'Equipment',required=True,states={'close': [('readonly', True)]}),
-        'machine_id': fields.many2one('tpt.machineries', 'Machineries',required=True,states={'close': [('readonly', True)]}),
+#         'equip_id': fields.many2one('tpt.equipment', 'Equipment',required=True,states={'close': [('readonly', True)]}),
+#         'machine_id': fields.many2one('tpt.machineries', 'Machineries',required=True,states={'close': [('readonly', True)]}),
         'start_date': fields.date('Work Start Date',required=True,states={'close': [('readonly', True)]}),
         'completion_date': fields.date('Target Date of Completion',required=True,states={'close': [('readonly', True)]}),
         'create_uid':fields.many2one('res.users','Raised By', readonly = True),
@@ -289,6 +329,7 @@ class tpt_maintenance_oder(osv.osv):
                         'issue_type':False,
                         'priority':False,
                         'notif_type':False,
+                        'employee_id':False,
                       }
                }
         if notification_id:
