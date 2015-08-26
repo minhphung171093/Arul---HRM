@@ -3493,8 +3493,8 @@ class account_voucher(osv.osv):
 #/phuoc
         else:
             if voucher.type in ('purchase', 'payment'):
-                #credit = voucher.paid_amount_in_company_currency #TPT-Commented By BalamuruganPurushothaman ON 18/08/2015- TO TAKE REALIZATION RATE AS EXCHANGE RATE
-                credit = voucher.tpt_amount #TPT-Added By BalamuruganPurushothaman ON 18/08/2015- TO TAKE REALIZATION RATE AS EXCHANGE RATE
+                credit = voucher.paid_amount_in_company_currency #TPT-Commented By BalamuruganPurushothaman ON 18/08/2015- TO TAKE REALIZATION RATE AS EXCHANGE RATE
+                #credit = voucher.tpt_amount #TPT-Added By BalamuruganPurushothaman ON 18/08/2015- TO TAKE REALIZATION RATE AS EXCHANGE RATE
                 if voucher.type == 'payment':
                     if voucher.journal_id.type == 'cash':
                         sql = '''
@@ -3517,8 +3517,8 @@ class account_voucher(osv.osv):
                 else:
                     account_id = voucher.account_id.id
             elif voucher.type in ('sale', 'receipt'):
-                #debit = voucher.paid_amount_in_company_currency #TPT-Commented By BalamuruganPurushothaman ON 18/08/2015- TO TAKE REALIZATION RATE AS EXCHANGE RATE
-                debit = voucher.tpt_amount #TPT-Added By BalamuruganPurushothaman ON 18/08/2015- TO TAKE REALIZATION RATE AS EXCHANGE RATE
+                debit = voucher.paid_amount_in_company_currency #TPT-Commented By BalamuruganPurushothaman ON 18/08/2015- TO TAKE REALIZATION RATE AS EXCHANGE RATE
+                #debit = voucher.tpt_amount #TPT-Added By BalamuruganPurushothaman ON 18/08/2015- TO TAKE REALIZATION RATE AS EXCHANGE RATE
                 if voucher.type == 'receipt':
                     if voucher.journal_id.type == 'cash':
                         sql = '''

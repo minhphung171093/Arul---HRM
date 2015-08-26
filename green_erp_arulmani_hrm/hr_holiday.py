@@ -3662,7 +3662,7 @@ class arul_hr_audit_shift_time(osv.osv):
                             start_time = max(shifts_in_time)
                             end_time = max(shifts_out_time)
                     ## Punch In Out is same Date - Permission is another Day
-                if line.punch_in_date==line.punch_out_date and perm_in_date!=perm_out_date:
+                if line.punch_in_date==line.punch_out_date and perm_out_date and perm_in_date!=perm_out_date:
                         if line.actual_work_shift_id.code=='G1':                       
                             if perm_in>0 and perm_in>=8 and perm_out > 0:
                                 shifts_in_time = [shift_in,perm_in]
