@@ -8,6 +8,7 @@
                 <form string="Qualification Attachments" create="false" version="7.0">
                    <sheet>
                    		<group>
+                   		<field name="employee_id"/>
                         	<field name="name"/>
                         </group>
                         <group>
@@ -40,6 +41,7 @@
             <field name="model">hr.qualification.attachment</field>
             <field name="arch" type="xml">
                 <search string="Attachments">
+                	<field name="employee_id"/>
                     <field name="name" filter_domain="['|', ('name','ilike',self), ('datas_fname','ilike',self)]" string="Attachment"/>
                 </search>
             </field>
