@@ -3714,7 +3714,7 @@ class arul_hr_audit_shift_time(osv.osv):
                     on_duty_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','on_duty'),('from_date','<=',line.work_date),('to_date','>=',line.work_date),('employee_id','=',line.employee_id.id)])
                     leave_detail_ids = self.pool.get('arul.hr.employee.leave.details').search(cr, uid, [('date_from','<=',line.work_date),('date_to','>=',line.work_date),('employee_id','=',line.employee_id.id),('state','=','done')])
             
-                    if not permission_ids and not on_duty_ids and not leave_detail_ids and not spl_date and not local_date: # HALF A DAY SHIFT FIX
+                    if not permission_ids and not on_duty_ids and not leave_detail_ids and not spl_date and not local_date and not same_work_date: # HALF A DAY SHIFT FIX
                         res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
                                                 'green_erp_arulmani_hrm', 'alert_permission_form_view')
                         return {
@@ -8890,8 +8890,11 @@ class shift_change(osv.osv):
             #today = fields.date.today()
             now = datetime.datetime.now()
             current_day = now.day          
-            if current_day-3 > date_from: # Shift Change Request is Relaxed for 3 days Tolerance
-                raise osv.except_osv(_('Warning!'),_('System could not allow Back Dated Shift Change Request')) 
+            #Commented as per User Request
+            #===================================================================
+            # if current_day-3 > date_from: # Shift Change Request is Relaxed for 3 days Tolerance
+            #     raise osv.except_osv(_('Warning!'),_('System could not allow Back Dated Shift Change Request')) 
+            #===================================================================
         return super(shift_change, self).create(cr, uid, vals, context)
     #TPT END
     def submit(self, cr, uid, ids, context=None):
@@ -10249,3 +10252,15 @@ class tpt_coff_register(osv.osv):
               } 
 
 tpt_coff_register()
+
+class tpt_hr_attendance(osv.osv):
+    _name='tpt.hr.attendance'
+
+    _columns={                                    
+              'employee_id': fields.many2one('hr.employee','Employee ID'),      
+              'work_date': fields.date('Work Date'),
+              'punch_type': fields.char('Punch Type'), 
+                 
+              } 
+
+tpt_hr_attendance()

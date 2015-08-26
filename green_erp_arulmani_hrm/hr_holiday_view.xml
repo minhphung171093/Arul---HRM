@@ -1855,5 +1855,62 @@
             parent="menu_hr_leave_management" sequence="36"
             /> 
         <!-- End -->
+        <!-- New Time Machine Attendance-->   
+        <record id="view_tpt_hr_attendance_tree_veiw" model="ir.ui.view">
+			<field name="name">tpt.hr.attendance.tree</field>
+			<field name="model">tpt.hr.attendance</field>
+			<field name="arch" type="xml">
+				<tree string="Attendance">	
+					<field name="employee_id" />
+					<field name="work_date" />
+					<field name="punch_type" />
+				</tree>
+			</field>
+		</record>
+		<record id="view_tpt_hr_attendace_search_vew" model="ir.ui.view">
+        	<field name="name">tpt.hr.attendance.search</field>
+            <field name="model">tpt.hr.attendance</field>
+            <field name="arch" type="xml">
+                <search string="Attendance">
+                	<field name="employee_id"/>
+					<field name="work_date"/>	
+					<field name="punch_type"/>				
+					<group expand="0" string="Group By...">
+						<filter string="Employee" icon="terp-personal" domain="[]" context="{'group_by':'employee_id'}"/>   
+                        <filter string="Work Date" name="group_work_date" icon="terp-personal" domain="[]" context="{'group_by':'work_date'}"/>   
+                        <filter string="Punch Type" name="group_punch_type" icon="terp-personal" domain="[]" context="{'group_by':'punch_type'}"/>                
+                    </group> 
+                </search>
+            </field>
+        </record>
+		<record id="view_tpt_hr_attendace_form_veiw" model="ir.ui.view">
+            <field name="name">tpt.hr.attendance.form</field>
+            <field name="model">tpt.hr.attendance</field>
+            <field name="arch" type="xml">
+	            <form string="Attendance" version="7.0">   
+	            	<sheet>
+						<group col='4' colspan='2'>
+							<field name="employee_id" />
+							<field name="work_date" />					
+							<field name="punch_type" />
+							</group>
+		         	</sheet>
+		         </form>
+			</field>
+		</record>
+          
+		<record id="action_tpt_hr_attendance_form" model="ir.actions.act_window">
+            <field name="name">Time Machine Entries</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.hr.attendance</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_tpt_hr_attendance_tree_veiw"/>
+            </record>
+        <menuitem action="action_tpt_hr_attendance_form"
+            id="menu_action_tpt_hr_attendance_form"
+            parent="menu_hr_leave_management" sequence="36"
+            /> 
+        <!-- End -->
 	</data>
 </openerp>
