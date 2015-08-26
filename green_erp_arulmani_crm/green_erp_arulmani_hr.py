@@ -168,8 +168,7 @@ class hr_employee(osv.osv):
                                              ('married', 'Married'), 
                                              ('widower', 'Widower'),
                                              ('widow', 'Widow'),
-                                              ('divorced', 'Divorced')
-                                              
+                                             ('divorced', 'Divorced')
                                               ], 'Marital Status'),
                 
                 }

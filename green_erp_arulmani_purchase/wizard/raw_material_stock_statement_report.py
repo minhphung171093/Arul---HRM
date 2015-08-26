@@ -1197,7 +1197,8 @@ class tpt_raw_stock_statement(osv.osv_memory):
             cr.execute(sql)
             product_qty_chuaro = cr.dictfetchone()['product_qty_chuaro']
             return product_qty_chuaro
-       
+
+        ## START       
         statement_obj = self.pool.get('tpt.raw.material.stock.statement')
         cr.execute('delete from tpt_raw_material_stock_statement')
         statement = self.browse(cr, uid, ids[0])
