@@ -73,8 +73,8 @@
 							<field name="code"/>
 							<field name="equip_cate_id" options="{'create': false, 'create_edit': false}"/>
 							<field name="cost_id" options="{'create': false, 'create_edit': false}"/>
-							<field name="department_id" options="{'create': false, 'create_edit': false}"/>
-							<field name="section_id" options="{'create': false, 'create_edit': false}"/>
+							<field name="department_id" on_change="onchange_department_id(department_id)" options="{'create': false, 'create_edit': false}"/>
+							<field name="section_id" domain="[('department_id','=',department_id)]" options="{'create': false, 'create_edit': false}"/>
 							<field name="start_date"/>
 							<field name="end_date"/>
 						</group>
@@ -139,7 +139,7 @@
 	            		<group col='4' colspan='2'>
 							<field name="name"/>
 							<field name="code"/>
-							<field name="equip_id" options="{'create': false, 'create_edit': false}"/>
+							<field name="equip_id" on_change="onchange_equip_id(equip_id)" options="{'create': false, 'create_edit': false}"/>
 							<field name="cost_id" options="{'create': false, 'create_edit': false}"/>
 							<field name="department_id" options="{'create': false, 'create_edit': false}"/>
 							<field name="section_id" options="{'create': false, 'create_edit': false}"/>
@@ -215,10 +215,10 @@
 	            		<group col='4' colspan='2'>
 							<field name="name"/>
 							<field name="notif_type" on_change="onchange_notif_type(notif_type, context)"/>
-							<field name="department_id" on_change="onchange_department_id(department_id)" options="{'create': false, 'create_edit': false}"/>
+							<field name="department_id" options="{'create': false, 'create_edit': false}"/>
 							<field name="section_id" domain="[('department_id','=',department_id)]" options="{'create': false, 'create_edit': false}"/>
-							<field name="equip_id" options="{'create': false, 'create_edit': false}"/>
-							<field name="machine_id" options="{'create': false, 'create_edit': false}"/>
+							<field name="equip_id" on_change="onchange_equip_id(equip_id)" options="{'create': false, 'create_edit': false}"/>
+							<field name="machine_id" domain="[('equip_id','=',equip_id)]" options="{'create': false, 'create_edit': false}"/>
 							<field name="issue_date"/>
 							<field name="issue_type"/>
 							<field name="priority"/>
@@ -408,7 +408,54 @@
 			</field>
 	  </record>
 	  
-	  <record id="view_tpt_maintenance_oder_form" model="ir.ui.view">
+	  <record id="view_tpt_material_request_form_for_mainten" model="ir.ui.view">
+            <field name="name">tpt.material.request.form.for.mainten</field>
+            <field name="model">tpt.material.request</field>
+            <field name="arch" type="xml">
+	            <form string="Material Request" version="7.0">   
+	             <header>
+	            		<button name="bt_approve" states='draft' string="Confirm" type="object" class="oe_highlight" />
+	            		<button name="bt_load_norm" attrs="{'invisible': ['|',('request_type', '!=', 'production'), ('state', '=', 'done')]}" string="Load Lines from Norms" type="object" class="oe_highlight" />
+	                    <field name="state" widget="statusbar" statusbar_visible="draft,done,partially,closed" statusbar_colors='{"draft":"blue"}'/>
+	            </header>    
+	            	<sheet>
+		                <group col="4" colspan="2" >    
+							<field name="name"/>
+							<field name="date_request" on_change="onchange_date_expect(date_request)" />
+							<field name="request_type" on_change="onchange_request_type(request_type)"/>
+							<field name="department_id" required='1' options="{'create': false, 'create_edit': false}" />
+							<field name="section_id" required='1' domain="[('department_id','=',department_id)]" options="{'create': false, 'create_edit': false}" />
+							<field name="requisitioner" options="{'create': false, 'create_edit': false}" domain="[('department_id','=',department_id)]"  />
+							<field name="create_uid" options="{'create': false, 'create_edit': false}"  />
+							<field name="date_expec"/>
+							<field name="project_id" options="{'create': false, 'create_edit': false}"/>
+							<field name="project_section_id" domain="[('project_id','=',project_id)]" options="{'create': false, 'create_edit': false}"/>
+							<field name="cost_center_id" required='1' options="{'create': false, 'create_edit': false}" />
+							<field name="maintenance_id"/>
+							<field name="mrs_type"/>
+						</group>
+						<notebook>
+							<page string = "Materials">
+								<field name="material_request_line" nolabel='1' context="{'default_request_type':request_type}">
+									<tree editable='bottom'>
+										<field name="product_id" domain="['|',('default_code','in',['FERROUS SULPHATE','FSH','M0501010002']),('categ_id.cate_name','in',['raw','spares'])]" on_change="onchange_product_id(product_id)" options="{'create': false, 'create_edit': false}"/>
+										<field name="dec_material"/>
+										<field name="product_uom_qty" />
+										<field name="uom_po_id" edit='false' options="{'create': false, 'create_edit': false}"/>
+										<field name="issue_qty" />
+										<field name="price_unit" />
+										<field name="total_value" />
+										<field name="request_type" invisible='1'/>
+									</tree>
+								</field>
+							</page>
+						</notebook>
+		         	</sheet>
+		         </form>
+			</field>
+		</record>
+		
+	  	<record id="view_tpt_maintenance_oder_form" model="ir.ui.view">
             <field name="name">tpt.maintenance.oder.form</field>
             <field name="model">tpt.maintenance.oder</field>
             <field name="arch" type="xml">
@@ -426,7 +473,8 @@
 							<field name="notification_id" on_change="onchange_notification_id(notification_id)" domain="[('state','=','close')]" options="{'create': false, 'create_edit': false}"/>
 							<field name="create_date"/>
 							<field name="notif_type"/> 
-							<field name="department_id" on_change="onchange_department_id(department_id,section_id,employee_id)" options="{'create': false, 'create_edit': false}"/>
+							<!--<field name="department_id" on_change="onchange_department_id(department_id,section_id,employee_id)" options="{'create': false, 'create_edit': false}"/>-->
+							<field name="department_id" options="{'create': false, 'create_edit': false}"/>
 							<field name="section_id" domain="[('department_id','=',department_id)]" options="{'create': false, 'create_edit': false}"/>
 							<field name="employee_id" domain="[('department_id','=',department_id)]" options="{'create': false, 'create_edit': false}"/>
 							<field name="priority"/>
@@ -444,8 +492,14 @@
 							<page string = "Staff Service Entry">
 								<field name="service_entry_line" nolabel='1' context="{'default_section_id':section_id,'default_department_id':department_id,'default_equip_id':equip_id,'default_machine_id':machine_id}"/>
 							</page> 
+							<page string = "Material Consumption">
+								<field name="consumption_line" nolabel='1' domain="[('mrs_type','=','normal')]" context="{'default_section_id':section_id,'default_department_id':department_id,'default_mrs_type':'normal','form_view_ref':'green_erp_arulmani_maintenance.view_tpt_material_request_form_for_mainten'}"/>
+							</page>
 							<page string = "Third Party Service Entry">
 								<field name="third_service_line" nolabel='1' context="{'default_section_id':section_id,'default_department_id':department_id,'default_equip_id':equip_id,'default_machine_id':machine_id}"/>
+							</page>
+							<page string = "Chargeable MRS">
+								<field name="chargeable_line" nolabel='1' domain="[('mrs_type','=','chargeable')]" context="{'default_section_id':section_id,'default_department_id':department_id,'default_mrs_type':'chargeable','form_view_ref':'green_erp_arulmani_maintenance.view_tpt_material_request_form_for_mainten'}"/>
 							</page>
 						</notebook>
 		         	</sheet>
@@ -466,5 +520,18 @@
             id="menu_action_tpt_maintenance_oder_form_view"
             parent="menu_tpt_maint_mg" sequence="4"/>
 		
+		<!--<record id="inherit_view_tpt_material_request_form" model="ir.ui.view">
+            <field name="name">inh.tpt.material.request.form</field>
+            <field name="model">tpt.material.request</field>
+            <field name="inherit_id" ref="green_erp_arulmani_purchase.view_tpt_material_request_form"/>
+            <field name="arch" type="xml">
+            	<xpath expr="//field[@name='cost_center_id']" position="after">
+					<field name="maintenance_id"/>
+					<field name="mrs_type"/>
+				</xpath> 
+            </field>
+        </record>-->
+            
+            
     </data>
 </openerp>

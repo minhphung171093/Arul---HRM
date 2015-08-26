@@ -93,6 +93,11 @@ class tpt_equipment(osv.osv):
             code = vals['code'].replace(" ","")
             vals['code'] = code
         return super(tpt_equipment, self).write(cr, uid,ids, vals, context)
+    
+    def onchange_department_id(self, cr, uid, ids,department_id=False):
+        res = {'value':{'section_id':False}}
+        if department_id:
+            return res
 tpt_equipment()
 
 class tpt_men_power(osv.osv):
@@ -123,12 +128,14 @@ class tpt_machineries(osv.osv):
         'code':fields.char('Machineries Code', size = 1024,required=True),
         'equip_id': fields.many2one('tpt.equipment', 'Equipment',required=True),
         'cost_id': fields.many2one('tpt.cost.center', 'Cost Center',required=True),
-        'department_id': fields.many2one('hr.department', 'Department',required=True),
-        'section_id': fields.many2one('arul.hr.section', 'Section',required=True),
+#         'department_id': fields.many2one('hr.department', 'Department',required=True),
+#         'section_id': fields.many2one('arul.hr.section', 'Section',required=True),
         'start_date': fields.date('Installation Start Date',required=True),
         'end_date': fields.date('Installation End Date',required=True),
         'men_power_line':fields.one2many('tpt.men.power','equipment_id','Men Power Consumption'),
         'document_attach_line':fields.one2many('tpt.document.attach','equipment_id','Document Attachments'),
+        'department_id': fields.related('equip_id','department_id',type='many2one', relation='hr.department',string='Department', readonly = True),
+        'section_id': fields.related('equip_id','section_id',type='many2one', relation='arul.hr.section',string='Section', readonly = True),
     }
     def _check_name_code(self, cr, uid, ids, context=None):
         for equip in self.browse(cr, uid, ids, context=context):
@@ -159,6 +166,20 @@ class tpt_machineries(osv.osv):
             code = vals['code'].replace(" ","")
             vals['code'] = code
         return super(tpt_machineries, self).write(cr, uid,ids, vals, context)
+    
+    def onchange_equip_id(self, cr, uid, ids,equip_id=False):
+        res = {'value':{
+                        'department_id':False,
+                        'section_id':False,
+                      }
+               }
+        if equip_id:
+            no_id = self.pool.get('tpt.equipment').browse(cr,uid,equip_id)
+            res['value'].update({
+                        'department_id':no_id.department_id and no_id.department_id.id or False,
+                        'section_id':no_id.section_id and no_id.section_id.id or False,
+            })
+        return res
 tpt_machineries()
 
 class tpt_notification(osv.osv):
@@ -168,8 +189,10 @@ class tpt_notification(osv.osv):
         'notif_type':fields.selection([
                                 ('prevent','Preventive Maintenance'),
                                 ('break','Breakdown')],'Notification Type',required = True,readonly = True,states={'draft': [('readonly', False)]}),
-        'department_id': fields.many2one('hr.department', 'Department',required=True,readonly = True,states={'draft': [('readonly', False)]}),
-        'section_id': fields.many2one('arul.hr.section', 'Section',required=True,readonly = True,states={'draft': [('readonly', False)]}),
+#         'department_id': fields.many2one('hr.department', 'Department',required=True,readonly = True,states={'draft': [('readonly', False)]}),
+#         'section_id': fields.many2one('arul.hr.section', 'Section',required=True,readonly = True,states={'draft': [('readonly', False)]}),
+        'department_id': fields.related('equip_id','department_id',type='many2one', relation='hr.department',string='Department', readonly = True),
+        'section_id': fields.related('equip_id','section_id',type='many2one', relation='arul.hr.section',string='Section', readonly = True),
         'equip_id': fields.many2one('tpt.equipment', 'Equipment',required=True,readonly = True,states={'draft': [('readonly', False)]}),
         'machine_id': fields.many2one('tpt.machineries', 'Machineries',required=True,readonly = True,states={'draft': [('readonly', False)]}),
         'issue_date': fields.date('Issue Dated on',required=True,readonly = True,states={'draft': [('readonly', False)]}),
@@ -220,6 +243,18 @@ class tpt_notification(osv.osv):
         if department_id:
             return res
     
+    def onchange_equip_id(self, cr, uid, ids,equip_id=False):
+        res = {'value':{'machine_id':False,
+                        'department_id':False,
+                        'section_id':False,}}
+        if equip_id:
+            no_id = self.pool.get('tpt.equipment').browse(cr,uid,equip_id)
+            res['value'].update({
+                        'department_id':no_id.department_id and no_id.department_id.id or False,
+                        'section_id':no_id.section_id and no_id.section_id.id or False,
+            })
+            return res
+        
     def bt_generate(self, cr, uid, ids, context=None):
         return self.write(cr, uid, ids,{'state':'waiting'})
     
@@ -250,12 +285,17 @@ class tpt_maintenance_oder(osv.osv):
         'notif_type':fields.selection([
                                 ('prevent','Preventive Maintenance'),
                                 ('break','Breakdown')],'Notification Type',required = True,states={'close': [('readonly', True)]}),
-        'department_id': fields.many2one('hr.department', 'Department',required=True,states={'close': [('readonly', True)]}),
-        'section_id': fields.many2one('arul.hr.section', 'Section',required=True,states={'close': [('readonly', True)]}),
+#         'department_id': fields.many2one('hr.department', 'Department',required=True,states={'close': [('readonly', True)]}),
+#         'section_id': fields.many2one('arul.hr.section', 'Section',required=True,states={'close': [('readonly', True)]}),
+        'department_id': fields.related('notification_id','department_id',type='many2one', relation='hr.department',string='Department', readonly = True),
+        'section_id': fields.related('notification_id','section_id',type='many2one', relation='arul.hr.section',string='Section', readonly = True),
+        'equip_id': fields.related('notification_id','equip_id',type='many2one', relation='tpt.equipment',string='Equipment', readonly = True),
+        'machine_id': fields.related('notification_id','machine_id',type='many2one', relation='tpt.machineries',string='Machineries', readonly = True),
+        
         'employee_id': fields.many2one('hr.employee', 'Assigned to',required=True,states={'close': [('readonly', True)]},ondelete='restrict'),
         'priority':fields.selection([('high', 'High'),('medium', 'Medium'),('low', 'Low')],'Priority',states={'close': [('readonly', True)]}),
-        'equip_id': fields.many2one('tpt.equipment', 'Equipment',required=True,states={'close': [('readonly', True)]}),
-        'machine_id': fields.many2one('tpt.machineries', 'Machineries',required=True,states={'close': [('readonly', True)]}),
+#         'equip_id': fields.many2one('tpt.equipment', 'Equipment',required=True,states={'close': [('readonly', True)]}),
+#         'machine_id': fields.many2one('tpt.machineries', 'Machineries',required=True,states={'close': [('readonly', True)]}),
         'start_date': fields.date('Work Start Date',required=True,states={'close': [('readonly', True)]}),
         'completion_date': fields.date('Target Date of Completion',required=True,states={'close': [('readonly', True)]}),
         'create_uid':fields.many2one('res.users','Raised By', readonly = True),
@@ -263,6 +303,8 @@ class tpt_maintenance_oder(osv.osv):
         'issue_finding':fields.text('Issue Finding',states={'close': [('readonly', True)]}),
         'service_entry_line':fields.one2many('tpt.service.entry','maintenance_id','Staff Service Entry',states={'close': [('readonly', True)]}),
         'third_service_line':fields.one2many('tpt.third.service.entry','maintenance_id','Third Party Service Entry',states={'close': [('readonly', True)]}),
+        'consumption_line':fields.one2many('tpt.material.request','maintenance_id','Material Consumption',states={'close': [('readonly', True)]}),
+        'chargeable_line':fields.one2many('tpt.material.request','chargeable_maintenance_id','Chargeable MRS',states={'close': [('readonly', True)]}),
         'state':fields.selection([('draft', 'Drafted'),
                                   ('in', 'In Progress'),
                                   ('completed', 'Completed'),
@@ -289,6 +331,7 @@ class tpt_maintenance_oder(osv.osv):
                         'issue_type':False,
                         'priority':False,
                         'notif_type':False,
+                        'employee_id':False,
                       }
                }
         if notification_id:
@@ -558,5 +601,257 @@ class tpt_third_service_entry_line(osv.osv):
         return res
 tpt_third_service_entry_line()
 
+class tpt_material_request(osv.osv):
+    _inherit = "tpt.material.request"
+    _columns = {
+                'maintenance_id':fields.many2one('tpt.maintenance.oder','Maintenance Order No',readonly = True),
+                'chargeable_maintenance_id':fields.many2one('tpt.maintenance.oder','Maintenance Order No',readonly = True),
+                'mrs_type':fields.selection([('normal','Normal MRS'),('chargeable', 'Chargeable MRS')],'MRS Type'),
+                }
+    
+#     def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
+#         if context is None:
+#             context = {}
+#         if context.get('search_ma_request'): 
+#             request_id = context.get('request_id')
+#             request_master_full_ids = []
+#             sql = '''
+#                 select request_line_id,case when sum(product_isu_qty)!=0 then sum(product_isu_qty) else 0 end product_isu_qty
+#                     from tpt_material_issue_line group by request_line_id
+#             '''
+#             cr.execute(sql)
+#             request_line_ids = []
+#             temp = 0
+#             lines = cr.fetchall()
+#             for request_line in lines:
+#                 if request_line[0]:
+#                     sql = '''
+#                         select case when sum(product_uom_qty)!=0 then sum(product_uom_qty) else 0 end product_uom_qty
+#                             from tpt_material_request_line where id = %s
+#                     '''%(request_line[0])
+#                     cr.execute(sql)
+#                     product_uom_qty = cr.fetchone()[0]
+#                     if product_uom_qty <= request_line[1]:
+#                         temp+=1
+#             if temp==len(lines):
+#                 request_line_ids.append(request_line[0])
+#             if request_line_ids:
+#                 cr.execute('''
+#                     select material_request_id from tpt_material_request_line where id in %s
+#                 ''',(tuple(request_line_ids),))
+#                 request_master_full_ids = [r[0] for r in cr.fetchall()]
+#             request_master_ids = self.pool.get('tpt.material.request').search(cr, uid, [('id','not in',request_master_full_ids)])
+#             args += [('id','in',request_master_ids)]
+#         if context.get('normal_material'):
+#             sql = '''
+#                 select id from tpt_material_request where mrs_type = 'normal'
+#             '''
+#             cr.execute(sql)
+#             request_ids = [r[0] for r in cr.fetchall()]
+#             args += [('id','in',request_ids)]
+#         return super(tpt_material_request, self).search(cr, uid, args, offset=offset, limit=limit, order=order, context=context, count=count)
+#      
+#     def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
+#        ids = self.search(cr, user, args, context=context, limit=limit)
+#        return self.name_get(cr, user, ids, context=context)
 
+tpt_material_request()
+
+class tpt_material_request_line(osv.osv):
+    _inherit = "tpt.material.request.line"
+    _columns = {
+                'issue_qty': fields.float('Issued Qty',digits=(16,3),readonly=True),  
+                'price_unit': fields.float('Unit Value', readonly=True ),  
+                'total_value': fields.float('Total Value',readonly=True ), 
+                }
+tpt_material_request_line()
+
+class tpt_material_issue(osv.osv):
+    _inherit = "tpt.material.issue"
+    
+    def bt_approve(self, cr, uid, ids, context=None):
+        price = 0.0
+        product_price = 0.0
+        tpt_cost = 0
+        account_move_obj = self.pool.get('account.move')
+        period_obj = self.pool.get('account.period')
+        journal_obj = self.pool.get('account.journal')
+        avg_cost_obj = self.pool.get('tpt.product.avg.cost')
+        journal_line = []
+        dest_id = False
+        move_obj = self.pool.get('stock.move')
+                
+        
+        for line in self.browse(cr, uid, ids):
+            if line.request_type == 'production':
+                dest_id = line.dest_warehouse_id and line.dest_warehouse_id.id or False
+            else:
+                location_ids=self.pool.get('stock.location').search(cr, uid,[('name','=','Scrapped')])
+                if location_ids:
+                    dest_id = location_ids[0]
+            
+            for p in line.material_issue_line:
+                onhand_qty = 0.0
+                location_id = False
+                locat_ids = []
+                parent_ids = []
+                cate_name = p.product_id.categ_id and p.product_id.categ_id.cate_name or False
+                sql = '''
+                    select case when sum(product_isu_qty)!=0 then sum(product_isu_qty) else 0 end product_isu_qty, product_id 
+                    from tpt_material_issue_line where product_id = %s and material_issue_id in (select id from tpt_material_issue where name = %s) group by product_id
+                '''%(p.product_id.id, line.name.id)
+                cr.execute(sql)
+                for sum in cr.dictfetchall():
+                    product_id = self.pool.get('product.product').browse(cr,uid,sum['product_id'])
+                    sql = '''
+                        select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton_sl from 
+                            (select st.product_qty
+                                from stock_move st 
+                                where st.state='done' and st.product_id=%s and st.location_dest_id = %s 
+                            union all
+                            select st.product_qty*-1
+                                from stock_move st 
+                                where st.state='done' and st.product_id=%s and st.location_id = %s
+                            )foo
+                    '''%(sum['product_id'],line.warehouse.id,sum['product_id'],line.warehouse.id)
+                    cr.execute(sql)
+                    ton_sl = cr.dictfetchone()['ton_sl']
+                    if sum['product_isu_qty'] > ton_sl:
+                        raise osv.except_osv(_('Warning!'),_("You are confirm %s but only %s available for this product '%s' " %(sum['product_isu_qty'], ton_sl,product_id.default_code)))
+                if cate_name == 'raw':
+                    parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+                    locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw material','Raw Material']),('location_id','=',parent_ids[0])])
+                    location_id = locat_ids[0]
+                if cate_name == 'spares':
+                    parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+                    if parent_ids:
+                        locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Spare','Spares']),('location_id','=',parent_ids[0])])
+                    if locat_ids:
+                        location_id = locat_ids[0]
+                if location_id and cate_name != 'finish':
+                    sql = '''
+                          select case when sum(st.product_qty)!=0 then sum(st.product_qty) else 0 end ton_sl,case when sum(st.price_unit*st.product_qty)!=0 then sum(st.price_unit*st.product_qty) else 0 end total_cost
+                            from stock_move st
+                            where st.state='done' and st.location_dest_id=%s and st.product_id=%s and to_char(date, 'YYYY-MM-DD')<'%s'
+                                and st.location_dest_id != st.location_id
+                                and ( picking_id is not null 
+                                or inspec_id is not null 
+                                or (st.id in (select move_id from stock_inventory_move_rel))
+                        )
+                    '''%(location_id,p.product_id.id,line.date_expec)
+                    cr.execute(sql)
+                    inventory = cr.dictfetchone()
+                    if inventory:
+                        hand_quantity = inventory['ton_sl'] or 0
+                        total_cost = inventory['total_cost'] or 0
+    #                     avg_cost = hand_quantity and total_cost/hand_quantity or 0
+                    sql = '''
+                       select case when sum(st.product_qty)!=0 then sum(st.product_qty) else 0 end ton_sl, case when sum(st.price_unit*st.product_qty)!=0 then sum(st.price_unit*st.product_qty) else 0 end total_cost
+                            from stock_move st
+                            where st.state='done' and st.location_id=%s and st.product_id=%s and to_char(date, 'YYYY-MM-DD')<'%s'
+                            and issue_id is not null
+                            
+                    '''%(location_id,p.product_id.id,line.date_expec)
+                    cr.execute(sql)
+                    for issue in cr.dictfetchall():
+                        hand_quantity_issue = issue['ton_sl'] or 0
+                        total_cost_issue = issue['total_cost'] or 0
+                    opening_stock_value = (total_cost-total_cost_issue)/(hand_quantity-hand_quantity_issue)
+                    
+                rs = {
+                      'name': '/',
+                      'product_id':p.product_id and p.product_id.id or False,
+                      'product_qty':p.product_isu_qty or False,
+                      'product_uom':p.uom_po_id and p.uom_po_id.id or False,
+                      'location_id':line.warehouse and line.warehouse.id or False,
+                      'location_dest_id':dest_id,
+                      'issue_id':line.id,
+                      'date':line.date_expec or False,
+                      'price_unit': opening_stock_value or 0,
+                      }
+                
+                move_id = move_obj.create(cr,uid,rs)
+                # boi vi field price unit tu dong lam tron 2 so thap phan nen phai dung sql de update lai
+                sql = '''
+                        update stock_move set price_unit = %s where id = %s
+                '''%(opening_stock_value, move_id)
+                cr.execute(sql)
+                move_obj.action_done(cr, uid, [move_id])
+                cr.execute(''' update stock_move set date=%s,date_expected=%s where id=%s ''',(line.date_expec,line.date_expec,move_id,))
+            date_period = line.date_expec
+            sql = '''
+                select id from account_journal
+            '''
+            cr.execute(sql)
+            journal_ids = [r[0] for r in cr.fetchall()]
+            sql = '''
+                select id from account_period where '%s' between date_start and date_stop and special is False
+            '''%(date_period)
+            cr.execute(sql)
+            period_ids = [r[0] for r in cr.fetchall()]
+             
+            if not period_ids:
+                raise osv.except_osv(_('Warning!'),_('Period is not null, please configure it in Period master !'))
+                
+            for mater in line.material_issue_line:
+#                 price += mater.product_id.standard_price * mater.product_isu_qty
+                acc_expense = mater.product_id and mater.product_id.property_account_expense and mater.product_id.property_account_expense.id or False
+                acc_asset = mater.product_id and mater.product_id.product_asset_acc_id and mater.product_id.product_asset_acc_id.id or False
+                if not acc_expense or not acc_asset:
+                    raise osv.except_osv(_('Warning!'),_('Please configure Expense Account and Product Asset Account for all materials!'))
+                avg_cost_ids = avg_cost_obj.search(cr, uid, [('product_id','=',mater.product_id.id),('warehouse_id','=',line.warehouse.id)])
+                unit = 1
+                if avg_cost_ids:
+                    avg_cost_id = avg_cost_obj.browse(cr, uid, avg_cost_ids[0])
+                    unit = avg_cost_id.avg_cost or 0
+                sql = '''
+                    select price_unit from stock_move where product_id=%s and product_qty=%s and issue_id=%s
+                '''%(mater.product_id.id,mater.product_isu_qty,mater.material_issue_id.id)
+                cr.execute(sql)
+                move_price = cr.fetchone()
+                if move_price and move_price[0] and move_price[0]>0:
+                    unit=move_price[0]
+                if not unit or unit<0:
+                    unit=1
+                price += unit * mater.product_isu_qty
+                product_price = unit * mater.product_isu_qty
+                ### update request
+                cr.execute(''' update tpt_material_request_line set issue_qty = %s, price_unit = %s, total_value = %s where id = %s ''',(mater.product_isu_qty,unit,product_price,mater.request_line_id.id,))
+                ###
+                journal_line.append((0,0,{
+                                        'name':line.doc_no + ' - ' + mater.product_id.name, 
+                                        'account_id': acc_asset,
+                                        'debit':0,
+                                        'credit':product_price,
+                                        'product_id':mater.product_id.id,
+                                         
+                                       }))
+                journal_line.append((0,0,{
+                            'name':line.doc_no + ' - ' + mater.product_id.name, 
+                            'account_id': acc_expense,
+                            'credit':0,
+                            'debit':product_price,
+                            'product_id':mater.product_id.id,
+                        }))
+            value={
+                'journal_id':journal_ids[0],
+                'period_id':period_ids[0] ,
+                'ref': line.doc_no,
+                'date': date_period,
+                'material_issue_id': line.id,
+                'line_id': journal_line,
+                'doc_type':'good'
+                }
+            new_jour_id = account_move_obj.create(cr,uid,value)
+            auto_ids = self.pool.get('tpt.auto.posting').search(cr, uid, [])
+            if auto_ids:
+                auto_id = self.pool.get('tpt.auto.posting').browse(cr, uid, auto_ids[0], context=context)
+                if auto_id.material_issue:
+                    try:
+                        account_move_obj.button_validate(cr,uid, [new_jour_id], context)
+                    except:
+                        pass
+            self.write(cr, uid, ids,{'state':'done'})
+        return True
+tpt_material_issue()
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
