@@ -4213,10 +4213,13 @@ class tpt_request_for_quotation(osv.osv):
                                                                                           'rfq_qty':qty,})
             quotation_ids = self.pool.get('tpt.purchase.quotation').search(cr,uid,[('rfq_no_id','=',line.id)])
             chart_ids = self.pool.get('tpt.comparison.chart').search(cr,uid,[('name','=',line.id)])
-            if quotation_ids:
-                raise osv.except_osv(_('Warning!'),_('RFQ was existed at the Quotation.!'))
-            if chart_ids:
-                raise osv.except_osv(_('Warning!'),_('RFQ was existed at the Comparison Chart.!'))
+            #TPT COMMENTED BY BalamuruganPurushothaman - TO AVOID THIS WARNING WHEN CANCEL THE RFQ
+            #===================================================================
+            # if quotation_ids:
+            #     raise osv.except_osv(_('Warning!'),_('RFQ was existed at the Quotation.!'))
+            # if chart_ids:
+            #     raise osv.except_osv(_('Warning!'),_('RFQ was existed at the Comparison Chart.!'))
+            #===================================================================
             rfq_line_obj = self.pool.get('tpt.rfq.line')        
             sql = '''
                 select id from tpt_rfq_line where rfq_id = %s
