@@ -296,7 +296,7 @@
 								<field name="service_entry_line" nolabel='1'>
 									<tree editable='top'>
 										<field name="line_no"/>
-										<field name="po_id" domain="[('po_document_type','=','service')]" on_change="onchange_po_id(po_id,po_line_id)" options="{'create': false, 'create_edit': false}"/>
+										<field name="po_id" domain="[('po_document_type','=','service'),('state','=','done')]" on_change="onchange_po_id(po_id,po_line_id)" options="{'create': false, 'create_edit': false}"/>
 										<field name="po_line_id" domain="[('order_id','=',po_id)]" on_change="onchange_po_line_id(po_line_id)" context="{'name_maintance_service_entry':True}" options="{'create': false, 'create_edit': false}"/>
 										<field name="uom_id" options="{'create': false, 'create_edit': false}"/>
 										<field name="product_uom_qty"/>
@@ -354,7 +354,7 @@
 									<tree editable='top'>
 										<field name="create_date"/>
 										<field name="work_taken"/>
-										<field name="po_id" domain="[('po_document_type','=','service')]" on_change="onchange_po_id(po_id,po_line_id)" options="{'create': false, 'create_edit': false}"/>
+										<field name="po_id" domain="[('po_document_type','=','service'),('state','=','done')]" on_change="onchange_po_id(po_id,po_line_id)" options="{'create': false, 'create_edit': false}"/>
 										<field name="po_line_id" domain="[('order_id','=',po_id)]" on_change="onchange_po_line_id(po_line_id)" context="{'name_maintance_service_entry':True}" options="{'create': false, 'create_edit': false}"/>
 										<field name="gl_account" options="{'create': false, 'create_edit': false}"/>
 										<field name="uom_id" options="{'create': false, 'create_edit': false}"/>
