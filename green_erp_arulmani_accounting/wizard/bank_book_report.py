@@ -44,7 +44,7 @@ class tpt_bank_book_line(osv.osv_memory):
     _name = "tpt.bank.book.line"
     _columns = {
         'cb_id': fields.many2one('tpt.bank.book', 'Bank Book', ondelete='cascade'),
-        'voucher_id': fields.char('Voucher No.', size = 1024),
+        'voucher_id': fields.char('Transaction No.', size = 1024),
         'opening_balance': fields.char('', size = 1024),
         'debit': fields.float('Debit (Rs.)'),
         'crebit': fields.float('Credit (Rs.)'),
@@ -210,7 +210,7 @@ class bank_book_report(osv.osv_memory):
                                 where av.type in ('payment') and av.state in ('posted') and av.date between %s and %s 
                                 group by aa.name,aml.account_id,av.name,av.date,aml.ref,av.payee,aml.name,av.cheque_no, av.cheque_date,
                                 av.number,av.narration,av.cheque_number
-                                order by av.date
+                                order by av.date,av.cheque_no,av.cheque_number
                             ''',(account_id.id,date_from, date_to,))
                             return cr.dictfetchall()
                     elif type == 'receipt':
@@ -233,7 +233,7 @@ class bank_book_report(osv.osv_memory):
                                 where av.type in ('receipt') and av.state in ('posted') and av.date between %s and %s  
                                 group by aa.name,aml.account_id,av.name,av.date,aml.ref,av.payee,aml.name,av.cheque_no, av.cheque_date,
                                 av.number,av.narration,av.cheque_number
-                                order by av.date
+                                order by av.date,av.cheque_no,av.cheque_number
                             
                             ''',(account_id.id,date_from, date_to,))
                             return cr.dictfetchall()
@@ -257,7 +257,7 @@ class bank_book_report(osv.osv_memory):
                                 where av.type in ('payment','receipt') and av.state in ('posted') and av.date between %s and %s 
                                 group by aa.name,aml.account_id,av.name,av.date,aml.ref,av.payee,aml.name,av.cheque_no, av.cheque_date,
                                 av.number,av.narration,av.cheque_number
-                                order by av.date
+                                order by av.date,av.cheque_no,av.cheque_number
                             ''',(account_id.id,date_from, date_to,))
                             return cr.dictfetchall()
              
@@ -282,7 +282,7 @@ class bank_book_report(osv.osv_memory):
                                 where av.type in ('payment') and av.state in ('draft','posted') and av.date between %s and %s  
                                 group by aa.name,aml.account_id,av.name,av.date,aml.ref,av.payee,aml.name,av.cheque_no, av.cheque_date,
                                 av.number,av.narration,av.cheque_number
-                                order by av.date
+                                order by av.date,av.cheque_no,av.cheque_number
                             ''',(account_id.id,date_from, date_to,))
                             return cr.dictfetchall()
                     elif type == 'receipt':
@@ -305,7 +305,7 @@ class bank_book_report(osv.osv_memory):
                                 where av.type in ('receipt') and av.state in ('draft','posted') and av.date between %s and %s  
                                 group by aa.name,aml.account_id,av.name,av.date,aml.ref,av.payee,aml.name,av.cheque_no, av.cheque_date,
                                 av.number,av.narration,av.cheque_number
-                                order by av.date
+                                order by av.date,av.cheque_no,av.cheque_number
                             ''',(account_id.id,date_from, date_to,))
                             return cr.dictfetchall()
                     else:
@@ -328,7 +328,7 @@ class bank_book_report(osv.osv_memory):
                                 where av.type in ('receipt','payment') and av.state in ('draft','posted') and av.date between %s and %s  
                                 group by aa.name,aml.account_id,av.name,av.date,aml.ref,av.payee,aml.name,av.cheque_no, av.cheque_date,
                                 av.number,av.narration,av.cheque_number
-                                order by av.date
+                                order by av.date,av.cheque_no,av.cheque_number
                             ''',(account_id.id,date_from, date_to,))
                             return cr.dictfetchall()
         def get_code_account(code_id):

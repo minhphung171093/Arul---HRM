@@ -1090,8 +1090,7 @@ class tds_form_report(osv.osv_memory):
                 'code': sls.code.id or False,      
                 'tpt_tds_line': sls_line,
             }
-        sls_id = sls_obj.create(cr, uid, vals)
-        print 'sls_id :', sls_id        
+        sls_id = sls_obj.create(cr, uid, vals) 
         res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
                                             'green_erp_arulmani_accounting', 'view_tpt_tds_header')
         return {

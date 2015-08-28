@@ -298,7 +298,7 @@ class Parser(report_sxw.rml_parse):
                             where av.type in ('payment') and av.state in ('posted') and av.date between %s and %s 
                             group by aa.name,aml.account_id,av.name,av.date,aml.ref,aml.name,av.payee,av.cheque_no, av.cheque_date,av.number,
                             av.narration,av.cheque_number
-                            order by av.date
+                            order by av.date,av.cheque_no,av.cheque_number
                         ''',((account_id),date_from, date_to,))
                         return self.cr.dictfetchall()
                 elif type == 'receipt':
@@ -322,7 +322,7 @@ class Parser(report_sxw.rml_parse):
                             where av.type in ('receipt') and av.state in ('posted') and av.date between %s and %s 
                             group by aa.name,aml.account_id,av.name,av.date,aml.ref,aml.name,av.payee,av.cheque_no, av.cheque_date,av.number,
                             av.narration,av.cheque_number
-                            order by av.date
+                            order by av.date,av.cheque_no,av.cheque_number
                         
                         ''',((account_id),date_from, date_to,))
                         return self.cr.dictfetchall()
@@ -347,7 +347,7 @@ class Parser(report_sxw.rml_parse):
                             where av.type in ('receipt','payment') and av.state in ('posted') and av.date between %s and %s 
                             group by aa.name,aml.account_id,av.name,av.date,aml.ref,aml.name,av.payee,av.cheque_no, av.cheque_date,
                             av.number,av.narration,av.cheque_number
-                            order by av.date
+                            order by av.date,av.cheque_no,av.cheque_number
                         ''',((account_id),date_from, date_to,))
                         return self.cr.dictfetchall()
         else: # MAJOR IF-ELSE IS POSTED
@@ -372,7 +372,7 @@ class Parser(report_sxw.rml_parse):
                             where av.type in ('payment') and av.state in ('draft','posted') and av.date between %s and %s 
                             group by aa.name,aml.account_id,av.name,av.date,aml.ref,aml.name,av.payee,av.cheque_no,
                             av.cheque_date,av.narration,av.number,av.cheque_number
-                            order by av.date
+                            order by av.date,av.cheque_no,av.cheque_number
                         ''',((account_id),date_from, date_to,))
                         return self.cr.dictfetchall()
                 elif type == 'receipt':
@@ -396,7 +396,7 @@ class Parser(report_sxw.rml_parse):
                             where av.type in ('receipt') and av.state in ('draft','posted') and av.date between %s and %s 
                             group by aa.name,aml.account_id,av.name,av.date,aml.ref,aml.name,av.payee,av.cheque_no, av.cheque_date,av.number,
                             av.narration,av.cheque_number
-                            order by av.date
+                            order by av.date,av.cheque_no,av.cheque_number
                         ''',((account_id),date_from, date_to,))
                         return self.cr.dictfetchall()
                 else:
@@ -420,7 +420,7 @@ class Parser(report_sxw.rml_parse):
                             where av.type in ('receipt','payment') and av.state in ('draft','posted') and av.date between %s and %s 
                             group by aa.name,aml.account_id,av.name,av.date,aml.ref,aml.name,av.payee,av.cheque_no, av.cheque_date,
                             av.number,av.narration,av.cheque_number
-                            order by av.date
+                            order by av.date,av.cheque_no,av.cheque_number
                         ''',((account_id),date_from, date_to,))
                         return self.cr.dictfetchall()
             

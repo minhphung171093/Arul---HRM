@@ -2195,14 +2195,19 @@
 		                <field name="categ_id" invisible="1"/>
 		                <field name="type" invisible="1"/>
 		                <field name="variants" groups="product.group_product_variant"/>
-		                <field name="onhand_qty"/>
-		                <field name="uom_id" string="Unit of Measure" groups="product.group_uom"/>
 		                <field name="qty_available" invisible="1"/>		                
 		                <field name="virtual_available" invisible="1"/>
-		                <field name="lst_price"/>
-		                <field name="price" invisible="not context.get('pricelist',False)"/>
-		                <field name="standard_price" invisible="1"/>
+		                <!-- <field name="lst_price" invisible="0"/>
+		                <field name="price" invisible="not context.get('pricelist',False)"/>  -->
+		                <field name="onhand_qty"/>
+		                <field name="onhand_qty_store"/>
+		                <field name="uom_id" string="UOM" groups="product.group_uom"/>
+		                <field name="bin_location"/>
+		                <field name="standard_price" string="Unit Price" invisible="0"/>
 		                <field name="state" invisible="1"/>
+		                <field name="min_stock" />
+						<field name="re_stock" />
+						<field name="max_stock" />
 		                
 		                <field name="company_id" groups="base.group_multi_company" invisible="1"/>
 		            </tree>

@@ -62,32 +62,31 @@
 	            	    <div class="oe_bold oe_text_center"> 
 	            		<field name="name"/>
 	            		</div>           		
-            			<div class="oe_bold oe_text_left"> 
+            			<div class="oe_bold oe_text_center"> 
             			      			
-            			<field name="date_from" class="oe_text_left oe_inline"/>            			
+            			<field name="date_from" class="oe_text_center oe_inline"/>            			
             			</div>
-            			<div class="oe_bold oe_text_left">
+            			<div class="oe_bold oe_text_center">
             			
-            			<field name="date_to" class="oe_text_left oe_inline"/> 
+            			<field name="date_to" class="oe_text_center oe_inline"/> 
             			</div>
-            			<div class="oe_bold oe_text_left">            			
-            			<field name="po_no" class="oe_text_left oe_inline"/>
+            			<div class="oe_bold oe_text_center">            			
+            			<field name="po_no" class="oe_text_center oe_inline"/>
             			</div>
-            			<div class="oe_bold oe_text_left">            			
-            			<field name="grn_no" class="oe_text_left oe_inline"/>
+            			<div class="oe_bold oe_text_center">            			
+            			<field name="grn_no" class="oe_text_center oe_inline"/>
             			</div>
-            			<div class="oe_bold oe_text_left">            			
-            			<field name="requisitioner" class="oe_text_left oe_inline"/>
+            			<div class="oe_bold oe_text_center">            			
+            			<field name="requisitioner" class="oe_text_center oe_inline"/>
             			</div>
-            			<div class="oe_bold oe_text_left">            			
-            			<field name="project_id" class="oe_text_left oe_inline"/>
+            			<div class="oe_bold oe_text_center">            			
+            			<field name="project_id" class="oe_text_center oe_inline"/>
             			</div>
-            			<div class="oe_bold oe_text_left">            			
-            			<field name="project_section_id" class="oe_text_left oe_inline"/>
+            			<div class="oe_bold oe_text_center">            			
+            			<field name="project_section_id" class="oe_text_center oe_inline"/>
             			</div>
-            			
-            			<div class="oe_bold oe_text_left">            			
-            			<field name="state" class="oe_text_left oe_inline"/>
+            			<div class="oe_bold oe_text_center">            			
+            			<field name="state" class="oe_text_center oe_inline"/>
             			</div>
             			        			
             			
@@ -105,7 +104,6 @@
 		                			<field name="product_id"/>
 		                			<field name="uom"/>
 		                			<field name="qty"/>
-		                			<field name="pend_qty"/>
 		                			<field name="action_taken"/>
 		                			<field name="bin"/>
 		                			<field name="state"/>
