@@ -114,12 +114,13 @@ class Parser(report_sxw.rml_parse):
             return ''
     def get_line_employee_id(self, move_id):
         if move_id:
-            av_obj = self.pool.get('account.voucher')
+            av_obj = self.pool.get('account.voucher') 
             av_obj_ids = av_obj.search(self.cr, self.uid, [('move_id','=',move_id)])
-            av_obj1 = av_obj.browse(self.cr,self.uid,av_obj_ids[0])
-            if av_obj1.employee_id.employee_id:
-                emp = av_obj1.employee_id.employee_id +'-'+av_obj1.employee_id.name
-                return emp
+            if av_obj_ids:
+                av_obj1 = av_obj.browse(self.cr,self.uid,av_obj_ids[0])
+                if av_obj1.employee_id.employee_id:
+                    emp = av_obj1.employee_id.employee_id +'-'+av_obj1.employee_id.name
+                    return emp
         else:
             return ''
         
