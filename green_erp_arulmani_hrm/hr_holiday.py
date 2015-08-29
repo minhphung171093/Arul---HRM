@@ -5818,7 +5818,7 @@ class arul_hr_punch_in_out_time(osv.osv):
                                             ('clerk_err', 'Clerical Error')],'Reason for Change'),
         'reason_details': fields.text('Reason In Details'),
         
-        'work_shift_code': fields.char('Shifts Worked', size=256),             
+        #'work_shift_code': fields.char('Shifts Worked', size=256),             
     }
     
     _defaults = {
