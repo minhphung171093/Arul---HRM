@@ -2701,6 +2701,7 @@
                      <xpath expr="//field[@name='email']" position="after">
                         <field name="is_tds_applicable" attrs="{'invisible': [('supplier','=',False)]}"/>
                         <field name="vendor_type" attrs="{'invisible': [('supplier','=',False)]}"/>
+                        <field name="section" attrs="{'invisible': [('supplier','=',False)]}"/>
                         <field name="tds_id" attrs="{'invisible': [('is_tds_applicable','=',False)]}" options="{'create': false, 'create_edit': false}"/>
                     </xpath>
                 </data>
