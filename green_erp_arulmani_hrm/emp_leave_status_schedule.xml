@@ -1,25 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <openerp>
     <data>
-        <record model="ir.cron" id="emp_time_entry_update">
-	        <field name="name">Employee Move Time Details to Attendance</field>
-	        <field name="interval_number">4</field>
-	        <field name="interval_type">days</field>
-	        <field name="numbercall">-1</field>
-	        <field name="doall" eval="False"/>
-	        <field name="model" eval="'tpt.hr.attendance'"/>
-	        <field name="function" eval="'get_employee_time_entry'"/>
-	        <field name="args" eval="'()'" />
-        </record>      
-        
-        <record model="ir.cron" id="emp_time_data">
-	        <field name="name">Employee Move Time Details to Attendance</field>
+        <record model="ir.cron" id="emp_leave_sta_daily_update">
+	        <field name="name">Employee Leave Status Update</field>
 	        <field name="interval_number">1</field>
 	        <field name="interval_type">days</field>
 	        <field name="numbercall">-1</field>
 	        <field name="doall" eval="False"/>
-	        <field name="model" eval="'tpt.hr.attendance'"/>
-	        <field name="function" eval="'get_employee_time_entry'"/>
+	        <field name="model" eval="'employee.leave'"/>
+	        <field name="function" eval="'get_employee_leave_daily'"/>
+	        <field name="args" eval="'()'" />
+        </record>      
+        
+        <record model="ir.cron" id="permission_emp_leave_">
+	        <field name="name">Permission Employee Leave</field>
+	        <field name="interval_number">1</field>
+	        <field name="interval_type">days</field>
+	        <field name="numbercall">-1</field>
+	        <field name="doall" eval="False"/>
+	        <field name="model" eval="'employee.leave'"/>
+	        <field name="function" eval="'get_permisson_for_employee_leave'"/>
 	        <field name="args" eval="'()'" />
         </record> 
     </data>

@@ -167,9 +167,9 @@ class tpt_import_supplier(osv.osv):
                         'service_reg_no': sh.cell(row, 14).value or False,
 
                         },context)   
-                        print "Vendor Code: %s"%(str(int(sh.cell(row, 0).value)).replace(' ',''))
+                        #print "Vendor Code: %s"%(str(int(sh.cell(row, 0).value)).replace(' ',''))
                         #print "Name: %s"%str(sh.cell(row, 2).value).replace('"','')
-                        print "TDS: %s"%tds_id
+                        #print "TDS: %s"%tds_id
                     else:                     
                         dem += 1
                         partner_obj.create(cr, uid, {
