@@ -441,11 +441,11 @@ class general_ledger_statement(osv.osv_memory):
             #         cus_ids = [r[0] for r in cr.fetchall()]
             # return acount_move_line_obj.browse(cr,uid,cus_ids)
             #===================================================================
-        def get_voucher(cb,move_id):
-            gl_account = cb.account_id.id
-            acc_obj = self.pool.get('account.account')
+        
+        # TPT-Y, fix-3127 on 31Aug2015
+        def get_voucher(cb,move_id):            
             sql = '''
-                select cost_center_id from account_voucher where move_id =%s
+                select cost_center_id from account_invoice where move_id =%s
             '''%(move_id)
             cr.execute(sql)
             p = cr.fetchone()
@@ -453,6 +453,23 @@ class general_ledger_statement(osv.osv_memory):
             if p and p[0]:
                 cost_center = self.pool.get('tpt.cost.center').browse(cr,uid, p[0]).name
             return cost_center
+        
+        
+        #=======================================================================
+        # def get_voucher(cb,move_id):
+        #     gl_account = cb.account_id.id
+        #     acc_obj = self.pool.get('account.account')
+        #     sql = '''
+        #         select cost_center_id from account_voucher where move_id =%s
+        #     '''%(move_id)
+        #     cr.execute(sql)
+        #     p = cr.fetchone()
+        #     cost_center = ''
+        #     if p and p[0]:
+        #         cost_center = self.pool.get('tpt.cost.center').browse(cr,uid, p[0]).name
+        #     return cost_center
+        #=======================================================================
+        
         def get_total(cash,type):
             sum = 0.0
             for line in cash:

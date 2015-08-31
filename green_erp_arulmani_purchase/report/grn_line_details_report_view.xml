@@ -97,7 +97,8 @@
 		                			<field name="grn_date"/>                			
 		                			<field name="supplier"/>
 		                			<field name="doc_type"/>
-		                			<field name="po_no"/>		                			
+		                			<field name="po_no"/>
+		                			<field name="req"/>                			
 		                			<field name="po_indent_id"/>
 		                			<field name="description"/>
 		                			<field name="item_text"/>

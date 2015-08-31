@@ -125,35 +125,80 @@ class Parser(report_sxw.rml_parse):
             return 'VV Raw Material PR'
        # return res or ''
     
-    def get_pending_qty(self,count,indent_id,prod_id,ind_qty):                   
-        if count > 0: 
-            sql = '''
+    #===========================================================================
+    # def get_pending_qty(self,count,indent_id,prod_id,ind_qty):                   
+    #     if count > 0: 
+    #         sql = '''
+    #                     select pol.product_qty as rfq_qty
+    #                     from purchase_order_line pol
+    #                     join purchase_order po on (po.id = pol.order_id)
+    #                     join tpt_purchase_indent pi on (pi.id = pol.po_indent_no)
+    #                     where pol.po_indent_no = %s and pol.product_id = %s
+    #                 '''%(indent_id,prod_id)
+    #         self.cr.execute(sql)
+    #         for move in self.cr.dictfetchall():                      
+    #             rfq_qty = move['rfq_qty']
+    #             pen_qty = ind_qty - rfq_qty
+    #             return pen_qty or 0.000
+    #     else:
+    #         return ind_qty or 0.000
+    #             
+    # def get_issue_qty_count(self,indent_id,prod_id):
+    #         sql = '''
+    #                     select count(*)
+    #                     from purchase_order_line pol
+    #                     join purchase_order po on (po.id = pol.order_id)
+    #                     join tpt_purchase_indent pi on (pi.id = pol.po_indent_no)
+    #                     where pol.po_indent_no = %s and pol.product_id = %s
+    #             '''%(indent_id,prod_id)
+    #         self.cr.execute(sql)
+    #         for move in self.cr.dictfetchall():
+    #             count = move['count']
+    #             return count or 0.000
+    #===========================================================================
+    
+    def get_pending_qty(self,count,indent_id,prod_id,ind_qty,item_text,desc):                   
+            if count > 0:                
+                sql = '''
                         select pol.product_qty as rfq_qty
                         from purchase_order_line pol
                         join purchase_order po on (po.id = pol.order_id)
                         join tpt_purchase_indent pi on (pi.id = pol.po_indent_no)
                         where pol.po_indent_no = %s and pol.product_id = %s
-                    '''%(indent_id,prod_id)
-            self.cr.execute(sql)
-            for move in self.cr.dictfetchall():                      
-                rfq_qty = move['rfq_qty']
-                pen_qty = ind_qty - rfq_qty
-                return pen_qty or 0.000
-        else:
-            return ind_qty or 0.000
+                      '''%(indent_id,prod_id)
+                if item_text:
+                    str = " and pol.item_text = '%s'"%(item_text)
+                    sql = sql+str
+                if desc:
+                    str = " and pol.description = '%s'"%(desc)
+                    sql = sql+str
+                self.cr.execute(sql)
+                for move in self.cr.dictfetchall():                      
+                        rfq_qty = move['rfq_qty']
+                        pen_qty = ind_qty - rfq_qty
+                        return pen_qty or 0.000
+            else:
+                return ind_qty or 0.000
                 
-    def get_issue_qty_count(self,indent_id,prod_id):
-            sql = '''
+    def get_issue_qty_count(self,indent_id,prod_id,item_text,desc):                
+                
+                sql = '''
                         select count(*)
                         from purchase_order_line pol
                         join purchase_order po on (po.id = pol.order_id)
                         join tpt_purchase_indent pi on (pi.id = pol.po_indent_no)
                         where pol.po_indent_no = %s and pol.product_id = %s
-                '''%(indent_id,prod_id)
-            self.cr.execute(sql)
-            for move in self.cr.dictfetchall():
-                count = move['count']
-                return count or 0.000
+                    '''%(indent_id,prod_id)
+                if item_text:
+                    str = " and pol.item_text = '%s'"%(item_text)
+                    sql = sql+str
+                if desc:
+                    str = " and pol.description = '%s'"%(desc)
+                    sql = sql+str
+                self.cr.execute(sql)
+                for move in self.cr.dictfetchall():
+                    count = move['count']
+                    return count or 0.000
    
     
     def get_on_hand_qty(self,product_id):
@@ -201,7 +246,7 @@ class Parser(report_sxw.rml_parse):
                 pp.description,pp.uom_po_id,u.name as uom,pp.id as line_id,pp.mrs_qty as res_qty,pp.state as status,
                 e.name_related as requisitioner,e.employee_id as requisitioner_code,e.last_name as lname,pp.product_uom_qty as ind_qty,
                 pp.product_id as prod_id,prr.name as project,prs.name as proj_sec,COALESCE(sm.id,0) as stock_id,
-                COALESCE(pi.id,0) as line_id
+                COALESCE(pi.id,0) as line_id,pp.item_text as item_text,pp.description as desc
                 from tpt_purchase_product pp
                 inner join tpt_purchase_indent pi on (pi.id = pp.pur_product_id)
                 inner join hr_department d on (d.id = pp.department_id_relate)

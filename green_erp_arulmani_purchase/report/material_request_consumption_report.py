@@ -42,7 +42,7 @@ class Parser(report_sxw.rml_parse):
             'get_invoice':self.get_invoice,
             'get_req_name_code':self.get_req_name_code,
             'get_status':self.get_status,
-            'get_on_hand_qty':self.get_on_hand_qty,
+            #'get_on_hand_qty':self.get_on_hand_qty,
             'get_pending_qty' : self.get_pending_qty,
             'get_issue_qty_count':self.get_issue_qty_count,
             

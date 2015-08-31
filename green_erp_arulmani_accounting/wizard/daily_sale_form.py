@@ -123,6 +123,20 @@ class daily_sale_form(osv.osv_memory):
     
     def print_report(self, cr, uid, ids, context=None):
         
+         # TPT-Y added on 31Aug2015, fix - 3156
+        def get_total(cash,type):
+            sum = 0.00
+            for line in cash:
+                if type == 'total_amt':
+                    sum += line.invoice_id.amount_total_inr
+                if type == 'total_basic_amt':
+                    sum += line.quantity*line.price_unit
+                if type == 'qty':
+                    sum += line.quantity
+                if type == 'exs_duty':
+                    sum += line.quantity*line.price_unit*(line.invoice_id.excise_duty_id and line.invoice_id.excise_duty_id.amount or 0.0)/100
+            return sum
+        
         def convert_date(date):
             if date:
                 date = datetime.strptime(date, DATE_FORMAT)
@@ -264,6 +278,16 @@ class daily_sale_form(osv.osv_memory):
                     'total_amt':line.invoice_id.amount_total_inr or 0.00,
                     'other_reasons':line.invoice_id.other_info or '',
             }))
+            
+        cb_line.append((0,0,{
+            'currency': 'Total',
+            'uom': 'Total Basic Price',
+            'payment_term': 'Total Quantity',
+            'total_amt': round(get_total(get_invoice(cb),'total_amt'),0) or 0.00,
+            'basic_price': round(get_total(get_invoice(cb),'total_basic_amt'),0) or 0.00,
+            'quantity': round(get_total(get_invoice(cb),'qty'),0) or 0.000, #exs_duty
+            'excise_duty' : round(get_total(get_invoice(cb),'exs_duty'),0) or 0.00,
+        }))
         
         vals = {
             'name': 'Daily Sale Report',
