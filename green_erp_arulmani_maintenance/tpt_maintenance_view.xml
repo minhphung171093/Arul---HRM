@@ -82,7 +82,7 @@
 							<page string = "Men Power Consumption">
 								<field name="men_power_line" nolabel='1'>
 									<tree editable='top'>
-										<field name="employee_id" options="{'create': false, 'create_edit': false}"/>
+										<field name="employee_id" domain="[('department_id','=',parent.department_id)]" options="{'create': false, 'create_edit': false}"/>
 										<field name="work_hour" widget="float_time"/>
 									</tree>
 								</field>
@@ -150,7 +150,7 @@
 							<page string = "Men Power Consumption">
 								<field name="men_power_line" nolabel='1'>
 									<tree editable='top'>
-										<field name="employee_id" options="{'create': false, 'create_edit': false}"/>
+										<field name="employee_id" domain="[('department_id','=',parent.department_id)]" options="{'create': false, 'create_edit': false}"/>
 										<field name="work_hour" widget="float_time"/>
 									</tree>
 								</field>
@@ -234,7 +234,7 @@
 									<tree editable='top'>
 										<field name="schedule_date"/>
 										<field name="activities"/>
-										<field name="employee_id" options="{'create': false, 'create_edit': false}"/>
+										<field name="employee_id" domain="[('department_id','=',parent.department_id)]" options="{'create': false, 'create_edit': false}"/>
 									</tree>
 								</field>
 							</page>
@@ -261,7 +261,7 @@
 			<field name="name">tpt.service.entry.tree</field>
 			<field name="model">tpt.service.entry</field>
 			<field name="arch" type="xml">
-				<tree string="Staff Service Entry">
+				<tree create="false" string="Staff Service Entry">
 					<field name="name"/>
 					<field name="service_type"/>
 					<field name="work_taken"/>
@@ -276,7 +276,7 @@
             <field name="arch" type="xml">
 	            <form string="Staff Service Entry" version="7.0">   
 	            	<header>
-	            		<button name="bt_service_invoice" string="Create Service Invoice" type="object" attrs="{'invisible':[('service_type','=','employee')]}" class="oe_highlight"/>
+	            		<button name="bt_service_invoice" string="Create Service Invoice" type="object" attrs="{'invisible':['|',('service_type','=','employee'),('name','=',False)]}" class="oe_highlight"/>
 	                </header>
 	            	<sheet>
 	            		<group col='4' colspan='2'>
@@ -310,15 +310,30 @@
 							<field name="grand_total"/>
 						</group>
 		         	</sheet>
+		         	<footer attrs="{'invisible':[('name','!=',False)]}">
+                        <button name="bt_save" string="Save" type="object" class="oe_highlight"/>
+                        or
+                        <button string="Cancel" class="oe_link" special="cancel"/>
+                    </footer>
 		         </form>
 			</field>
 		</record>
+		
+		<record id="action_tpt_service_entry_form_view" model="ir.actions.act_window">
+            <field name="name">Staff Service Entry</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.service.entry</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_tpt_service_entry_form"/>
+            <field name="target">new</field>
+        </record>
 		
 		<record id="view_tpt_third_service_entry_tree" model="ir.ui.view">
 			<field name="name">tpt.third.service.entry.tree</field>
 			<field name="model">tpt.third.service.entry</field>
 			<field name="arch" type="xml">
-				<tree string="Third Party Service Entry">
+				<tree create="false" string="Third Party Service Entry">
 					<field name="name"/>
 					<field name="service_type"/>
 					<field name="work_taken"/>
@@ -333,7 +348,7 @@
             <field name="arch" type="xml">
 	            <form string="Third Party Service Entry" version="7.0">   
 	            	<header>
-	            		<button name="bt_service_invoice" string="Create Service Invoice" type="object" attrs="{'invisible':[('service_type','=','employee')]}" class="oe_highlight"/>
+	            		<button name="bt_service_invoice" string="Create Service Invoice" type="object" attrs="{'invisible':['|',('service_type','=','employee'),('name','=',False)]}" class="oe_highlight"/>
 	                </header>
 	            	<sheet>
 	            		<group col='4' colspan='2'>
@@ -369,21 +384,15 @@
 							<field name="grand_total"/>
 						</group>
 		         	</sheet>
+		         	<footer attrs="{'invisible':[('name','!=',False)]}">
+                        <button name="bt_save" string="Save" type="object" class="oe_highlight"/>
+                        or
+                        <button string="Cancel" class="oe_link" special="cancel"/>
+                    </footer>
 		         </form>
 			</field>
 		</record>
 		
-		
-		<record id="action_tpt_service_entry_form_view" model="ir.actions.act_window">
-            <field name="name">Staff Service Entry</field>
-            <field name="type">ir.actions.act_window</field>
-            <field name="res_model">tpt.service.entry</field>
-            <field name="view_type">form</field>
-            <field name="view_mode">tree,form</field>
-            <field name="view_id" ref="view_tpt_service_entry_form"/>
-            <field name="target">new</field>
-        </record>
-            
         <record id="view_tpt_maintenance_oder_tree" model="ir.ui.view">
 			<field name="name">tpt.maintenance.oder.tree</field>
 			<field name="model">tpt.maintenance.oder</field>
@@ -423,8 +432,8 @@
 							<field name="name"/>
 							<field name="date_request" on_change="onchange_date_expect(date_request)" />
 							<field name="request_type" on_change="onchange_request_type(request_type)"/>
-							<field name="department_id" required='1' options="{'create': false, 'create_edit': false}" />
-							<field name="section_id" required='1' domain="[('department_id','=',department_id)]" options="{'create': false, 'create_edit': false}" />
+							<field name="department_id" required='1' readonly='1' options="{'create': false, 'create_edit': false}" />
+							<field name="section_id" required='1' readonly='1' domain="[('department_id','=',department_id)]" options="{'create': false, 'create_edit': false}" />
 							<field name="requisitioner" options="{'create': false, 'create_edit': false}" domain="[('department_id','=',department_id)]"  />
 							<field name="create_uid" options="{'create': false, 'create_edit': false}"  />
 							<field name="date_expec"/>
@@ -451,6 +460,11 @@
 							</page>
 						</notebook>
 		         	</sheet>
+		         	<footer attrs="{'invisible':[('name','!=','/')]}">
+                        <button name="bt_main_save" string="Save" type="object" class="oe_highlight"/>
+                        or
+                        <button string="Cancel" class="oe_link" special="cancel"/>
+                    </footer>
 		         </form>
 			</field>
 		</record>
@@ -462,8 +476,12 @@
 	            <form string="Maintenance Order" version="7.0">   
 	            	<header>
 	            		<button name="bt_process" string="Process Order" type="object" class="oe_highlight"/>
+	            		<button name="bt_service_entry" string="Create Service Entry" type="object" class="oe_highlight"/>
+	            		<button name="bt_third_service_entry" string="Create 3rd Party Service Entry" type="object" class="oe_highlight"/>
+	            		<button name="bt_return_rq" string="Return Request" type="object" class="oe_highlight"/>
+	            		<button name="bt_create_mrs" string="Create MRS" type="object" class="oe_highlight"/>
+	            		<button name="bt_chargeable_mrs" string="Chargeable MRS" type="object" class="oe_highlight"/>
 	            		<button name="bt_close" string="Close Order" type="object" class="oe_highlight"/>
-	            		<!--<button name="%(action_tpt_service_entry_form_view)d" type="action" string="open" states="draft"/>-->
 	                    <field name ="state" widget="statusbar" statusbar_visible="draft,in,completed,put,close" statusbar_colors='{"draft":"blue","in":"red","close":"grey"}'/>
 	                </header>
 	            	<sheet>
@@ -490,16 +508,42 @@
 						</group>
 						<notebook>
 							<page string = "Staff Service Entry">
-								<field name="service_entry_line" nolabel='1' context="{'default_section_id':section_id,'default_department_id':department_id,'default_equip_id':equip_id,'default_machine_id':machine_id}"/>
+								<field name="service_entry_line" nolabel='1'/>
 							</page> 
 							<page string = "Material Consumption">
-								<field name="consumption_line" nolabel='1' domain="[('mrs_type','=','normal')]" context="{'default_section_id':section_id,'default_department_id':department_id,'default_mrs_type':'normal','form_view_ref':'green_erp_arulmani_maintenance.view_tpt_material_request_form_for_mainten'}"/>
+								<field name="consumption_line" nolabel='1' domain="[('mrs_type','=','normal')]">
+									<tree create="false">
+										<field name="name"/>
+										<field name="date_request"/>
+										<field name="date_expec"/>
+										<field name="department_id"  />
+										<field name="section_id"  />
+										<field name="requisitioner"  />
+										<field name="project_id"  />
+										<field name="project_section_id"  />
+										<field name="create_uid" options="{'create': false, 'create_edit': false}" />
+										<field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue"}'/>
+									</tree>
+								</field>
 							</page>
 							<page string = "Third Party Service Entry">
-								<field name="third_service_line" nolabel='1' context="{'default_section_id':section_id,'default_department_id':department_id,'default_equip_id':equip_id,'default_machine_id':machine_id}"/>
+								<field name="third_service_line" nolabel='1'/>
 							</page>
 							<page string = "Chargeable MRS">
-								<field name="chargeable_line" nolabel='1' domain="[('mrs_type','=','chargeable')]" context="{'default_section_id':section_id,'default_department_id':department_id,'default_mrs_type':'chargeable','form_view_ref':'green_erp_arulmani_maintenance.view_tpt_material_request_form_for_mainten'}"/>
+								<field name="chargeable_line" nolabel='1' domain="[('mrs_type','=','chargeable')]">
+									<tree create="false">
+										<field name="name"/>
+										<field name="date_request"/>
+										<field name="date_expec"/>
+										<field name="department_id"  />
+										<field name="section_id"  />
+										<field name="requisitioner"  />
+										<field name="project_id"  />
+										<field name="project_section_id"  />
+										<field name="create_uid" options="{'create': false, 'create_edit': false}" />
+										<field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue"}'/>
+									</tree>
+								</field>
 							</page>
 						</notebook>
 		         	</sheet>
@@ -520,7 +564,7 @@
             id="menu_action_tpt_maintenance_oder_form_view"
             parent="menu_tpt_maint_mg" sequence="4"/>
 		
-		<!--<record id="inherit_view_tpt_material_request_form" model="ir.ui.view">
+		<record id="inherit_view_tpt_material_request_form" model="ir.ui.view">
             <field name="name">inh.tpt.material.request.form</field>
             <field name="model">tpt.material.request</field>
             <field name="inherit_id" ref="green_erp_arulmani_purchase.view_tpt_material_request_form"/>
@@ -530,7 +574,7 @@
 					<field name="mrs_type"/>
 				</xpath> 
             </field>
-        </record>-->
+        </record>
             
             
     </data>
