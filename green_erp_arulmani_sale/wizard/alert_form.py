@@ -101,6 +101,7 @@ class tpt_do_adj(osv.osv_memory):
         sql = '''
             select id from stock_picking where type = 'out' and state = 'done' 
             and extract(month from date)=%s and extract(year from date)=%s
+            order by name
         '''%(cb.month,cb.year)
         cr.execute(sql)
         picking_ids = [r[0] for r in cr.fetchall()]
@@ -195,6 +196,7 @@ class tpt_do_adj(osv.osv_memory):
                     'do_id':line.id,
                     }
             new_jour_id = account_move_obj.create(cr,uid,value)
+            account_move_obj.button_validate(cr,uid, [new_jour_id], context)
         #return self.write(cr, uid, ids, {'result':'Create all GRN posting Remaining'}) 
         return {'type': 'ir.actions.act_window_close'}   
     
