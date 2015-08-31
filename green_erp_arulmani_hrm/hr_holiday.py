@@ -10392,6 +10392,7 @@ class tpt_hr_attendance(osv.osv):
                              'in_time': 0,
                              'out_time': out_time,
                               }) 
+                    attend_obj.write(cr, uid, time_entry.id, {'is_processed':'t'})
             else:
                     exist_in_time = exist_emp_obj.in_time
                     punch_in_date = exist_emp_obj.work_date
@@ -10408,7 +10409,7 @@ class tpt_hr_attendance(osv.osv):
                              'is_auto_approved': True,
                               })
             ###
-            attend_obj.write(cr, uid, time_entry.id, {'is_processed':'t'})
+                    attend_obj.write(cr, uid, time_entry.id, {'is_processed':'t'})
             ###
         #END FOR
    
@@ -10467,6 +10468,7 @@ class tpt_hr_attendance(osv.osv):
                             'approval':1}
             employee_ids = emp_attendence_obj.search(cr, uid, [('employee_id','=',employee_id)])
             if employee_ids: 
+                punch_io_values.update({'punch_in_out_id':employee_ids[0]}) 
                 punch_io_obj.create(cr,uid,punch_io_values)
                 ## C.OFF LOGIC
                 sql=''' SELECT work_date FROM arul_hr_punch_in_out_time WHERE TO_CHAR(work_date,'YYYY-MM-DD') = ('%s') and employee_id=%s '''%(work_date_format,employee_id)
@@ -10515,6 +10517,7 @@ class tpt_hr_attendance(osv.osv):
                                                                                                'emp_leave_id': employee_leave_ids[0],
                                                                                                'total_day': c_off_day,
                                                                                                })
+                
                 else:
                         employee_leave_obj.create(cr, uid, {
                             'employee_id': employee_id,
@@ -10523,6 +10526,7 @@ class tpt_hr_attendance(osv.osv):
                             'leave_type_id': leave_type_ids[0],
                             'total_day': c_off_day,
                              })],})
+                ## C.OFF LOGIC
             else:
                 emp_attendence_obj.create(cr,uid,{'employee_id':employee_id,
                             'employee_category_id':emp.employee_category_id and emp.employee_category_id.id or False,
