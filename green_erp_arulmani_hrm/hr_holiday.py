@@ -10432,6 +10432,7 @@ class tpt_hr_attendance(osv.osv):
         b_shift = 0
         c_shift = 0
         shift_count = 0
+        c_off_day = 0
         work_shift_id = False
         
         sql = '''
@@ -10468,18 +10469,18 @@ class tpt_hr_attendance(osv.osv):
             if employee_ids: 
                 punch_io_obj.create(cr,uid,punch_io_values)
                 ## C.OFF LOGIC
-                sql=''' SELECT work_date FROM arul_hr_punch_in_out_time WHERE TO_CHAR(work_date,'YYYY-MM-DD') = ('%s') and employee_id=%s '''%(date,employee_ids[0])
+                sql=''' SELECT work_date FROM arul_hr_punch_in_out_time WHERE TO_CHAR(work_date,'YYYY-MM-DD') = ('%s') and employee_id=%s '''%(work_date_format,employee_id)
                 cr.execute(sql)                
                 same_work_date=cr.fetchone()
                 if same_work_date:
                     flag = 1
-                sql=''' SELECT date FROM arul_hr_holiday_special WHERE TO_CHAR(date,'YYYY-MM-DD') = ('%s') and is_local_holiday='t' '''%date
+                sql=''' SELECT date FROM arul_hr_holiday_special WHERE TO_CHAR(date,'YYYY-MM-DD') = ('%s') and is_local_holiday='t' '''%work_date_format
                 cr.execute(sql)                
                 local_date=cr.fetchall()
                                         
                 if local_date : 
                     flag = 1
-                sql=''' SELECT date FROM arul_hr_holiday_special WHERE TO_CHAR(date,'YYYY-MM-DD') = ('%s') and is_local_holiday='f' '''%date
+                sql=''' SELECT date FROM arul_hr_holiday_special WHERE TO_CHAR(date,'YYYY-MM-DD') = ('%s') and is_local_holiday='f' '''%work_date_format
                 cr.execute(sql)                
                 spl_date=cr.fetchall()
                                         
@@ -10497,7 +10498,7 @@ class tpt_hr_attendance(osv.osv):
                 if flag==1 and categ!='S1':
                     c_off_day = shift_count
                 ##
-                employee_leave_ids = employee_leave_obj.search(cr, uid, [('year','=',data1[7:11]),('employee_id','=',employee_ids[0])])
+                employee_leave_ids = employee_leave_obj.search(cr, uid, [('year','=',work_date_format[7:11]),('employee_id','=',employee_id)])
                 leave_type_ids = leave_type_obj.search(cr, uid, [('code','=','C.Off')])
                 if not leave_type_ids:
                     raise osv.except_osv(_('Warning!'),_('Can not find Leave Type C.Off. Please Create Leave Type C.Off before'))
@@ -10516,8 +10517,8 @@ class tpt_hr_attendance(osv.osv):
                                                                                                })
                 else:
                         employee_leave_obj.create(cr, uid, {
-                            'employee_id': employee_ids[0],
-                            'year': data1[7:11],
+                            'employee_id': employee_id,
+                            'year': work_date_format[7:11],
                             'emp_leave_details_ids': [(0,0,{
                             'leave_type_id': leave_type_ids[0],
                             'total_day': c_off_day,
