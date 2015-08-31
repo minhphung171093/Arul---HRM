@@ -74,6 +74,7 @@ class grn_line_details_report(osv.osv_memory):
         'description':fields.char('Description', size = 50, readonly = True),
         'item_text':fields.text('Item Text'),
         'product_id': fields.char('Product'),
+        'req': fields.char('PR Requisitioner'),
         'qty': fields.float('Quantity'),
         'uom': fields.char('Uom', size = 1024),
         'bin': fields.char('Bin Location', size = 1024),
@@ -214,7 +215,7 @@ class grn_detail_line_report(osv.osv_memory):
                       sm.item_text, sm.description, sm.product_qty as prod_qty,pu.name as product_uom,
                       sm.action_taken as act_take,sm.bin_location,
                       sp.state  as state,  
-                      emp.name_related requisitioner,
+                      emp.name_related as requisitioner,
                       po.id as po_id,pol.order_id as order_line_id
                       from stock_move sm
                       inner join stock_picking sp on sm.picking_id=sp.id
@@ -308,7 +309,7 @@ class grn_detail_line_report(osv.osv_memory):
                             'supplier': line['supplier'] ,
                             'doc_type': get_doc_type(line['doc_type']) or '',
                             'po_no': line['po_no'] or '',
-                            'requisitioner': line['requisitioner'],
+                            'req': line['requisitioner'],
                             'po_indent_id': line['po_indent_no'],
                             'description': line['description'],
                             'item_text': line['item_text'],

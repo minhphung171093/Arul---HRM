@@ -113,8 +113,7 @@
 		                			<field name="mat_desc"/>
 		                			<field name="cost_cent"/>
 		                			<field name="uom"/>
-		                			<field name="req_qty"/>
-		                			<field name="on_hand_qty"/>
+		                			<field name="req_qty"/>		                			
 		                			<field name="pen_qty"/>
 		                			<field name="bin"/>
 		                			<field name="project"/>

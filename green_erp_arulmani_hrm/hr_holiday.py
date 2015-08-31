@@ -6,7 +6,7 @@ import time
 from openerp import SUPERUSER_ID
 from openerp.tools import DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_DATETIME_FORMAT, DATETIME_FORMATS_MAP, float_compare
 from datetime import datetime
-import datetime
+#import datetime
 import base64
 import calendar
 from twisted.internet._threadedselect import raiseException
@@ -10289,6 +10289,15 @@ class tpt_hr_attendance(osv.osv):
     _defaults = {
         'work_date':lambda *a: time.strftime("%Y-%m-%d %H:%M:%S"),
     }
+    def create(self, cr, uid, vals, context=None):
+        #now = datetime.datetime.now()
+        #current_year = now.year
+        #vals['work_date']
+        my_date = fields.datetime.context_timestamp(cr, uid, datetime.now(), context=context)
+   
+        vals['work_date'] = my_date
+        
+        return super(tpt_hr_attendance, self).create(cr, uid, vals, context)
     def upload_in_time_data(self, cr, uid, context=None):
         #print "SCHEDULER JOB - STARTED"
         #
@@ -10321,6 +10330,7 @@ class tpt_hr_attendance(osv.osv):
                                  'in_time': in_time,
                                  'out_time': 0,
                                   })
+                attend_obj.write(cr, uid, time_entry.id, {'is_processed':'t'})
             if punch_type=='OUT':
                 out_time = float(hour)+float(min)/60+float(sec)/3600
                 attend_temp_obj_ids = attend_temp_obj.search(cr, uid, [('employee_id','=',employee_id), ('work_date','=',work_date_format)]) 
@@ -10333,6 +10343,7 @@ class tpt_hr_attendance(osv.osv):
                                  'in_time': 0,
                                  'out_time': out_time,
                                   }) 
+                        attend_obj.write(cr, uid, time_entry.id, {'is_processed':'t'})
                 else:
                         exist_in_time = exist_emp_obj.in_time
                         punch_in_date = exist_emp_obj.work_date
@@ -10348,8 +10359,9 @@ class tpt_hr_attendance(osv.osv):
                         attend_temp_obj.write(cr, uid, [exist_emp_obj.id], {
                                  'is_auto_approved': True,
                                   })    
+                        attend_obj.write(cr, uid, time_entry.id, {'is_processed':'t'})
             ###
-            attend_obj.write(cr, uid, time_entry.id, {'is_processed':'t'})
+            #attend_obj.write(cr, uid, time_entry.id, {'is_processed':'t'})
             ###
         #END FOR
    

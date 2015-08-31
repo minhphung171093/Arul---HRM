@@ -164,7 +164,7 @@ class Parser(report_sxw.rml_parse):
                                    when sm.state ='confirmed' then 'Waiting Availability'
                                    when sm.state ='assigned' then 'Ready to Receive'    
                                    when sm.state ='done' then 'Received' else '' end)  as state, 
-                       emp.name_related requisitioner,po.id as po_id,pol.order_id as order_line_id
+                       emp.name_related as requisitioner,po.id as po_id,pol.order_id as order_line_id
                        
                       from stock_move sm
                       inner join stock_picking sp on sm.picking_id=sp.id

@@ -112,6 +112,19 @@ class Parser(report_sxw.rml_parse):
         invoice_ids = [r[0] for r in self.cr.fetchall()]
         return invoice_obj.browse(self.cr,self.uid,invoice_ids)
     
+    def get_total(self,cash,type):
+        sum = 0.00
+        for line in cash:
+            if type == 'total_amt':
+                sum += line.invoice_id.amount_total_inr
+            if type == 'total_basic_amt':
+                sum += line.quantity*line.price_unit
+            if type == 'qty':
+                sum += line.quantity
+            if type == 'exs_duty':
+                sum += line.quantity*line.price_unit*(line.invoice_id.excise_duty_id and line.invoice_id.excise_duty_id.amount or 0.0)/100
+        return sum
+    
     def get_invoice_type(self, invoice_type):
         if invoice_type == 'domestic':
             return "Domestic/Indirect Export"
