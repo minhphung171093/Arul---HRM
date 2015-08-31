@@ -276,7 +276,7 @@
             <field name="arch" type="xml">
 	            <form string="Staff Service Entry" version="7.0">   
 	            	<header>
-	            		<button name="bt_service_invoice" string="Create Service Invoice" type="object" attrs="{'invisible':[('service_type','=','employee')]}" class="oe_highlight"/>
+	            		<button name="bt_service_invoice" string="Create Service Invoice" type="object" attrs="{'invisible':['|',('service_type','=','employee'),('name','=',False)]}" class="oe_highlight"/>
 	                </header>
 	            	<sheet>
 	            		<group col='4' colspan='2'>
@@ -348,7 +348,7 @@
             <field name="arch" type="xml">
 	            <form string="Third Party Service Entry" version="7.0">   
 	            	<header>
-	            		<button name="bt_service_invoice" string="Create Service Invoice" type="object" attrs="{'invisible':[('service_type','=','employee')]}" class="oe_highlight"/>
+	            		<button name="bt_service_invoice" string="Create Service Invoice" type="object" attrs="{'invisible':['|',('service_type','=','employee'),('name','=',False)]}" class="oe_highlight"/>
 	                </header>
 	            	<sheet>
 	            		<group col='4' colspan='2'>
