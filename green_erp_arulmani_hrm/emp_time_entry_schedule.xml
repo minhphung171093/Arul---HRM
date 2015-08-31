@@ -2,7 +2,7 @@
 <openerp>
     <data>
     <record model="ir.cron" id="emp_in_time_entry_update">
-	        <field name="name">Employee Move In Time Details to Attendance</field>
+	        <field name="name">Employee Move In/Out Time Details to Attendance</field>
 	        <field name="interval_number">4</field>
 	        <field name="interval_type">hours</field>
 	        <field name="priority">1</field>
@@ -11,7 +11,8 @@
 	        <field name="model" eval="'tpt.hr.attendance'"/>
 	        <field name="function" eval="'upload_in_time_data'"/>
 	        <field name="args" eval="'()'" />
-        </record>    
+        </record>  
+        <!-- 
         <record model="ir.cron" id="emp_out_time_entry_update">
 	        <field name="name">Employee Move Out Time Details to Attendance</field>
 	        <field name="interval_number">4</field>
@@ -22,7 +23,8 @@
 	        <field name="model" eval="'tpt.hr.attendance'"/>
 	        <field name="function" eval="'upload_out_time_data'"/>
 	        <field name="args" eval="'()'" />
-        </record>      
+        </record>    
+         -->    
         <!-- 
         <record model="ir.cron" id="emp_time_data">
 	        <field name="name">Employee Move Time Details to Attendance</field>
