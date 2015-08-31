@@ -1719,19 +1719,19 @@
 			<field name="arch" type="xml">
 				<tree string="Work Shift Master">
 					<field name="code"/>
-							
-							<field name="min_start_time" widget="float_time"/>
-							<field name="start_time" widget="float_time"/>
-							<field name="max_start_time" widget="float_time"/>
-							<field name="min_end_time" widget="float_time"/>
-							<field name="end_time" widget="float_time"/>
-							<field name="max_end_time" widget="float_time"/>
-							<field name="a_shift" />
-							<field name="g1_shift" />
-							<field name="g2_shift" />
-							<field name="b_shift" />
-							<field name="c_shift" />		
-							<field name="shift_count" />
+					<field name="work_shift_id"/>
+					<field name="min_start_time" widget="float_time"/>
+					<field name="start_time" widget="float_time"/>
+					<field name="max_start_time" widget="float_time"/>
+					<field name="min_end_time" widget="float_time"/>
+					<field name="end_time" widget="float_time"/>
+					<field name="max_end_time" widget="float_time"/>
+					<field name="a_shift" />
+					<field name="g1_shift" />
+					<field name="g2_shift" />
+					<field name="b_shift" />
+					<field name="c_shift" />		
+					<field name="shift_count" />
 				</tree>
 			</field>
 		</record>
@@ -1746,6 +1746,7 @@
 		                <group col='4' colspan='2'>
 		                    <field name="code"/>
 							<field name="name"/>
+							<field name="work_shift_id" options="{'create': false, 'create_edit': false}"/>
 							<field name="description"/>
 							<newline/>
 							<field name ="create_date"/>
@@ -1864,6 +1865,7 @@
 					<field name="employee_id" />
 					<field name="work_date" />
 					<field name="punch_type" />
+					<field name="is_processed" />
 				</tree>
 			</field>
 		</record>
@@ -1874,11 +1876,13 @@
                 <search string="Attendance">
                 	<field name="employee_id"/>
 					<field name="work_date"/>	
-					<field name="punch_type"/>				
+					<field name="punch_type"/>
+					<field name="is_processed" />				
 					<group expand="0" string="Group By...">
 						<filter string="Employee" icon="terp-personal" domain="[]" context="{'group_by':'employee_id'}"/>   
                         <filter string="Work Date" name="group_work_date" icon="terp-personal" domain="[]" context="{'group_by':'work_date'}"/>   
-                        <filter string="Punch Type" name="group_punch_type" icon="terp-personal" domain="[]" context="{'group_by':'punch_type'}"/>                
+                        <filter string="Punch Type" name="group_punch_type" icon="terp-personal" domain="[]" context="{'group_by':'punch_type'}"/>
+                        <filter string="Is Processed" name="group_punch_type" icon="terp-personal" domain="[]" context="{'group_by':'is_processed'}"/>                
                     </group> 
                 </search>
             </field>
@@ -1893,6 +1897,7 @@
 							<field name="employee_id" />
 							<field name="work_date" />					
 							<field name="punch_type" />
+							<field name="is_processed" />
 							</group>
 		         	</sheet>
 		         </form>

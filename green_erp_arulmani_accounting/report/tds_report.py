@@ -45,6 +45,7 @@ class Parser(report_sxw.rml_parse):
              #'get_ven_name':self.get_ven_name,
              #'get_inv_type':self.get_inv_type,
             'get_move_ids':self.get_move_ids,
+            'get_total':self.get_total,
             #'get_tds_perc':self.get_tds_perc,           
             #'get_cus':self.get_cus,
             #'get_doc_type':self.get_doc_type,
@@ -68,11 +69,22 @@ class Parser(report_sxw.rml_parse):
     def convert_date_format(self, date):
         if date:
             date = datetime.strptime(date, DATE_FORMAT)
-            return date.strftime('%d/%m/%Y')
+            return date.strftime('%d/%m/%Y')        
+    
         
-    def decimal_convert(self, amount):       
-        decamount = format(amount, '.2f')
-        return decamount
+    def get_total(self,invoice):
+        sum = 0.00
+        for line in invoice:                          
+            sum += line['tdsamount']                
+        return sum or 0.00
+           
+        
+    def decimal_convert(self, amount):
+        if amount:       
+             decamount = format(amount, '.2f')
+             return decamount
+        else:
+             return 0.00
     
     #===========================================================================
     # def get_doc_type(self):
@@ -116,47 +128,75 @@ class Parser(report_sxw.rml_parse):
         res = {}
         wizard_data = self.localcontext['data']['form']
         tdsperc_obj = self.pool.get('account.invoice.line')      
-        invoice_type = wizard_data['invoice_type']
-        employee = wizard_data['employee']
-        taxes_id = wizard_data['taxes_id']
-        code = wizard_data['code']
+        invoicetype = wizard_data['invoice_type']
+        vendor = wizard_data['employee']
+        tds = wizard_data['taxes_id']
+        gl_accnt = wizard_data['code']
         date_from = wizard_data['date_from']
         date_to = wizard_data['date_to'] 
         base_amnt = 0.0
         tdsamount = 0.0       
         
         ##ser_inv      
-        if invoice_type == 'ser_inv':
-              if employee and taxes_id and code:
+        if invoicetype == 'ser_inv':
+              if vendor and tds and gl_accnt:
                     sql = '''
+                            select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                            a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
+                            a.tdsamount,a.ven_ref,a.gl_doc,a.sec
+                            from(
                             select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
                             case when am.doc_type ='sup_inv_po' then 'Supplier Invoice with PO' 
                             when am.doc_type ='ser_inv' then 'Service Invoice'
                             when am.doc_type ='sup_inv' then 'Supplier Invoice Without PO' 
                             when am.doc_type ='freight' then 'Freight Invoice'
-                            else '' end as officialwitholdingtax,null as witholdingtaxsectioon, ail.tds_id, 
+                            else '' end as officialwitholdingtax,null as witholdingtaxsectioon, ail.tds_id,
                             ai.name as invoicedocno, ai.date_invoice as postingdate,
-                            ai.bill_number as bill_no,ai.bill_date as bill_date,
-                            sum(ail.amount_basic) as base_amnt,at.name as tax_deduction,
-                            cast(round(sum(ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
+                            ai.bill_number as bill_no,ai.bill_date as bill_date,at.name as tax_deduction,
+                            ail.amount_basic as base_amnt,
+                            cast(round((ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount,                            
                             ai.vendor_ref as ven_ref, ai.number as gl_doc,at.section as sec
                             from account_invoice_line ail
                             join account_invoice ai on (ai.id=ail.invoice_id)
-                            join account_move am on (am.name=ai.number)
+                            inner join account_move am on (am.name=ai.number and ai.move_id = am.id)                            
                             join res_partner bp on (bp.id=ai.partner_id)
                             join account_tax at on (at.id=ail.tds_id)
                             where am.state = 'posted' and ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('ser_inv')
-                            and ai.date_invoice between '%s' and '%s' and bp.id = '%s' 
-                            and at.id = '%s' and at.gl_account_id = '%s'
-                            group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id, 
-                            ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
-                            order by vendor_code
-                        '''%(date_from,date_to,employee[0],taxes_id[0],code[0])
-                    self.cr.execute(sql)                    
+                            and am.date between '%s' and '%s' and bp.id = '%s' and at.id = '%s' and at.gl_account_id = '%s'
+                            and cast(round((ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) <> 0                            
+                            
+                            union all
+
+                            select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
+                            case when av.type = 'receipt' then 'Receipt'
+                            when av.type = 'payment' then 'Payment'
+                            when av.type = 'sale' then 'Sale'
+                            when av.type = 'purhase' then 'Purhase' else '' end as officialwitholdingtax,
+                            null as witholdingtaxsection,null as tds_id,av.number,av.date,null as bill_number,null as bill_date,
+                            null as base_amnt,null as tax_deduction,
+                            Case when aml.debit = '0.00' then aml.credit else -aml.debit end as tdsamount,
+                            null as ven_ref,null as gl_doc,null as sec
+                            from account_voucher av
+                            join res_partner bp on (bp.id=av.partner_id)
+                            inner join account_voucher_line avl on av.id=avl.voucher_id
+                            inner join account_account aa on avl.account_id=aa.id
+                            inner join account_move am on (am.id=av.move_id)
+                            inner join account_move_line aml on (aml.move_id=av.move_id and aa.id = aml.account_id)
+                            where am.state = 'posted' and aa.name ~ 'TDS' 
+                            and am.date between '%s' and '%s' 
+                            and bp.id = '%s' and aa.id = '%s'              
+                            )a
+                            order by a.ven_code,a.gl_doc
+                        '''%(date_from,date_to,vendor[0],tds[0],gl_accnt[0],date_from,date_to,vendor[0],gl_accnt[0])
+                    self.cr.execute(sql)                  
                     return self.cr.dictfetchall()
             
-              elif employee and taxes_id:
+              elif vendor and tds:
                     sql = '''
+                            Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                            a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
+                            a.tdsamount,a.ven_ref,a.gl_doc,a.sec
+                            from(
                             select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
                             case when am.doc_type ='sup_inv_po' then 'Supplier Invoice with PO' 
                             when am.doc_type ='ser_inv' then 'Service Invoice'
@@ -165,26 +205,49 @@ class Parser(report_sxw.rml_parse):
                             else '' end as officialwitholdingtax,null as witholdingtaxsectioon, ail.tds_id, 
                             ai.name as invoicedocno, ai.date_invoice as postingdate,
                             ai.bill_number as bill_no,ai.bill_date as bill_date,
-                            sum(ail.amount_basic) as base_amnt,at.name as tax_deduction,
-                            cast(round(sum(ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
+                            ail.amount_basic as base_amnt,at.name as tax_deduction,
+                            cast(round((ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount,                             
                             ai.vendor_ref as ven_ref, ai.number as gl_doc,at.section as sec
                             from account_invoice_line ail
                             join account_invoice ai on (ai.id=ail.invoice_id)
-                            join account_move am on (am.name=ai.number)
+                            inner join account_move am on (am.name=ai.number and ai.move_id = am.id)                            
                             join res_partner bp on (bp.id=ai.partner_id)
                             join account_tax at on (at.id=ail.tds_id)
                             where am.state = 'posted' and ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('ser_inv')
-                            and ai.date_invoice between '%s' and '%s' 
-                            and bp.id = '%s' and at.id = '%s'
-                            group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id, 
-                            ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
-                            order by vendor_code
-                        '''%(date_from,date_to,employee[0],taxes_id[0])
+                            and am.date between '%s' and '%s' and bp.id = '%s' and at.id = '%s'
+                            and cast(round((ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) <> 0                            
+
+                            union all
+
+                            select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
+                            case when av.type = 'receipt' then 'Receipt'
+                            when av.type = 'payment' then 'Payment'
+                            when av.type = 'sale' then 'Sale'
+                            when av.type = 'purhase' then 'Purhase' else '' end as officialwitholdingtax,
+                            null as witholdingtaxsection,null as tds_id,av.number,av.date,null as bill_number,null as bill_date,
+                            0.00 as base_amnt,null as tax_deduction,
+                            Case when aml.debit = '0.00' then aml.credit else -aml.debit end as tdsamount,
+                            null as ven_ref,null as gl_doc,null as sec
+                            from account_voucher av
+                            join res_partner bp on (bp.id=av.partner_id)
+                            inner join account_voucher_line avl on av.id=avl.voucher_id
+                            inner join account_account aa on avl.account_id=aa.id
+                            inner join account_move am on (am.id=av.move_id)
+                            inner join account_move_line aml on (aml.move_id=av.move_id and aa.id = aml.account_id)
+                            where am.state = 'posted' and aa.name ~ 'TDS' and am.date between '%s' and '%s' 
+                            and bp.id = '%s'              
+                            )a
+                            order by a.ven_code,a.gl_doc
+                        '''%(date_from,date_to,vendor[0],tds[0],date_from,date_to,vendor[0])
                     self.cr.execute(sql)                    
                     return self.cr.dictfetchall()       
        
-              elif employee and code:
+              elif vendor and gl_accnt:
                     sql = '''
+                            Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                            a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
+                            a.tdsamount,a.ven_ref,a.gl_doc,a.sec
+                            from(
                             select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
                             case when am.doc_type ='sup_inv_po' then 'Supplier Invoice with PO' 
                             when am.doc_type ='ser_inv' then 'Service Invoice'
@@ -193,26 +256,49 @@ class Parser(report_sxw.rml_parse):
                             else '' end as officialwitholdingtax,null as witholdingtaxsectioon, ail.tds_id, 
                             ai.name as invoicedocno, ai.date_invoice as postingdate,
                             ai.bill_number as bill_no,ai.bill_date as bill_date,
-                            sum(ail.amount_basic) as base_amnt,at.name as tax_deduction,
-                            cast(round(sum(ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
+                            ail.amount_basic as base_amnt,at.name as tax_deduction,
+                            cast(round((ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount,                             
                             ai.vendor_ref as ven_ref, ai.number as gl_doc,at.section as sec
                             from account_invoice_line ail
                             join account_invoice ai on (ai.id=ail.invoice_id)
-                            join account_move am on (am.name=ai.number)
+                            inner join account_move am on (am.name=ai.number and ai.move_id = am.id)                            
                             join res_partner bp on (bp.id=ai.partner_id)
                             join account_tax at on (at.id=ail.tds_id)
                             where am.state = 'posted' and ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('ser_inv')
-                            and ai.date_invoice between '%s' and '%s' 
-                            and bp.id = '%s' and at.gl_account_id = '%s'
-                            group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id, 
-                            ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
-                            order by vendor_code
-                        '''%(date_from,date_to,employee[0],taxes_id[0])
+                            and am.date between '%s' and '%s' and bp.id = '%s' and at.gl_account_id = '%s'
+                            and cast(round((ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) <> 0                                                     
+                            
+                            union all
+
+                            select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
+                            case when av.type = 'receipt' then 'Receipt'
+                            when av.type = 'payment' then 'Payment'
+                            when av.type = 'sale' then 'Sale'
+                            when av.type = 'purhase' then 'Purhase' else '' end as officialwitholdingtax,
+                            null as witholdingtaxsection,null as tds_id,av.number,av.date,null as bill_number,null as bill_date,
+                            0.00 as base_amnt,null as tax_deduction,
+                            Case when aml.debit = '0.00' then aml.credit else -aml.debit end as tdsamount,
+                            null as ven_ref,null as gl_doc,null as sec
+                            from account_voucher av
+                            join res_partner bp on (bp.id=av.partner_id)
+                            inner join account_voucher_line avl on av.id=avl.voucher_id
+                            inner join account_account aa on avl.account_id=aa.id
+                            inner join account_move am on (am.id=av.move_id)
+                            inner join account_move_line aml on (aml.move_id=av.move_id and aa.id = aml.account_id)
+                            where am.state = 'posted' and aa.name ~ 'TDS' and am.date between '%s' and '%s' 
+                            and bp.id = '%s' and aa.id = '%s'              
+                            )a
+                            order by a.ven_code,a.gl_doc
+                        '''%(date_from,date_to,vendor[0],gl_accnt[0],date_from,date_to,vendor[0],gl_accnt[0])
                     self.cr.execute(sql)                    
                     return self.cr.dictfetchall()            
           
-              elif taxes_id and code:
+              elif tds and gl_accnt:
                     sql = '''
+                            Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                            a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
+                            a.tdsamount,a.ven_ref,a.gl_doc,a.sec
+                            from(
                             select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
                             case when am.doc_type ='sup_inv_po' then 'Supplier Invoice with PO' 
                             when am.doc_type ='ser_inv' then 'Service Invoice'
@@ -221,25 +307,49 @@ class Parser(report_sxw.rml_parse):
                             else '' end as officialwitholdingtax,null as witholdingtaxsectioon, ail.tds_id, 
                             ai.name as invoicedocno, ai.date_invoice as postingdate,
                             ai.bill_number as bill_no,ai.bill_date as bill_date,
-                            sum(ail.amount_basic) as base_amnt,at.name as tax_deduction,
-                            cast(round(sum(ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
+                            ail.amount_basic as base_amnt,at.name as tax_deduction,
+                            cast(round((ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
                             ai.vendor_ref as ven_ref, ai.number as gl_doc,at.section as sec
                             from account_invoice_line ail
                             join account_invoice ai on (ai.id=ail.invoice_id)
-                            join account_move am on (am.name=ai.number)
+                            inner join account_move am on (am.name=ai.number and ai.move_id = am.id)                            
                             join res_partner bp on (bp.id=ai.partner_id)
                             join account_tax at on (at.id=ail.tds_id)
                             where am.state = 'posted' and ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('ser_inv')
-                            and ai.date_invoice between '%s' and '%s' and at.id = '%s' and at.gl_account_id = '%s'
-                            group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id, 
-                            ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
-                            order by vendor_code
-                        '''%(date_from,date_to,taxes_id[0],code[0])
+                            and am.date between '%s' and '%s' and at.id = '%s' and at.gl_account_id = '%s'
+                            and cast(round((ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) <> 0                        
+
+                            union all
+
+                            select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
+                            case when av.type = 'receipt' then 'Receipt'
+                            when av.type = 'payment' then 'Payment'
+                            when av.type = 'sale' then 'Sale'
+                            when av.type = 'purhase' then 'Purhase' else '' end as officialwitholdingtax,
+                            null as witholdingtaxsection,null as tds_id,av.number,av.date,null as bill_number,null as bill_date,
+                            0.00 as base_amnt,null as tax_deduction,
+                            Case when aml.debit = '0.00' then aml.credit else -aml.debit end as tdsamount,
+                            null as ven_ref,null as gl_doc,null as sec
+                            from account_voucher av
+                            join res_partner bp on (bp.id=av.partner_id)
+                            inner join account_voucher_line avl on av.id=avl.voucher_id
+                            inner join account_account aa on avl.account_id=aa.id
+                            inner join account_move am on (am.id=av.move_id)
+                            inner join account_move_line aml on (aml.move_id=av.move_id and aa.id = aml.account_id)
+                            where am.state = 'posted' and aa.name ~ 'TDS' and am.date between '%s' and '%s' 
+                            and aa.id = '%s'              
+                            )a
+                            order by a.ven_code,a.gl_doc
+                        '''%(date_from,date_to,tds[0],gl_accnt[0],date_from,date_to,gl_accnt[0])
                     self.cr.execute(sql)                    
                     return self.cr.dictfetchall()           
                      
-              elif employee:
+              elif vendor:
                 sql = '''
+                        Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                        a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
+                        a.tdsamount,a.ven_ref,a.gl_doc,a.sec
+                        from(
                         select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
                         case when am.doc_type ='sup_inv_po' then 'Supplier Invoice with PO' 
                         when am.doc_type ='ser_inv' then 'Service Invoice'
@@ -248,25 +358,48 @@ class Parser(report_sxw.rml_parse):
                         else '' end as officialwitholdingtax,null as witholdingtaxsectioon, ail.tds_id, 
                         ai.name as invoicedocno, ai.date_invoice as postingdate,
                         ai.bill_number as bill_no,ai.bill_date as bill_date,
-                        sum(ail.amount_basic) as base_amnt,at.name as tax_deduction,
-                        cast(round(sum(ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
+                        ail.amount_basic as base_amnt,at.name as tax_deduction,
+                        cast(round((ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
                         ai.vendor_ref as ven_ref, ai.number as gl_doc,at.section as sec
                         from account_invoice_line ail
                         join account_invoice ai on (ai.id=ail.invoice_id)
-                        join account_move am on (am.name=ai.number)
+                        inner join account_move am on (am.name=ai.number and ai.move_id = am.id)                        
                         join res_partner bp on (bp.id=ai.partner_id)
                         join account_tax at on (at.id=ail.tds_id)
                         where am.state = 'posted' and ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('ser_inv')
-                        and ai.date_invoice between '%s' and '%s' and bp.id = '%s'
-                        group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id, 
-                        ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
-                        order by vendor_code
-                    '''%(date_from,date_to,employee[0])
+                        and am.date between '%s' and '%s' and bp.id = '%s' 
+                        and cast(round((ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) <> 0                       
+
+                        union all
+
+                        select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
+                        case when av.type = 'receipt' then 'Receipt'
+                        when av.type = 'payment' then 'Payment'
+                        when av.type = 'sale' then 'Sale'
+                        when av.type = 'purhase' then 'Purhase' else '' end as officialwitholdingtax,
+                        null as witholdingtaxsection,null as tds_id,av.number,av.date,null as bill_number,null as bill_date,
+                        0.00 as base_amnt,null as tax_deduction,
+                        Case when aml.debit = '0.00' then aml.credit else -aml.debit end as tdsamount,null as ven_ref,null as gl_doc,null as sec
+                        from account_voucher av
+                        join res_partner bp on (bp.id=av.partner_id)
+                        inner join account_voucher_line avl on av.id=avl.voucher_id
+                        inner join account_account aa on avl.account_id=aa.id
+                        inner join account_move am on (am.id=av.move_id)
+                        inner join account_move_line aml on (aml.move_id=av.move_id and aa.id = aml.account_id)
+                        where am.state = 'posted' and aa.name ~ 'TDS' and am.date between '%s' and '%s' 
+                        and bp.id = '%s'             
+                        )a
+                        order by a.ven_code,a.gl_doc 
+                    '''%(date_from,date_to,vendor[0],date_from,date_to,vendor[0])
                 self.cr.execute(sql)                
                 return self.cr.dictfetchall()
             
-              elif taxes_id:
+              elif tds:
                 sql = '''
+                        Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                        a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
+                        a.tdsamount,a.ven_ref,a.gl_doc,a.sec
+                        from(
                         select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
                         case when am.doc_type ='sup_inv_po' then 'Supplier Invoice with PO' 
                         when am.doc_type ='ser_inv' then 'Service Invoice'
@@ -275,25 +408,48 @@ class Parser(report_sxw.rml_parse):
                         else '' end as officialwitholdingtax,null as witholdingtaxsectioon, ail.tds_id, 
                         ai.name as invoicedocno, ai.date_invoice as postingdate,
                         ai.bill_number as bill_no,ai.bill_date as bill_date,
-                        sum(ail.amount_basic) as base_amnt,at.name as tax_deduction,
-                        cast(round(sum(ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
+                        ail.amount_basic as base_amnt,at.name as tax_deduction,
+                        cast(round((ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
                         ai.vendor_ref as ven_ref, ai.number as gl_doc,at.section as sec
                         from account_invoice_line ail
                         join account_invoice ai on (ai.id=ail.invoice_id)
-                        join account_move am on (am.name=ai.number)
+                        inner join account_move am on (am.name=ai.number and ai.move_id = am.id)                        
                         join res_partner bp on (bp.id=ai.partner_id)
                         join account_tax at on (at.id=ail.tds_id)
                         where am.state = 'posted' and ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('ser_inv')
-                        and ai.date_invoice between '%s' and '%s' and at.id = '%s'
-                        group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id, 
-                        ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
-                        order by vendor_code
-                    '''%(date_from,date_to,taxes_id[0])
+                        and am.date between '%s' and '%s' and at.id = '%s' 
+                        and cast(round((ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) <> 0                       
+
+                        union all
+
+                        select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
+                        case when av.type = 'receipt' then 'Receipt'
+                        when av.type = 'payment' then 'Payment'
+                        when av.type = 'sale' then 'Sale'
+                        when av.type = 'purhase' then 'Purhase' else '' end as officialwitholdingtax,
+                        null as witholdingtaxsection,null as tds_id,av.number,av.date,null as bill_number,null as bill_date,
+                        0.00 as base_amnt,null as tax_deduction,
+                        Case when aml.debit = '0.00' then aml.credit else -aml.debit end as tdsamount,
+                        null as ven_ref,null as gl_doc,null as sec
+                        from account_voucher av
+                        join res_partner bp on (bp.id=av.partner_id)
+                        inner join account_voucher_line avl on av.id=avl.voucher_id
+                        inner join account_account aa on avl.account_id=aa.id
+                        inner join account_move am on (am.id=av.move_id)
+                        inner join account_move_line aml on (aml.move_id=av.move_id and aa.id = aml.account_id)
+                        where am.state = 'posted' and aa.name ~ 'TDS' and am.date between '%s' and '%s'
+                        )a
+                        order by a.ven_code,a.gl_doc
+                    '''%(date_from,date_to,tds[0],date_from,date_to)
                 self.cr.execute(sql)                
-                return self.cr.dictfetchall() 
+                return self.cr.dictfetchall()
             
-              elif code:
+              elif gl_accnt:
                 sql = '''
+                        Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                        a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
+                        a.tdsamount,a.ven_ref,a.gl_doc,a.sec
+                        from(
                         select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
                         case when am.doc_type ='sup_inv_po' then 'Supplier Invoice with PO' 
                         when am.doc_type ='ser_inv' then 'Service Invoice'
@@ -302,25 +458,48 @@ class Parser(report_sxw.rml_parse):
                         else '' end as officialwitholdingtax,null as witholdingtaxsectioon, ail.tds_id, 
                         ai.name as invoicedocno, ai.date_invoice as postingdate,
                         ai.bill_number as bill_no,ai.bill_date as bill_date,
-                        sum(ail.amount_basic) as base_amnt,at.name as tax_deduction,
-                        cast(round(sum(ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
+                        ail.amount_basic as base_amnt,at.name as tax_deduction,
+                        cast(round((ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount,
                         ai.vendor_ref as ven_ref, ai.number as gl_doc,at.section as sec
                         from account_invoice_line ail
                         join account_invoice ai on (ai.id=ail.invoice_id)
-                        join account_move am on (am.name=ai.number)
+                        inner join account_move am on (am.name=ai.number and ai.move_id = am.id)
                         join res_partner bp on (bp.id=ai.partner_id)
                         join account_tax at on (at.id=ail.tds_id)
                         where am.state = 'posted' and ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('ser_inv')
-                        and ai.date_invoice between '%s' and '%s' and at.gl_account_id = '%s'
-                        group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id, 
-                        ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
-                        order by vendor_code
-                    '''%(date_from,date_to,code[0])
+                        and am.date between '%s' and '%s' and at.gl_account_id = '%s'
+                        and cast(round((ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) <> 0                     
+                        
+                        union all
+
+                        select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
+                        case when av.type = 'receipt' then 'Receipt'
+                        when av.type = 'payment' then 'Payment'
+                        when av.type = 'sale' then 'Sale'
+                        when av.type = 'purhase' then 'Purhase' else '' end as officialwitholdingtax,
+                        null as witholdingtaxsection,null as tds_id,av.number,av.date,null as bill_number,null as bill_date,
+                        0.00 as base_amnt,null as tax_deduction,
+                        Case when aml.debit = '0.00' then aml.credit else -aml.debit end as tdsamount,
+                        null as ven_ref,null as gl_doc,null as sec
+                        from account_voucher av
+                        join res_partner bp on (bp.id=av.partner_id)
+                        inner join account_voucher_line avl on av.id=avl.voucher_id
+                        inner join account_account aa on avl.account_id=aa.id
+                        inner join account_move am on (am.id=av.move_id)
+                        inner join account_move_line aml on (aml.move_id=av.move_id and aa.id = aml.account_id)
+                        where am.state = 'posted' and aa.name ~ 'TDS' and am.date between '%s' and '%s' and aa.id = '%s'
+                        )a
+                        order by a.ven_code,a.gl_doc
+                    '''%(date_from,date_to,gl_accnt[0],date_from,date_to,gl_accnt[0])
                 self.cr.execute(sql)                
-                return self.cr.dictfetchall()          
+                return self.cr.dictfetchall()         
             
               else:
                 sql = '''
+                            Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                            a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
+                            a.tdsamount,a.ven_ref,a.gl_doc,a.sec
+                            from(
                             select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
                             case when am.doc_type ='sup_inv_po' then 'Supplier Invoice with PO' 
                             when am.doc_type ='ser_inv' then 'Service Invoice'
@@ -329,56 +508,101 @@ class Parser(report_sxw.rml_parse):
                             else '' end as officialwitholdingtax,null as witholdingtaxsectioon, ail.tds_id, 
                             ai.name as invoicedocno, ai.date_invoice as postingdate,
                             ai.bill_number as bill_no,ai.bill_date as bill_date,
-                            sum(ail.amount_basic) as base_amnt,at.name as tax_deduction,
-                            cast(round(sum(ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
+                            ail.amount_basic as base_amnt,at.name as tax_deduction,
+                            cast(round((ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
                             ai.vendor_ref as ven_ref, ai.number as gl_doc,at.section as sec
                             from account_invoice_line ail
                             join account_invoice ai on (ai.id=ail.invoice_id)
-                            join account_move am on (am.name=ai.number)
+                            inner join account_move am on (am.name=ai.number and ai.move_id = am.id)                            
                             join res_partner bp on (bp.id=ai.partner_id)
                             join account_tax at on (at.id=ail.tds_id)
                             where am.state = 'posted' and ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('ser_inv')
-                            and ai.date_invoice between '%s' and '%s'
-                            group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id, 
-                            ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
-                            order by vendor_code
-                        '''%(date_from,date_to)
+                            and am.date between '%s' and '%s' and cast(round((ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) <> 0
+
+                            union all
+
+                            select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
+                            case when av.type = 'receipt' then 'Receipt'
+                            when av.type = 'payment' then 'Payment'
+                            when av.type = 'sale' then 'Sale'
+                            when av.type = 'purhase' then 'Purhase' else '' end as officialwitholdingtax,
+                            null as witholdingtaxsection,null as tds_id,av.number,av.date,null as bill_number,null as bill_date,
+                            0.00 as base_amnt,null as tax_deduction,
+                            Case when aml.debit = '0.00' then aml.credit else -aml.debit end as tdsamount,
+                            null as ven_ref,null as gl_doc,null as sec
+                            from account_voucher av
+                            join res_partner bp on (bp.id=av.partner_id)
+                            inner join account_voucher_line avl on av.id=avl.voucher_id
+                            inner join account_account aa on avl.account_id=aa.id
+                            inner join account_move am on (am.id=av.move_id)
+                            inner join account_move_line aml on (aml.move_id=av.move_id and aa.id = aml.account_id)
+                            where am.state = 'posted' and aa.name ~ 'TDS' and am.date between '%s' and '%s'
+                            )a
+                            order by a.ven_code,a.gl_doc
+                        '''%(date_from,date_to,date_from,date_to)
                 self.cr.execute(sql)                
                 return self.cr.dictfetchall()
         ##ser_invend
             
         ##sup_inv
-        elif invoice_type == 'sup_inv':
-              if employee and taxes_id and code:
+        elif invoicetype == 'sup_inv':
+              if vendor and tds and gl_accnt:
                     sql = '''
+                            Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                            a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
+                            a.tdsamount,a.ven_ref,a.gl_doc,a.sec
+                            from(
                             select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
                             case when am.doc_type ='sup_inv_po' then 'Supplier Invoice with PO' 
                             when am.doc_type ='ser_inv' then 'Service Invoice'
                             when am.doc_type ='sup_inv' then 'Supplier Invoice Without PO' 
                             when am.doc_type ='freight' then 'Freight Invoice'
-                            else '' end as officialwitholdingtax,null as witholdingtaxsectioon, ail.tds_id, 
+                            else '' end as officialwitholdingtax,null as witholdingtaxsectioon, ail.tds_id,
                             ai.name as invoicedocno, ai.date_invoice as postingdate,
                             ai.bill_number as bill_no,ai.bill_date as bill_date,
-                            sum(ail.amount_basic) as base_amnt,at.name as tax_deduction,
-                            cast(round(sum(ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
+                            ail.amount_basic as base_amnt,at.name as tax_deduction,
+                            cast(round((ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount,  
                             ai.vendor_ref as ven_ref, ai.number as gl_doc,at.section as sec
                             from account_invoice_line ail
                             join account_invoice ai on (ai.id=ail.invoice_id)
-                            join account_move am on (am.name=ai.number)
+                            inner join account_move am on (am.name=ai.number and ai.move_id = am.id)                            
                             join res_partner bp on (bp.id=ai.partner_id)
                             join account_tax at on (at.id=ail.tds_id)
                             where am.state = 'posted' and ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('sup_inv')
-                            and ai.date_invoice between '%s' and '%s' and bp.id = '%s' 
-                            and at.id = '%s' and at.gl_account_id = '%s'
-                            group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id, 
-                            ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
-                            order by vendor_code
-                        '''%(date_from,date_to,employee[0],taxes_id[0],code[0])
+                            and am.date between '%s' and '%s' and bp.id = '%s' 
+                            and at.id = '%s' and at.gl_account_id = '%s' and cast(round((ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) <> 0                            
+                              
+                            union all
+  
+                            select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
+                            case when av.type = 'receipt' then 'Receipt'
+                            when av.type = 'payment' then 'Payment'
+                            when av.type = 'sale' then 'Sale'
+                            when av.type = 'purhase' then 'Purhase' else '' end as officialwitholdingtax,
+                            null as witholdingtaxsection,null as tds_id,av.number,av.date,null as bill_number,null as bill_date,
+                            0.00 as base_amnt,null as tax_deduction,
+                            Case when aml.debit = '0.00' then aml.credit else -aml.debit end as tdsamount,
+                            null as ven_ref,null as gl_doc,null as sec
+                            from account_voucher av
+                            join res_partner bp on (bp.id=av.partner_id)
+                            inner join account_voucher_line avl on av.id=avl.voucher_id
+                            inner join account_account aa on avl.account_id=aa.id
+                            inner join account_move am on (am.id=av.move_id)
+                            inner join account_move_line aml on (aml.move_id=av.move_id and aa.id = aml.account_id)
+                            where am.state = 'posted' and aa.name ~ 'TDS' and am.date between '%s' and '%s' 
+                            and bp.id = '%s' and aa.id = '%s'              
+                            )a
+                            order by a.ven_code,a.gl_doc                              
+                        '''%(date_from,date_to,vendor[0],tds[0],gl_accnt[0],date_from,date_to,vendor[0],gl_accnt[0])
                     self.cr.execute(sql)                    
                     return self.cr.dictfetchall()
-            
-              elif employee and taxes_id:
+                
+              elif vendor and tds:
                     sql = '''
+                            Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                            a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
+                            a.tdsamount,a.ven_ref,a.gl_doc,a.sec
+                            from(
                             select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
                             case when am.doc_type ='sup_inv_po' then 'Supplier Invoice with PO' 
                             when am.doc_type ='ser_inv' then 'Service Invoice'
@@ -387,26 +611,48 @@ class Parser(report_sxw.rml_parse):
                             else '' end as officialwitholdingtax,null as witholdingtaxsectioon, ail.tds_id, 
                             ai.name as invoicedocno, ai.date_invoice as postingdate,
                             ai.bill_number as bill_no,ai.bill_date as bill_date,
-                            sum(ail.amount_basic) as base_amnt,at.name as tax_deduction,
-                            cast(round(sum(ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
+                            ail.amount_basic as base_amnt,at.name as tax_deduction,
+                            cast(round((ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
                             ai.vendor_ref as ven_ref, ai.number as gl_doc,at.section as sec
                             from account_invoice_line ail
                             join account_invoice ai on (ai.id=ail.invoice_id)
-                            join account_move am on (am.name=ai.number)
+                            inner join account_move am on (am.name=ai.number and ai.move_id = am.id)                            
                             join res_partner bp on (bp.id=ai.partner_id)
                             join account_tax at on (at.id=ail.tds_id)
                             where am.state = 'posted' and ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('sup_inv')
-                            and ai.date_invoice between '%s' and '%s' 
-                            and bp.id = '%s' and at.id = '%s'
-                            group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id, 
-                            ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
-                            order by vendor_code
-                        '''%(date_from,date_to,employee[0],taxes_id[0])
-                    self.cr.execute(sql)                    
-                    return self.cr.dictfetchall()       
-       
-              elif employee and code:
+                            and am.date between '%s' and '%s' and bp.id = '%s' and at.id = '%s'
+                            and cast(round((ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) <> 0                            
+  
+                            union all
+  
+                            select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
+                            case when av.type = 'receipt' then 'Receipt'
+                            when av.type = 'payment' then 'Payment'
+                            when av.type = 'sale' then 'Sale'
+                            when av.type = 'purhase' then 'Purhase' else '' end as officialwitholdingtax,
+                            null as witholdingtaxsection,null as tds_id,av.number,av.date,null as bill_number,null as bill_date,
+                            0.00 as base_amnt,null as tax_deduction,
+                            Case when aml.debit = '0.00' then aml.credit else -aml.debit end as tdsamount,null as ven_ref,null as gl_doc,null as sec
+                            from account_voucher av
+                            join res_partner bp on (bp.id=av.partner_id)
+                            inner join account_voucher_line avl on av.id=avl.voucher_id
+                            inner join account_account aa on avl.account_id=aa.id
+                            inner join account_move am on (am.id=av.move_id)
+                            inner join account_move_line aml on (aml.move_id=av.move_id and aa.id = aml.account_id)
+                            where am.state = 'posted' and aa.name ~ 'TDS' and am.date between '%s' and '%s' 
+                            and bp.id = '%s'              
+                            )a
+                            order by a.ven_code,a.gl_doc
+                        '''%(date_from,date_to,vendor[0],tds[0],date_from,date_to,vendor[0])
+                    slf.cr.execute(sql)                    
+                    return self.cr.dictfetchall()
+                
+              elif vendor and gl_accnt:
                     sql = '''
+                            Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                            a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
+                            a.tdsamount,a.ven_ref,a.gl_doc,a.sec
+                            from(
                             select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
                             case when am.doc_type ='sup_inv_po' then 'Supplier Invoice with PO' 
                             when am.doc_type ='ser_inv' then 'Service Invoice'
@@ -415,25 +661,48 @@ class Parser(report_sxw.rml_parse):
                             else '' end as officialwitholdingtax,null as witholdingtaxsectioon, ail.tds_id, 
                             ai.name as invoicedocno, ai.date_invoice as postingdate,
                             ai.bill_number as bill_no,ai.bill_date as bill_date,
-                            sum(ail.amount_basic) as base_amnt,at.name as tax_deduction,
+                            ail.amount_basic as base_amnt,at.name as tax_deduction,
                             cast(round(sum(ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
                             ai.vendor_ref as ven_ref, ai.number as gl_doc,at.section as sec
                             from account_invoice_line ail
+                            from account_invoice_line ail
                             join account_invoice ai on (ai.id=ail.invoice_id)
-                            join account_move am on (am.name=ai.number)
+                            inner join account_move am on (am.name=ai.number and ai.move_id = am.id)                            
                             join res_partner bp on (bp.id=ai.partner_id)
                             join account_tax at on (at.id=ail.tds_id)
                             where am.state = 'posted' and ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('sup_inv')
-                            and ai.date_invoice between '%s' and '%s' and bp.id = '%s' and at.gl_account_id = '%s'
-                            group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id, 
-                            ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
-                            order by vendor_code
-                        '''%(date_from,date_to,employee[0],code[0])
+                            and am.date between '%s' and '%s' and bp.id = '%s' and at.gl_account_id = '%s'
+                            and cast(round((ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) <> 0                                                        
+                              
+                            union all
+  
+                            select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
+                            case when av.type = 'receipt' then 'Receipt'
+                            when av.type = 'payment' then 'Payment'
+                            when av.type = 'sale' then 'Sale'
+                            when av.type = 'purhase' then 'Purhase' else '' end as officialwitholdingtax,
+                            null as witholdingtaxsection,null as tds_id,av.number,av.date,null as bill_number,null as bill_date,
+                            0.00 as base_amnt,null as tax_deduction,Case when sum(aml.debit) = '0.00' then sum(aml.credit) else -sum(aml.debit) end as tdsamount,null as ven_ref,null as gl_doc,null as sec
+                            from account_voucher av
+                            join res_partner bp on (bp.id=av.partner_id)
+                            inner join account_voucher_line avl on av.id=avl.voucher_id
+                            inner join account_account aa on avl.account_id=aa.id
+                            inner join account_move am on (am.id=av.move_id)
+                            inner join account_move_line aml on (aml.move_id=av.move_id and aa.id = aml.account_id)
+                            where am.state = 'posted' and aa.name ~ 'TDS' and am.date between '%s' and '%s' 
+                            and bp.id = '%s' and aa.id = '%s'            
+                            )a
+                            order by a.ven_code,a.gl_doc
+                        '''%(date_from,date_to,vendor[0],gl_accnt[0],date_from,date_to,vendor[0],gl_accnt[0])
                     self.cr.execute(sql)                    
-                    return self.cr.dictfetchall()            
-          
-              elif taxes_id and code:
+                    return self.cr.dictfetchall()
+                
+              elif tds and gl_accnt:
                     sql = '''
+                            Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                            a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
+                            a.tdsamount,a.ven_ref,a.gl_doc,a.sec
+                            from(
                             select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
                             case when am.doc_type ='sup_inv_po' then 'Supplier Invoice with PO' 
                             when am.doc_type ='ser_inv' then 'Service Invoice'
@@ -442,165 +711,300 @@ class Parser(report_sxw.rml_parse):
                             else '' end as officialwitholdingtax,null as witholdingtaxsectioon, ail.tds_id, 
                             ai.name as invoicedocno, ai.date_invoice as postingdate,
                             ai.bill_number as bill_no,ai.bill_date as bill_date,
-                            sum(ail.amount_basic) as base_amnt,at.name as tax_deduction,
-                            cast(round(sum(ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
+                            ail.amount_basic as base_amnt,at.name as tax_deduction,
+                            cast(round((ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
                             ai.vendor_ref as ven_ref, ai.number as gl_doc,at.section as sec
                             from account_invoice_line ail
                             join account_invoice ai on (ai.id=ail.invoice_id)
-                            join account_move am on (am.name=ai.number)
+                            inner join account_move am on (am.name=ai.number and ai.move_id = am.id)                            
                             join res_partner bp on (bp.id=ai.partner_id)
                             join account_tax at on (at.id=ail.tds_id)
                             where am.state = 'posted' and ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('sup_inv')
-                            and ai.date_invoice between '%s' and '%s' and at.id = '%s' and at.gl_account_id = '%s'
-                            group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id, 
-                            ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
-                            order by vendor_code
-                        '''%(date_from,date_to,taxes_id[0],code[0])
+                            and am.date between '%s' and '%s' and at.id = '%s' and at.gl_account_id = '%s'
+                            and cast(round((ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) <> 0                        
+  
+                            union all
+  
+                            select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
+                            case when av.type = 'receipt' then 'Receipt'
+                            when av.type = 'payment' then 'Payment'
+                            when av.type = 'sale' then 'Sale'
+                            when av.type = 'purhase' then 'Purhase' else '' end as officialwitholdingtax,
+                            null as witholdingtaxsection,null as tds_id,av.number,av.date,null as bill_number,null as bill_date,
+                            0.00 as base_amnt,null as tax_deduction,
+                            Case when aml.debit = '0.00' then aml.credit else -aml.debit end as tdsamount,
+                            null as ven_ref,null as gl_doc,null as sec
+                            from account_voucher av
+                            join res_partner bp on (bp.id=av.partner_id)
+                            inner join account_voucher_line avl on av.id=avl.voucher_id
+                            inner join account_account aa on avl.account_id=aa.id
+                            inner join account_move am on (am.id=av.move_id)
+                            inner join account_move_line aml on (aml.move_id=av.move_id and aa.id = aml.account_id)
+                            where am.state = 'posted' and aa.name ~ 'TDS' and am.date between '%s' and '%s' 
+                            and aa.id = '%s'              
+                            )a
+                            order by a.ven_code,a.gl_doc
+                        '''%(date_from,date_to,tds[0],gl_accnt[0],date_from,date_to,gl_accnt[0])
                     self.cr.execute(sql)                    
-                    return self.cr.dictfetchall()           
-                     
-              elif employee:
-                sql = '''
-                        select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
-                        case when am.doc_type ='sup_inv_po' then 'Supplier Invoice with PO' 
-                        when am.doc_type ='ser_inv' then 'Service Invoice'
-                        when am.doc_type ='sup_inv' then 'Supplier Invoice Without PO' 
-                        when am.doc_type ='freight' then 'Freight Invoice'
-                        else '' end as officialwitholdingtax,null as witholdingtaxsectioon, ail.tds_id, 
-                        ai.name as invoicedocno, ai.date_invoice as postingdate,
-                        ai.bill_number as bill_no,ai.bill_date as bill_date,
-                        sum(ail.amount_basic) as base_amnt,at.name as tax_deduction,
-                        cast(round(sum(ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
-                        ai.vendor_ref as ven_ref, ai.number as gl_doc,at.section as sec
-                        from account_invoice_line ail
-                        join account_invoice ai on (ai.id=ail.invoice_id)
-                        join account_move am on (am.name=ai.number)
-                        join res_partner bp on (bp.id=ai.partner_id)
-                        join account_tax at on (at.id=ail.tds_id)
-                        where am.state = 'posted' and ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('sup_inv')
-                        and ai.date_invoice between '%s' and '%s' and bp.id = '%s'
-                        group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id, 
-                        ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
-                        order by vendor_code
-                    '''%(date_from,date_to,employee[0])
-                self.cr.execute(sql)                
-                return self.cr.dictfetchall()
-            
-              elif taxes_id:
-                sql = '''
-                        select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
-                        case when am.doc_type ='sup_inv_po' then 'Supplier Invoice with PO' 
-                        when am.doc_type ='ser_inv' then 'Service Invoice'
-                        when am.doc_type ='sup_inv' then 'Supplier Invoice Without PO' 
-                        when am.doc_type ='freight' then 'Freight Invoice'
-                        else '' end as officialwitholdingtax,null as witholdingtaxsectioon, ail.tds_id, 
-                        ai.name as invoicedocno, ai.date_invoice as postingdate,
-                        ai.bill_number as bill_no,ai.bill_date as bill_date,
-                        sum(ail.amount_basic) as base_amnt,at.name as tax_deduction,
-                        cast(round(sum(ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
-                        ai.vendor_ref as ven_ref, ai.number as gl_doc,at.section as sec
-                        from account_invoice_line ail
-                        join account_invoice ai on (ai.id=ail.invoice_id)
-                        join account_move am on (am.name=ai.number)
-                        join res_partner bp on (bp.id=ai.partner_id)
-                        join account_tax at on (at.id=ail.tds_id)
-                        where am.state = 'posted' and ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('sup_inv')
-                        and ai.date_invoice between '%s' and '%s' and at.id = '%s'
-                        group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id, 
-                        ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
-                        order by vendor_code
-                    '''%(date_from,date_to,taxes_id[0])
-                self.cr.execute(sql)                
-                return self.cr.dictfetchall() 
-            
-              elif code:
-                sql = '''
-                        select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
-                        case when am.doc_type ='sup_inv_po' then 'Supplier Invoice with PO' 
-                        when am.doc_type ='ser_inv' then 'Service Invoice'
-                        when am.doc_type ='sup_inv' then 'Supplier Invoice Without PO' 
-                        when am.doc_type ='freight' then 'Freight Invoice'
-                        else '' end as officialwitholdingtax,null as witholdingtaxsectioon, ail.tds_id, 
-                        ai.name as invoicedocno, ai.date_invoice as postingdate,
-                        ai.bill_number as bill_no,ai.bill_date as bill_date,
-                        sum(ail.amount_basic) as base_amnt,at.name as tax_deduction,
-                        cast(round(sum(ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
-                        ai.vendor_ref as ven_ref, ai.number as gl_doc,at.section as sec
-                        from account_invoice_line ail
-                        join account_invoice ai on (ai.id=ail.invoice_id)
-                        join account_move am on (am.name=ai.number)
-                        join res_partner bp on (bp.id=ai.partner_id)
-                        join account_tax at on (at.id=ail.tds_id)
-                        where am.state = 'posted' and ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('sup_inv')
-                        and ai.date_invoice between '%s' and '%s' and at.gl_account_id = '%s'
-                        group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id, 
-                        ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
-                        order by vendor_code
-                    '''%(date_from,date_to,code[0])
-                self.cr.execute(sql)                
-                return self.cr.dictfetchall()          
-            
+                    return self.cr.dictfetchall()
+                
+              elif vendor:
+                    sql = '''
+                            Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                            a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
+                            a.tdsamount,a.ven_ref,a.gl_doc,a.sec
+                            from(
+                            select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
+                            case when am.doc_type ='sup_inv_po' then 'Supplier Invoice with PO' 
+                            when am.doc_type ='ser_inv' then 'Service Invoice'
+                            when am.doc_type ='sup_inv' then 'Supplier Invoice Without PO' 
+                            when am.doc_type ='freight' then 'Freight Invoice'
+                            else '' end as officialwitholdingtax,null as witholdingtaxsectioon, ail.tds_id, 
+                            ai.name as invoicedocno, ai.date_invoice as postingdate,
+                            ai.bill_number as bill_no,ai.bill_date as bill_date,
+                            ail.amount_basic as base_amnt,at.name as tax_deduction,
+                            cast(round((ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount,
+                            ai.vendor_ref as ven_ref, ai.number as gl_doc,at.section as sec
+                            from account_invoice_line ail
+                            join account_invoice ai on (ai.id=ail.invoice_id)
+                            inner join account_move am on (am.name=ai.number and ai.move_id = am.id)                            
+                            join res_partner bp on (bp.id=ai.partner_id)
+                            join account_tax at on (at.id=ail.tds_id)
+                            where am.state = 'posted' and ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('sup_inv')
+                            and am.date between '%s' and '%s' and bp.id = '%s'
+                            and cast(round((ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) <> 0                          
+      
+                            union all
+      
+                            select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
+                            case when av.type = 'receipt' then 'Receipt'
+                            when av.type = 'payment' then 'Payment'
+                            when av.type = 'sale' then 'Sale'
+                            when av.type = 'purhase' then 'Purhase' else '' end as officialwitholdingtax,
+                            null as witholdingtaxsection,null as tds_id,av.number,av.date,null as bill_number,null as bill_date,
+                            0.00 as base_amnt,null as tax_deduction,
+                            Case when aml.debit = '0.00' then aml.credit else -aml.debit end as tdsamount,null as ven_ref,null as gl_doc,null as sec
+                            from account_voucher av
+                            join res_partner bp on (bp.id=av.partner_id)
+                            inner join account_voucher_line avl on av.id=avl.voucher_id
+                            inner join account_account aa on avl.account_id=aa.id
+                            inner join account_move am on (am.id=av.move_id)
+                            inner join account_move_line aml on (aml.move_id=av.move_id and aa.id = aml.account_id)
+                            where am.state = 'posted' and aa.name ~ 'TDS' and am.date between '%s' and '%s' 
+                            and bp.id = '%s'             
+                            )a
+                            order by a.ven_code,a.gl_doc
+                        '''%(date_from,date_to,vendor[0],date_from,date_to,vendor[0])
+                    self.cr.execute(sql)                
+                    return self.cr.dictfetchall()
+                
+              elif tds:
+                    sql = '''
+                            Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                            a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
+                            a.tdsamount,a.ven_ref,a.gl_doc,a.sec
+                            from(
+                            select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
+                            case when am.doc_type ='sup_inv_po' then 'Supplier Invoice with PO' 
+                            when am.doc_type ='ser_inv' then 'Service Invoice'
+                            when am.doc_type ='sup_inv' then 'Supplier Invoice Without PO' 
+                            when am.doc_type ='freight' then 'Freight Invoice'
+                            else '' end as officialwitholdingtax,null as witholdingtaxsectioon, ail.tds_id, 
+                            ai.name as invoicedocno, ai.date_invoice as postingdate,
+                            ai.bill_number as bill_no,ai.bill_date as bill_date,
+                            ail.amount_basic as base_amnt,at.name as tax_deduction,
+                            cast(round((ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
+                            ai.vendor_ref as ven_ref, ai.number as gl_doc,at.section as sec
+                            from account_invoice_line ail
+                            join account_invoice ai on (ai.id=ail.invoice_id)
+                            inner join account_move am on (am.name=ai.number and ai.move_id = am.id)                            
+                            join res_partner bp on (bp.id=ai.partner_id)
+                            join account_tax at on (at.id=ail.tds_id)
+                            where am.state = 'posted' and ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('sup_inv')
+                            and am.date between '%s' and '%s' and at.id = '%s'
+                            and cast(round((ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) <> 0
+                            
+                            union all
+      
+                            select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
+                            case when av.type = 'receipt' then 'Receipt'
+                            when av.type = 'payment' then 'Payment'
+                            when av.type = 'sale' then 'Sale'
+                            when av.type = 'purhase' then 'Purhase' else '' end as officialwitholdingtax,
+                            null as witholdingtaxsection,null as tds_id,av.number,av.date,null as bill_number,null as bill_date,
+                            0.00 as base_amnt,null as tax_deduction,
+                            Case when aml.debit = '0.00' then aml.credit else -aml.debit end as tdsamount,null as ven_ref,null as gl_doc,null as sec
+                            from account_voucher av
+                            join res_partner bp on (bp.id=av.partner_id)
+                            inner join account_voucher_line avl on av.id=avl.voucher_id
+                            inner join account_account aa on avl.account_id=aa.id
+                            inner join account_move am on (am.id=av.move_id)
+                            inner join account_move_line aml on (aml.move_id=av.move_id and aa.id = aml.account_id)
+                            where am.state = 'posted' and aa.name ~ 'TDS' and am.date between '%s' and '%s'
+                            )a
+                            order by a.ven_code,a.gl_doc
+                        '''%(date_from,date_to,tds[0],date_from,date_to)
+                    self.cr.execute(sql)                
+                    return self.cr.dictfetchall()
+                
+              elif gl_accnt:
+                    sql = '''
+                            Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                            a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
+                            a.tdsamount,a.ven_ref,a.gl_doc,a.sec
+                            from(
+                            select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
+                            case when am.doc_type ='sup_inv_po' then 'Supplier Invoice with PO' 
+                            when am.doc_type ='ser_inv' then 'Service Invoice'
+                            when am.doc_type ='sup_inv' then 'Supplier Invoice Without PO' 
+                            when am.doc_type ='freight' then 'Freight Invoice'
+                            else '' end as officialwitholdingtax,null as witholdingtaxsectioon, ail.tds_id, 
+                            ai.name as invoicedocno, ai.date_invoice as postingdate,
+                            ai.bill_number as bill_no,ai.bill_date as bill_date,
+                            ail.amount_basic as base_amnt,at.name as tax_deduction,
+                            cast(round((ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
+                            ai.vendor_ref as ven_ref, ai.number as gl_doc,at.section as sec
+                            from account_invoice_line ail
+                            join account_invoice ai on (ai.id=ail.invoice_id)
+                            inner join account_move am on (am.name=ai.number and ai.move_id = am.id)                            
+                            join res_partner bp on (bp.id=ai.partner_id)
+                            join account_tax at on (at.id=ail.tds_id)
+                            where am.state = 'posted' and ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('sup_inv')
+                            and am.date between '%s' and '%s' and at.gl_account_id = '%s'
+                            and cast(round((ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) <> 0
+                                                          
+                            union all
+      
+                            select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
+                            case when av.type = 'receipt' then 'Receipt'
+                            when av.type = 'payment' then 'Payment'
+                            when av.type = 'sale' then 'Sale'
+                            when av.type = 'purhase' then 'Purhase' else '' end as officialwitholdingtax,
+                            null as witholdingtaxsection,null as tds_id,av.number,av.date,null as bill_number,null as bill_date,
+                            0.00 as base_amnt,null as tax_deduction,
+                            Case when aml.debit = '0.00' then aml.credit else -aml.debit end as tdsamount,null as ven_ref,null as gl_doc,null as sec
+                            from account_voucher av
+                            join res_partner bp on (bp.id=av.partner_id)
+                            inner join account_voucher_line avl on av.id=avl.voucher_id
+                            inner join account_account aa on avl.account_id=aa.id
+                            inner join account_move am on (am.id=av.move_id)
+                            inner join account_move_line aml on (aml.move_id=av.move_id and aa.id = aml.account_id)
+                            where am.state = 'posted' and aa.name ~ 'TDS' and am.date between '%s' and '%s' and aa.id = '%s'
+                            )a
+                            order by a.ven_code,a.gl_doc
+                        '''%(date_from,date_to,gl_accnt[0],date_from,date_to,gl_accnt[0])
+                    self.cr.execute(sql)                
+                    return self.cr.dictfetchall()
+                
               else:
-                sql = '''
-                            select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
-                            case when am.doc_type ='sup_inv_po' then 'Supplier Invoice with PO' 
-                            when am.doc_type ='ser_inv' then 'Service Invoice'
-                            when am.doc_type ='sup_inv' then 'Supplier Invoice Without PO' 
-                            when am.doc_type ='freight' then 'Freight Invoice'
-                            else '' end as officialwitholdingtax,null as witholdingtaxsectioon, ail.tds_id, 
-                            ai.name as invoicedocno, ai.date_invoice as postingdate,
-                            ai.bill_number as bill_no,ai.bill_date as bill_date,
-                            sum(ail.amount_basic) as base_amnt,at.name as tax_deduction,
-                            cast(round(sum(ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
-                            ai.vendor_ref as ven_ref, ai.number as gl_doc,at.section as sec
-                            from account_invoice_line ail
-                            join account_invoice ai on (ai.id=ail.invoice_id)
-                            join account_move am on (am.name=ai.number)
-                            join res_partner bp on (bp.id=ai.partner_id)
-                            join account_tax at on (at.id=ail.tds_id)
-                            where am.state = 'posted' and ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('sup_inv')
-                            and ai.date_invoice between '%s' and '%s'
-                            group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id, 
-                            ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
-                            order by vendor_code
-                        '''%(date_from,date_to)
-                self.cr.execute(sql)                
-                return self.cr.dictfetchall()
-        
+                    sql = '''
+                                Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                                a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
+                                a.tdsamount,a.ven_ref,a.gl_doc,a.sec
+                                from(
+                                select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
+                                case when am.doc_type ='sup_inv_po' then 'Supplier Invoice with PO' 
+                                when am.doc_type ='ser_inv' then 'Service Invoice'
+                                when am.doc_type ='sup_inv' then 'Supplier Invoice Without PO' 
+                                when am.doc_type ='freight' then 'Freight Invoice'
+                                else '' end as officialwitholdingtax,null as witholdingtaxsectioon, ail.tds_id, 
+                                ai.name as invoicedocno, ai.date_invoice as postingdate,
+                                ai.bill_number as bill_no,ai.bill_date as bill_date,
+                                ail.amount_basic as base_amnt,at.name as tax_deduction,
+                                cast(round((ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
+                                ai.vendor_ref as ven_ref, ai.number as gl_doc,at.section as sec
+                                from account_invoice_line ail
+                                join account_invoice ai on (ai.id=ail.invoice_id)
+                                inner join account_move am on (am.name=ai.number and ai.move_id = am.id)                                
+                                join res_partner bp on (bp.id=ai.partner_id)
+                                join account_tax at on (at.id=ail.tds_id)
+                                where am.state = 'posted' and ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('sup_inv')
+                                and am.date between '%s' and '%s'
+                                and cast(round((ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) <> 0
+                                      
+                                union all
+      
+                                select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
+                                case when av.type = 'receipt' then 'Receipt'
+                                when av.type = 'payment' then 'Payment'
+                                when av.type = 'sale' then 'Sale'
+                                when av.type = 'purhase' then 'Purhase' else '' end as officialwitholdingtax,
+                                null as witholdingtaxsection,null as tds_id,av.number,av.date,null as bill_number,null as bill_date,
+                                0.00 as base_amnt,null as tax_deduction,
+                                Case when aml.debit = '0.00' then aml.credit else -aml.debit end as tdsamount,null as ven_ref,null as gl_doc,null as sec
+                                from account_voucher av
+                                join res_partner bp on (bp.id=av.partner_id)
+                                inner join account_voucher_line avl on av.id=avl.voucher_id
+                                inner join account_account aa on avl.account_id=aa.id
+                                inner join account_move am on (am.id=av.move_id)
+                                inner join account_move_line aml on (aml.move_id=av.move_id and aa.id = aml.account_id)
+                                where am.state = 'posted' and aa.name ~ 'TDS' and am.date between '%s' and '%s'
+                                )a
+                                order by a.ven_code,a.gl_doc
+                            '''%(date_from,date_to,date_from,date_to)
+                    self.cr.execute(sql)                
+                    return self.cr.dictfetchall()
         ##sup_invend
         
         ##freight
-        elif invoice_type == 'freight':
-              if employee and taxes_id and code:
+        elif invoicetype == 'freight':
+              if vendor and tds and gl_accnt:
                     sql = '''
+                            Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                            a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
+                            a.tdsamount,a.ven_ref,a.gl_doc,a.sec
+                            from(
                             select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
                             case when am.doc_type ='sup_inv_po' then 'Supplier Invoice with PO' 
                             when am.doc_type ='ser_inv' then 'Service Invoice'
                             when am.doc_type ='sup_inv' then 'Supplier Invoice Without PO' 
                             when am.doc_type ='freight' then 'Freight Invoice'
-                            else '' end as officialwitholdingtax,null as witholdingtaxsectioon, ail.tds_id, 
+                            else '' end as officialwitholdingtax,null as witholdingtaxsectioon, ail.tds_id,
                             ai.name as invoicedocno, ai.date_invoice as postingdate,
                             ai.bill_number as bill_no,ai.bill_date as bill_date,
-                            sum(ail.amount_basic) as base_amnt,at.name as tax_deduction,
-                            cast(round(sum(ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
+                            ail.amount_basic as base_amnt,at.name as tax_deduction,
+                            cast(round((ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount,
                             ai.vendor_ref as ven_ref, ai.number as gl_doc,at.section as sec
                             from account_invoice_line ail
                             join account_invoice ai on (ai.id=ail.invoice_id)
-                            join account_move am on (am.name=ai.number)
+                            inner join account_move am on (am.name=ai.number and ai.move_id = am.id)                            
                             join res_partner bp on (bp.id=ai.partner_id)
                             join account_tax at on (at.id=ail.tds_id)
                             where am.state = 'posted' and ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('freight')
-                            and ai.date_invoice between '%s' and '%s' and bp.id = '%s' 
+                            and am.date between '%s' and '%s' and bp.id = '%s' 
                             and at.id = '%s' and at.gl_account_id = '%s'
-                            group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id, 
-                            ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
-                            order by vendor_code
-                        '''%(date_from,date_to,employee[0],taxes_id[0],code[0])
+                            and cast(round((ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) <> 0
+                                                          
+                            union all
+  
+                            select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
+                            case when av.type = 'receipt' then 'Receipt'
+                            when av.type = 'payment' then 'Payment'
+                            when av.type = 'sale' then 'Sale'
+                            when av.type = 'purhase' then 'Purhase' else '' end as officialwitholdingtax,
+                            null as witholdingtaxsection,null as tds_id,av.number,av.date,null as bill_number,null as bill_date,
+                            0.00 as base_amnt,null as tax_deduction,
+                            Case when aml.debit = '0.00' then aml.credit else -aml.debit end as tdsamount,null as ven_ref,null as gl_doc,null as sec
+                            from account_voucher av
+                            join res_partner bp on (bp.id=av.partner_id)
+                            inner join account_voucher_line avl on av.id=avl.voucher_id
+                            inner join account_account aa on avl.account_id=aa.id
+                            inner join account_move am on (am.id=av.move_id)
+                            inner join account_move_line aml on (aml.move_id=av.move_id and aa.id = aml.account_id)
+                            where am.state = 'posted' and aa.name ~ 'TDS' and am.date between '%s' and '%s' 
+                            and bp.id = '%s' and aa.id = '%s'              
+                            )a
+                            order by a.ven_code,a.gl_doc                             
+                        '''%(date_from,date_to,vendor[0],tds[0],gl_accnt[0],date_from,date_to,vendor[0],gl_accnt[0])
                     self.cr.execute(sql)                    
                     return self.cr.dictfetchall()
-            
-              elif employee and taxes_id:
+                
+              elif vendor and tds:
                     sql = '''
+                            Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                            a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
+                            a.tdsamount,a.ven_ref,a.gl_doc,a.sec
+                            from(
                             select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
                             case when am.doc_type ='sup_inv_po' then 'Supplier Invoice with PO' 
                             when am.doc_type ='ser_inv' then 'Service Invoice'
@@ -609,26 +1013,48 @@ class Parser(report_sxw.rml_parse):
                             else '' end as officialwitholdingtax,null as witholdingtaxsectioon, ail.tds_id, 
                             ai.name as invoicedocno, ai.date_invoice as postingdate,
                             ai.bill_number as bill_no,ai.bill_date as bill_date,
-                            sum(ail.amount_basic) as base_amnt,at.name as tax_deduction,
-                            cast(round(sum(ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
+                            ail.amount_basic as base_amnt,at.name as tax_deduction,
+                            cast(round((ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
                             ai.vendor_ref as ven_ref, ai.number as gl_doc,at.section as sec
                             from account_invoice_line ail
                             join account_invoice ai on (ai.id=ail.invoice_id)
-                            join account_move am on (am.name=ai.number)
+                            inner join account_move am on (am.name=ai.number and ai.move_id = am.id)                            
                             join res_partner bp on (bp.id=ai.partner_id)
                             join account_tax at on (at.id=ail.tds_id)
                             where am.state = 'posted' and ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('freight')
-                            and ai.date_invoice between '%s' and '%s' 
-                            and bp.id = '%s' and at.id = '%s'
-                            group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id, 
-                            ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number, at.section,at.amount
-                            order by vendor_code
-                        '''%(date_from,date_to,employee[0],taxes_id[0])
+                            and am.date between '%s' and '%s' and bp.id = '%s' and at.id = '%s'
+                            and cast(round((ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) <> 0
+                           
+                            union all
+  
+                            select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
+                            case when av.type = 'receipt' then 'Receipt'
+                            when av.type = 'payment' then 'Payment'
+                            when av.type = 'sale' then 'Sale'
+                            when av.type = 'purhase' then 'Purhase' else '' end as officialwitholdingtax,
+                            null as witholdingtaxsection,null as tds_id,av.number,av.date,null as bill_number,null as bill_date,
+                            0.00 as base_amnt,null as tax_deduction,
+                            Case when aml.debit = '0.00' then aml.credit else -aml.debit end as tdsamount,null as ven_ref,null as gl_doc,null as sec
+                            from account_voucher av
+                            join res_partner bp on (bp.id=av.partner_id)
+                            inner join account_voucher_line avl on av.id=avl.voucher_id
+                            inner join account_account aa on avl.account_id=aa.id
+                            inner join account_move am on (am.id=av.move_id)
+                            inner join account_move_line aml on (aml.move_id=av.move_id and aa.id = aml.account_id)
+                            where am.state = 'posted' and aa.name ~ 'TDS' and am.date between '%s' and '%s' 
+                            and bp.id = '%s'              
+                            )a
+                            order by a.ven_code,a.gl_doc
+                        '''%(date_from,date_to,vendor[0],tds[0],date_from,date_to,vendor[0])
                     self.cr.execute(sql)                    
-                    return self.cr.dictfetchall()       
-       
-              elif employee and code:
+                    return self.cr.dictfetchall()      
+           
+              elif vendor and gl_accnt:
                     sql = '''
+                            Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                            a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
+                            a.tdsamount,a.ven_ref,a.gl_doc,a.sec
+                            from(
                             select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
                             case when am.doc_type ='sup_inv_po' then 'Supplier Invoice with PO' 
                             when am.doc_type ='ser_inv' then 'Service Invoice'
@@ -637,26 +1063,48 @@ class Parser(report_sxw.rml_parse):
                             else '' end as officialwitholdingtax,null as witholdingtaxsectioon, ail.tds_id, 
                             ai.name as invoicedocno, ai.date_invoice as postingdate,
                             ai.bill_number as bill_no,ai.bill_date as bill_date,
-                            sum(ail.amount_basic) as base_amnt,at.name as tax_deduction,
-                            cast(round(sum(ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
+                            ail.amount_basic as base_amnt,at.name as tax_deduction,
+                            cast(round((ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
                             ai.vendor_ref as ven_ref, ai.number as gl_doc,at.section as sec
                             from account_invoice_line ail
                             join account_invoice ai on (ai.id=ail.invoice_id)
-                            join account_move am on (am.name=ai.number)
+                            inner join account_move am on (am.name=ai.number and ai.move_id = am.id)                            
                             join res_partner bp on (bp.id=ai.partner_id)
                             join account_tax at on (at.id=ail.tds_id)
                             where am.state = 'posted' and ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('freight')
-                            and ai.date_invoice between '%s' and '%s' 
-                            and bp.id = '%s' and at.gl_account_id = '%s'
-                            group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id, 
-                            ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
-                            order by vendor_code
-                        '''%(date_from,date_to,employee[0],code[0])
+                            and am.date between '%s' and '%s' and bp.id = '%s' and at.gl_account_id = '%s'
+                            and cast(round((ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) <> 0
+                              
+                            union all
+  
+                            select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
+                            case when av.type = 'receipt' then 'Receipt'
+                            when av.type = 'payment' then 'Payment'
+                            when av.type = 'sale' then 'Sale'
+                            when av.type = 'purhase' then 'Purhase' else '' end as officialwitholdingtax,
+                            null as witholdingtaxsection,null as tds_id,av.number,av.date,null as bill_number,null as bill_date,
+                            0.00 as base_amnt,null as tax_deduction,
+                            Case when aml.debit = '0.00' then aml.credit else -aml.debit end as tdsamount,null as ven_ref,null as gl_doc,null as sec
+                            from account_voucher av
+                            join res_partner bp on (bp.id=av.partner_id)
+                            inner join account_voucher_line avl on av.id=avl.voucher_id
+                            inner join account_account aa on avl.account_id=aa.id
+                            inner join account_move am on (am.id=av.move_id)
+                            inner join account_move_line aml on (aml.move_id=av.move_id and aa.id = aml.account_id)
+                            where am.state = 'posted' and aa.name ~ 'TDS' and am.date between '%s' and '%s' 
+                            and bp.id = '%s' and aa.id = '%s'              
+                            )a
+                            order by a.ven_code,a.gl_doc
+                        '''%(date_from,date_to,vendor[0],gl_accnt[0],date_from,date_to,vendor[0],gl_accnt[0])
                     self.cr.execute(sql)                    
                     return self.cr.dictfetchall()            
-          
-              elif taxes_id and code:
+              
+              elif tds and gl_accnt:
                     sql = '''
+                            Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                            a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
+                            a.tdsamount,a.ven_ref,a.gl_doc,a.sec
+                            from(
                             select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
                             case when am.doc_type ='sup_inv_po' then 'Supplier Invoice with PO' 
                             when am.doc_type ='ser_inv' then 'Service Invoice'
@@ -665,25 +1113,245 @@ class Parser(report_sxw.rml_parse):
                             else '' end as officialwitholdingtax,null as witholdingtaxsectioon, ail.tds_id, 
                             ai.name as invoicedocno, ai.date_invoice as postingdate,
                             ai.bill_number as bill_no,ai.bill_date as bill_date,
-                            sum(ail.amount_basic) as base_amnt,at.name as tax_deduction,
-                            cast(round(sum(ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
+                            ail.amount_basic as base_amnt,at.name as tax_deduction,
+                            cast(round((ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount,
                             ai.vendor_ref as ven_ref, ai.number as gl_doc,at.section as sec
                             from account_invoice_line ail
                             join account_invoice ai on (ai.id=ail.invoice_id)
-                            join account_move am on (am.name=ai.number)
+                            inner join account_move am on (am.name=ai.number and ai.move_id = am.id)                            
                             join res_partner bp on (bp.id=ai.partner_id)
                             join account_tax at on (at.id=ail.tds_id)
                             where am.state = 'posted' and ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('freight')
-                            and ai.date_invoice between '%s' and '%s' and at.id = '%s' and at.gl_account_id = '%s'
-                            group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id, 
-                            ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
-                            order by vendor_code
-                        '''%(date_from,date_to,taxes_id[0],code[0])
+                            and am.date between '%s' and '%s' and at.id = '%s' and at.gl_account_id = '%s'
+                            and cast(round((ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) <> 0
+                              
+                            union all
+  
+                            select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
+                            case when av.type = 'receipt' then 'Receipt'
+                            when av.type = 'payment' then 'Payment'
+                            when av.type = 'sale' then 'Sale'
+                            when av.type = 'purhase' then 'Purhase' else '' end as officialwitholdingtax,
+                            null as witholdingtaxsection,null as tds_id,av.number,av.date,null as bill_number,null as bill_date,
+                            0.00 as base_amnt,null as tax_deduction,
+                            Case when aml.debit = '0.00' then aml.credit else -aml.debit end as tdsamount,null as ven_ref,null as gl_doc,null as sec
+                            from account_voucher av
+                            join res_partner bp on (bp.id=av.partner_id)
+                            inner join account_voucher_line avl on av.id=avl.voucher_id
+                            inner join account_account aa on avl.account_id=aa.id
+                            inner join account_move am on (am.id=av.move_id)
+                            inner join account_move_line aml on (aml.move_id=av.move_id and aa.id = aml.account_id)
+                            where am.state = 'posted' and aa.name ~ 'TDS' and am.date between '%s' and '%s' 
+                            and aa.id = '%s'              
+                            )a
+                            order by a.ven_code,a.gl_doc
+                        '''%(date_from,date_to,tds[0],gl_accnt[0],date_from,date_to,gl_accnt[0])
                     self.cr.execute(sql)                    
-                    return self.cr.dictfetchall()           
-                     
-              elif employee:
+                    return self.cr.dictfetchall()          
+                         
+              elif vendor:
+                    sql = '''
+                            Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                            a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
+                            a.tdsamount,a.ven_ref,a.gl_doc,a.sec
+                            from(
+                            select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
+                            case when am.doc_type ='sup_inv_po' then 'Supplier Invoice with PO' 
+                            when am.doc_type ='ser_inv' then 'Service Invoice'
+                            when am.doc_type ='sup_inv' then 'Supplier Invoice Without PO' 
+                            when am.doc_type ='freight' then 'Freight Invoice'
+                            else '' end as officialwitholdingtax,null as witholdingtaxsectioon, ail.tds_id, 
+                            ai.name as invoicedocno, ai.date_invoice as postingdate,
+                            ai.bill_number as bill_no,ai.bill_date as bill_date,
+                            ail.amount_basic as base_amnt,at.name as tax_deduction,
+                            cast(round((ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
+                            ai.vendor_ref as ven_ref, ai.number as gl_doc,at.section as sec
+                            from account_invoice_line ail
+                            join account_invoice ai on (ai.id=ail.invoice_id)
+                            inner join account_move am on (am.name=ai.number and ai.move_id = am.id)                            
+                            join res_partner bp on (bp.id=ai.partner_id)
+                            join account_tax at on (at.id=ail.tds_id)
+                            where am.state = 'posted' and ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('freight')
+                            and am.date between '%s' and '%s' and bp.id = '%s'
+                            and cast(round((ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) <> 0
+                                  
+                            union all
+      
+                            select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
+                            case when av.type = 'receipt' then 'Receipt'
+                            when av.type = 'payment' then 'Payment'
+                            when av.type = 'sale' then 'Sale'
+                            when av.type = 'purhase' then 'Purhase' else '' end as officialwitholdingtax,
+                            null as witholdingtaxsection,null as tds_id,av.number,av.date,null as bill_number,null as bill_date,
+                            0.00 as base_amnt,null as tax_deduction,
+                            Case when aml.debit = '0.00' then aml.credit else -aml.debit end as tdsamount,null as ven_ref,null as gl_doc,null as sec
+                            from account_voucher av
+                            join res_partner bp on (bp.id=av.partner_id)
+                            inner join account_voucher_line avl on av.id=avl.voucher_id
+                            inner join account_account aa on avl.account_id=aa.id
+                            inner join account_move am on (am.id=av.move_id)
+                            inner join account_move_line aml on (aml.move_id=av.move_id and aa.id = aml.account_id)
+                            where am.state = 'posted' and aa.name ~ 'TDS' and am.date between '%s' and '%s' 
+                            and bp.id = '%s'             
+                            )a
+                            order by a.ven_code,a.gl_doc 
+                        '''%(date_from,date_to,vendor[0],date_from,date_to,vendor[0])
+                    self.cr.execute(sql)                
+                    return self.cr.dictfetchall()
+                
+              elif tds:
+                    sql = '''
+                            Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                            a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
+                            a.tdsamount,a.ven_ref,a.gl_doc,a.sec
+                            from(
+                            select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
+                            case when am.doc_type ='sup_inv_po' then 'Supplier Invoice with PO' 
+                            when am.doc_type ='ser_inv' then 'Service Invoice'
+                            when am.doc_type ='sup_inv' then 'Supplier Invoice Without PO' 
+                            when am.doc_type ='freight' then 'Freight Invoice'
+                            else '' end as officialwitholdingtax,null as witholdingtaxsectioon, ail.tds_id, 
+                            ai.name as invoicedocno, ai.date_invoice as postingdate,
+                            ai.bill_number as bill_no,ai.bill_date as bill_date,
+                            ail.amount_basic as base_amnt,at.name as tax_deduction,
+                            cast(round((ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount,
+                            ai.vendor_ref as ven_ref, ai.number as gl_doc,at.section as sec
+                            from account_invoice_line ail
+                            join account_invoice ai on (ai.id=ail.invoice_id)
+                            inner join account_move am on (am.name=ai.number and ai.move_id = am.id)                            
+                            join res_partner bp on (bp.id=ai.partner_id)
+                            join account_tax at on (at.id=ail.tds_id)
+                            where am.state = 'posted' and ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('freight')
+                            and am.date between '%s' and '%s' and at.id = '%s'
+                            and cast(round((ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) <> 0
+                            
+                            union all
+      
+                            select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
+                            case when av.type = 'receipt' then 'Receipt'
+                            when av.type = 'payment' then 'Payment'
+                            when av.type = 'sale' then 'Sale'
+                            when av.type = 'purhase' then 'Purhase' else '' end as officialwitholdingtax,
+                            null as witholdingtaxsection,null as tds_id,av.number,av.date,null as bill_number,null as bill_date,
+                            0.00 as base_amnt,null as tax_deduction,
+                            Case when aml.debit = '0.00' then aml.credit else -aml.debit end as tdsamount,null as ven_ref,null as gl_doc,null as sec
+                            from account_voucher av
+                            join res_partner bp on (bp.id=av.partner_id)
+                            inner join account_voucher_line avl on av.id=avl.voucher_id
+                            inner join account_account aa on avl.account_id=aa.id
+                            inner join account_move am on (am.id=av.move_id)
+                            inner join account_move_line aml on (aml.move_id=av.move_id and aa.id = aml.account_id)
+                            where am.state = 'posted' and aa.name ~ 'TDS' and am.date between '%s' and '%s'
+                            )a
+                            order by a.ven_code,a.gl_doc
+                        '''%(date_from,date_to,tds[0],date_from,date_to)
+                    self.cr.execute(sql)                
+                    return self.cr.dictfetchall()  
+                
+              elif gl_accnt:
+                    sql = '''
+                            Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                            a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
+                            a.tdsamount,a.ven_ref,a.gl_doc,a.sec
+                            from(
+                            select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
+                            case when am.doc_type ='sup_inv_po' then 'Supplier Invoice with PO' 
+                            when am.doc_type ='ser_inv' then 'Service Invoice'
+                            when am.doc_type ='sup_inv' then 'Supplier Invoice Without PO' 
+                            when am.doc_type ='freight' then 'Freight Invoice'
+                            else '' end as officialwitholdingtax,null as witholdingtaxsectioon, ail.tds_id, 
+                            ai.name as invoicedocno, ai.date_invoice as postingdate,
+                            ai.bill_number as bill_no,ai.bill_date as bill_date,
+                            ail.amount_basic as base_amnt,at.name as tax_deduction,
+                            cast(round((ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
+                            ai.vendor_ref as ven_ref, ai.number as gl_doc,at.section as sec
+                            from account_invoice_line ail
+                            join account_invoice ai on (ai.id=ail.invoice_id)
+                            inner join account_move am on (am.name=ai.number and ai.move_id = am.id)                            
+                            join res_partner bp on (bp.id=ai.partner_id)
+                            join account_tax at on (at.id=ail.tds_id)
+                            where am.state = 'posted' and ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('freight')
+                            and am.date between '%s' and '%s' and at.gl_account_id = '%s'
+                            and cast(round((ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) <> 0
+                            
+                            union all
+      
+                            select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
+                            case when av.type = 'receipt' then 'Receipt'
+                            when av.type = 'payment' then 'Payment'
+                            when av.type = 'sale' then 'Sale'
+                            when av.type = 'purhase' then 'Purhase' else '' end as officialwitholdingtax,
+                            null as witholdingtaxsection,null as tds_id,av.number,av.date,null as bill_number,null as bill_date,
+                            0.00 as base_amnt,null as tax_deduction,
+                            Case when aml.debit = '0.00' then aml.credit else -aml.debit end as tdsamount,null as ven_ref,null as gl_doc,null as sec
+                            from account_voucher av
+                            join res_partner bp on (bp.id=av.partner_id)
+                            inner join account_voucher_line avl on av.id=avl.voucher_id
+                            inner join account_account aa on avl.account_id=aa.id
+                            inner join account_move am on (am.id=av.move_id)
+                            inner join account_move_line aml on (aml.move_id=av.move_id and aa.id = aml.account_id)
+                            where am.state = 'posted' and aa.name ~ 'TDS' and am.date between '%s' and '%s' and aa.id = '%s'
+                            )a
+                            order by a.ven_code,a.gl_doc
+                        '''%(date_from,date_to,gl_accnt[0],date_from,date_to,gl_accnt[0])
+                    self.cr.execute(sql)                
+                    return self.cr.dictfetchall()          
+                  
+              else:
+                    sql = '''
+                            Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                            a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
+                            a.tdsamount,a.ven_ref,a.gl_doc,a.sec
+                            from(
+                            select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
+                            case when am.doc_type ='sup_inv_po' then 'Supplier Invoice with PO' 
+                            when am.doc_type ='ser_inv' then 'Service Invoice'
+                            when am.doc_type ='sup_inv' then 'Supplier Invoice Without PO' 
+                            when am.doc_type ='freight' then 'Freight Invoice'
+                            else '' end as officialwitholdingtax,null as witholdingtaxsectioon, ail.tds_id, 
+                            ai.name as invoicedocno, ai.date_invoice as postingdate,
+                            ai.bill_number as bill_no,ai.bill_date as bill_date,
+                            ail.amount_basic as base_amnt,at.name as tax_deduction,
+                            cast(round((ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
+                            ai.vendor_ref as ven_ref, ai.number as gl_doc,at.section as sec
+                            from account_invoice_line ail
+                            join account_invoice ai on (ai.id=ail.invoice_id)
+                            inner join account_move am on (am.name=ai.number and ai.move_id = am.id)                            
+                            join res_partner bp on (bp.id=ai.partner_id)
+                            join account_tax at on (at.id=ail.tds_id)
+                            where am.state = 'posted' and ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('freight')
+                            and am.date between '%s' and '%s' and cast(round((ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) <> 0
+                            
+                            union all
+  
+                            select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
+                            case when av.type = 'receipt' then 'Receipt'
+                            when av.type = 'payment' then 'Payment'
+                            when av.type = 'sale' then 'Sale'
+                            when av.type = 'purhase' then 'Purhase' else '' end as officialwitholdingtax,
+                            null as witholdingtaxsection,null as tds_id,av.number,av.date,null as bill_number,null as bill_date,
+                            0.00 as base_amnt,null as tax_deduction,
+                            Case when aml.debit = '0.00' then aml.credit else -aml.debit end as tdsamount,null as ven_ref,null as gl_doc,null as sec
+                            from account_voucher av
+                            join res_partner bp on (bp.id=av.partner_id)
+                            inner join account_voucher_line avl on av.id=avl.voucher_id
+                            inner join account_account aa on avl.account_id=aa.id
+                            inner join account_move am on (am.id=av.move_id)
+                            inner join account_move_line aml on (aml.move_id=av.move_id and aa.id = aml.account_id)
+                            where am.state = 'posted' and aa.name ~ 'TDS' and am.date between '%s' and '%s'
+                            )a
+                            order by a.ven_code,a.gl_doc
+                        '''%(date_from,date_to,date_from,date_to)
+                    self.cr.execute(sql)                
+                    return self.cr.dictfetchall()
+        ##freightend
+        
+        elif vendor and tds and gl_accnt:            
                 sql = '''
+                        Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                        a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
+                        a.tdsamount,a.ven_ref,a.gl_doc,a.sec
+                        from(
                         select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
                         case when am.doc_type ='sup_inv_po' then 'Supplier Invoice with PO' 
                         when am.doc_type ='ser_inv' then 'Service Invoice'
@@ -692,167 +1360,203 @@ class Parser(report_sxw.rml_parse):
                         else '' end as officialwitholdingtax,null as witholdingtaxsectioon, ail.tds_id, 
                         ai.name as invoicedocno, ai.date_invoice as postingdate,
                         ai.bill_number as bill_no,ai.bill_date as bill_date,
-                        sum(ail.amount_basic) as base_amnt,at.name as tax_deduction,
-                        cast(round(sum(ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
+                        ail.amount_basic as base_amnt, at.name as tax_deduction, 
+                        cast(round((ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
                         ai.vendor_ref as ven_ref, ai.number as gl_doc,at.section as sec
                         from account_invoice_line ail
                         join account_invoice ai on (ai.id=ail.invoice_id)
-                        join account_move am on (am.name=ai.number)
-                        join res_partner bp on (bp.id=ai.partner_id)
-                        join account_tax at on (at.id=ail.tds_id)
-                        where am.state = 'posted' and ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('freight')
-                        and ai.date_invoice between '%s' and '%s' and bp.id = '%s'
-                        group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id, 
-                        ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
-                        order by vendor_code
-                    '''%(date_from,date_to,employee[0])
-                self.cr.execute(sql)                
-                return self.cr.dictfetchall()
-            
-              elif taxes_id:
-                sql = '''
-                        select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
-                        case when am.doc_type ='sup_inv_po' then 'Supplier Invoice with PO' 
-                        when am.doc_type ='ser_inv' then 'Service Invoice'
-                        when am.doc_type ='sup_inv' then 'Supplier Invoice Without PO' 
-                        when am.doc_type ='freight' then 'Freight Invoice'
-                        else '' end as officialwitholdingtax,null as witholdingtaxsectioon, ail.tds_id, 
-                        ai.name as invoicedocno, ai.date_invoice as postingdate,
-                        ai.bill_number as bill_no,ai.bill_date as bill_date,
-                        sum(ail.amount_basic) as base_amnt,at.name as tax_deduction,
-                        cast(round(sum(ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
-                        ai.vendor_ref as ven_ref, ai.number as gl_doc,at.section as sec
-                        from account_invoice_line ail
-                        join account_invoice ai on (ai.id=ail.invoice_id)
-                        join account_move am on (am.name=ai.number)
-                        join res_partner bp on (bp.id=ai.partner_id)
-                        join account_tax at on (at.id=ail.tds_id)
-                        where am.state = 'posted' and ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('freight')
-                        and ai.date_invoice between '%s' and '%s' and at.id = '%s'
-                        group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id, 
-                        ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
-                        order by vendor_code
-                    '''%(date_from,date_to,taxes_id[0])
-                self.cr.execute(sql)                
-                return self.cr.dictfetchall() 
-            
-              elif code:
-                sql = '''
-                        select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
-                        case when am.doc_type ='sup_inv_po' then 'Supplier Invoice with PO' 
-                        when am.doc_type ='ser_inv' then 'Service Invoice'
-                        when am.doc_type ='sup_inv' then 'Supplier Invoice Without PO' 
-                        when am.doc_type ='freight' then 'Freight Invoice'
-                        else '' end as officialwitholdingtax,null as witholdingtaxsectioon, ail.tds_id, 
-                        ai.name as invoicedocno, ai.date_invoice as postingdate,
-                        ai.bill_number as bill_no,ai.bill_date as bill_date,
-                        sum(ail.amount_basic) as base_amnt,at.name as tax_deduction,
-                        cast(round(sum(ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
-                        ai.vendor_ref as ven_ref, ai.number as gl_doc,at.section as sec
-                        from account_invoice_line ail
-                        join account_invoice ai on (ai.id=ail.invoice_id)
-                        join account_move am on (am.name=ai.number)
+                        inner join account_move am on (am.name=ai.number and ai.move_id = am.id)                        
                         join res_partner bp on (bp.id=ai.partner_id)
                         join account_tax at on (at.id=ail.tds_id)
                         where am.state = 'posted' and ai.type='in_invoice' 
-                        and ail.tds_id is not null and am.doc_type in ('freight')
-                        and ai.date_invoice between '%s' and '%s' and at.gl_account_id = '%s'
-                        group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id, 
-                        ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
-                        order by vendor_code
-                    '''%(date_from,date_to,code[0])
-                self.cr.execute(sql)                
-                return self.cr.dictfetchall()          
-              
-              else:
-                sql = '''
-                            select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
-                            case when am.doc_type ='sup_inv_po' then 'Supplier Invoice with PO' 
-                            when am.doc_type ='ser_inv' then 'Service Invoice'
-                            when am.doc_type ='sup_inv' then 'Supplier Invoice Without PO' 
-                            when am.doc_type ='freight' then 'Freight Invoice'
-                            else '' end as officialwitholdingtax,null as witholdingtaxsectioon, ail.tds_id, 
-                            ai.name as invoicedocno, ai.date_invoice as postingdate,
-                            ai.bill_number as bill_no,ai.bill_date as bill_date,
-                            sum(ail.amount_basic) as base_amnt,at.name as tax_deduction,
-                            cast(round(sum(ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
-                            ai.vendor_ref as ven_ref, ai.number as gl_doc,at.section as sec
-                            from account_invoice_line ail
-                            join account_invoice ai on (ai.id=ail.invoice_id)
-                            join account_move am on (am.name=ai.number)
-                            join res_partner bp on (bp.id=ai.partner_id)
-                            join account_tax at on (at.id=ail.tds_id)
-                            where am.state = 'posted' and ai.type='in_invoice' 
-                            and ail.tds_id is not null and am.doc_type in ('freight')
-                            and ai.date_invoice between '%s' and '%s'
-                            group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id, 
-                            ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
-                            order by vendor_code
-                        '''%(date_from,date_to)
-                self.cr.execute(sql)                
+                        and ail.tds_id is not null and am.doc_type in ('sup_inv', 'ser_inv', 'freight')
+                        and am.date between '%s' and '%s' and bp.id = '%s' 
+                        and at.id = '%s' and at.gl_account_id = '%s' and cast(round((ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) <> 0
+                        
+                        union all
+  
+                        select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
+                        case when av.type = 'receipt' then 'Receipt'
+                        when av.type = 'payment' then 'Payment'
+                        when av.type = 'sale' then 'Sale'
+                        when av.type = 'purhase' then 'Purhase' else '' end as officialwitholdingtax,
+                        null as witholdingtaxsection,null as tds_id,av.number,av.date,null as bill_number,null as bill_date,
+                        0.00 as base_amnt,null as tax_deduction,
+                        Case when aml.debit = '0.00' then aml.credit else -aml.debit end as tdsamount,null as ven_ref,null as gl_doc,null as sec
+                        from account_voucher av
+                        join res_partner bp on (bp.id=av.partner_id)
+                        inner join account_voucher_line avl on av.id=avl.voucher_id
+                        inner join account_account aa on avl.account_id=aa.id
+                        inner join account_move am on (am.id=av.move_id)
+                        inner join account_move_line aml on (aml.move_id=av.move_id and aa.id = aml.account_id)
+                        where am.state = 'posted' and aa.name ~ 'TDS' and am.date between '%s' and '%s' 
+                        and bp.id = '%s' and aa.id = '%s'
+                        )a
+                        order by a.ven_code,a.gl_doc
+                    '''%(date_from,date_to,vendor[0],tds[0],gl_accnt[0],date_from,date_to,vendor[0],gl_accnt[0])
+                self.cr.execute(sql)
                 return self.cr.dictfetchall()
         
-        ##freightend
+        elif vendor and gl_accnt:            
+                sql = '''
+                        Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                        a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
+                        a.tdsamount,a.ven_ref,a.gl_doc,a.sec
+                        from(
+                        select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
+                        case when am.doc_type ='sup_inv_po' then 'Supplier Invoice with PO' 
+                        when am.doc_type ='ser_inv' then 'Service Invoice'
+                        when am.doc_type ='sup_inv' then 'Supplier Invoice Without PO' 
+                        when am.doc_type ='freight' then 'Freight Invoice'
+                        else '' end as officialwitholdingtax,null as witholdingtaxsectioon, ail.tds_id, 
+                        ai.name as invoicedocno, ai.date_invoice as postingdate,
+                        ai.bill_number as bill_no,ai.bill_date as bill_date,
+                        ail.amount_basic as base_amnt, at.name as tax_deduction, 
+                        cast(round((ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
+                        ai.vendor_ref as ven_ref, ai.number as gl_doc, at.section as sec
+                        from account_invoice_line ail
+                        join account_invoice ai on (ai.id=ail.invoice_id)
+                        inner join account_move am on (am.name=ai.number and ai.move_id = am.id)                        
+                        join res_partner bp on (bp.id=ai.partner_id)
+                        join account_tax at on (at.id=ail.tds_id)
+                        where am.state = 'posted' and ai.type='in_invoice' 
+                        and ail.tds_id is not null and am.doc_type in ('sup_inv', 'ser_inv', 'freight')
+                        and am.date between '%s' and '%s' and bp.id = '%s' and at.gl_account_id = '%s'
+                        and cast(round((ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) <> 0
+                       
+                        union all
+  
+                        select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
+                        case when av.type = 'receipt' then 'Receipt'
+                        when av.type = 'payment' then 'Payment'
+                        when av.type = 'sale' then 'Sale'
+                        when av.type = 'purhase' then 'Purhase' else '' end as officialwitholdingtax,
+                        null as witholdingtaxsection,null as tds_id,av.number,av.date,null as bill_number,null as bill_date,
+                        0.00 as base_amnt,null as tax_deduction,
+                        Case when aml.debit = '0.00' then aml.credit else -aml.debit end as tdsamount,null as ven_ref,null as gl_doc,null as sec
+                        from account_voucher av
+                        join res_partner bp on (bp.id=av.partner_id)
+                        inner join account_voucher_line avl on av.id=avl.voucher_id
+                        inner join account_account aa on avl.account_id=aa.id
+                        inner join account_move am on (am.id=av.move_id)
+                        inner join account_move_line aml on (aml.move_id=av.move_id and aa.id = aml.account_id)
+                        where am.state = 'posted' and aa.name ~ 'TDS' and am.date between '%s' and '%s' 
+                        and bp.id = '%s' and aa.id = '%s'              
+                        )a
+                        order by a.ven_code,a.gl_doc
+                    '''%(date_from,date_to,vendor[0],gl_accnt[0],date_from,date_to,vendor[0],gl_accnt[0])
+                self.cr.execute(sql)
+                return self.cr.dictfetchall()
         
-        elif employee and taxes_id and code:            
+        elif vendor and tds:            
             sql = '''
-                    select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
-                    case when am.doc_type ='sup_inv_po' then 'Supplier Invoice with PO' 
-                    when am.doc_type ='ser_inv' then 'Service Invoice'
-                    when am.doc_type ='sup_inv' then 'Supplier Invoice Without PO' 
-                    when am.doc_type ='freight' then 'Freight Invoice'
-                    else '' end as officialwitholdingtax,null as witholdingtaxsectioon, ail.tds_id, 
-                    ai.name as invoicedocno, ai.date_invoice as postingdate,
-                    ai.bill_number as bill_no,ai.bill_date as bill_date,
-                    sum(ail.amount_basic) as base_amnt, at.name as tax_deduction, 
-                    cast(round(sum(ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
-                    ai.vendor_ref as ven_ref, ai.number as gl_doc,at.section as sec
-                    from account_invoice_line ail
-                    join account_invoice ai on (ai.id=ail.invoice_id)
-                    join account_move am on (am.name=ai.number)
-                    join res_partner bp on (bp.id=ai.partner_id)
-                    join account_tax at on (at.id=ail.tds_id)
-                    where am.state = 'posted' and ai.type='in_invoice' 
-                    and ail.tds_id is not null and am.doc_type in ('sup_inv', 'ser_inv', 'freight')
-                    and ai.date_invoice between '%s' and '%s' and bp.id = '%s' 
-                    and at.id = '%s' and at.gl_account_id = '%s'
-                    group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id,
-                    ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
-                    order by vendor_code
-                '''%(date_from,date_to,employee[0],taxes_id[0],code[0])
+                        Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                        a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
+                        a.tdsamount,a.ven_ref,a.gl_doc,a.sec
+                        from(
+                        select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
+                        case when am.doc_type ='sup_inv_po' then 'Supplier Invoice with PO' 
+                        when am.doc_type ='ser_inv' then 'Service Invoice'
+                        when am.doc_type ='sup_inv' then 'Supplier Invoice Without PO' 
+                        when am.doc_type ='freight' then 'Freight Invoice'
+                        else '' end as officialwitholdingtax,null as witholdingtaxsectioon, ail.tds_id, 
+                        ai.name as invoicedocno, ai.date_invoice as postingdate,
+                        ai.bill_number as bill_no,ai.bill_date as bill_date,
+                        ail.amount_basic as base_amnt, at.name as tax_deduction, 
+                        cast(round((ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
+                        ai.vendor_ref as ven_ref, ai.number as gl_doc,at.section as sec
+                        from account_invoice_line ail
+                        join account_invoice ai on (ai.id=ail.invoice_id)
+                        inner join account_move am on (am.name=ai.number and ai.move_id = am.id)                        
+                        join res_partner bp on (bp.id=ai.partner_id)
+                        join account_tax at on (at.id=ail.tds_id)
+                        where am.state = 'posted' and ai.type='in_invoice' 
+                        and ail.tds_id is not null and am.doc_type in ('sup_inv', 'ser_inv', 'freight')
+                        and am.date between '%s' and '%s' and bp.id = '%s' and at.id = '%s'
+                        and cast(round((ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) <> 0                                             
+
+                        union all
+  
+                        select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
+                        case when av.type = 'receipt' then 'Receipt'
+                        when av.type = 'payment' then 'Payment'
+                        when av.type = 'sale' then 'Sale'
+                        when av.type = 'purhase' then 'Purhase' else '' end as officialwitholdingtax,
+                        null as witholdingtaxsection,null as tds_id,av.number,av.date,null as bill_number,null as bill_date,
+                        0.00 as base_amnt,null as tax_deduction,
+                        Case when aml.debit = '0.00' then aml.credit else -aml.debit end as tdsamount,
+                        null as ven_ref,null as gl_doc,null as sec
+                        from account_voucher av
+                        join res_partner bp on (bp.id=av.partner_id)
+                        inner join account_voucher_line avl on av.id=avl.voucher_id
+                        inner join account_account aa on avl.account_id=aa.id
+                        inner join account_move am on (am.id=av.move_id)
+                        inner join account_move_line aml on (aml.move_id=av.move_id and aa.id = aml.account_id)
+                        where am.state = 'posted' and aa.name ~ 'TDS' and am.date between '%s' and '%s' 
+                        and bp.id = '%s'
+                        )a
+                        order by a.ven_code,a.gl_doc
+                '''%(date_from,date_to,vendor[0],tds[0],date_from,date_to,vendor[0])
             self.cr.execute(sql)
             return self.cr.dictfetchall()
         
-        elif employee and code:            
+        elif tds and gl_accnt:            
             sql = '''
-                    select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
-                    case when am.doc_type ='sup_inv_po' then 'Supplier Invoice with PO' 
-                    when am.doc_type ='ser_inv' then 'Service Invoice'
-                    when am.doc_type ='sup_inv' then 'Supplier Invoice Without PO' 
-                    when am.doc_type ='freight' then 'Freight Invoice'
-                    else '' end as officialwitholdingtax,null as witholdingtaxsectioon, ail.tds_id, 
-                    ai.name as invoicedocno, ai.date_invoice as postingdate,
-                    ai.bill_number as bill_no,ai.bill_date as bill_date,
-                    sum(ail.amount_basic) as base_amnt, at.name as tax_deduction, 
-                    cast(round(sum(ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
-                    ai.vendor_ref as ven_ref, ai.number as gl_doc, at.section as sec
-                    from account_invoice_line ail
-                    join account_invoice ai on (ai.id=ail.invoice_id)
-                    join account_move am on (am.name=ai.number)
-                    join res_partner bp on (bp.id=ai.partner_id)
-                    join account_tax at on (at.id=ail.tds_id)
-                    where am.state = 'posted' and ai.type='in_invoice' 
-                    and ail.tds_id is not null and am.doc_type in ('sup_inv', 'ser_inv', 'freight')
-                    and ai.date_invoice between '%s' and '%s' and bp.id = '%s' and at.gl_account_id = '%s'
-                    group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id,
-                    ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
-                    order by vendor_code
-                '''%(date_from,date_to,employee[0],code[0])
+                        Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                        a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
+                        a.tdsamount,a.ven_ref,a.gl_doc,a.sec
+                        from(
+                        select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
+                        case when am.doc_type ='sup_inv_po' then 'Supplier Invoice with PO' 
+                        when am.doc_type ='ser_inv' then 'Service Invoice'
+                        when am.doc_type ='sup_inv' then 'Supplier Invoice Without PO' 
+                        when am.doc_type ='freight' then 'Freight Invoice'
+                        else '' end as officialwitholdingtax,null as witholdingtaxsectioon, ail.tds_id, 
+                        ai.name as invoicedocno, ai.date_invoice as postingdate,
+                        ai.bill_number as bill_no,ai.bill_date as bill_date,
+                        ail.amount_basic as base_amnt, at.name as tax_deduction, 
+                        cast(round((ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
+                        ai.vendor_ref as ven_ref, ai.number as gl_doc,at.section as sec
+                        from account_invoice_line ail
+                        join account_invoice ai on (ai.id=ail.invoice_id)
+                        inner join account_move am on (am.name=ai.number and ai.move_id = am.id)                        
+                        join res_partner bp on (bp.id=ai.partner_id)
+                        join account_tax at on (at.id=ail.tds_id)
+                        where am.state = 'posted' and ai.type='in_invoice' 
+                        and ail.tds_id is not null and am.doc_type in ('sup_inv', 'ser_inv', 'freight')
+                        and am.date between '%s' and '%s' and at.id = '%s' and at.gl_account_id = '%s'
+                        and cast(round((ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) <> 0
+                       
+                        union all
+  
+                        select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
+                        case when av.type = 'receipt' then 'Receipt'
+                        when av.type = 'payment' then 'Payment'
+                        when av.type = 'sale' then 'Sale'
+                        when av.type = 'purhase' then 'Purhase' else '' end as officialwitholdingtax,
+                        null as witholdingtaxsection,null as tds_id,av.number,av.date,null as bill_number,null as bill_date,
+                        0.00 as base_amnt,null as tax_deduction,
+                        Case when aml.debit = '0.00' then aml.credit else -aml.debit end as tdsamount,null as ven_ref,null as gl_doc,null as sec
+                        from account_voucher av
+                        join res_partner bp on (bp.id=av.partner_id)
+                        inner join account_voucher_line avl on av.id=avl.voucher_id
+                        inner join account_account aa on avl.account_id=aa.id
+                        inner join account_move am on (am.id=av.move_id)
+                        inner join account_move_line aml on (aml.move_id=av.move_id and aa.id = aml.account_id)
+                        where am.state = 'posted' and aa.name ~ 'TDS' and am.date between '%s' and '%s' 
+                        and aa.id = '%s'
+                        group by bp.vendor_code, bp.name, pan_tin,av.type,av.number,av.date)a
+                        order by a.ven_code,a.gl_doc
+                '''%(date_from,date_to,tds[0],gl_accnt[0],date_from,date_to,gl_accnt[0])
             self.cr.execute(sql)
             return self.cr.dictfetchall()
         
-        elif employee and taxes_id:            
+        elif vendor:            
             sql = '''
+                    Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                    a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
+                    a.tdsamount,a.ven_ref,a.gl_doc,a.sec
+                    from(
                     select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
                     case when am.doc_type ='sup_inv_po' then 'Supplier Invoice with PO' 
                     when am.doc_type ='ser_inv' then 'Service Invoice'
@@ -861,163 +1565,190 @@ class Parser(report_sxw.rml_parse):
                     else '' end as officialwitholdingtax,null as witholdingtaxsectioon, ail.tds_id, 
                     ai.name as invoicedocno, ai.date_invoice as postingdate,
                     ai.bill_number as bill_no,ai.bill_date as bill_date,
-                    sum(ail.amount_basic) as base_amnt, at.name as tax_deduction, 
-                    cast(round(sum(ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
+                    ail.amount_basic as base_amnt, at.name as tax_deduction, 
+                    cast(round((ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
                     ai.vendor_ref as ven_ref, ai.number as gl_doc,at.section as sec
                     from account_invoice_line ail
                     join account_invoice ai on (ai.id=ail.invoice_id)
-                    join account_move am on (am.name=ai.number)
+                    inner join account_move am on (am.name=ai.number and ai.move_id = am.id)                    
                     join res_partner bp on (bp.id=ai.partner_id)
                     join account_tax at on (at.id=ail.tds_id)
                     where am.state = 'posted' and ai.type='in_invoice' 
                     and ail.tds_id is not null and am.doc_type in ('sup_inv', 'ser_inv', 'freight')
-                    and ai.date_invoice between '%s' and '%s' and bp.id = '%s' and at.id = '%s'
-                    group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id,
-                    ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
-                    order by vendor_code
-                '''%(date_from,date_to,employee[0],taxes_id[0])
+                    and am.date between '%s' and '%s' and bp.id = '%s'
+                    and cast(round((ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) <> 0
+
+                    union all
+
+                    select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
+                    case when av.type = 'receipt' then 'Receipt'
+                    when av.type = 'payment' then 'Payment'
+                    when av.type = 'sale' then 'Sale'
+                    when av.type = 'purhase' then 'Purhase' else '' end as officialwitholdingtax,
+                    null as witholdingtaxsection,null as tds_id,av.number,av.date,null as bill_number,null as bill_date,
+                    0.00 as base_amnt,null as tax_deduction,
+                    case when aml.debit = '0.00' then aml.credit else -aml.debit end as tdsamount,,null as ven_ref,null as gl_doc,null as sec
+                    from account_voucher av
+                    join res_partner bp on (bp.id=av.partner_id)
+                    inner join account_voucher_line avl on av.id=avl.voucher_id
+                    inner join account_account aa on avl.account_id=aa.id
+                    inner join account_move am on (am.id=av.move_id)
+                    inner join account_move_line aml on (aml.move_id=av.move_id and aa.id = aml.account_id)
+                    where am.state = 'posted' and aa.name ~ 'TDS' and am.date between '%s' and '%s'
+                    and bp.id = '%s'
+                    )a
+                    order by a.ven_code,a.gl_doc
+                '''%(date_from,date_to,vendor[0],date_from,date_to,vendor[0])
             self.cr.execute(sql)
             return self.cr.dictfetchall()
         
-        elif taxes_id and code:            
+        elif tds:            
             sql = '''
-                    select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
-                    case when am.doc_type ='sup_inv_po' then 'Supplier Invoice with PO' 
-                    when am.doc_type ='ser_inv' then 'Service Invoice'
-                    when am.doc_type ='sup_inv' then 'Supplier Invoice Without PO' 
-                    when am.doc_type ='freight' then 'Freight Invoice'
-                    else '' end as officialwitholdingtax,null as witholdingtaxsectioon, ail.tds_id, 
-                    ai.name as invoicedocno, ai.date_invoice as postingdate,
-                    ai.bill_number as bill_no,ai.bill_date as bill_date,
-                    sum(ail.amount_basic) as base_amnt, at.name as tax_deduction, 
-                    cast(round(sum(ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
-                    ai.vendor_ref as ven_ref, ai.number as gl_doc,at.section as sec
-                    from account_invoice_line ail
-                    join account_invoice ai on (ai.id=ail.invoice_id)
-                    join account_move am on (am.name=ai.number)
-                    join res_partner bp on (bp.id=ai.partner_id)
-                    join account_tax at on (at.id=ail.tds_id)
-                    where am.state = 'posted' and ai.type='in_invoice' 
-                    and ail.tds_id is not null and am.doc_type in ('sup_inv', 'ser_inv', 'freight')
-                    and ai.date_invoice between '%s' and '%s' and at.id = '%s' and at.gl_account_id = '%s'
-                    group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id,
-                    ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
-                    order by vendor_code
-                '''%(date_from,date_to,taxes_id[0],code[0])
+                        Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                        a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
+                        a.tdsamount,a.ven_ref,a.gl_doc,a.sec
+                        from(
+                        select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
+                        case when am.doc_type ='sup_inv_po' then 'Supplier Invoice with PO' 
+                        when am.doc_type ='ser_inv' then 'Service Invoice'
+                        when am.doc_type ='sup_inv' then 'Supplier Invoice Without PO' 
+                        when am.doc_type ='freight' then 'Freight Invoice'
+                        else '' end as officialwitholdingtax,null as witholdingtaxsectioon, ail.tds_id, 
+                        ai.name as invoicedocno, ai.date_invoice as postingdate,
+                        ai.bill_number as bill_no,ai.bill_date as bill_date,
+                        ail.amount_basic as base_amnt, at.name as tax_deduction, 
+                        cast(round((ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount,
+                        ai.vendor_ref as ven_ref, ai.number as gl_doc,at.section as sec
+                        from account_invoice_line ail
+                        join account_invoice ai on (ai.id=ail.invoice_id)
+                        inner join account_move am on (am.name=ai.number and ai.move_id = am.id)                        
+                        join res_partner bp on (bp.id=ai.partner_id)
+                        join account_tax at on (at.id=ail.tds_id)
+                        where am.state = 'posted' and ai.type='in_invoice' 
+                        and ail.tds_id is not null and am.doc_type in ('sup_inv', 'ser_inv', 'freight')
+                        and am.date between '%s' and '%s' and at.id = '%s'
+                        and cast(round((ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) <> 0
+
+                        union all
+
+                        select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
+                        case when av.type = 'receipt' then 'Receipt'
+                        when av.type = 'payment' then 'Payment'
+                        when av.type = 'sale' then 'Sale'
+                        when av.type = 'purhase' then 'Purhase' else '' end as officialwitholdingtax,
+                        null as witholdingtaxsection,null as tds_id,av.number,av.date,null as bill_number,null as bill_date,
+                        0.00 as base_amnt,null as tax_deduction,
+                        Case when aml.debit = '0.00' then aml.credit else -aml.debit end as tdsamount,null as ven_ref,null as gl_doc,null as sec
+                        from account_voucher av
+                        join res_partner bp on (bp.id=av.partner_id)
+                        inner join account_voucher_line avl on av.id=avl.voucher_id
+                        inner join account_account aa on avl.account_id=aa.id
+                        inner join account_move am on (am.id=av.move_id)
+                        inner join account_move_line aml on (aml.move_id=av.move_id and aa.id = aml.account_id)
+                        where am.state = 'posted' and aa.name ~ 'TDS' and am.date between '%s' and '%s'                       
+                        )a
+                        order by a.ven_code,a.gl_doc
+                '''%(date_from,date_to,tds[0],date_from,date_to)
             self.cr.execute(sql)
             return self.cr.dictfetchall()
         
-        elif employee:            
+        elif gl_accnt:            
             sql = '''
-                    select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
-                    case when am.doc_type ='sup_inv_po' then 'Supplier Invoice with PO' 
-                    when am.doc_type ='ser_inv' then 'Service Invoice'
-                    when am.doc_type ='sup_inv' then 'Supplier Invoice Without PO' 
-                    when am.doc_type ='freight' then 'Freight Invoice'
-                    else '' end as officialwitholdingtax,null as witholdingtaxsectioon, ail.tds_id, 
-                    ai.name as invoicedocno, ai.date_invoice as postingdate,
-                    ai.bill_number as bill_no,ai.bill_date as bill_date,
-                    sum(ail.amount_basic) as base_amnt, at.name as tax_deduction, 
-                    cast(round(sum(ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
-                    ai.vendor_ref as ven_ref, ai.number as gl_doc,at.section as sec
-                    from account_invoice_line ail
-                    join account_invoice ai on (ai.id=ail.invoice_id)
-                    join account_move am on (am.name=ai.number)
-                    join res_partner bp on (bp.id=ai.partner_id)
-                    join account_tax at on (at.id=ail.tds_id)
-                    where am.state = 'posted' and ai.type='in_invoice' 
-                    and ail.tds_id is not null and am.doc_type in ('sup_inv', 'ser_inv', 'freight')
-                    and ai.date_invoice between '%s' and '%s' and bp.id = '%s'
-                    group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id,
-                    ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
-                    order by vendor_code
-                '''%(date_from,date_to,employee[0])
-            self.cr.execute(sql)
-            return self.cr.dictfetchall()
-        
-        elif taxes_id:            
-            sql = '''
-                    select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
-                    case when am.doc_type ='sup_inv_po' then 'Supplier Invoice with PO' 
-                    when am.doc_type ='ser_inv' then 'Service Invoice'
-                    when am.doc_type ='sup_inv' then 'Supplier Invoice Without PO' 
-                    when am.doc_type ='freight' then 'Freight Invoice'
-                    else '' end as officialwitholdingtax,null as witholdingtaxsectioon, ail.tds_id, 
-                    ai.name as invoicedocno, ai.date_invoice as postingdate,
-                    ai.bill_number as bill_no,ai.bill_date as bill_date,
-                    sum(ail.amount_basic) as base_amnt, at.name as tax_deduction, 
-                    cast(round(sum(ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
-                    ai.vendor_ref as ven_ref, ai.number as gl_doc,at.section as sec
-                    from account_invoice_line ail
-                    join account_invoice ai on (ai.id=ail.invoice_id)
-                    join account_move am on (am.name=ai.number)
-                    join res_partner bp on (bp.id=ai.partner_id)
-                    join account_tax at on (at.id=ail.tds_id)
-                    where am.state = 'posted' and ai.type='in_invoice' 
-                    and ail.tds_id is not null and am.doc_type in ('sup_inv', 'ser_inv', 'freight')
-                    and ai.date_invoice between '%s' and '%s' and at.id = '%s'
-                    group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id,
-                    ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
-                    order by vendor_code
-                '''%(date_from,date_to,taxes_id[0])
-            self.cr.execute(sql)
-            return self.cr.dictfetchall()
-        
-        elif code:            
-            sql = '''
-                    select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
-                    case when am.doc_type ='sup_inv_po' then 'Supplier Invoice with PO' 
-                    when am.doc_type ='ser_inv' then 'Service Invoice'
-                    when am.doc_type ='sup_inv' then 'Supplier Invoice Without PO' 
-                    when am.doc_type ='freight' then 'Freight Invoice'
-                    else '' end as officialwitholdingtax,null as witholdingtaxsectioon, ail.tds_id, 
-                    ai.name as invoicedocno, ai.date_invoice as postingdate,
-                    ai.bill_number as bill_no,ai.bill_date as bill_date,
-                    sum(ail.amount_basic) as base_amnt, at.name as tax_deduction, 
-                    cast(round(sum(ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
-                    ai.vendor_ref as ven_ref, ai.number as gl_doc,at.section as sec
-                    from account_invoice_line ail
-                    join account_invoice ai on (ai.id=ail.invoice_id)
-                    join account_move am on (am.name=ai.number)
-                    join res_partner bp on (bp.id=ai.partner_id)
-                    join account_tax at on (at.id=ail.tds_id)
-                    where am.state = 'posted' and ai.type='in_invoice' 
-                    and ail.tds_id is not null and am.doc_type in ('sup_inv', 'ser_inv', 'freight')
-                    and ai.date_invoice between '%s' and '%s' and at.gl_account_id = '%s'
-                    group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id,
-                    ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
-                    order by vendor_code
-                '''%(date_from,date_to,code[0])
+                        Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                        a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
+                        a.tdsamount,a.ven_ref,a.gl_doc,a.sec
+                        from(
+                        select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
+                        case when am.doc_type ='sup_inv_po' then 'Supplier Invoice with PO' 
+                        when am.doc_type ='ser_inv' then 'Service Invoice'
+                        when am.doc_type ='sup_inv' then 'Supplier Invoice Without PO' 
+                        when am.doc_type ='freight' then 'Freight Invoice'
+                        else '' end as officialwitholdingtax,null as witholdingtaxsectioon, ail.tds_id, 
+                        ai.name as invoicedocno, ai.date_invoice as postingdate,
+                        ai.bill_number as bill_no,ai.bill_date as bill_date,
+                        ail.amount_basic as base_amnt, at.name as tax_deduction, 
+                        cast(round((ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount,
+                        ai.vendor_ref as ven_ref, ai.number as gl_doc,at.section as sec
+                        from account_invoice_line ail
+                        join account_invoice ai on (ai.id=ail.invoice_id)
+                        inner join account_move am on (am.name=ai.number and ai.move_id = am.id)                        
+                        join res_partner bp on (bp.id=ai.partner_id)
+                        join account_tax at on (at.id=ail.tds_id)
+                        where am.state = 'posted' and ai.type='in_invoice' 
+                        and ail.tds_id is not null and am.doc_type in ('sup_inv', 'ser_inv', 'freight')
+                        and am.date between '%s' and '%s' and at.gl_account_id = '%s'
+                        and cast(round((ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) <> 0                                            
+
+                        union all
+
+                        select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
+                        case when av.type = 'receipt' then 'Receipt'
+                        when av.type = 'payment' then 'Payment'
+                        when av.type = 'sale' then 'Sale'
+                        when av.type = 'purhase' then 'Purhase' else '' end as officialwitholdingtax,
+                        null as witholdingtaxsection,null as tds_id,av.number,av.date,null as bill_number,null as bill_date,
+                        0.00 as base_amnt,null as tax_deduction,
+                        Case when aml.debit = '0.00' then aml.credit else -aml.debit end as tdsamount,null as ven_ref,null as gl_doc,null as sec
+                        from account_voucher av
+                        join res_partner bp on (bp.id=av.partner_id)
+                        inner join account_voucher_line avl on av.id=avl.voucher_id
+                        inner join account_account aa on avl.account_id=aa.id
+                        inner join account_move am on (am.id=av.move_id)
+                        inner join account_move_line aml on (aml.move_id=av.move_id and aa.id = aml.account_id)
+                        where am.state = 'posted' and aa.name ~ 'TDS' and am.date between '%s' and '%s' and aa.id = '%s'                     
+                        )a
+                        order by a.ven_code,a.gl_doc
+                '''%(date_from,date_to,gl_accnt[0],date_from,date_to,gl_accnt[0])
             self.cr.execute(sql)
             return self.cr.dictfetchall()
         
         else:            
             sql = '''
-                    select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
-                    case when am.doc_type ='sup_inv_po' then 'Supplier Invoice with PO' 
-                    when am.doc_type ='ser_inv' then 'Service Invoice'
-                    when am.doc_type ='sup_inv' then 'Supplier Invoice Without PO' 
-                    when am.doc_type ='freight' then 'Freight Invoice'
-                    else '' end as officialwitholdingtax,null as witholdingtaxsectioon, ail.tds_id, 
-                    ai.name as invoicedocno, ai.date_invoice as postingdate,
-                    ai.bill_number as bill_no,ai.bill_date as bill_date,
-                    sum(ail.amount_basic) as base_amnt, at.name as tax_deduction, 
-                    cast(round(sum(ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
-                    ai.vendor_ref as ven_ref, ai.number as gl_doc,at.section as sec
-                    from account_invoice_line ail
-                    join account_invoice ai on (ai.id=ail.invoice_id)
-                    join account_move am on (am.name=ai.number)
-                    join res_partner bp on (bp.id=ai.partner_id)
-                    join account_tax at on (at.id=ail.tds_id)
-                    where am.state = 'posted' and ai.type='in_invoice' 
-                    and ail.tds_id is not null and am.doc_type in ('sup_inv', 'ser_inv', 'freight')
-                    and ai.date_invoice between '%s' and '%s'
-                    group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id,
-                    ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
-                    order by vendor_code
-                '''%(date_from,date_to)
-            self.cr.execute(sql)
-            #print sql
+                        select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                        a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
+                        a.tdsamount,a.ven_ref,a.gl_doc,a.sec
+                        from(
+                        select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
+                        case when am.doc_type ='sup_inv_po' then 'Supplier Invoice with PO' 
+                        when am.doc_type ='ser_inv' then 'Service Invoice'
+                        when am.doc_type ='sup_inv' then 'Supplier Invoice Without PO' 
+                        when am.doc_type ='freight' then 'Freight Invoice'
+                        else '' end as officialwitholdingtax,null as witholdingtaxsectioon, ail.tds_id, 
+                        ai.name as invoicedocno, ai.date_invoice as postingdate,
+                        ai.bill_number as bill_no,ai.bill_date as bill_date,
+                        ail.amount_basic as base_amnt, at.name as tax_deduction, 
+                        cast(round((ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
+                        ai.vendor_ref as ven_ref, ai.number as gl_doc,at.section as sec
+                        from account_invoice_line ail
+                        join account_invoice ai on (ai.id=ail.invoice_id)
+                        inner join account_move am on (am.name=ai.number and ai.move_id = am.id)                       
+                        join res_partner bp on (bp.id=ai.partner_id)
+                        join account_tax at on (at.id=ail.tds_id)
+                        where am.state = 'posted' and ai.type='in_invoice' 
+                        and ail.tds_id is not null and am.doc_type in ('sup_inv', 'ser_inv', 'freight')
+                        and am.date between '%s' and '%s' and cast(round((ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) <> 0
+
+                        union all
+
+                        select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
+                        case when av.type = 'receipt' then 'Receipt'
+                        when av.type = 'payment' then 'Payment'
+                        when av.type = 'sale' then 'Sale'
+                        when av.type = 'purhase' then 'Purhase' else '' end as officialwitholdingtax,
+                        null as witholdingtaxsection,null as tds_id,av.number,av.date,null as bill_number,null as bill_date,
+                        0.00 as base_amnt,null as tax_deduction,
+                        Case when aml.debit = '0.00' then aml.credit else -aml.debit end as tdsamount,null as ven_ref,null as gl_doc,null as sec
+                        from account_voucher av
+                        join res_partner bp on (bp.id=av.partner_id)
+                        inner join account_voucher_line avl on av.id=avl.voucher_id
+                        inner join account_account aa on avl.account_id=aa.id
+                        inner join account_move am on (am.id=av.move_id)
+                        inner join account_move_line aml on (aml.move_id=av.move_id and aa.id = aml.account_id)
+                        where am.state = 'posted' and aa.name ~ 'TDS' and am.date between '%s' and '%s'
+                        )a
+                        order by a.ven_code,a.gl_doc
+                '''%(date_from,date_to,date_from,date_to)
+            self.cr.execute(sql)            
             return self.cr.dictfetchall()            
                            
        

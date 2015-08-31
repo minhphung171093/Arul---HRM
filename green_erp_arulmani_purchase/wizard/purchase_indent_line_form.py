@@ -182,60 +182,62 @@ class purchase_indent_line_report(osv.osv_memory):
                 return 'VV Raw Material PR'
             #return res or ''
         
-        def get_pending_qty(line_id,stock_id,ind_qty):            
-            if stock_id > 0:          
+        
+        def get_pending_qty(count,indent_id,prod_id,ind_qty):
+                     
+            if count > 0:
                 sql = '''
-                        select pp.rfq_qty as rfq_qty
-                        from tpt_purchase_indent pi
-                        inner join tpt_purchase_product pp on (pp.pur_product_id = pi.id)
-                        left join stock_move sm on (sm.po_indent_id = pi.id and sm.product_id = pp.product_id)
-                        left join stock_picking sp on (sp.id = sm.picking_id)
-                        where sp.state in ('done') and pp.id = %s and sm.id = %s
-                      '''%(line_id,stock_id)
+                        select pol.product_qty as rfq_qty
+                        from purchase_order_line pol
+                        join purchase_order po on (po.id = pol.order_id)
+                        join tpt_purchase_indent pi on (pi.id = pol.po_indent_no)
+                        where pol.po_indent_no = %s and pol.product_id = %s
+                      '''%(indent_id,prod_id)
                 cr.execute(sql)
-                for move in cr.dictfetchall():
-                      if move['rfq_qty']:
-                            rfq_qty = move['rfq_qty']
-                            pen_qty = ind_qty - rfq_qty
-                            return pen_qty or 0.000
+                for move in cr.dictfetchall():                      
+                    rfq_qty = move['rfq_qty']
+                    pen_qty = ind_qty - rfq_qty
+                    return pen_qty or 0.000
             else:
-                return ind_qty or 0.000               
+                return ind_qty or 0.000        
+                      
             
                     
-        def get_issue_qty_count(move_line_id):
-                    
-                    sql = '''
-                        select count(*) from tpt_material_issue_line msl 
-                        inner join tpt_material_issue ms on (ms.id = msl.material_issue_id)
-                        where state = 'done' and msl.request_line_id = %s
-                    '''%(move_line_id)
-                    cr.execute(sql)
-                    for move in cr.dictfetchall():
-                        count = move['count']
-                        return count or 0.000
+        def get_issue_qty_count(indent_id,prod_id):                   
+            sql = '''
+                        select count(*)
+                        from purchase_order_line pol
+                        join purchase_order po on (po.id = pol.order_id)
+                        join tpt_purchase_indent pi on (pi.id = pol.po_indent_no)
+                        where pol.po_indent_no = %s and pol.product_id = %s
+                    '''%(indent_id,prod_id)
+            cr.execute(sql)
+            for move in cr.dictfetchall():
+                count = move['count']
+                return count or 0.000
         
         def get_on_hand_qty(product_id):
-                    res = {}
-                    sql = '''
-                                select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton_sl from 
-                                        (select st.product_qty
-                                            from stock_move st 
-                                            where st.state='done' and st.product_id=%s and st.location_dest_id in (select id from stock_location
+            res = {}
+            sql = '''
+                select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton_sl from 
+                (select st.product_qty
+                from stock_move st 
+                where st.state='done' and st.product_id=%s and st.location_dest_id in (select id from stock_location
                                                                                                     where usage = 'internal')
-                                        union all
-                                        select st.product_qty*-1
-                                            from stock_move st 
-                                            where st.state='done' and st.product_id=%s and st.location_id in (select id from stock_location
+                union all
+                select st.product_qty*-1
+                 from stock_move st 
+                 where st.state='done' and st.product_id=%s and st.location_id in (select id from stock_location
                                                                                                     where usage = 'internal')
-                                        )foo
-                            '''%(product_id,product_id)
-                    cr.execute(sql)
-                    ton_sl = cr.dictfetchone()['ton_sl']
+                )foo
+                    '''%(product_id,product_id)
+            cr.execute(sql)
+            ton_sl = cr.dictfetchone()['ton_sl']
                         
-                    res[product_id] = {
-                            'on_hand_qty': ton_sl,
-                        }
-                    return ton_sl
+            res[product_id] = {
+                        'on_hand_qty': ton_sl,
+                     }
+            return ton_sl
 
 
         def get_invoice(cb):
@@ -248,26 +250,24 @@ class purchase_indent_line_report(osv.osv_memory):
             requ = cb.requisitioner.id
             project = cb.project_id.id
             proj_sec = cb.project_section_id.id
-            status = cb.state
-            
-            
+            status = cb.state            
             
             sql = '''
                 select pi.name as indent_no,pp.pur_product_id,pp.date_indent_relate as ind_date,pp.doc_type_relate as doc_type,
                 pp.department_id_relate,d.name as dept,pp.section_id_relate,s.name as sec,(pp.product_uom_qty*pp.price_unit) as total_val,
-                pp.requisitioner_relate,pp.product_id,pr.name_template as mat_desc,pr.default_code as mat_code,pp.price_unit as unit_price,
+                pp.requisitioner_relate,pp.product_id,pp.description as mat_desc,pr.default_code as mat_code,pp.price_unit as unit_price,
                 pp.description,pp.uom_po_id,u.name as uom,pp.id as line_id,pp.mrs_qty as res_qty,pp.state as status,
                 e.name_related as requisitioner,e.employee_id as requisitioner_code,e.last_name as lname,pp.product_uom_qty as ind_qty,
-                pp.product_id as prod_id,prr.name as project,prs.name as proj_sec,COALESCE(sm.id,0) as stock_id
+                pp.product_id as prod_id,prr.name as project,prs.name as proj_sec,COALESCE(pp.pur_product_id,0) as stock_id,
+                COALESCE(pi.id,0) as line_id
                 from tpt_purchase_product pp
                 inner join tpt_purchase_indent pi on (pi.id = pp.pur_product_id)
-                inner join hr_department d on (d.id = pp.department_id_relate)
-                inner join arul_hr_section s on (s.id = pp.section_id_relate)
+                left join hr_department d on (d.id = pp.department_id_relate)
+                left join arul_hr_section s on (s.id = pp.section_id_relate)
                 left join product_product pr on (pr.id = pp.product_id)
                 left join product_uom u on (u.id = pp.uom_po_id)
                 left join hr_employee e on (e.id = pp.requisitioner_relate)
-                left join stock_move sm on (sm.po_indent_id = pi.id and sm.product_id = pp.product_id)
-                left join tpt_project prr on (pr.id = pi.project_id)
+                left join tpt_project prr on (prr.id = pi.project_id)
                 left join tpt_project_section prs on (prs.id = pi.project_section_id)
             '''
             
@@ -352,7 +352,8 @@ class purchase_indent_line_report(osv.osv_memory):
                         'ind_qty':line['ind_qty'] or 0.000,
                         'res_qty':line['res_qty'] or 0.000,
                         'on_hand_qty':get_on_hand_qty(line['prod_id']),
-                        'pend_qty':get_pending_qty(line['line_id'],line['stock_id'],line['ind_qty']),
+                        #'pend_qty':get_pending_qty(line['line_id'],line['stock_id'],line['ind_qty']),
+                        'pend_qty':get_pending_qty(get_issue_qty_count(line['line_id'],line['prod_id']),line['line_id'],line['prod_id'],line['ind_qty']),
                         'tot':line['total_val'] or 0.000,
                         'state':get_status(line['status']) or '',
                                               

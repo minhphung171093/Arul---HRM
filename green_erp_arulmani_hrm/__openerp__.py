@@ -47,6 +47,7 @@
         'hr_demo_leave_types.xml',
         'hr_employee_data.xml',
         'emp_leave_status_schedule.xml',
+        'emp_time_entry_schedule.xml',
         'hr_payroll_earning_parameters_demo.xml',
         'hr_demo_payroll_deduction_parameters.xml',
         'report/arul_payslip_report.xml',
