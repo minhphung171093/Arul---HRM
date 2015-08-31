@@ -141,6 +141,15 @@ class tpt_import_supplier(osv.osv):
                     q_fetch = cr.fetchone()
                     exist_custo_count = q_fetch[0]
                     
+                    #cst = ''
+                    cst = sh.cell(row, 11).value
+                    tin = sh.cell(row, 12).value
+                    pan_tin = sh.cell(row, 13).value
+                    
+                    print cst
+                    print tin
+                    print pan_tin
+                    
                     if exist_custo_count > 0:
                         dem += 1
                         sql = '''
@@ -160,10 +169,10 @@ class tpt_import_supplier(osv.osv):
                         'range':sh.cell(row, 8).value or False,
                         'division':sh.cell(row, 9).value or False,
                         'commissionerate':sh.cell(row, 10).value or False, 
-                        'cst': str(sh.cell(row, 11).value) or False,
-                        'tin': str(sh.cell(row, 12).value) or False,
+                        'cst':  cst or '',
+                        'tin':  tin or '',
                         #'lst': sh.cell(row, 7).value or False,
-                        'pan_tin':str(sh.cell(row, 13).value) or False,    
+                        'pan_tin': pan_tin or '',    
                         'service_reg_no': sh.cell(row, 14).value or False,
 
                         },context)   
@@ -195,8 +204,7 @@ class tpt_import_supplier(osv.osv):
                             'commissionerate':sh.cell(row, 10).value or False, 
                             'cst': sh.cell(row, 11).value or False,
                             'tin': sh.cell(row, 12).value or False,
-                            #'lst': sh.cell(row, 7).value or False,
-                            'pan_tin':sh.cell(row, 13).value or False,    
+                            'pan_tin':pan_tin or '',    
                             'service_reg_no': sh.cell(row, 14).value or False,
                         })
                     
