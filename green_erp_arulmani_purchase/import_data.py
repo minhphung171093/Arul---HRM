@@ -102,12 +102,12 @@ class tpt_import_supplier(osv.osv):
                     
                     #tds = str(tds).lstrip()
                     #tds = tds.rstrip()
-                    tds_ids = tax_obj.search(cr, uid, [('description','=',tds)])
-                    if  not tds_ids:
-                        if len(str(tds).replace(" ",""))>0:
+                    if len(str(tds).replace(" ",""))>0:
+                        tds_ids = tax_obj.search(cr, uid, [('description','=',tds)])
+                        if  not tds_ids:
                             tds_id = tax_obj.create(cr, uid, {'description':tds,'name':tds}) 
-                    else:
-                        tds_id = tds_ids[0]
+                        else:
+                            tds_id = tds_ids[0]
                         
                     if tds_id >0:
                         tds_id = tds_id
@@ -161,7 +161,7 @@ class tpt_import_supplier(osv.osv):
                         'division':sh.cell(row, 9).value or False,
                         'commissionerate':sh.cell(row, 10).value or False, 
                         'cst': sh.cell(row, 11).value or False,
-                        'tin': int(sh.cell(row, 12).value) or False,
+                        'tin': sh.cell(row, 12).value or False,
                         #'lst': sh.cell(row, 7).value or False,
                         'pan_tin':sh.cell(row, 13).value or False,    
                         'service_reg_no': sh.cell(row, 14).value or False,
