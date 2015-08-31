@@ -10296,7 +10296,7 @@ class tpt_hr_attendance(osv.osv):
         attend_temp_obj = self.pool.get('tpt.hr.temp.attendance') 
         attend_obj_ids = attend_obj.search(cr, uid, [('is_processed','=',False)]) #, ('punch_type','=','IN')
         for time_entry in attend_obj.browse(cr,uid,attend_obj_ids):
-            employee_id = time_entry.employee_id.id
+            employee_id = time_entry.employee_id.id 
             work_date = time_entry.work_date
             punch_type = time_entry.punch_type
             #Example Work_date = "2015-08-27 05:48:14.976784"
