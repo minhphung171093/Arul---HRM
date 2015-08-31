@@ -132,8 +132,8 @@ class tpt_machineries(osv.osv):
 #         'section_id': fields.many2one('arul.hr.section', 'Section',required=True),
         'start_date': fields.date('Installation Start Date',required=True),
         'end_date': fields.date('Installation End Date',required=True),
-        'men_power_line':fields.one2many('tpt.men.power','equipment_id','Men Power Consumption'),
-        'document_attach_line':fields.one2many('tpt.document.attach','equipment_id','Document Attachments'),
+        'men_power_line':fields.one2many('tpt.men.power','machineries_id','Men Power Consumption'),
+        'document_attach_line':fields.one2many('tpt.document.attach','machineries_id','Document Attachments'),
         'department_id': fields.related('equip_id','department_id',type='many2one', relation='hr.department',string='Department', readonly = True),
         'section_id': fields.related('equip_id','section_id',type='many2one', relation='arul.hr.section',string='Section', readonly = True),
     }
@@ -193,8 +193,8 @@ class tpt_notification(osv.osv):
 #         'section_id': fields.many2one('arul.hr.section', 'Section',required=True,readonly = True,states={'draft': [('readonly', False)]}),
         'department_id': fields.related('equip_id','department_id',type='many2one', relation='hr.department',string='Department', readonly = True),
         'section_id': fields.related('equip_id','section_id',type='many2one', relation='arul.hr.section',string='Section', readonly = True),
-        'equip_id': fields.many2one('tpt.equipment', 'Equipment',required=True,readonly = True,states={'draft': [('readonly', False)]}),
-        'machine_id': fields.many2one('tpt.machineries', 'Machineries',required=True,readonly = True,states={'draft': [('readonly', False)]}),
+        'equip_id': fields.many2one('tpt.equipment', 'Equipment',readonly = True,states={'draft': [('readonly', False)]}),
+        'machine_id': fields.many2one('tpt.machineries', 'Machineries',readonly = True,states={'draft': [('readonly', False)]}),
         'issue_date': fields.date('Issue Dated on',required=True,readonly = True,states={'draft': [('readonly', False)]}),
         'issue_type':fields.selection([('major', 'Major'),('minor', 'Minor'),('critical', 'Critical')],'Issue Type',readonly = True,states={'draft': [('readonly', False)]}),
         'priority':fields.selection([('high', 'High'),('medium', 'Medium'),('low', 'Low')],'Priority',readonly = True,states={'draft': [('readonly', False)]}),
@@ -285,10 +285,10 @@ class tpt_maintenance_oder(osv.osv):
         'notif_type':fields.selection([
                                 ('prevent','Preventive Maintenance'),
                                 ('break','Breakdown')],'Notification Type',required = True,states={'close': [('readonly', True)]}),
-#         'department_id': fields.many2one('hr.department', 'Department',required=True,states={'close': [('readonly', True)]}),
-#         'section_id': fields.many2one('arul.hr.section', 'Section',required=True,states={'close': [('readonly', True)]}),
-        'department_id': fields.related('notification_id','department_id',type='many2one', relation='hr.department',string='Department', readonly = True),
-        'section_id': fields.related('notification_id','section_id',type='many2one', relation='arul.hr.section',string='Section', readonly = True),
+        'department_id': fields.many2one('hr.department', 'Department',required=True,states={'close': [('readonly', True)]}),
+        'section_id': fields.many2one('arul.hr.section', 'Section',required=True,states={'close': [('readonly', True)]}),
+#         'department_id': fields.related('notification_id','department_id',type='many2one', relation='hr.department',string='Department', readonly = True),
+#         'section_id': fields.related('notification_id','section_id',type='many2one', relation='arul.hr.section',string='Section', readonly = True),
         'equip_id': fields.related('notification_id','equip_id',type='many2one', relation='tpt.equipment',string='Equipment', readonly = True),
         'machine_id': fields.related('notification_id','machine_id',type='many2one', relation='tpt.machineries',string='Machineries', readonly = True),
         
@@ -369,6 +369,94 @@ class tpt_maintenance_oder(osv.osv):
     def bt_close(self, cr, uid, ids, context=None):
         return self.write(cr, uid, ids,{'state':'close'})
     
+    def bt_return_rq(self, cr, uid, ids, context=None):
+        return True
+    
+    def bt_service_entry(self, cr, uid, ids, context=None):
+        res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
+                                        'green_erp_arulmani_maintenance', 'view_tpt_service_entry_form')
+        order_id = self.pool.get('tpt.maintenance.oder').browse(cr,uid,ids[0])
+        return {
+                    'name': 'Staff Service Entry',
+                    'view_type': 'form',
+                    'view_mode': 'form',
+                    'view_id': res[1],
+                    'res_model': 'tpt.service.entry',
+                    'domain': [],
+                    'context': {
+                                'default_maintenance_id':order_id.id or False,
+                                'default_section_id':order_id.section_id and order_id.section_id.id or False,
+                                'default_department_id':order_id.department_id and order_id.department_id.id or False,
+                                'default_equip_id':order_id.equip_id and order_id.equip_id.id or False,
+                                'default_machine_id':order_id.machine_id and order_id.machine_id.id or False},
+                    'type': 'ir.actions.act_window',
+                    'target': 'new',
+                }
+        
+    def bt_third_service_entry(self, cr, uid, ids, context=None):
+        res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
+                                        'green_erp_arulmani_maintenance', 'view_tpt_third_service_entry_form')
+        order_id = self.pool.get('tpt.maintenance.oder').browse(cr,uid,ids[0])
+        return {
+                    'name': 'Third Party Service Entry',
+                    'view_type': 'form',
+                    'view_mode': 'form',
+                    'view_id': res[1],
+                    'res_model': 'tpt.third.service.entry',
+                    'domain': [],
+                    'context': {
+                                'default_maintenance_id':order_id.id or False,
+                                'default_section_id':order_id.section_id and order_id.section_id.id or False,
+                                'default_department_id':order_id.department_id and order_id.department_id.id or False,
+                                'default_equip_id':order_id.equip_id and order_id.equip_id.id or False,
+                                'default_machine_id':order_id.machine_id and order_id.machine_id.id or False},
+                    'type': 'ir.actions.act_window',
+                    'target': 'new',
+                }
+    
+    def bt_create_mrs(self, cr, uid, ids, context=None):
+        res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
+                                        'green_erp_arulmani_maintenance', 'view_tpt_material_request_form_for_mainten')
+        order_id = self.pool.get('tpt.maintenance.oder').browse(cr,uid,ids[0])
+        return {
+                    'name': 'Material Request',
+                    'view_type': 'form',
+                    'view_mode': 'form',
+                    'view_id': res[1],
+                    'res_model': 'tpt.material.request',
+                    'domain': [],
+                    'context': {
+                                'default_maintenance_id':order_id.id or False,
+                                'default_section_id':order_id.section_id and order_id.section_id.id or False,
+                                'default_department_id':order_id.department_id and order_id.department_id.id or False,
+                                'default_mrs_type':'normal',
+                                },
+                    'type': 'ir.actions.act_window',
+                    'target': 'new',
+                }
+        
+    def bt_chargeable_mrs(self, cr, uid, ids, context=None):
+        res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
+                                        'green_erp_arulmani_maintenance', 'view_tpt_material_request_form_for_mainten')
+        order_id = self.pool.get('tpt.maintenance.oder').browse(cr,uid,ids[0])
+        return {
+                    'name': 'Material Request',
+                    'view_type': 'form',
+                    'view_mode': 'form',
+                    'view_id': res[1],
+                    'res_model': 'tpt.material.request',
+                    'domain': [],
+                    'context': {
+                                'default_chargeable_maintenance_id':order_id.id or False,
+                                'default_section_id':order_id.section_id and order_id.section_id.id or False,
+                                'default_department_id':order_id.department_id and order_id.department_id.id or False,
+                                'default_mrs_type':'chargeable',
+                                },
+                    'type': 'ir.actions.act_window',
+                    'target': 'new',
+                }
+        
+    
 tpt_maintenance_oder()
 
 class tpt_service_entry(osv.osv):
@@ -423,6 +511,25 @@ class tpt_service_entry(osv.osv):
         return new_id
     
     def bt_service_invoice(self, cr, uid, ids, context=None):
+        return True
+    
+    def bt_save(self, cr, uid, ids,vals,context=None):
+#         service_obj = self.pool.get('tpt.maintenance.oder')
+#         vals = {}
+#         service = self.browse(cr, uid, ids[0])
+#         vals.update({   'maintenance_id': context.get('default_maintenance_id', False),
+#                         'section_id': context.get('default_section_id', False),
+#                         'department_id': context.get('default_department_id', False),
+#                         'equip_id': context.get('default_equip_id', False),
+#                         'machine_id': context.get('default_machine_id', False),
+#                         'service_type': service.service_type or False,
+#                         'work_taken': service.work_taken or False,
+#                         })
+                     
+#                         'default_department_id':order_id.department_id and order_id.department_id.id or False,
+#                         'default_equip_id':order_id.equip_id and order_id.equip_id.id or False,
+#                         'default_machine_id':order_id.machine_id and order_id.machine_id.id or False,})
+#         return self.write(cr,uid,ids[0],vals,context)
         return True
     
 tpt_service_entry()
@@ -509,8 +616,8 @@ class tpt_third_service_entry(osv.osv):
     
     def _get_order(self, cr, uid, ids, context=None):
         result = {}
-        for line in self.pool.get('tpt.service.entry.line').browse(cr, uid, ids, context=context):
-            result[line.service_entry_id.id] = True
+        for line in self.pool.get('tpt.third.service.entry.line').browse(cr, uid, ids, context=context):
+            result[line.third_service_id.id] = True
         return result.keys()
     
     _columns = {
@@ -543,6 +650,9 @@ class tpt_third_service_entry(osv.osv):
         return new_id
     
     def bt_service_invoice(self, cr, uid, ids, context=None):
+        return True
+    
+    def bt_save(self, cr, uid, ids,vals,context=None):
         return True
     
 tpt_third_service_entry()
@@ -606,54 +716,11 @@ class tpt_material_request(osv.osv):
     _columns = {
                 'maintenance_id':fields.many2one('tpt.maintenance.oder','Maintenance Order No',readonly = True),
                 'chargeable_maintenance_id':fields.many2one('tpt.maintenance.oder','Maintenance Order No',readonly = True),
-                'mrs_type':fields.selection([('normal','Normal MRS'),('chargeable', 'Chargeable MRS')],'MRS Type'),
+                'mrs_type':fields.selection([('normal','Normal MRS'),('chargeable', 'Chargeable MRS')],'MRS Type',readonly = True),
                 }
+    def bt_main_save(self, cr, uid, ids,vals,context=None):
+        return True
     
-#     def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
-#         if context is None:
-#             context = {}
-#         if context.get('search_ma_request'): 
-#             request_id = context.get('request_id')
-#             request_master_full_ids = []
-#             sql = '''
-#                 select request_line_id,case when sum(product_isu_qty)!=0 then sum(product_isu_qty) else 0 end product_isu_qty
-#                     from tpt_material_issue_line group by request_line_id
-#             '''
-#             cr.execute(sql)
-#             request_line_ids = []
-#             temp = 0
-#             lines = cr.fetchall()
-#             for request_line in lines:
-#                 if request_line[0]:
-#                     sql = '''
-#                         select case when sum(product_uom_qty)!=0 then sum(product_uom_qty) else 0 end product_uom_qty
-#                             from tpt_material_request_line where id = %s
-#                     '''%(request_line[0])
-#                     cr.execute(sql)
-#                     product_uom_qty = cr.fetchone()[0]
-#                     if product_uom_qty <= request_line[1]:
-#                         temp+=1
-#             if temp==len(lines):
-#                 request_line_ids.append(request_line[0])
-#             if request_line_ids:
-#                 cr.execute('''
-#                     select material_request_id from tpt_material_request_line where id in %s
-#                 ''',(tuple(request_line_ids),))
-#                 request_master_full_ids = [r[0] for r in cr.fetchall()]
-#             request_master_ids = self.pool.get('tpt.material.request').search(cr, uid, [('id','not in',request_master_full_ids)])
-#             args += [('id','in',request_master_ids)]
-#         if context.get('normal_material'):
-#             sql = '''
-#                 select id from tpt_material_request where mrs_type = 'normal'
-#             '''
-#             cr.execute(sql)
-#             request_ids = [r[0] for r in cr.fetchall()]
-#             args += [('id','in',request_ids)]
-#         return super(tpt_material_request, self).search(cr, uid, args, offset=offset, limit=limit, order=order, context=context, count=count)
-#      
-#     def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
-#        ids = self.search(cr, user, args, context=context, limit=limit)
-#        return self.name_get(cr, user, ids, context=context)
 
 tpt_material_request()
 
