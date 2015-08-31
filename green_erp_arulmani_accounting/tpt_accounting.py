@@ -5696,7 +5696,7 @@ class res_partner(osv.osv):
             help="This account will be used instead of the default one as the receivable account for the current partner",
             required=False),
         'is_tds_applicable': fields.boolean('IsTDSApplicable'),
-        #'section': fields.char('With Holding Tax', ),
+        'section': fields.char('With Holding Tax', ),
         'tds_id': fields.many2one('account.tax', 'TDS %'),
         'vendor_type': fields.selection([('manu', 'Manufacturer'),('trade', 'Traders'),('first_stage', 'First Stage'),('Import', 'import')],'Vendor Type'),
         }
