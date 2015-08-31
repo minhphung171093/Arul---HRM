@@ -12,6 +12,7 @@ class tpt_form_movement_analysis(osv.osv):
     _columns = {    
                 'categ_id': fields.many2one('product.category', 'Product Category'),
                 'product_id': fields.many2one('product.product', 'Product'),
+#                 'product_ids': fields.many2many('product.product', 'product_movement_report', 'movement_id', 'product_id', 'Product'),  
                 'date_from':fields.date('Date From'),
                 'date_from_title':fields.char('Date From'),
                 'date_to':fields.date('To'),
@@ -80,7 +81,8 @@ class stock_movement_analysis(osv.osv_memory):
     _name = "stock.movement.analysis"
     _columns = {    
                 'categ_id': fields.many2one('product.category', 'Product Category',required = True),
-                'product_id': fields.many2one('product.product', 'Product'),
+#                 'product_id': fields.many2one('product.product', 'Product'),
+                'product_ids': fields.many2many('product.product', 'product_movement_report', 'movement_id', 'product_id', 'Products'),  
                 'date_from':fields.date('Date From',required = True),
                 'date_to':fields.date('To',required = True),
                 }
@@ -126,20 +128,21 @@ class stock_movement_analysis(osv.osv_memory):
         self.good = 0
         def get_categ(o):
             categ = o.categ_id.id
-            product = o.product_id.id
+#             product = o.product_id.id
+            product = o.product_ids
+            product_ids = [r.id for r in o.product_ids]
             pro_obj = self.pool.get('product.product')
             categ_ids = []
-    
             if categ and product:
-                sql='''
-                            select product_product.id 
-                            from product_product,product_template 
-                            where product_template.categ_id in(select product_category.id from product_category where product_category.id = %s) 
-                            and product_product.product_tmpl_id = product_template.id and product_product.id = %s ;
-                '''%(categ,product)
-                cr.execute(sql)
-                categ_ids += [r[0] for r in cr.fetchall()]
-                return self.pool.get('product.product').browse(cr,uid,categ_ids)
+                for product_id in product_ids:
+                    sql='''
+                                select product_product.id 
+                                from product_product,product_template 
+                                where product_template.categ_id in(select product_category.id from product_category where product_category.id = %s) 
+                                and product_product.product_tmpl_id = product_template.id and product_product.id = %s ;
+                    '''%(categ,product_id)
+                    cr.execute(sql)
+                    categ_ids += [r[0] for r in cr.fetchall()]
             if categ and not product:
                 sql='''
                             select product_product.id 
@@ -149,7 +152,7 @@ class stock_movement_analysis(osv.osv_memory):
                 '''%(categ)
                 cr.execute(sql)
                 categ_ids += [r[0] for r in cr.fetchall()]
-                return pro_obj.browse(cr,uid,categ_ids)
+            return pro_obj.browse(cr,uid,categ_ids)
 
 
         
@@ -1138,15 +1141,20 @@ class stock_movement_analysis(osv.osv_memory):
                 'close_value': get_opening_stock_value(stock,line.id)+get_receipt_value(stock,line.id)-get_consumption_value(stock,line.id),   
             
             }))
+        product_name = ''
+        name_ids = [r.name for r in stock.product_ids]
+        for name in name_ids:
+            product_name += name + ', '
         vals = {
             'name': 'Stock Movement Analysis ',
-            'product_id': stock.product_id.id,
-            'product_name': stock.product_id and stock.product_id.name or 'All' ,
+#             'product_id': stock.product_id.id,
+            'product_name': stock.product_ids and product_name or 'All' ,
+#             'product_name': 'All' ,
             'product_name_title': 'Product: ',
             'date_from': stock.date_from,
             'date_to': stock.date_to,
             'date_from_title':'Date From: ',
-            'date_to_title':'To: ',
+            'date_to_title':'Date To: ',
             'categ_id': stock.categ_id.id,
             'categ_name': stock_obj.get_categ_name(cr, uid, ids,stock.categ_id.cate_name),
             'categ_name_title': 'Product Category: ',
