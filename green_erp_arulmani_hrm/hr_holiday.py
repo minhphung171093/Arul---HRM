@@ -5818,7 +5818,7 @@ class arul_hr_punch_in_out_time(osv.osv):
                                             ('clerk_err', 'Clerical Error')],'Reason for Change'),
         'reason_details': fields.text('Reason In Details'),
         
-        #'work_shift_code': fields.char('Shifts Worked', size=256),             
+        'work_shift_code': fields.char('Shifts Worked', size=256),             
     }
     
     _defaults = {
@@ -10294,9 +10294,9 @@ class tpt_hr_attendance(osv.osv):
         #
         attend_obj = self.pool.get('tpt.hr.attendance') 
         attend_temp_obj = self.pool.get('tpt.hr.temp.attendance') 
-        attend_obj_ids = attend_obj.search(cr, uid, [('is_processed','=',False), ('punch_type','=','IN')]) 
+        attend_obj_ids = attend_obj.search(cr, uid, [('is_processed','=',False)]) #, ('punch_type','=','IN')
         for time_entry in attend_obj.browse(cr,uid,attend_obj_ids):
-            employee_id = time_entry.employee_id.id
+            employee_id = time_entry.employee_id.id 
             work_date = time_entry.work_date
             punch_type = time_entry.punch_type
             #Example Work_date = "2015-08-27 05:48:14.976784"
@@ -10313,15 +10313,41 @@ class tpt_hr_attendance(osv.osv):
             work_date_format = work_date[:4]+'-'+work_date[5:7]+'-'+work_date[8:10]
             
             
-            #if punch_type=='IN':
-            in_time = float(hour)+float(min)/60+float(sec)/3600
-            attend_temp_obj.create(cr, uid, {
-                             'employee_id': employee_id,
-                             'work_date': work_date_format,
-                             'in_time': in_time,
-                             'out_time': 0,
-                              })
+            if punch_type=='IN':
+                in_time = float(hour)+float(min)/60+float(sec)/3600
+                attend_temp_obj.create(cr, uid, {
+                                 'employee_id': employee_id,
+                                 'work_date': work_date_format,
+                                 'in_time': in_time,
+                                 'out_time': 0,
+                                  })
+            if punch_type=='OUT':
+                out_time = float(hour)+float(min)/60+float(sec)/3600
+                attend_temp_obj_ids = attend_temp_obj.search(cr, uid, [('employee_id','=',employee_id), ('work_date','=',work_date_format)]) 
+                exist_emp_obj = attend_temp_obj.browse(cr,uid,attend_temp_obj_ids[0])
                 
+                if not exist_emp_obj: 
+                        attend_temp_obj.create(cr, uid, {
+                                 'employee_id': employee_id,
+                                 'work_date': work_date_format,
+                                 'in_time': 0,
+                                 'out_time': out_time,
+                                  }) 
+                else:
+                        exist_in_time = exist_emp_obj.in_time
+                        punch_in_date = exist_emp_obj.work_date
+                        attend_temp_obj.write(cr, uid, [exist_emp_obj.id], {
+                                 'employee_id': employee_id,
+                                 'work_date': work_date_format,
+                                 'in_time': exist_in_time,
+                                 'out_time': out_time,
+                                  }) 
+                        
+                        self.auto_approve_to_attendance(cr, uid, employee_id, work_date_format, exist_in_time, out_time, shift_id, 
+                                                        time_entry.employee_id,  punch_in_date)
+                        attend_temp_obj.write(cr, uid, [exist_emp_obj.id], {
+                                 'is_auto_approved': True,
+                                  })    
             ###
             attend_obj.write(cr, uid, time_entry.id, {'is_processed':'t'})
             ###
@@ -10366,6 +10392,7 @@ class tpt_hr_attendance(osv.osv):
                              'in_time': 0,
                              'out_time': out_time,
                               }) 
+                    attend_obj.write(cr, uid, time_entry.id, {'is_processed':'t'})
             else:
                     exist_in_time = exist_emp_obj.in_time
                     punch_in_date = exist_emp_obj.work_date
@@ -10382,7 +10409,7 @@ class tpt_hr_attendance(osv.osv):
                              'is_auto_approved': True,
                               })
             ###
-            attend_obj.write(cr, uid, time_entry.id, {'is_processed':'t'})
+                    attend_obj.write(cr, uid, time_entry.id, {'is_processed':'t'})
             ###
         #END FOR
    
@@ -10406,6 +10433,7 @@ class tpt_hr_attendance(osv.osv):
         b_shift = 0
         c_shift = 0
         shift_count = 0
+        c_off_day = 0
         work_shift_id = False
         
         sql = '''
@@ -10440,20 +10468,21 @@ class tpt_hr_attendance(osv.osv):
                             'approval':1}
             employee_ids = emp_attendence_obj.search(cr, uid, [('employee_id','=',employee_id)])
             if employee_ids: 
+                punch_io_values.update({'punch_in_out_id':employee_ids[0]}) 
                 punch_io_obj.create(cr,uid,punch_io_values)
                 ## C.OFF LOGIC
-                sql=''' SELECT work_date FROM arul_hr_punch_in_out_time WHERE TO_CHAR(work_date,'YYYY-MM-DD') = ('%s') and employee_id=%s '''%(date,employee_ids[0])
+                sql=''' SELECT work_date FROM arul_hr_punch_in_out_time WHERE TO_CHAR(work_date,'YYYY-MM-DD') = ('%s') and employee_id=%s '''%(work_date_format,employee_id)
                 cr.execute(sql)                
                 same_work_date=cr.fetchone()
                 if same_work_date:
                     flag = 1
-                sql=''' SELECT date FROM arul_hr_holiday_special WHERE TO_CHAR(date,'YYYY-MM-DD') = ('%s') and is_local_holiday='t' '''%date
+                sql=''' SELECT date FROM arul_hr_holiday_special WHERE TO_CHAR(date,'YYYY-MM-DD') = ('%s') and is_local_holiday='t' '''%work_date_format
                 cr.execute(sql)                
                 local_date=cr.fetchall()
                                         
                 if local_date : 
                     flag = 1
-                sql=''' SELECT date FROM arul_hr_holiday_special WHERE TO_CHAR(date,'YYYY-MM-DD') = ('%s') and is_local_holiday='f' '''%date
+                sql=''' SELECT date FROM arul_hr_holiday_special WHERE TO_CHAR(date,'YYYY-MM-DD') = ('%s') and is_local_holiday='f' '''%work_date_format
                 cr.execute(sql)                
                 spl_date=cr.fetchall()
                                         
@@ -10471,7 +10500,7 @@ class tpt_hr_attendance(osv.osv):
                 if flag==1 and categ!='S1':
                     c_off_day = shift_count
                 ##
-                employee_leave_ids = employee_leave_obj.search(cr, uid, [('year','=',data1[7:11]),('employee_id','=',employee_ids[0])])
+                employee_leave_ids = employee_leave_obj.search(cr, uid, [('year','=',work_date_format[7:11]),('employee_id','=',employee_id)])
                 leave_type_ids = leave_type_obj.search(cr, uid, [('code','=','C.Off')])
                 if not leave_type_ids:
                     raise osv.except_osv(_('Warning!'),_('Can not find Leave Type C.Off. Please Create Leave Type C.Off before'))
@@ -10488,14 +10517,16 @@ class tpt_hr_attendance(osv.osv):
                                                                                                'emp_leave_id': employee_leave_ids[0],
                                                                                                'total_day': c_off_day,
                                                                                                })
+                
                 else:
                         employee_leave_obj.create(cr, uid, {
-                            'employee_id': employee_ids[0],
-                            'year': data1[7:11],
+                            'employee_id': employee_id,
+                            'year': work_date_format[7:11],
                             'emp_leave_details_ids': [(0,0,{
                             'leave_type_id': leave_type_ids[0],
                             'total_day': c_off_day,
                              })],})
+                ## C.OFF LOGIC
             else:
                 emp_attendence_obj.create(cr,uid,{'employee_id':employee_id,
                             'employee_category_id':emp.employee_category_id and emp.employee_category_id.id or False,

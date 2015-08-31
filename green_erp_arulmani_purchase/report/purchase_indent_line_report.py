@@ -45,6 +45,7 @@ class Parser(report_sxw.rml_parse):
             'get_req_name_code':self.get_req_name_code,
             'get_on_hand_qty':self.get_on_hand_qty,
             'get_pending_qty':self.get_pending_qty,
+            'get_issue_qty_count':self.get_issue_qty_count,
         })
         
     def get_date_from(self):
@@ -124,36 +125,35 @@ class Parser(report_sxw.rml_parse):
             return 'VV Raw Material PR'
        # return res or ''
     
-    def get_pending_qty(self,line_id,stock_id,ind_qty):            
-            if stock_id > 0:          
-                sql = '''
-                        select pp.rfq_qty as rfq_qty
-                        from tpt_purchase_indent pi
-                        inner join tpt_purchase_product pp on (pp.pur_product_id = pi.id)
-                        left join stock_move sm on (sm.po_indent_id = pi.id and sm.product_id = pp.product_id)
-                        left join stock_picking sp on (sp.id = sm.picking_id)
-                        where sp.state in ('done') and pp.id = %s and sm.id = %s
-                      '''%(line_id,stock_id)
-                self.cr.execute(sql)
-                for move in self.cr.dictfetchall():
-                      if move['rfq_qty']:
-                            rfq_qty = move['rfq_qty']
-                            pen_qty = ind_qty - rfq_qty
-                            return pen_qty or 0.000
-            else:
-                return ind_qty or 0.000
+    def get_pending_qty(self,count,indent_id,prod_id,ind_qty):                   
+        if count > 0: 
+            sql = '''
+                        select pol.product_qty as rfq_qty
+                        from purchase_order_line pol
+                        join purchase_order po on (po.id = pol.order_id)
+                        join tpt_purchase_indent pi on (pi.id = pol.po_indent_no)
+                        where pol.po_indent_no = %s and pol.product_id = %s
+                    '''%(indent_id,prod_id)
+            self.cr.execute(sql)
+            for move in self.cr.dictfetchall():                      
+                rfq_qty = move['rfq_qty']
+                pen_qty = ind_qty - rfq_qty
+                return pen_qty or 0.000
+        else:
+            return ind_qty or 0.000
                 
-    def get_issue_qty_count(self,move_line_id):
-                
-                sql = '''
-                    select count(*) from tpt_material_issue_line msl 
-                    inner join tpt_material_issue ms on (ms.id = msl.material_issue_id)
-                    where state = 'done' and msl.request_line_id = %s
-                '''%(move_line_id)
-                self.cr.execute(sql)
-                for move in self.cr.dictfetchall():
-                    count = move['count']
-                    return count or 0.000
+    def get_issue_qty_count(self,indent_id,prod_id):
+            sql = '''
+                        select count(*)
+                        from purchase_order_line pol
+                        join purchase_order po on (po.id = pol.order_id)
+                        join tpt_purchase_indent pi on (pi.id = pol.po_indent_no)
+                        where pol.po_indent_no = %s and pol.product_id = %s
+                '''%(indent_id,prod_id)
+            self.cr.execute(sql)
+            for move in self.cr.dictfetchall():
+                count = move['count']
+                return count or 0.000
    
     
     def get_on_hand_qty(self,product_id):
@@ -200,7 +200,8 @@ class Parser(report_sxw.rml_parse):
                 pp.requisitioner_relate,pp.product_id,pr.name_template as mat_desc,pr.default_code as mat_code,pp.price_unit as unit_price,
                 pp.description,pp.uom_po_id,u.name as uom,pp.id as line_id,pp.mrs_qty as res_qty,pp.state as status,
                 e.name_related as requisitioner,e.employee_id as requisitioner_code,e.last_name as lname,pp.product_uom_qty as ind_qty,
-                pp.product_id as prod_id,prr.name as project,prs.name as proj_sec,COALESCE(sm.id,0) as stock_id
+                pp.product_id as prod_id,prr.name as project,prs.name as proj_sec,COALESCE(sm.id,0) as stock_id,
+                COALESCE(pi.id,0) as line_id
                 from tpt_purchase_product pp
                 inner join tpt_purchase_indent pi on (pi.id = pp.pur_product_id)
                 inner join hr_department d on (d.id = pp.department_id_relate)
@@ -209,7 +210,7 @@ class Parser(report_sxw.rml_parse):
                 left join product_uom u on (u.id = pp.uom_po_id)
                 left join hr_employee e on (e.id = pp.requisitioner_relate)
                 left join stock_move sm on (sm.po_indent_id = pi.id and sm.product_id = pp.product_id)
-                left join tpt_project prr on (pr.id = pi.project_id)
+                left join tpt_project prr on (prr.id = pi.project_id)
                 left join tpt_project_section prs on (prs.id = pi.project_section_id)
             '''
             

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>   
+        <record id="view_time_data_upload_process" model="ir.ui.view">
+            <field name="name">time.data.upload</field>
+            <field name="model">time.data.upload</field>
+            <field name="arch" type="xml">
+                <form string="Time Data Upload" version="7.0">
+                	
+                    <footer>
+                        <button name="upload_time_data" string="Process" type="object" class="oe_highlight" context="{'type':'appointments'}"/>
+                        <button string="Cancel" class="oe_link" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>        
+        <record id="action_upload_time_data_report" model="ir.actions.act_window">
+            <field name="name">Upload Time Data</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">time.data.upload</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+        </record>
+        <menuitem action="action_upload_time_data_report"
+            id="menu_action_time_data_upload"
+            parent="menu_hr_leave_management" sequence="91"/> 
+        
+    </data>
+</openerp>
+
