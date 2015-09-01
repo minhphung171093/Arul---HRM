@@ -146,8 +146,8 @@ class Parser(report_sxw.rml_parse):
             sql = '''
                 select cost_center_id from account_invoice where move_id =%s
             '''%(move_id)
-            cr.execute(sql)
-            p = cr.fetchone()
+            self.cr.execute(sql)
+            p = self.cr.fetchone()
             cost_center = ''
             if p and p[0]:
                 cost_center = self.pool.get('tpt.cost.center').browse(cr,uid, p[0]).name

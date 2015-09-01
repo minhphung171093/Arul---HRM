@@ -203,7 +203,7 @@ class purchase_indent_line_report(osv.osv_memory):
         #         return ind_qty or 0.000        
         #=======================================================================
         
-        def get_pending_qty(self,count,indent_id,prod_id,ind_qty,item_text,desc):                   
+        def get_pending_qty(count,indent_id,prod_id,ind_qty,item_text,desc):                   
             if count > 0:
                 sql = '''
                         select pol.product_qty as rfq_qty
@@ -213,13 +213,15 @@ class purchase_indent_line_report(osv.osv_memory):
                         where pol.po_indent_no = %s and pol.product_id = %s
                       '''%(indent_id,prod_id)
                 if item_text:
+                    item_text = item_text.replace("'", "'||''''||'")
                     str = " and pol.item_text = '%s'"%(item_text)
                     sql = sql+str
                 if desc:
+                    desc = desc.replace("'", "'||''''||'")
                     str = " and pol.description = '%s'"%(desc)
                     sql = sql+str
-                self.cr.execute(sql)
-                for move in self.cr.dictfetchall():                      
+                cr.execute(sql)
+                for move in cr.dictfetchall():                      
                         rfq_qty = move['rfq_qty']
                         pen_qty = ind_qty - rfq_qty
                         return pen_qty or 0.000
@@ -227,7 +229,7 @@ class purchase_indent_line_report(osv.osv_memory):
                 return ind_qty or 0.000
             
             
-        def get_issue_qty_count(self,indent_id,prod_id,item_text,desc):                
+        def get_issue_qty_count(indent_id,prod_id,item_text,desc):             
                 
                 sql = '''
                         select count(*)
@@ -237,13 +239,15 @@ class purchase_indent_line_report(osv.osv_memory):
                         where pol.po_indent_no = %s and pol.product_id = %s
                     '''%(indent_id,prod_id)
                 if item_text:
+                    item_text = item_text.replace("'", "'||''''||'")
                     str = " and pol.item_text = '%s'"%(item_text)
                     sql = sql+str
                 if desc:
+                    desc = desc.replace("'", "'||''''||'")
                     str = " and pol.description = '%s'"%(desc)
                     sql = sql+str
-                self.cr.execute(sql)
-                for move in self.cr.dictfetchall():
+                cr.execute(sql)
+                for move in cr.dictfetchall():
                     count = move['count']
                     return count or 0.000                 
             
