@@ -72,7 +72,7 @@ class tpt_material_request_line_report(osv.osv_memory):
         'cost_cent': fields.char('Cost Center', size = 1024),
         'uom': fields.char('UOM', size = 1024),
         'req_qty': fields.float('Req Qty'),
-        'on_hand_qty': fields.float('On-hand Qty'),
+        #'on_hand_qty': fields.float('On-hand Qty'), TPT-Y, fix - 3033
         'pen_qty': fields.float('Pending Qty'),
         'bin': fields.char('Bin Location', size = 1024),
         'project': fields.char('Project', size = 1024),         
@@ -418,7 +418,7 @@ class material_request_line_report(osv.osv_memory):
                             'cost_cent': line['cost_center'],
                             'uom':line['uom'],
                             'req_qty':round(line['req_qty'],3) or 0.000,
-                            'on_hand_qty': get_on_hand_qty(line['lineid']) or 0.000,
+                            #'on_hand_qty': get_on_hand_qty(line['lineid']) or 0.000, TPT-Y, fix - 3033
                             #'pen_qty': line['pen_qty'] or 0.000, YuVi 
                             'pen_qty': get_pending_qty(line['lineid'],line['req_qty'],get_issue_qty_count(line['lineid'])) or 0.000,
                             'bin': line['bin_loc'],

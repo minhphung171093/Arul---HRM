@@ -43,7 +43,7 @@ class tpt_cash_book_line(osv.osv):
     _name = "tpt.cash.book.line"
     _columns = {
         'cb_id': fields.many2one('tpt.cash.book', 'Cash Book', ondelete='cascade'),
-        'voucher_id': fields.char('Voucher No.', size = 1024),
+        'voucher_id': fields.char('Posting Doc No.', size = 1024),
         'opening_balance': fields.char('', size = 1024),
         'debit': fields.float('Debit (Rs.)'),
         'crebit': fields.float('Credit (Rs.)'),
@@ -55,6 +55,7 @@ class tpt_cash_book_line(osv.osv):
         'payee': fields.char('Payee', size = 1024),
         'voucher_desc': fields.char('Description', size = 1024),
         #'is_posted': fields.boolean('Is Posted'),
+        'trans_no': fields.char('Transaction No', size = 1024),#TPT-P
     }
 
 tpt_cash_book_line()
@@ -197,7 +198,7 @@ class cash_book_report(osv.osv_memory):
                         #=======================================================
                         cr.execute(''' 
                             select aa.name as acc_name,aml.account_id,sum(aml.debit) as debit,sum(aml.credit) as credit,
-                            av.name as voucher_name,av.date as voucher_date,aml.ref as ref, av.payee, aml.name as voucher_desc
+                            av.name as voucher_name,av.date as voucher_date,aml.ref as ref, av.payee, aml.name as voucher_desc,av.number as trans_no
                             from account_move_line aml
                             inner join account_move am on (am.id=aml.move_id)
                             inner join account_account aa on (aa.id=aml.account_id)
@@ -208,7 +209,7 @@ class cash_book_report(osv.osv_memory):
                             inner join account_account acc on (acc.id=aml.account_id and acc.code='0000110001')
                             )a on (a.cash_header_id=am.id and cash_account_id<>aml.account_id)
                             where av.type in ('payment') and av.state in ('posted') and av.id in %s 
-                            group by aa.name,aml.account_id,av.name,av.date,aml.ref,av.payee,aml.name
+                            group by aa.name,aml.account_id,av.name,av.date,aml.ref,av.payee,aml.name, av.number
                             order by av.date
                         ''', (tuple(account_ids),) )
                         return cr.dictfetchall()
@@ -236,7 +237,7 @@ class cash_book_report(osv.osv_memory):
                         #=======================================================
                         cr.execute(''' 
                             select aa.name as acc_name,aml.account_id,sum(aml.debit) as debit,sum(aml.credit) as credit,
-                            av.name as voucher_name,av.date as voucher_date,aml.ref as ref, av.payee, aml.name as voucher_desc
+                            av.name as voucher_name,av.date as voucher_date,aml.ref as ref, av.payee, aml.name as voucher_desc,av.number as trans_no
                             from account_move_line aml
                             inner join account_move am on (am.id=aml.move_id)
                             inner join account_account aa on (aa.id=aml.account_id)
@@ -247,7 +248,7 @@ class cash_book_report(osv.osv_memory):
                             inner join account_account acc on (acc.id=aml.account_id and acc.code='0000110001')
                             )a on (a.cash_header_id=am.id and cash_account_id<>aml.account_id)
                             where av.type in ('receipt') and av.state in ('posted') and av.id in %s 
-                            group by aa.name,aml.account_id,av.name,av.date,aml.ref,av.payee,aml.name
+                            group by aa.name,aml.account_id,av.name,av.date,aml.ref,av.payee,aml.name, av.number
                             order by av.date
                         ''', (tuple(account_ids),) )
                         return cr.dictfetchall()
@@ -281,7 +282,7 @@ class cash_book_report(osv.osv_memory):
                         ###
                         cr.execute('''
                             select aa.name as acc_name,aml.account_id,sum(aml.debit) as debit,sum(aml.credit) as credit,
-                            av.name as voucher_name,av.date as voucher_date,aml.ref as ref, av.payee, aml.name as voucher_desc
+                            av.name as voucher_name,av.date as voucher_date,aml.ref as ref, av.payee, aml.name as voucher_desc,av.number as trans_no
                             from account_move_line aml
                             inner join account_move am on (am.id=aml.move_id)
                             inner join account_account aa on (aa.id=aml.account_id)
@@ -292,7 +293,7 @@ class cash_book_report(osv.osv_memory):
                             inner join account_account acc on (acc.id=aml.account_id and acc.code='0000110001')
                             )a on (a.cash_header_id=am.id and cash_account_id<>aml.account_id)
                             where av.type in ('payment','receipt') and av.state in ('posted') and av.id in %s 
-                            group by aa.name,aml.account_id,av.name,av.date,aml.ref,av.payee,aml.name
+                            group by aa.name,aml.account_id,av.name,av.date,aml.ref,av.payee,aml.name, av.number
                             order by av.date
                         ''',(tuple(account_ids),))
                         ###
@@ -320,7 +321,7 @@ class cash_book_report(osv.osv_memory):
                         #=======================================================
                         cr.execute(''' 
                             select aa.name as acc_name,aml.account_id,sum(aml.debit) as debit,sum(aml.credit) as credit,
-                            av.name as voucher_name,av.date as voucher_date,aml.ref as ref, av.payee, aml.name as voucher_desc
+                            av.name as voucher_name,av.date as voucher_date,aml.ref as ref, av.payee, aml.name as voucher_desc,av.number as trans_no
                             from account_move_line aml
                             inner join account_move am on (am.id=aml.move_id)
                             inner join account_account aa on (aa.id=aml.account_id)
@@ -331,7 +332,7 @@ class cash_book_report(osv.osv_memory):
                             inner join account_account acc on (acc.id=aml.account_id and acc.code='0000110001')
                             )a on (a.cash_header_id=am.id and cash_account_id<>aml.account_id)
                             where av.type in ('payment') and av.state in ('draft','posted') and av.id in %s 
-                            group by aa.name,aml.account_id,av.name,av.date,aml.ref,av.payee,aml.name
+                            group by aa.name,aml.account_id,av.name,av.date,aml.ref,av.payee,aml.name, av.number
                             order by av.date
                         ''', (tuple(account_ids),) )
                         return cr.dictfetchall()
@@ -357,7 +358,7 @@ class cash_book_report(osv.osv_memory):
                         #=======================================================
                         cr.execute(''' 
                             select aa.name as acc_name,aml.account_id,sum(aml.debit) as debit,sum(aml.credit) as credit,
-                            av.name as voucher_name,av.date as voucher_date,aml.ref as ref, av.payee, aml.name as voucher_desc
+                            av.name as voucher_name,av.date as voucher_date,aml.ref as ref, av.payee, aml.name as voucher_desc,av.number as trans_no
                             from account_move_line aml
                             inner join account_move am on (am.id=aml.move_id)
                             inner join account_account aa on (aa.id=aml.account_id)
@@ -368,7 +369,7 @@ class cash_book_report(osv.osv_memory):
                             inner join account_account acc on (acc.id=aml.account_id and acc.code='0000110001')
                             )a on (a.cash_header_id=am.id and cash_account_id<>aml.account_id)
                             where av.type in ('receipt') and av.state in ('draft','posted') and av.id in %s 
-                            group by aa.name,aml.account_id,av.name,av.date,aml.ref,av.payee,aml.name
+                            group by aa.name,aml.account_id,av.name,av.date,aml.ref,av.payee,aml.name, av.number
                             order by av.date
                         ''', (tuple(account_ids),) )
                         return cr.dictfetchall()
@@ -401,7 +402,7 @@ class cash_book_report(osv.osv_memory):
                         ###
                         cr.execute('''
                             select aa.name as acc_name,aml.account_id,sum(aml.debit) as debit,sum(aml.credit) as credit,
-                            av.name as voucher_name,av.date as voucher_date,aml.ref as ref, av.payee, aml.name as voucher_desc
+                            av.name as voucher_name,av.date as voucher_date,aml.ref as ref, av.payee, aml.name as voucher_desc,av.number as trans_no
                             from account_move_line aml
                             inner join account_move am on (am.id=aml.move_id)
                             inner join account_account aa on (aa.id=aml.account_id)
@@ -412,7 +413,7 @@ class cash_book_report(osv.osv_memory):
                             inner join account_account acc on (acc.id=aml.account_id and acc.code='0000110001')
                             )a on (a.cash_header_id=am.id and cash_account_id<>aml.account_id)
                             where av.type in ('payment','receipt') and av.state in ('draft','posted') and av.id in %s 
-                            group by aa.name,aml.account_id,av.name,av.date,aml.ref,av.payee,aml.name
+                            group by aa.name,aml.account_id,av.name,av.date,aml.ref,av.payee,aml.name, av.number
                             order by av.date
                         ''',(tuple(account_ids),))
                         ###
@@ -480,6 +481,7 @@ class cash_book_report(osv.osv_memory):
                 'ref': line['ref'],
                 'payee': line['payee'],
                 'voucher_desc': line['voucher_desc'],
+                'trans_no': line['trans_no'],
                 
             }))
         cb_line.append((0,0,{

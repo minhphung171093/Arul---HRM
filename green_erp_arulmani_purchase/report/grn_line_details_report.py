@@ -164,7 +164,7 @@ class Parser(report_sxw.rml_parse):
                                    when sm.state ='confirmed' then 'Waiting Availability'
                                    when sm.state ='assigned' then 'Ready to Receive'    
                                    when sm.state ='done' then 'Received' else '' end)  as state, 
-                       emp.name_related requisitioner,po.id as po_id,pol.order_id as order_line_id
+                       emp.name_related as requisitioner,po.id as po_id,pol.order_id as order_line_id
                        
                       from stock_move sm
                       inner join stock_picking sp on sm.picking_id=sp.id
@@ -224,10 +224,10 @@ class Parser(report_sxw.rml_parse):
                     sql = sql+str
                     
         if requisitioner and not po_no and not date_to and not date_from and not grn_no and not project_id and not project_section_id and not state :
-                    str = " pi.requisitioner = '%s'"%(requisitioner)
+                    str = " pi.requisitioner = %s"%(requisitioner[0])
                     sql = sql+str
         if requisitioner and (date_to or date_from or po_no or grn_no) and (date_to or date_from or po_no or grn_no or project_id or project_section_id or state):
-                    str = " and pi.requisitioner = %s "%(requisitioner)
+                    str = " and pi.requisitioner = %s "%(requisitioner[0])
                     sql = sql+str 
         if project_id and not po_no and not date_to and not date_from and not grn_no and not requisitioner and not state and not project_section_id: # or (project_sec_id):
                     str = " pr.id = %s"%(project_id[0])

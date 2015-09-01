@@ -124,20 +124,34 @@ class Parser(report_sxw.rml_parse):
         else:
             return ''
         
-    def get_voucher(self,move_id):
-        wizard_data = self.localcontext['data']['form']
-        gl_account = wizard_data['account_id']
-        acc_obj = self.pool.get('account.account')
-        acc = acc_obj.browse(self.cr,self.uid,gl_account[0])
-        sql = '''
-            select cost_center_id from account_voucher where move_id =%s
-        '''%(move_id)
-        self.cr.execute(sql)
-        p = self.cr.fetchone()
-        cost_center = ''
-        if p and p[0]:
-            cost_center = self.pool.get('tpt.cost.center').browse(self.cr, self.uid, p[0]).name
-        return cost_center
+    #===========================================================================
+    # def get_voucher(self,move_id):
+    #     wizard_data = self.localcontext['data']['form']
+    #     gl_account = wizard_data['account_id']
+    #     acc_obj = self.pool.get('account.account')
+    #     acc = acc_obj.browse(self.cr,self.uid,gl_account[0])
+    #     sql = '''
+    #         select cost_center_id from account_voucher where move_id =%s
+    #     '''%(move_id)
+    #     self.cr.execute(sql)
+    #     p = self.cr.fetchone()
+    #     cost_center = ''
+    #     if p and p[0]:
+    #         cost_center = self.pool.get('tpt.cost.center').browse(self.cr, self.uid, p[0]).name
+    #     return cost_center
+    #===========================================================================
+    
+    # TPT-Y, fix-3127 on 31Aug2015
+    def get_voucher(self,move_id):      
+            sql = '''
+                select cost_center_id from account_invoice where move_id =%s
+            '''%(move_id)
+            self.cr.execute(sql)
+            p = self.cr.fetchone()
+            cost_center = ''
+            if p and p[0]:
+                cost_center = self.pool.get('tpt.cost.center').browse(cr,uid, p[0]).name
+            return cost_center
     
     def get_date_from(self):
         wizard_data = self.localcontext['data']['form']
