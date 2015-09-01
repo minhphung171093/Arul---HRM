@@ -42,7 +42,7 @@ class Parser(report_sxw.rml_parse):
             'get_invoice':self.get_invoice,
             'get_req_name_code':self.get_req_name_code,
             'get_status':self.get_status,
-            'get_on_hand_qty':self.get_on_hand_qty,
+            #'get_on_hand_qty':self.get_on_hand_qty,
             'get_pending_qty' : self.get_pending_qty,
             'get_issue_qty_count':self.get_issue_qty_count,
             
@@ -50,13 +50,21 @@ class Parser(report_sxw.rml_parse):
         
     def get_date_from(self):
         wizard_data = self.localcontext['data']['form']
-        date = datetime.strptime(wizard_data['date_from'], DATE_FORMAT)        
-        return date.strftime('%d/%m/%Y')
+        date = ''
+        if wizard_data['date_from']:
+            date = datetime.strptime(wizard_data['date_from'], DATE_FORMAT)      
+            date = date.strftime('%d/%m/%Y')
+        return date
+        
+          
     
     def get_date_to(self):
         wizard_data = self.localcontext['data']['form']
-        date = datetime.strptime(wizard_data['date_to'], DATE_FORMAT)
-        return date.strftime('%d/%m/%Y')
+        date = ''
+        if wizard_data['date_to']:
+            date = datetime.strptime(wizard_data['date_to'], DATE_FORMAT)
+            date = date.strftime('%d/%m/%Y')
+        return date
     
     def get_req_name_code(self,name,code,lname):
         req_name = name

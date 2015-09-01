@@ -644,7 +644,8 @@ class stock_picking(osv.osv):
                     #product_name = p.product_id.name    # TPT - COMMENTED By BalamuruganPurushothaman ON 20/06/2015 
                     product_name = p.product_id.default_code # TPT - Added By BalamuruganPurushothaman ON 20/06/2015 fto get GL code with respect to Product Code
                     product_id = p.product_id.id
-                    account = self.get_pro_account_id(cr,uid,product_name,dis_channel)
+                    #account = self.get_pro_account_id(cr,uid,product_name,dis_channel)
+                    account = p.product_id.product_cose_acc_id.id
                     if not account:
 #                             raise osv.except_osv(_('Warning!'),_('Account is not created for this Distribution Channel! Please check it!'))
                         if p.product_id.product_cose_acc_id:
@@ -3164,19 +3165,36 @@ class account_voucher(osv.osv):
         
 # end
     
+    #TPT-START
+    #TPT - Commented By BalamuruganPurushothaman - ON 18/08/2015- TO TAKE REALIZATION RATE AS EXCHANGE RATE
+    
+    #===========================================================================
+    # def _get_tpt_currency_amount(self, cr, uid, ids, name, args, context=None):
+    #     res = {}
+    #     if context is None:
+    #         context = {}
+    #     for voucher in self.browse(cr, uid, ids, context=context):
+    #         amount = 0
+    #         if voucher.tpt_currency_id and voucher.tpt_currency_amount:
+    #             context.update({'date': voucher.date or time.strftime('%Y-%m-%d')})
+    #             voucher_rate = self.pool.get('res.currency').read(cr, uid, voucher.tpt_currency_id.id, ['rate'], context=context)['rate']
+    #             amount = voucher.tpt_currency_amount/voucher_rate
+    #         res[voucher.id] = amount
+    #     return res
+    #===========================================================================
+    
+    #TPT - Commented By BalamuruganPurushothaman - ON 18/08/2015- TO TAKE REALIZATION RATE AS EXCHANGE RATE
     def _get_tpt_currency_amount(self, cr, uid, ids, name, args, context=None):
         res = {}
         if context is None:
             context = {}
         for voucher in self.browse(cr, uid, ids, context=context):
             amount = 0
-            if voucher.tpt_currency_id and voucher.tpt_currency_amount:
-                context.update({'date': voucher.date or time.strftime('%Y-%m-%d')})
-                voucher_rate = self.pool.get('res.currency').read(cr, uid, voucher.tpt_currency_id.id, ['rate'], context=context)['rate']
-                amount = voucher.tpt_currency_amount/voucher_rate
+            if voucher.tpt_currency_id and voucher.tpt_currency_amount and voucher.tpt_exchange_rate:       
+                amount = voucher.tpt_currency_amount/voucher.tpt_exchange_rate
             res[voucher.id] = amount
         return res
-    
+    #TPT-END
     _columns = {
         'name': fields.char( 'Journal no.',size = 256),
         'memo':fields.char('Memo', size=256, readonly=True, states={'draft':[('readonly',False)]}),
@@ -3216,9 +3234,36 @@ class account_voucher(osv.osv):
         'payee':fields.char('Payee', size=1024),
         'employee_id':fields.many2one('hr.employee','Employee'),
         'cost_center_id':fields.many2one('tpt.cost.center','Cost Center'),
+        'tpt_exchange_rate':fields.float('Realization Rate', digits=(12,14),),#TPT
         }
     
+    def voucher_print_button(self, cr, uid, ids, context={}):
+        '''This function prints the Journal Voucher in Accounting'''
+        for this_id in self.browse(cr, uid, ids, context):
+            datas = {
+                'model': 'account.voucher',
+                'ids': ids,
+                'form': self.read(cr, uid, ids[0], context=context),
+                }
+            return {'type': 'ir.actions.report.xml', 'report_name': 'voucher1.print', 'datas': datas, 'context': context, 'nodestroy': True}
     
+    def print_voucher(self, cr, uid, ids, context=None):
+        '''
+        This function prints the invoice and mark it as sent, so that we can see more easily the next step of the workflow
+        '''
+        assert len(ids) == 1, 'This option should only be used for a single id at a time.'
+        self.write(cr, uid, ids, {'sent': True}, context=context)
+        datas = {
+             'ids': ids,
+             'model': 'accout.voucher',
+             'form': self.read(cr, uid, ids[0], context=context)
+        }
+        
+        return {
+                'type': 'ir.actions.report.xml',
+                'report_name': 'account_voucher_report',
+            }     
+        
     def default_get(self, cr, uid, fields, context=None):
         if context is None:
             context = {}
@@ -3372,9 +3417,9 @@ class account_voucher(osv.osv):
 #             cr.execute(sql)
             for line in new.line_ids:
                 if line.type=='dr':
-                    total_debit += line.amount
+                    total_debit += round(line.amount,2)
                 if line.type=='cr':
-                    total_credit += line.amount 
+                    total_credit += round(line.amount,2) 
             if total_debit != total_credit:
                 raise osv.except_osv(_('Warning!'),
                     _('Total Debit must be equal Total Credit!'))
@@ -3417,9 +3462,9 @@ class account_voucher(osv.osv):
                 total_credit = 0
                 for line in voucher.line_ids:
                     if line.type=='dr':
-                        total_debit += line.amount
+                        total_debit += round(line.amount,2)
                     if line.type=='cr':
-                        total_credit += line.amount 
+                        total_credit += round(line.amount,2) 
                 if total_debit != total_credit:
                     raise osv.except_osv(_('Warning!'),
                         _('Total Debit must be equal Total Credit!'))
@@ -3472,7 +3517,8 @@ class account_voucher(osv.osv):
 #/phuoc
         else:
             if voucher.type in ('purchase', 'payment'):
-                credit = voucher.paid_amount_in_company_currency
+                credit = voucher.paid_amount_in_company_currency #TPT-Commented By BalamuruganPurushothaman ON 18/08/2015- TO TAKE REALIZATION RATE AS EXCHANGE RATE
+                #credit = voucher.tpt_amount #TPT-Added By BalamuruganPurushothaman ON 18/08/2015- TO TAKE REALIZATION RATE AS EXCHANGE RATE
                 if voucher.type == 'payment':
                     if voucher.journal_id.type == 'cash':
                         sql = '''
@@ -3495,7 +3541,8 @@ class account_voucher(osv.osv):
                 else:
                     account_id = voucher.account_id.id
             elif voucher.type in ('sale', 'receipt'):
-                debit = voucher.paid_amount_in_company_currency
+                debit = voucher.paid_amount_in_company_currency #TPT-Commented By BalamuruganPurushothaman ON 18/08/2015- TO TAKE REALIZATION RATE AS EXCHANGE RATE
+                #debit = voucher.tpt_amount #TPT-Added By BalamuruganPurushothaman ON 18/08/2015- TO TAKE REALIZATION RATE AS EXCHANGE RATE
                 if voucher.type == 'receipt':
                     if voucher.journal_id.type == 'cash':
                         sql = '''
@@ -5659,6 +5706,7 @@ class res_partner(osv.osv):
             help="This account will be used instead of the default one as the receivable account for the current partner",
             required=False),
         'is_tds_applicable': fields.boolean('IsTDSApplicable'),
+        'section': fields.char('With Holding Tax', ),
         'tds_id': fields.many2one('account.tax', 'TDS %'),
         'vendor_type': fields.selection([('manu', 'Manufacturer'),('trade', 'Traders'),('first_stage', 'First Stage'),('Import', 'import')],'Vendor Type'),
         }

@@ -101,6 +101,7 @@ class tpt_do_adj(osv.osv_memory):
         sql = '''
             select id from stock_picking where type = 'out' and state = 'done' 
             and extract(month from date)=%s and extract(year from date)=%s
+            order by name
         '''%(cb.month,cb.year)
         cr.execute(sql)
         picking_ids = [r[0] for r in cr.fetchall()]
@@ -110,11 +111,6 @@ class tpt_do_adj(osv.osv_memory):
             debit = 0.0
             credit = 0.0
             journal_line = []
-            #===================================================================
-            # for move in line.move_lines:
-            #     amount = move.purchase_line_id.price_unit * move.product_qty
-            #     debit += amount - (amount*move.purchase_line_id.discount)/100
-            #===================================================================
             dis_channel = line.sale_id and line.sale_id.distribution_channel and line.sale_id.distribution_channel.name or False
             date_period = line.date
             account = False
@@ -129,7 +125,7 @@ class tpt_do_adj(osv.osv_memory):
                 raise osv.except_osv(_('Warning!'),_('Period is not null, please configure it in Period master !'))
              
             sql_journal = '''
-            select id from account_journal
+            select id from account_journal where code='STJ'
             '''
             cr.execute(sql_journal)
             journal_ids = [r[0] for r in cr.fetchall()]
@@ -141,42 +137,16 @@ class tpt_do_adj(osv.osv_memory):
                     if sale_id:
                         sql = '''
                                 select id from tpt_batch_allotment where sale_order_id = %s and state='confirm'
-                            '''%(sale_id) #TPT-By BalamuruganPurushothaman ON 29/07/2015 - TO TAKE CONFIRMED "BATCH ALLOTMENT" ONLY - SQL state='confirm is appended'
+                            '''%(sale_id)
                         cr.execute(sql)
-                            #print "TEST1 : %s"%sql
+                   
                         allot_ids = cr.dictfetchone()
-                            #===================================================
-                            # if allot_ids:
-                            #     allot_id = allot_ids['id']
-                            #     sql = '''
-                            #     select id from tpt_batch_allotment_line where sys_batch = %s and batch_allotment_id = %s
-                            #     '''%(p.prodlot_id.id,allot_id)
-                            #     cr.execute(sql)
-                            #     print 'TEST: %s'%sql
-                            #     allot_line_id = cr.dictfetchone()['id']
-                            #     line_id = self.pool.get('tpt.batch.allotment.line').browse(cr, uid, allot_line_id)
-                            #     used_qty += line_id.used_qty
-                            #     sql = '''
-                            #         update tpt_batch_allotment_line set product_uom_qty = %s where id = %s
-                            #     '''%(used_qty,allot_line_id)
-                            #     cr.execute(sql)
-                            #     if line_id.product_uom_qty == line_id.used_qty:
-                            #         sql = '''
-                            #             update tpt_batch_allotment_line set is_deliver = 't' where id = %s
-                            #         '''%(allot_line_id)
-                            #         cr.execute(sql)
-                            #===================================================
-                    
-                    #TPT START By BalamuruganPurushothaman ON 28/07/2015 - TO SET COST PRICE OF FINISHED PRODUCT IN JOURNAL POSTING INSTEAD OF SALES PROCE WHILE DO CONFIRM PROCESS
-                    #debit += p.sale_line_id and p.sale_line_id.price_unit * p.product_qty or 0  ##TPT COMMENTED
+                            
                 product = self.pool.get('product.product').browse(cr, uid, p.product_id.id)
-                debit += product.standard_price and product.standard_price * p.product_qty or 0
-                    #TPT END
-                    
-                    #product_name = p.product_id.name    # TPT - COMMENTED By BalamuruganPurushothaman ON 20/06/2015 
-                product_name = p.product_id.default_code # TPT - Added By BalamuruganPurushothaman ON 20/06/2015 fto get GL code with respect to Product Code
+                debit += product.standard_price and product.standard_price * p.product_qty or 0    
+                product_name = p.product_id.default_code 
                 product_id = p.product_id.id
-                #account = self.get_pro_account_id(cr,uid,product_name,dis_channel)
+                
                 account = p.product_id.product_cose_acc_id.id
                 if not account:
                     if p.product_id.product_cose_acc_id:
@@ -226,6 +196,7 @@ class tpt_do_adj(osv.osv_memory):
                     'do_id':line.id,
                     }
             new_jour_id = account_move_obj.create(cr,uid,value)
+            account_move_obj.button_validate(cr,uid, [new_jour_id], context)
         #return self.write(cr, uid, ids, {'result':'Create all GRN posting Remaining'}) 
         return {'type': 'ir.actions.act_window_close'}   
     

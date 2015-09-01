@@ -2814,6 +2814,21 @@ class tpt_hr_ptax(osv.osv):
         'create_date': fields.datetime('Created Date',readonly = True), 
         'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True), 
     }
+    _defaults = {
+        'year': int(time.strftime('%Y')),
+    }
+    def _check_month_year(self, cr, uid, ids, context=None):
+        for work in self.browse(cr, uid, ids, context=context):
+            work_ids = self.search(cr, uid, [('id','!=',work.id),('name','=',work.name),('year','=',work.year),('month','=',work.month)])
+            if work_ids:
+                raise osv.except_osv(_('Warning!'),_('PTax already configured for this period!'))
+                return False
+        return True
+    
+    _constraints = [
+        (_check_month_year, 'Identical Data', ['name','month','year']),
+    ]
+    
     def get_date(self, date=False):
         if not date:
             date = time.strftime(DATE_FORMAT)
@@ -2835,6 +2850,23 @@ class tpt_hr_ptax(osv.osv):
                          })
         new_write = super(tpt_hr_ptax, self).write(cr, uid,ids, vals, context)
         return new_write
+    
+    def onchange_load_slabs(self, cr, uid, ids,month=False, context=None):
+        vals = {}
+        
+        details = []
+        obj = self.pool.get('tpt.hr.ptax.slab')
+        obj_ids = obj.search(cr, uid, [('is_active','=','t')])
+        ptax_lines = obj.browse(cr, uid, obj_ids)
+        for para in ptax_lines:
+            rs = {
+                      'slab_id':para.id or False,
+                      'ptax_amt': para.ptax_amt or False,
+                      }
+            details.append((0,0,rs))
+                     
+        return {'value': {'ptax_line': details}}
+    
 tpt_hr_ptax()
 
 class tpt_hr_ptax_line(osv.osv):
@@ -2860,7 +2892,9 @@ class tpt_hr_ptax_slab(osv.osv):
         'create_date': fields.datetime('Created Date',readonly = True), 
         'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True), 
     }
-    
+    _defaults = {
+        'is_active': True,
+    }
     def create(self, cr, uid, vals, context=None):
         vals.update({'name':'Between Rs.'+str(vals['from_range'])+ ' to Rs.'+str(vals['to_range']),
                         })

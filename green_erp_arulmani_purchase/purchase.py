@@ -863,6 +863,53 @@ class product_product(osv.osv):
                     time_total=0.0
             res[time.id]['onhand_qty'] = time_total            
         return res
+    def _onhand_qty_store(self, cr, uid, ids, field_name, arg, context=None):
+        res = {}
+        for prod in self.browse(cr, uid, ids, context=context):
+            res[prod.id] = {
+                'onhand_qty_store': 0.0,
+            }
+            if prod.id : 
+                flag = False
+                if prod.categ_id.name=='RawMaterials':
+                    categ='Raw Material'
+                    flag = True
+                if prod.categ_id.name =='FinishedProduct':   
+                    categ='Finished Product'
+                    flag = True
+                    
+                if flag is True:
+                    prod_categ =  categ
+                else:
+                    prod_categ =   prod.categ_id.name
+                    
+                sql = '''
+                select sum(foo.product_qty) as ton_sl from 
+                    (select l2.id as loc,st.prodlot_id,pu.id,st.product_qty
+                        from stock_move st 
+                            inner join stock_location l2 on st.location_dest_id= l2.id
+                            inner join product_uom pu on st.product_uom = pu.id
+                        where st.state='done' and st.product_id=%s and l2.usage = 'internal'
+                    union all
+                    select l1.id as loc,st.prodlot_id,pu.id,st.product_qty*-1
+                        from stock_move st 
+                            inner join stock_location l1 on st.location_id= l1.id
+                            inner join product_uom pu on st.product_uom = pu.id
+                        where st.state='done' and st.product_id=%s and l1.usage = 'internal'
+                    )foo
+                    where foo.loc in (select id from stock_location where name='%s'
+                    and location_id in (select id from stock_location where name='Store'))
+                    group by foo.loc,foo.prodlot_id,foo.id
+                '''%(prod.id,prod.id, prod_categ) 
+                cr.execute(sql)
+                a = cr.fetchone()
+                if a:
+                    time_total = a[0]                            
+                else:
+                    time_total=0.0
+            res[prod.id]['onhand_qty_store'] = time_total            
+        return res
+    
     _columns = {
         'description':fields.text('Description'),
         'batch_appli_ok':fields.boolean('Is Batch Applicable'),
@@ -895,7 +942,8 @@ class product_product(osv.osv):
                                            ('raw_mat','Raw. Mat. & Prod'),
                                            ('qc','QC and R&D'),
                                            ('safe','Safety & Personnel'),('proj','Projects')],'Material Type'),
-        'onhand_qty': fields.function(_onhand_qty, string='OnHand Qty', multi='test_qty'),
+        'onhand_qty': fields.function(_onhand_qty, string='On-Hand Qty', multi='test_qty'),
+        'onhand_qty_store': fields.function(_onhand_qty_store, string='Store On-Hand Qty', multi='test_qty1'),
         
         'tolerance_qty': fields.float('Tolerance'), #TPT
         
@@ -3836,13 +3884,15 @@ class tpt_gate_out_pass(osv.osv):
             'origin': good.grn_id.origin,
             'date': good.gate_date_time,
             'partner_id': good.grn_id.partner_id.id,
-            'invoice_state': good.grn_id.invoice_state,
+#             'invoice_state': good.grn_id.invoice_state,
+            'invoice_state': '2binvoiced',
             'type': 'in',
             'purchase_id': good.grn_id.purchase_id.id,
             'company_id': good.grn_id.company_id.id,
             'move_lines' : move_lines,
             'document_type': good.grn_id.document_type or False,
             'po_date': good.grn_id.po_date or False,
+            'gate_out_id':good.id,
 #             'state':'assigned',
                    }
             new_picking_id = stock_picking_obj.create(cr,uid,value)
@@ -4175,10 +4225,13 @@ class tpt_request_for_quotation(osv.osv):
                                                                                           'rfq_qty':qty,})
             quotation_ids = self.pool.get('tpt.purchase.quotation').search(cr,uid,[('rfq_no_id','=',line.id)])
             chart_ids = self.pool.get('tpt.comparison.chart').search(cr,uid,[('name','=',line.id)])
-            if quotation_ids:
-                raise osv.except_osv(_('Warning!'),_('RFQ was existed at the Quotation.!'))
-            if chart_ids:
-                raise osv.except_osv(_('Warning!'),_('RFQ was existed at the Comparison Chart.!'))
+            #TPT COMMENTED BY BalamuruganPurushothaman - TO AVOID THIS WARNING WHEN CANCEL THE RFQ
+            #===================================================================
+            # if quotation_ids:
+            #     raise osv.except_osv(_('Warning!'),_('RFQ was existed at the Quotation.!'))
+            # if chart_ids:
+            #     raise osv.except_osv(_('Warning!'),_('RFQ was existed at the Comparison Chart.!'))
+            #===================================================================
             rfq_line_obj = self.pool.get('tpt.rfq.line')        
             sql = '''
                 select id from tpt_rfq_line where rfq_id = %s
