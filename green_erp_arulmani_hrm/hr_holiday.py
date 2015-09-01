@@ -10308,15 +10308,17 @@ class tpt_hr_attendance(osv.osv):
     _defaults = {
         'work_date':lambda *a: time.strftime("%Y-%m-%d %H:%M:%S"),
     }
-    def create(self, cr, uid, vals, context=None):
-        #now = datetime.datetime.now()
-        #current_year = now.year
-        #vals['work_date']
-        my_date = fields.datetime.context_timestamp(cr, uid, datetime.now(), context=context)
-   
-        vals['work_date'] = my_date
-        
-        return super(tpt_hr_attendance, self).create(cr, uid, vals, context)
+   #============================================================================
+   #  def create(self, cr, uid, vals, context=None):
+   #      #now = datetime.datetime.now()
+   #      #current_year = now.year
+   #      #vals['work_date']
+   #      my_date = fields.datetime.context_timestamp(cr, uid, datetime.now(), context=context)
+   # 
+   #      vals['work_date'] = my_date
+   #      
+   #      return super(tpt_hr_attendance, self).create(cr, uid, vals, context)
+   #============================================================================
     def upload_in_time_data(self, cr, uid, context=None):
         #print "SCHEDULER JOB - STARTED"
         #
