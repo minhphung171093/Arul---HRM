@@ -6,7 +6,7 @@ import time
 from openerp import SUPERUSER_ID
 from openerp.tools import DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_DATETIME_FORMAT, DATETIME_FORMATS_MAP, float_compare
 from datetime import datetime
-#import datetime
+import datetime
 import base64
 import calendar
 from twisted.internet._threadedselect import raiseException
