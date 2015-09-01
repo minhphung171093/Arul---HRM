@@ -6,6 +6,7 @@ from openerp.osv import fields, osv
 from openerp.tools.translate import _
 import openerp.tools
 from openerp.tools import DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_DATETIME_FORMAT, float_compare
+import gc
 
 class tpt_form_movement_analysis(osv.osv):
     _name = "tpt.form.movement.analysis"
@@ -1056,7 +1057,8 @@ class stock_movement_analysis(osv.osv_memory):
                     'current_material_value':cur,
                 }))
             
-            
+            start = time.clock()
+            gc.disable()
             
             move_analysis_line.append((0,0,{
                 'item_code': line.default_code,
@@ -1075,6 +1077,9 @@ class stock_movement_analysis(osv.osv_memory):
                 'close_value': get_opening_stock_value(stock,line.id)+get_receipt_value(stock,line.id)-(good)-product,   
             
             }))
+            gc.enable()
+            end = time.clock()
+            print end - start
         vals = {
             'name': 'Stock Movement Analysis ',
             'product_id': stock.product_id.id,
