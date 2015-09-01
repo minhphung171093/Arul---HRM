@@ -66,7 +66,7 @@ class time_data_check(osv.osv_memory):
         sql = '''
             update arul_hr_permission_onduty set shift_type='G2' where 
             total_shift_worked=1
-            and EXTRACT(year FROM date) = 2015 AND EXTRACT(month FROM date) = 7
+            and EXTRACT(year FROM date) = 2015 AND EXTRACT(month FROM date) = 8
             and shift_type is null
         '''
         cr.execute(sql)
