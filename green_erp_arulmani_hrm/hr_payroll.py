@@ -2001,6 +2001,7 @@ class arul_hr_payroll_executions(osv.osv):
                             shd = 0
                         else:
                             shd = (gross_shd_calc / calendar_days) * special_holiday_worked_count
+                            shd = round(shd, 0)
                         total_earning = total_earning + shd
                         gross_sal = gross_sal + shd
                         
@@ -2432,6 +2433,7 @@ class arul_hr_payroll_executions(osv.osv):
                             shd = 0
                         else:
                             shd = (gross_shd_calc / s3_working_days) * special_holiday_worked_count
+                            shd = round(shd, 0)
                         total_earning = total_earning + shd
                         gross_sal = gross_sal + shd
                         
