@@ -1674,24 +1674,6 @@ class arul_hr_payroll_executions(osv.osv):
                                           'earning_parameters_id':_earning_struc_id.earning_parameters_id.id,
                                           'float': ma,
                                     }))
-                            
-                        earning_ids = earning_obj.search(cr, uid, [('code','in',['TOTAL_EARNING','GROSS_SALARY','NET'])])
-                        for earning in earning_obj.browse(cr, uid, earning_ids):
-                            if earning.code == 'TOTAL_EARNING':
-                                vals_earning_struc.append((0,0, {
-                                      'earning_parameters_id':earning.id,
-                                      'float': total_earning,
-                                }))
-                            if earning.code == 'GROSS_SALARY':
-                                vals_earning_struc.append((0,0, {
-                                      'earning_parameters_id':earning.id,
-                                      'float': gross_sal,
-                                }))
-                            if earning.code == 'NET':
-                                vals_earning_struc.append((0,0, {
-                                      'earning_parameters_id':earning.id,
-                                      'float': net_sala,
-                                }))
                         ## TPT START - PTAX CALCULATION
                         from_date = ''
                         to_date =''
@@ -1739,7 +1721,27 @@ class arul_hr_payroll_executions(osv.osv):
                             total_ptax = cr.dictfetchone()['ptax_amt'] 
                             pt = total_ptax
                             total_deduction = total_deduction + pt
-                        ### TPT END PTAX 
+                            net_sala = net_sala - pt
+                        ### TPT END PTAX     
+                        
+                        earning_ids = earning_obj.search(cr, uid, [('code','in',['TOTAL_EARNING','GROSS_SALARY','NET'])])
+                        for earning in earning_obj.browse(cr, uid, earning_ids):
+                            if earning.code == 'TOTAL_EARNING':
+                                vals_earning_struc.append((0,0, {
+                                      'earning_parameters_id':earning.id,
+                                      'float': total_earning,
+                                }))
+                            if earning.code == 'GROSS_SALARY':
+                                vals_earning_struc.append((0,0, {
+                                      'earning_parameters_id':earning.id,
+                                      'float': gross_sal,
+                                }))
+                            if earning.code == 'NET':
+                                vals_earning_struc.append((0,0, {
+                                      'earning_parameters_id':earning.id,
+                                      'float': net_sala,
+                                }))
+                        
                         deduction_ids = deduction_obj.search(cr, uid, [('code','in',['TOTAL_DEDUCTION','VPF.D','PF.D','ESI.D','LWF','F.D','LOP',
                                     'INS_LIC_PREM','INS_OTHERS','LOAN_VVTI','LOAN_LIC_HFL','LOAN_HDFC','LOAN_TMB', 'LOAN_SBT','LOAN_OTHERS','IT','PT'               
                                                                                      ])])
@@ -2096,25 +2098,6 @@ class arul_hr_payroll_executions(osv.osv):
                                           'float': shd,
                                     }))
                             
-                           
-                        earning_ids = earning_obj.search(cr, uid, [('code','in',['TOTAL_EARNING','GROSS_SALARY','NET'])])
-                        for earning in earning_obj.browse(cr, uid, earning_ids):
-                            if earning.code == 'TOTAL_EARNING':
-                                vals_earning_struc.append((0,0, {
-                                      'earning_parameters_id':earning.id,
-                                      'float': total_earning,
-                                }))
-                            if earning.code == 'GROSS_SALARY':
-                                vals_earning_struc.append((0,0, {
-                                      'earning_parameters_id':earning.id,
-                                      'float': gross_sal,
-                                }))
-                            if earning.code == 'NET':
-                                vals_earning_struc.append((0,0, {
-                                      'earning_parameters_id':earning.id,
-                                      'float': net_sala,
-                                }))
-                       
                         ## TPT START - PTAX CALCULATION
                         from_date = ''
                         to_date =''
@@ -2160,7 +2143,27 @@ class arul_hr_payroll_executions(osv.osv):
                             total_ptax = cr.dictfetchone()['ptax_amt'] 
                             pt = total_ptax
                             total_deduction = total_deduction + pt
-                        ### TPT END PTAX 
+                            net_sala = net_sala - pt
+                        ### TPT END PTAX    
+                        earning_ids = earning_obj.search(cr, uid, [('code','in',['TOTAL_EARNING','GROSS_SALARY','NET'])])
+                        for earning in earning_obj.browse(cr, uid, earning_ids):
+                            if earning.code == 'TOTAL_EARNING':
+                                vals_earning_struc.append((0,0, {
+                                      'earning_parameters_id':earning.id,
+                                      'float': total_earning,
+                                }))
+                            if earning.code == 'GROSS_SALARY':
+                                vals_earning_struc.append((0,0, {
+                                      'earning_parameters_id':earning.id,
+                                      'float': gross_sal,
+                                }))
+                            if earning.code == 'NET':
+                                vals_earning_struc.append((0,0, {
+                                      'earning_parameters_id':earning.id,
+                                      'float': net_sala,
+                                }))
+                       
+                        
                         
                         deduction_ids = deduction_obj.search(cr, uid, [('code','in',['TOTAL_DEDUCTION','VPF.D','PF.D','ESI.D','LWF','F.D','LOP',
                                         'INS_LIC_PREM','INS_OTHERS','LOAN_VVTI','LOAN_LIC_HFL','LOAN_HDFC','LOAN_TMB', 'LOAN_SBT','LOAN_OTHERS','IT','PT'                                               
@@ -2529,26 +2532,7 @@ class arul_hr_payroll_executions(osv.osv):
                                           'earning_parameters_id':_earning_struc_id.earning_parameters_id.id,
                                           'float': shd,
                                     }))
-			   
-                        earning_ids = earning_obj.search(cr, uid, [('code','in',['TOTAL_EARNING','GROSS_SALARY','NET'])])
-                        for earning in earning_obj.browse(cr, uid, earning_ids):
-                            if earning.code == 'TOTAL_EARNING':
-                                vals_earning_struc.append((0,0, {
-                                      'earning_parameters_id':earning.id,
-                                      'float': total_earning,
-                                }))
-                            if earning.code == 'GROSS_SALARY':
-                                vals_earning_struc.append((0,0, {
-                                      'earning_parameters_id':earning.id,
-                                      'float': gross_sal,
-                                }))
-                            if earning.code == 'NET':
-                                vals_earning_struc.append((0,0, {
-                                      'earning_parameters_id':earning.id,
-                                      'float': net_sala,
-                                }))
-                        
-                        ## TPT START - PTAX CALCULATION
+			            ## TPT START - PTAX CALCULATION
                         from_date = ''
                         to_date =''
                         sql = '''
@@ -2593,7 +2577,27 @@ class arul_hr_payroll_executions(osv.osv):
                             total_ptax = cr.dictfetchone()['ptax_amt'] 
                             pt = total_ptax
                             total_deduction = total_deduction + pt
+                            net_sala = net_sala - pt
                         ### TPT END PTAX 
+                        earning_ids = earning_obj.search(cr, uid, [('code','in',['TOTAL_EARNING','GROSS_SALARY','NET'])])
+                        for earning in earning_obj.browse(cr, uid, earning_ids):
+                            if earning.code == 'TOTAL_EARNING':
+                                vals_earning_struc.append((0,0, {
+                                      'earning_parameters_id':earning.id,
+                                      'float': total_earning,
+                                }))
+                            if earning.code == 'GROSS_SALARY':
+                                vals_earning_struc.append((0,0, {
+                                      'earning_parameters_id':earning.id,
+                                      'float': gross_sal,
+                                }))
+                            if earning.code == 'NET':
+                                vals_earning_struc.append((0,0, {
+                                      'earning_parameters_id':earning.id,
+                                      'float': net_sala,
+                                }))
+                        
+                        
                         deduction_ids = deduction_obj.search(cr, uid, [('code','in',['TOTAL_DEDUCTION','VPF.D','PF.D','ESI.D','LWF','F.D','LOP',
                                     'INS_LIC_PREM','INS_OTHERS','LOAN_VVTI','LOAN_LIC_HFL','LOAN_HDFC','LOAN_TMB', 'LOAN_SBT','LOAN_OTHERS','IT','PT'                                                   
                                                                                      ])])
