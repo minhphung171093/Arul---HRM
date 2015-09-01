@@ -497,7 +497,7 @@ class tpt_service_entry(osv.osv):
         'machine_id': fields.related('maintenance_id','machine_id',type='many2one', relation='tpt.machineries',string='Machineries', readonly = True),
         'create_uid':fields.many2one('res.users','Raised By', readonly = True),
         'service_entry_line':fields.one2many('tpt.service.entry.line','service_entry_id','Service Entry Lines'),
-        'grand_total': fields.function(amount_all_line, multi='sums',string='Grand Total',digits=(16,3),
+        'grand_total': fields.function(amount_all_line, multi='sums',string='Grand Total',digits=(16,2),
                                          store={
                 'tpt.service.entry': (lambda self, cr, uid, ids, c={}: ids, ['service_entry_line'], 10),
                 'tpt.service.entry.line': (_get_order, ['product_uom_qty', 'uom_id', 'price_unit'], 10),})
@@ -553,9 +553,22 @@ class tpt_service_entry_line(osv.osv):
         'po_line_id':fields.many2one('purchase.order.line','Particulars', ondelete = 'restrict'),
         'uom_id': fields.many2one('product.uom', 'UOM'),
         'product_uom_qty': fields.float('Quantity',digits=(16,3)),   
-        'price_unit': fields.float('Unit Price',digits=(16,3)),
-        'line_net': fields.function(line_net_line, multi='deltas' ,digits=(16,3),string='Line Net'),
+#         'price_unit': fields.float('Unit Price',digits=(16,3)),
+        'price_unit': fields.related('po_line_id','price_unit',type='float', relation='purchase.order.line',string='Unit Price', readonly = True),
+        'line_net': fields.function(line_net_line, multi='deltas' ,digits=(16,2),string='Line Net'),
     }
+    
+    def _check_qty_line(self, cr, uid, ids, context=None):
+        for line in self.browse(cr,uid,ids,context=context):
+            qty = line.product_uom_qty or 0
+            po_qty = line.po_line_id and line.po_line_id.product_qty or 0
+            if qty > po_qty:
+                raise osv.except_osv(_('Warning!'),_('Quantity can not be greater than PO Quantity!'))
+        return True
+    _constraints = [
+        (_check_qty_line, 'Identical Data', ['product_uom_qty']),
+    ]
+    
     def unlink(self, cr, uid, ids, context=None):
         for line in self.browse(cr, uid, ids):
             update_ids = self.search(cr, uid,[('service_entry_id','=',line.service_entry_id.id),('line_no','>',line.line_no)])
@@ -636,7 +649,7 @@ class tpt_third_service_entry(osv.osv):
         'machine_id': fields.related('maintenance_id','machine_id',type='many2one', relation='tpt.machineries',string='Machineries', readonly = True),
         'create_uid':fields.many2one('res.users','Raised By', readonly = True),
         'third_service_line':fields.one2many('tpt.third.service.entry.line','third_service_id','Service Entry Lines'),
-        'grand_total': fields.function(amount_all_line, multi='sums',string='Grand Total',digits=(16,3),
+        'grand_total': fields.function(amount_all_line, multi='sums',string='Grand Total',digits=(16,2),
                                          store={
                 'tpt.third.service.entry': (lambda self, cr, uid, ids, c={}: ids, ['third_service_line'], 10),
                 'tpt.third.service.entry.line': (_get_order, ['product_uom_qty', 'uom_id', 'price_unit'], 10),})
@@ -678,9 +691,21 @@ class tpt_third_service_entry_line(osv.osv):
         'gl_account': fields.many2one('account.account', 'GL Account',required=True),
         'uom_id': fields.many2one('product.uom', 'UOM'),
         'product_uom_qty': fields.float('Quantity',digits=(16,3)),   
-        'price_unit': fields.float('Unit Price',digits=(16,3)),
-        'line_net': fields.function(line_net_line, multi='deltas' ,digits=(16,3),string='Total Amount'),
+#         'price_unit': fields.float('Unit Price',digits=(16,3)),
+        'price_unit': fields.related('po_line_id','price_unit',type='float', relation='purchase.order.line',string='Unit Price', readonly = True),
+        'line_net': fields.function(line_net_line, multi='deltas' ,digits=(16,2),string='Total Amount'),
     }
+    
+    def _check_qty_line(self, cr, uid, ids, context=None):
+        for line in self.browse(cr,uid,ids,context=context):
+            qty = line.product_uom_qty or 0
+            po_qty = line.po_line_id and line.po_line_id.product_qty or 0
+            if qty > po_qty:
+                raise osv.except_osv(_('Warning!'),_('Quantity can not be greater than PO Quantity!'))
+        return True
+    _constraints = [
+        (_check_qty_line, 'Identical Data', ['product_uom_qty']),
+    ]
     
     def onchange_po_line_id(self, cr, uid, ids,po_line_id=False):
         res = {'value':{
