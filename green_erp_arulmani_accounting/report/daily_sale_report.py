@@ -46,6 +46,7 @@ class Parser(report_sxw.rml_parse):
             'get_order_type': self.get_order_type,
             'convert_date': self.convert_date,
             'decimal_convert': self.decimal_convert,
+            'get_total':self.get_total,
 #             'get_sale_line': self.get_sale_line,
         })
         

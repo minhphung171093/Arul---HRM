@@ -224,10 +224,10 @@ class Parser(report_sxw.rml_parse):
                     sql = sql+str
                     
         if requisitioner and not po_no and not date_to and not date_from and not grn_no and not project_id and not project_section_id and not state :
-                    str = " pi.requisitioner = '%s'"%(requisitioner)
+                    str = " pi.requisitioner = %s"%(requisitioner[0])
                     sql = sql+str
         if requisitioner and (date_to or date_from or po_no or grn_no) and (date_to or date_from or po_no or grn_no or project_id or project_section_id or state):
-                    str = " and pi.requisitioner = %s "%(requisitioner)
+                    str = " and pi.requisitioner = %s "%(requisitioner[0])
                     sql = sql+str 
         if project_id and not po_no and not date_to and not date_from and not grn_no and not requisitioner and not state and not project_section_id: # or (project_sec_id):
                     str = " pr.id = %s"%(project_id[0])

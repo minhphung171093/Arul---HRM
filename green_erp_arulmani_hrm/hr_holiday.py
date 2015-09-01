@@ -9879,6 +9879,9 @@ class shift_change(osv.osv):
         return super(shift_change, self).search(cr, uid, args, offset, limit, order, context, count)
 shift_change()
 
+#===============================================================================
+# TPT-START SHIFT ADJUSTMENT SCREEN - BY BalamuruganPurushothaman
+#===============================================================================
 class shift_adjustment(osv.osv):
     _name='shift.adjustment'
     
@@ -10087,7 +10090,15 @@ class shift_adjustment(osv.osv):
         
     }
 shift_adjustment()
+#===============================================================================
+# TPT-END: SHIFT ADJUSTMENT SCREEN 
+#===============================================================================
 
+#===============================================================================
+# TPT-START: LEAVE ADJUSTMENT SCREEN - 
+# TO ADJUST LEAVE COUNT AVAILABLE IN SYSTEM FOR A YEAR
+# BY BalamuruganPurushothaman
+#===============================================================================
 class leave_adjustment(osv.osv):
     _name='leave.adjustment'
     
@@ -10159,26 +10170,17 @@ class leave_adjustment(osv.osv):
         vals['available_leave_count'] = coff[0]
         
         return super(leave_adjustment, self).create(cr, uid, vals, context)
-    
-    #===========================================================================
-    # def write(self, cr, uid, ids, vals, context=None):
-    #     for leave_adj_obj in self.browse(cr, uid, ids):
-    #         now = datetime.datetime.now()
-    #         current_year = now.year
-    #         sql = '''
-    #             SELECT CASE WHEN SUM(total_day-total_taken)!=0 THEN SUM(total_day-total_taken) ELSE 0 END pl_count FROM employee_leave_detail 
-    #             WHERE emp_leave_id IN 
-    #             (SELECT id FROM employee_leave WHERE employee_id = %s AND year='%s')
-    #             AND leave_type_id = (SELECT id FROM arul_hr_leave_types WHERE id=%s)
-    #             '''%(leave_adj_obj.employee_id.id,current_year, leave_adj_obj.leave_type_id.id)
-    #         cr.execute(sql)
-    #         coff = cr.fetchone()
-    #         vals['available_leave_count'] = coff[0]
-    #     return super(leave_adjustment, self).write(cr, uid,ids, vals, context)
-    #===========================================================================
-      
+        
 leave_adjustment()
 
+#===============================================================================
+# TPT-END: LEAVE ADJUSTMENT
+#===============================================================================
+
+#===============================================================================
+# TPT-NEW WORK SHIFT MASTER SETUP & CONFIGURATION 
+# BY BalamuruganPurushothaman
+#===============================================================================
 class tpt_work_shift(osv.osv):
     _name='tpt.work.shift'
     def _time_total(self, cr, uid, ids, field_name, arg, context=None):
@@ -10234,7 +10236,18 @@ class tpt_work_shift(osv.osv):
     ]      
     
 tpt_work_shift()
+#===============================================================================
+# TPT-END: NEW WORK SHIFT MASTER
+#===============================================================================
 
+#===============================================================================
+# TPT-START: COFF REGISTER - TO CREATE AN ENTRY IF COFF IS CREATED FOR AN EMPLOYEE
+# WHEN HE WORKS 
+# 1.ADDITIONAL SHIFTS ON THE SAME DAY (SHIFT COUNT=1.5; COFF=0.5)
+# 2.WEEK OFF (SHIFT COUNT=1.5; COFF=1.5)
+# 3.SPECIAL HOLIDAY (SHIFT COUNT=1.5; COFF=1.5)
+# 4.LOCAL HOLIDAY (SHIFT COUNT=1.5; COFF=1.5)
+#===============================================================================
 class tpt_coff_register(osv.osv):
     _name='tpt.coff.register'
     def _count_total(self, cr, uid, ids, field_name, arg, context=None):
@@ -10254,12 +10267,18 @@ class tpt_coff_register(osv.osv):
               'work_date': fields.date('Work Date'),
               'total_shift_worked': fields.float('Total Shift Worked'),  
               'coff_count': fields.float('C.Off Added'), 
-              #'func_coff_count': fields.function(_count_total,  string='TPT-C.Off Added', multi='sums', help="The total amount."),
-              #'punch_id' : fields.many2one('arul.hr.punch.in.out.time', 'Punch Details', ),   
               } 
     
 tpt_coff_register()
+#===============================================================================
+# TPT-END : COFF REGISTER
+#===============================================================================
 
+#===============================================================================
+# TPT-START: NEW TIME MACHINE INTEGRATION
+# -Time Office Local system has "hr_attendance" table. This table is at synch with Time Machine
+# -We need to  copy this table to 
+#===============================================================================
 class tpt_hr_temp_attendance(osv.osv):
     _name='tpt.hr.temp.attendance'
 
@@ -10559,3 +10578,7 @@ class tpt_hr_attendance(osv.osv):
     
     
 tpt_hr_attendance()
+
+#===============================================================================
+# TPT-END: NEW TIME MACHINE INTEGRATION
+#===============================================================================
