@@ -560,7 +560,9 @@ class tpt_service_entry_line(osv.osv):
     
     def _check_qty_line(self, cr, uid, ids, context=None):
         for line in self.browse(cr,uid,ids,context=context):
-            if line.product_uom_qty > line.po_line_id.product_qty:
+            qty = line.product_uom_qty or 0
+            po_qty = line.po_line_id and line.po_line_id.product_qty or 0
+            if qty > po_qty:
                 raise osv.except_osv(_('Warning!'),_('Quantity can not be greater than PO Quantity!'))
         return True
     _constraints = [
@@ -696,7 +698,9 @@ class tpt_third_service_entry_line(osv.osv):
     
     def _check_qty_line(self, cr, uid, ids, context=None):
         for line in self.browse(cr,uid,ids,context=context):
-            if line.product_uom_qty > line.po_line_id.product_qty:
+            qty = line.product_uom_qty or 0
+            po_qty = line.po_line_id and line.po_line_id.product_qty or 0
+            if qty > po_qty:
                 raise osv.except_osv(_('Warning!'),_('Quantity can not be greater than PO Quantity!'))
         return True
     _constraints = [
