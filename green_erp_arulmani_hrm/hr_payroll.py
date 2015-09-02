@@ -1287,8 +1287,8 @@ class arul_hr_payroll_executions(osv.osv):
                 special_holiday_worked_count =  0  
                 #SELECT COUNT(work_date) AS date_holiday_count                             
                 sql = '''
-                        SELECT CASE WHEN SUM(total_shift_worked)!=0 
-                            THEN SUM(total_shift_worked) ELSE 0 END total_shift_worked 
+                        SELECT CASE WHEN SUM(total_shift_worked1)!=0 
+                            THEN SUM(total_shift_worked1) ELSE 0 END total_shift_worked 
                         FROM arul_hr_punch_in_out_time 
                         WHERE work_date IN (SELECT date FROM arul_hr_holiday_special 
                         WHERE EXTRACT(month from date)=%s AND EXTRACT(year from date)=%s ) AND 
@@ -2001,6 +2001,7 @@ class arul_hr_payroll_executions(osv.osv):
                             shd = 0
                         else:
                             shd = (gross_shd_calc / calendar_days) * special_holiday_worked_count
+                            shd = round(shd, 0)
                         total_earning = total_earning + shd
                         gross_sal = gross_sal + shd
                         
@@ -2432,6 +2433,7 @@ class arul_hr_payroll_executions(osv.osv):
                             shd = 0
                         else:
                             shd = (gross_shd_calc / s3_working_days) * special_holiday_worked_count
+                            shd = round(shd, 0)
                         total_earning = total_earning + shd
                         gross_sal = gross_sal + shd
                         

@@ -21,10 +21,10 @@ class time_data_check(osv.osv_memory):
                 and io.g2_shift_count1 =0  and io.b_shift_count1 =0  and io.c_shift_count1 =0  and 
                 io.total_shift_worked1 =0 and io.total_hours<11.20    and actual_work_shift_id=
                 (select id from arul_hr_capture_work_shift where code='A')  )
-
+ 
                 '''
         cr.execute(sql)
-        
+         
         sql = '''
                 update arul_hr_punch_in_out_time set b_shift_count1=1,total_shift_worked1=1 where id in (
                 select io.id
@@ -37,7 +37,7 @@ class time_data_check(osv.osv_memory):
                 (select id from arul_hr_capture_work_shift where code='B')  )
         '''
         cr.execute(sql)
-        
+         
         sql = '''
                 update arul_hr_punch_in_out_time set g1_shift_count1=1,total_shift_worked1=1 where id in (
                 select io.id
@@ -50,7 +50,7 @@ class time_data_check(osv.osv_memory):
                 (select id from arul_hr_capture_work_shift where code='G1')  )
         '''
         cr.execute(sql)
-        
+         
         sql = '''
                 update arul_hr_punch_in_out_time set g2_shift_count1=1,total_shift_worked1=1 where id in (
                 select io.id
@@ -66,7 +66,7 @@ class time_data_check(osv.osv_memory):
         sql = '''
             update arul_hr_permission_onduty set shift_type='G2' where 
             total_shift_worked=1
-            and EXTRACT(year FROM date) = 2015 AND EXTRACT(month FROM date) = 7
+            and EXTRACT(year FROM date) = 2015 AND EXTRACT(month FROM date) = 8
             and shift_type is null
         '''
         cr.execute(sql)
