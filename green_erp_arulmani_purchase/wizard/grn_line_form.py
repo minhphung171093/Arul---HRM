@@ -65,12 +65,12 @@ class grn_line_details_report(osv.osv_memory):
      
     _columns = {
         'grn_lines_id': fields.many2one('grn.details.report','GRN Line Details', ondelete='cascade'),
-        'grn_no': fields.char('GRN no',size = 1024),
+        'grn_no': fields.many2one('stock.picking.in','GRN No', size = 1024), #TPT-Y on 03Sept15, navigation line
         'grn_date': fields.date('GRN date'),
         'supplier': fields.char('Supplier'),
         'doc_type': fields.char('Po Document Type'),
-        'po_no': fields.char('Po Number'), 
-        'po_indent_id': fields.char('Po Indent No'),
+        'po_no': fields.many2one('purchase.order',string='Po Number'), #TPT-Y on 03Sept15, navigation line
+        'po_indent_id': fields.many2one('tpt.purchase.indent',string='Po Indent No',size = 1024), #TPT-Y on 03Sept15, navigation line
         'description':fields.char('Description', size = 50, readonly = True),
         'item_text':fields.text('Item Text'),
         'product_id': fields.char('Product'),
@@ -209,9 +209,9 @@ class grn_detail_line_report(osv.osv_memory):
                
                          
                 sql = '''
-                    select sp.name as grn_no,sp.date as grn_date,po.name as po_no, rp.name supplier,
+                    select sp.name as grn_no_1,sp.id as grn_no,sp.date as grn_date,po.name as po_no_1,po.id as po_no,rp.name supplier,
                     pr.name as proj_name,prs.name as proj_sec_name,
-                      po.po_document_type as doc_type,pi.name as po_indent_no,pp.default_code||'-'||pt.name as product,
+                      po.po_document_type as doc_type,pi.name as po_indent_no_1,pi.id as po_indent_no,pp.default_code||'-'||pt.name as product,
                       sm.item_text, sm.description, sm.product_qty as prod_qty,pu.name as product_uom,
                       sm.action_taken as act_take,sm.bin_location,
                       sp.state  as state,  
