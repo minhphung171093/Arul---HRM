@@ -11,6 +11,9 @@ from datetime import date
 import calendar
 import openerp.addons.decimal_precision as dp
 from openerp import netsvc
+import base64
+import xlrd
+from xlrd import open_workbook,xldate_as_tuple
 
 class tpt_update_stock_move_report(osv.osv):
     _name = "tpt.update.stock.move.report"
@@ -139,10 +142,47 @@ class tpt_update_stock_move_report(osv.osv):
 #             cr.execute(sql)
 #             print 'TPT update INSPEC unit price for report', move.id
     
+    def _data_get(self, cr, uid, ids, name, arg, context=None):
+        if context is None:
+            context = {}
+        result = {}
+        location = self.pool.get('ir.config_parameter').get_param(cr, uid, 'hr_identities_attachment.location')
+        bin_size = context.get('bin_size')
+        for attach in self.browse(cr, uid, ids, context=context):
+            if location and attach.store_fname:
+                result[attach.id] = self._file_read(cr, uid, location, attach.store_fname, bin_size)
+            else:
+                result[attach.id] = attach.db_datas
+        return result
+
+    def _data_set(self, cr, uid, id, name, value, arg, context=None):
+        # We dont handle setting data to null
+        if not value:
+            return True
+        if context is None:
+            context = {}
+        location = self.pool.get('ir.config_parameter').get_param(cr, uid, 'hr_identities_attachment.location')
+        file_size = len(value.decode('base64'))
+        if location:
+            attach = self.browse(cr, uid, id, context=context)
+            if attach.store_fname:
+                self._file_delete(cr, uid, location, attach.store_fname)
+            fname = self._file_write(cr, uid, location, value)
+            # SUPERUSER_ID as probably don't have write access, trigger during create
+            super(tpt_update_stock_move_report, self).write(cr, SUPERUSER_ID, [id], {'store_fname': fname, 'file_size': file_size}, context=context)
+        else:
+            super(tpt_update_stock_move_report, self).write(cr, SUPERUSER_ID, [id], {'db_datas': value, 'file_size': file_size}, context=context)
+        return True
+    
     _columns = {
         'result': fields.text('Result', readonly=True ),
         'product_id': fields.many2one('product.product', 'Product'),
         'update_line': fields.one2many('tpt.update.inspection.line','update_id','Line'),
+        'datas_fname': fields.char('File Name',size=256),
+        'datas': fields.function(_data_get, fnct_inv=_data_set, string='Data MRS', type="binary", nodrop=True),
+        'store_fname': fields.char('Stored Filename', size=256),
+        'db_datas': fields.binary('Database Data'),
+        'file_size': fields.integer('File Size'),
     }
     
     def map_issue(self, cr, uid, ids, context=None):
@@ -3553,6 +3593,108 @@ class tpt_update_stock_move_report(osv.osv):
 #             pick_obj.unlink(cr,uid,[1795])
             cr.execute(''' delete from stock_picking where id= 1795 ''')
         return self.write(cr, uid, ids, {'result':'update internal move 1795 Done'}) 
+    
+    def delete_dup_issue(self, cr, uid, ids, context=None):
+        move_obj = self.pool.get('stock.move')
+        account_obj = self.pool.get('account.move')
+        for issue in ['1003004/2015','1000006/2015','1000000/2015','1002998/2015',
+                      '1000860/2015','1000858/2015']:
+            issue_ids = self.pool.get('tpt.material.issue').search(cr, uid, [('doc_no','=',issue)])
+            for issue_id in issue_ids:
+                move_ids = move_obj.search(cr, uid, [('issue_id','=',issue_id)])
+                if move_ids:
+                    move_obj.action_cancel(cr, uid, move_ids, context)
+                    move_obj.unlink(cr,uid,move_ids)
+                account_ids = account_obj.search(cr, uid, [('material_issue_id','=',issue_id)])
+                if account_ids:
+                    account_obj.button_cancel(cr, uid, account_ids)
+                    cr.execute(''' delete from account_move where id = %s ''',(account_ids[0],))
+                cr.execute(''' delete from tpt_material_issue where id = %s ''',(issue_id,))
+        return self.write(cr, uid, ids, {'result':'delete duplicate issue done'}) 
+    
+    def update_issue_date_and_03092015(self, cr, uid, ids, context=None):
+        cr.execute(''' update tpt_material_issue set date_expec = '2015-07-15' where doc_no = '1002763/2015' ''')
+        cr.execute(''' update tpt_material_issue set date_expec = '2015-06-04' where doc_no = '1001314/2015' ''')
+        cr.execute(''' update tpt_material_issue set date_expec = '2015-07-21' where doc_no = '1002994/2015' ''')
+        
+        return self.write(cr, uid, ids, {'result':'update date issue 03092015 file: Duplicate to delete done'}) 
+    
+    def delete_material_request_6000167(self, cr, uid, ids, context=None):
+        move_obj = self.pool.get('stock.move')
+        account_obj = self.pool.get('account.move')
+        request_ids = self.pool.get('tpt.material.request').search(cr, uid, [('name','=','6000167/2015')])
+        if request_ids:
+            issue_ids = self.pool.get('tpt.material.issue').search(cr, uid, [('name','=',request_ids[0])])
+            for issue_id in issue_ids:
+                move_ids = move_obj.search(cr, uid, [('issue_id','=',issue_id)])
+                if move_ids:
+                    move_obj.action_cancel(cr, uid, move_ids, context)
+                    move_obj.unlink(cr,uid,move_ids)
+                account_ids = account_obj.search(cr, uid, [('material_issue_id','=',issue_id)])
+                if account_ids:
+                    account_obj.button_cancel(cr, uid, account_ids)
+                    cr.execute(''' delete from account_move where id = %s ''',(account_ids[0],))
+                cr.execute(''' delete from tpt_material_issue where id = %s ''',(issue_id,))
+            cr.execute(''' delete from tpt_material_request where id = %s ''',(request_ids[0],))
+        return self.write(cr, uid, ids, {'result':'delete MRS 6000167/2015 done'}) 
+    
+    def update_date_mrs_issue(self, cr, uid, ids, context=None):
+        this = self.browse(cr, uid, ids[0])
+        try:
+            recordlist = base64.decodestring(this.datas)
+            excel = xlrd.open_workbook(file_contents = recordlist)
+            sh = excel.sheet_by_index(0)
+        except Exception, e:
+            raise osv.except_osv(_('Warning!'), str(e))
+        if sh:
+            request_obj = self.pool.get('tpt.material.request')
+            issue_obj = self.pool.get('tpt.material.issue')
+            try:
+                dem = 1
+                for row in range(1,sh.nrows):
+                    mrs_name = sh.cell(row, 0).value
+                    request_ids = request_obj.search(cr, uid, [('name','=',mrs_name)])
+                    up_date = sh.cell(row, 1).value
+                    if up_date:
+                        date_update = up_date[6:10] + '-' + up_date[3:5] + '-'+ up_date[:2]
+                    else:
+                        date_update = False
+                    if request_ids:
+                        cr.execute(''' update tpt_material_request set date_request = %s, date_expec = %s where id in %s ''',(date_update,date_update,tuple(request_ids),))
+                        issue_ids = issue_obj.search(cr, uid, [('name','=',request_ids[0])])
+                        if issue_ids:
+                            cr.execute(''' update tpt_material_issue set date_request = %s, date_expec = %s where id in %s ''',(date_update,date_update,tuple(issue_ids),))
+                    dem += 1
+            except Exception, e:
+                raise osv.except_osv(_('Warning!'), str(e)+ ' Line: '+str(dem+1))
+        return self.write(cr, uid, ids, {'result':'update date MRS and Issue Negative stock details file done'})
+    
+    def update_date_grn_negative_stock_file(self, cr, uid, ids, context=None):
+        this = self.browse(cr, uid, ids[0])
+        try:
+            recordlist = base64.decodestring(this.datas)
+            excel = xlrd.open_workbook(file_contents = recordlist)
+            sh = excel.sheet_by_index(0)
+        except Exception, e:
+            raise osv.except_osv(_('Warning!'), str(e))
+        if sh:
+            picking_obj = self.pool.get('stock.picking')
+            try:
+                dem = 1
+                for row in range(1,sh.nrows):
+                    grn_name = sh.cell(row, 0).value
+                    grn_ids = picking_obj.search(cr, uid, [('name','=',grn_name)])
+                    up_date = sh.cell(row, 1).value
+                    if up_date:
+                        date_update = up_date[6:10] + '-' + up_date[3:5] + '-'+ up_date[:2]
+                    else:
+                        date_update = False
+                    if grn_ids:
+                        cr.execute(''' update stock_picking set date = %s where id in %s ''',(date_update,tuple(grn_ids),))
+                    dem += 1
+            except Exception, e:
+                raise osv.except_osv(_('Warning!'), str(e)+ ' Line: '+str(dem+1))
+        return self.write(cr, uid, ids, {'result':'update date grn negative stock file done'})
     
 tpt_update_stock_move_report()
 

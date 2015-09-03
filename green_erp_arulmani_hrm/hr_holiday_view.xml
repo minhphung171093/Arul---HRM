@@ -1905,7 +1905,7 @@
 		</record>
           
 		<record id="action_tpt_hr_attendance_form" model="ir.actions.act_window">
-            <field name="name">Time Machine Entries</field>
+            <field name="name">Time Entries[NEW TIME MACHINE]</field>
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">tpt.hr.attendance</field>
             <field name="view_type">form</field>
@@ -1914,8 +1914,60 @@
             </record>
         <menuitem action="action_tpt_hr_attendance_form"
             id="menu_action_tpt_hr_attendance_form"
-            parent="menu_hr_leave_management" sequence="36"
+            parent="menu_hr_leave_management" sequence="37"
             /> 
         <!-- End -->
+        <!-- TPT -->
+        <record id="view_tpt_time_data_move_tree_view" model="ir.ui.view">
+			<field name="name">tpt.time.data.move.tree</field>
+			<field name="model">tpt.time.data.move</field>
+			<field name="arch" type="xml">
+				<tree string="Update Time Data">
+					<field name="from_host" />
+					<field name="to_host" />
+				</tree>
+			</field>
+		</record>
+		
+		<record id="view_tpt_time_data_move_form_view" model="ir.ui.view">
+            <field name="name">tpt.time.data.move.form</field>
+            <field name="model">tpt.time.data.move</field>
+            <field name="arch" type="xml">
+	            <form string="Update Time Data Move" version="7.0"> 
+	            	<group string="From DB">
+	                    <field name="from_host" />
+	                    <field name="from_database" />
+						<field name="from_db_port" />
+						<field name="from_db_username" />
+						<field name="from_db_password" password="True"/>
+	                </group>
+	                <!-- 
+	                <group string="To DB">
+	                    <field name="to_host" />
+	                    <field name="to_database" />
+						<field name="to_db_port" />
+						<field name="to_db_username" />
+						<field name="to_db_password" password="True"/>
+						<newline></newline>
+						<field name="result" />
+	                </group> -->
+	        	</form>
+			</field>
+		</record>
+          
+		<record id="action_tpt_time_data_move_form" model="ir.actions.act_window">
+            <field name="name">Move Time Data[NEW TIME MACHINE]</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.time.data.move</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">form,tree</field>
+            <field name="view_id" ref="view_tpt_time_data_move_tree_view"/>
+        </record>
+        
+        <menuitem action="action_tpt_time_data_move_form"
+        	id="menu_action_tpt_time_data_move_form"
+            parent="menu_hr_leave_management" sequence="38" 
+            />
+        <!-- TPT-END -->
 	</data>
 </openerp>

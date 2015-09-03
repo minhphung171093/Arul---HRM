@@ -12,6 +12,7 @@ import calendar
 from twisted.internet._threadedselect import raiseException
 #from dateutil import rrule
 from dateutil.rrule import rrule, DAILY
+import psycopg2
 
 class arul_hr_holiday_special(osv.osv):
     _name = "arul.hr.holiday.special"
@@ -10277,7 +10278,7 @@ tpt_coff_register()
 #===============================================================================
 # TPT-START: NEW TIME MACHINE INTEGRATION
 # -Time Office Local system has "hr_attendance" table. This table is at synch with Time Machine
-# -We need to  copy this table to 
+# -We need to copy this table to Staging/Production Server's tpt_hr_attendance
 #===============================================================================
 class tpt_hr_temp_attendance(osv.osv):
     _name='tpt.hr.temp.attendance'
@@ -10299,7 +10300,8 @@ class tpt_hr_attendance(osv.osv):
     _name='tpt.hr.attendance'
 
     _columns={                                    
-              'employee_id': fields.many2one('hr.employee','Employee ID'),      
+              #'employee_id': fields.many2one('hr.employee','Employee ID'),  
+              'employee_id': fields.char('Employee ID'),    
               'work_date': fields.datetime('Work Date'),
               'punch_type': fields.char('Punch Type'),
               'is_processed': fields.boolean('Is Processed'),  
@@ -10319,6 +10321,7 @@ class tpt_hr_attendance(osv.osv):
    #      
    #      return super(tpt_hr_attendance, self).create(cr, uid, vals, context)
    #============================================================================
+    
     def upload_in_time_data(self, cr, uid, context=None):
         #print "SCHEDULER JOB - STARTED"
         #
@@ -10326,7 +10329,12 @@ class tpt_hr_attendance(osv.osv):
         attend_temp_obj = self.pool.get('tpt.hr.temp.attendance') 
         attend_obj_ids = attend_obj.search(cr, uid, [('is_processed','=',False)]) #, ('punch_type','=','IN')
         for time_entry in attend_obj.browse(cr,uid,attend_obj_ids):
-            employee_id = time_entry.employee_id.id 
+            sql = '''
+            select id from hr_employee where employee_id='%s'
+            '''%time_entry.employee_id
+            cr.execute(sql)
+            emp_id = cr.fetchone()
+            employee_id = emp_id[0]  #time_entry.employee_id.id
             work_date = time_entry.work_date
             punch_type = time_entry.punch_type
             #Example Work_date = "2015-08-27 05:48:14.976784"
@@ -10584,3 +10592,61 @@ tpt_hr_attendance()
 #===============================================================================
 # TPT-END: NEW TIME MACHINE INTEGRATION
 #===============================================================================
+
+class tpt_time_data_move(osv.osv):
+    _name = "tpt.time.data.move"
+    
+    _columns = {
+        'from_host': fields.char('Host', size=1024),
+        'from_port': fields.char('Port', size=1024),
+        'from_database': fields.char('Database', size=1024),
+        'from_username': fields.char('Username', size=1024),
+        'from_password': fields.char('Password', size=1024),
+        'from_db_port': fields.char('DB Port', size=1024),
+        'from_db_username': fields.char('DB Username', size=1024),
+        'from_db_password': fields.char('DB Password', size=1024),
+        
+        'to_host': fields.char('Host', size=1024),
+        'to_port': fields.char('Port', size=1024),
+        'to_database': fields.char('Database', size=1024),
+        'to_username': fields.char('Username', size=1024),
+        'to_password': fields.char('Password', size=1024),
+        'to_db_port': fields.char('DB Port', size=1024),
+        'to_db_username': fields.char('DB Username', size=1024),
+        'to_db_password': fields.char('DB Password', size=1024),
+        
+        'result': fields.text('Result', readonly=True ),
+    }
+    def upload_time_data(self, cr, uid, context=None):
+        time_obj = self.pool.get('tpt.time.data.move')
+        time_obj_id = time_obj.search(cr, uid, [('from_db_port','=','5432')])
+        if time_obj_id:
+            line = time_obj.browse(cr, uid, time_obj_id[0])
+    #         oorpc = OpenObjectRPC(line.host, line.database, line.username, line.password, line.port)
+            from_db_conn_string = "host='%s' port='%s' dbname='%s' user='%s' password='%s'"%(line.from_host, line.from_db_port, line.from_database, line.from_db_username, line.from_db_password)
+            from_conn = psycopg2.connect(from_db_conn_string)
+            from_cursor = from_conn.cursor()
+            #===================================================================
+            # sql = '''
+            #     select employee_id, work_date, punch_type from tpt_hr_attendance
+            # '''
+            #===================================================================
+            sql = '''
+                select employee_id, name, action from hr_attendance
+            '''
+            from_cursor.execute(sql)
+            time_ids = from_cursor.fetchall()
+            
+            attn_obj = self.pool.get('tpt.hr.attendance')
+            vals = []
+            for time in time_ids:
+                vals = {'employee_id':time[0],
+                        'work_date':time[1],
+                        'punch_type':time[2],
+                        }
+                attn_obj.create(cr, uid, vals)
+            
+            
+            print "TIME DATA MOVED"
+            return True
+tpt_time_data_move()
