@@ -56,7 +56,7 @@ class tpt_purchase_indent_line_report(osv.osv_memory):
       
     _columns = {
         'purchase_indent_id': fields.many2one('tpt.purchase.indent.report','Purchase Indent', ondelete='cascade'),
-        'ind_no' : fields.char('Indent No', size = 1024),
+        'ind_no' : fields.many2one('tpt.purchase.indent','Indent No'), #TPT-Y on 03Sept15, navigation line
         'ind_date': fields.date('Indent Date'),
         'doc_type': fields.char('Document Type', size = 1024),
         'dep': fields.char('Department', size = 1024),
@@ -304,7 +304,7 @@ class purchase_indent_line_report(osv.osv_memory):
             status = cb.state            
             
             sql = '''
-                select pi.name as indent_no,pp.pur_product_id,pp.date_indent_relate as ind_date,pp.doc_type_relate as doc_type,
+                select pi.name as indent_no_1,pi.id as indent_no,pp.pur_product_id,pp.date_indent_relate as ind_date,pp.doc_type_relate as doc_type,
                 pp.department_id_relate,d.name as dept,pp.section_id_relate,s.name as sec,(pp.product_uom_qty*pp.price_unit) as total_val,
                 pp.requisitioner_relate,pp.product_id,pp.description as mat_desc,pr.default_code as mat_code,pp.price_unit as unit_price,
                 pp.description,pp.uom_po_id,u.name as uom,pp.id as line_id,pp.mrs_qty as res_qty,pp.state as status,

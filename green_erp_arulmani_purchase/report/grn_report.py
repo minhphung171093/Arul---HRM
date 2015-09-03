@@ -10,6 +10,7 @@ from openerp import pooler
 from openerp.osv import osv
 from openerp.tools.translate import _
 import random
+import locale
 DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
 DATE_FORMAT = "%Y-%m-%d"
 
@@ -26,7 +27,54 @@ class Parser(report_sxw.rml_parse):
             'convert_date': self.convert_date,
             'convert_date_time': self.convert_date_time,
             'get_move': self.get_move,
+            'get_line': self.get_line,
+            'get_amt': self.get_amt,
         })
+    #commentted by TPT-PRABHU
+    def get_amt(self, amt):          
+        locale.setlocale(locale.LC_NUMERIC, "en_IN")
+        inr_comma_format = locale.format("%.3f", amt, grouping=True)
+        return inr_comma_format
+    
+    def get_line(self, header_id):
+        if header_id:
+            sql = '''
+            select sm.si_no as si_no, pi.name indent_no,emp.name_related req, pp.default_code code, sm.description as description, 
+            case when sm.action_taken='direct' then 'Direct Stock Update' 
+            when sm.action_taken = 'need' then 'Need Inspection'  
+            when sm.action_taken = 'move' then 'Move to Consumption' end doc_type,
+            sm.product_qty,pu.name as product_uom,sm.bin_location
+            from stock_move sm
+            inner join tpt_purchase_indent pi on sm.po_indent_id=pi.id
+            inner join product_product pp on sm.product_id=pp.id
+            inner join product_template pt on pp.id=pt.id
+            left join product_uom pu on (pu.id = sm.product_uom)
+            left join hr_employee emp on pi.requisitioner=emp.id
+            
+            where picking_id=%s
+            order by si_no 
+            '''%header_id.id
+            #inner join stock_picking sp on sm.picking_id=sp.id
+            self.cr.execute(sql)
+            #return 
+            res = []
+            for line in self.cr.dictfetchall():
+                res.append({
+                            'si_no':line['si_no'] or '',
+                            'indent_no':line['indent_no'] or '',
+                            'req':line['req'] or '',
+                            'code':line['code'] or '',
+                            'description':line['description'] or '',
+                            'doc_type':line['doc_type'] or '',
+                            'product_qty':self.get_amt(line['product_qty']) or 0.000,
+                            'product_uom':line['product_uom'] or '',
+                            'bin_location':line['bin_location'] or '',
+                            
+                            
+                            })
+            return res
+    
+    
     
     def convert_date(self, date):
         if date:

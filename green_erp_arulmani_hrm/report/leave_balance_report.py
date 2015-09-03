@@ -59,14 +59,15 @@ class Parser(report_sxw.rml_parse):
         employee=wizard_data['employee']
         employee_category=wizard_data['employee_category']
         department=wizard_data['department']
-        is_active=wizard_data['is_active']#
+        state=wizard_data['state']#
         employee_obj = self.pool.get('hr.employee')
         resource_obj = self.pool.get('resource.resource')     
         
 
         
         res = []
-        if is_active is True:
+        if state == 'active':
+            
             if department:          
                 
                 sql = ''' select id from hr_employee where department_id=%s and 
@@ -108,7 +109,9 @@ class Parser(report_sxw.rml_parse):
                 '''
                 self.cr.execute(sql)
                 employee_ids = [r[0] for r in self.cr.fetchall()]
-        else:
+                
+        elif state == 'inactive':
+            
             if department:            
                 
                 sql = ''' select id from hr_employee where department_id=%s and 
@@ -147,6 +150,50 @@ class Parser(report_sxw.rml_parse):
             else:
                 
                 sql = ''' select id from hr_employee where resource_id in (select id from resource_resource where active='f')
+                '''
+                self.cr.execute(sql)
+                employee_ids = [r[0] for r in self.cr.fetchall()]
+                
+        else:
+            
+            if department:            
+                
+                sql = ''' select id from hr_employee where department_id=%s and 
+                resource_id in (select id from resource_resource where active in ('f','t'))
+                '''%(department[0]) 
+                self.cr.execute(sql)
+                employee_ids = [r[0] for r in self.cr.fetchall()]
+                            
+            elif department and employee_category:
+                
+                sql = ''' select id from hr_employee where department_id=%s and employee_category_id = %s and
+                resource_id in (select id from resource_resource where active in ('f','t'))
+                '''%(department[0],employee_category[0]) 
+                self.cr.execute(sql)
+                employee_ids = [r[0] for r in self.cr.fetchall()]
+            elif department and employee_category and employee:
+                
+                sql = ''' select id from hr_employee where department_id=%s and employee_category_id = %s and employee_id = %s and
+                resource_id in (select id from resource_resource where active in ('f','t'))
+                '''%(department[0],employee_category[0],employee[0])
+                self.cr.execute(sql)
+                employee_ids = [r[0] for r in self.cr.fetchall()]
+            elif employee:
+                
+                sql = ''' select id from hr_employee where id = %s and resource_id in (select id from resource_resource where active in ('f','t'))
+                '''%(employee[0])
+                self.cr.execute(sql)
+                employee_ids = [r[0] for r in self.cr.fetchall()]
+            elif employee_category:
+                
+                sql = ''' select id from hr_employee where employee_category_id = %s and resource_id in 
+                (select id from resource_resource where active in ('f','t'))
+                '''%(employee_category[0])
+                self.cr.execute(sql)
+                employee_ids = [r[0] for r in self.cr.fetchall()]
+            else:
+                
+                sql = ''' select id from hr_employee where resource_id in (select id from resource_resource where active in ('f','t'))
                 '''
                 self.cr.execute(sql)
                 employee_ids = [r[0] for r in self.cr.fetchall()]

@@ -53,6 +53,7 @@ class tpt_bank_book_line(osv.osv_memory):
         'desc': fields.char('GL Name', size = 1024),
         'gl_code': fields.char('GL Code', size = 1024),
         'ref': fields.char('Reference', size = 1024),
+        'gl_doc_no': fields.char('GL Doc No', size = 1024),
         'voucher_desc': fields.char('Description', size = 1024),
         'cheque_no': fields.char('Cheque No.', size = 1024),
         'cheque_date': fields.char('Cheque Date', size = 1024),
@@ -379,13 +380,14 @@ class bank_book_report(osv.osv_memory):
         }))
         for seq, line in enumerate(get_move_ids(cb)):
             cb_line.append((0,0,{
-                'voucher_id': line['voucher_no'],
+                'voucher_id': line['voucher_name'], #TPT-Y on 03Sept2015
                 'opening_balance': False,
                 'debit': line['credit'] and line['credit'] or 0,
                 'crebit': line['debit'] and line['debit'] or 0,
                 'balance': get_line_balance(seq,cb),
                 'date': line['voucher_date'],
                 'desc': line['acc_name'],
+                'gl_doc_no': line['voucher_no'], #TPT-Y
                 'gl_code': get_code_account(line['account_id']),
                 'ref': line['ref'], 
                 'voucher_desc': line['desc'],  
