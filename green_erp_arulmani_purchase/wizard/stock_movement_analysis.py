@@ -1012,7 +1012,7 @@ class stock_movement_analysis(osv.osv_memory):
             categ = o.categ_id.cate_name
             consum_value = 0
             product = self.pool.get('product.product').browse(cr,uid,product_id)
-            print product_id, product.name
+#             print product_id, product.name
             if categ == 'raw':
                 parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
                 locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw Material','Raw Materials','Raw material']),('location_id','=',parent_ids[0])])
