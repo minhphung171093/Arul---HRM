@@ -3843,12 +3843,12 @@ class arul_hr_audit_shift_time(osv.osv):
                                                           'punch_in_out_line':[(0,0,val1)]}) 
                 ##
                 #C.OFF ENTRY CREATION
-                #if flag==1 or line.additional_shifts or (line.employee_id.employee_category_id and line.employee_id.employee_category_id.code!='S1'):
-                coff_obj = self.pool.get('tpt.coff.register')
-                coff_obj.create(cr, uid, {
-                                          'employee_id': line.employee_id.id,
-                                           'work_date': line.work_date,
-                                           'total_shift_worked': shift_count,
+                if flag==1 or line.additional_shifts or (line.employee_id.employee_category_id and line.employee_id.employee_category_id.code!='S1'):
+                    coff_obj = self.pool.get('tpt.coff.register')
+                    coff_obj.create(cr, uid, {
+                                              'employee_id': line.employee_id.id,
+                                               'work_date': line.work_date,
+                                               'total_shift_worked': shift_count,
                                            'coff_count': c_off_day#(shift_count-1) if shift_count>1 else 0 ,
                                                               
                                                                        })
