@@ -3843,12 +3843,12 @@ class arul_hr_audit_shift_time(osv.osv):
                                                           'punch_in_out_line':[(0,0,val1)]}) 
                 ##
                 #C.OFF ENTRY CREATION
-                #if flag==1 or line.additional_shifts or (line.employee_id.employee_category_id and line.employee_id.employee_category_id.code!='S1'):
-                coff_obj = self.pool.get('tpt.coff.register')
-                coff_obj.create(cr, uid, {
-                                          'employee_id': line.employee_id.id,
-                                           'work_date': line.work_date,
-                                           'total_shift_worked': shift_count,
+                if flag==1 or line.additional_shifts or (line.employee_id.employee_category_id and line.employee_id.employee_category_id.code!='S1'):
+                    coff_obj = self.pool.get('tpt.coff.register')
+                    coff_obj.create(cr, uid, {
+                                              'employee_id': line.employee_id.id,
+                                               'work_date': line.work_date,
+                                               'total_shift_worked': shift_count,
                                            'coff_count': c_off_day#(shift_count-1) if shift_count>1 else 0 ,
                                                               
                                                                        })
@@ -5169,7 +5169,7 @@ class arul_hr_permission_onduty(osv.osv):
         
         'total_shift_worked': fields.function(_shift_total,store=True, type='float', string='No.Of Shift Worked', multi='shift_total', help="The total amount."),
         
-        'state':fields.selection([('draft', 'Draft'),('cancel', 'Reject'),('done', 'Approve')],'Status', readonly=True),
+        'state':fields.selection([('draft', 'Draft'),('cancel', 'Reject'),('done', 'Approve'),('time_leave_confirmed','Time Leave Evaluation Confirmed')],'Status', readonly=True),
               }
     _defaults = {
            'state': 'draft',  
@@ -5786,7 +5786,7 @@ class arul_hr_punch_in_out_time(osv.osv):
         'out_time': fields.float('Out Time', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
         'total_hours': fields.function(_time_total, store=True, string='Total Hours', multi='sums', help="The total amount.", states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
         'approval': fields.boolean('Select for Approval', readonly =  True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
-        'state':fields.selection([('draft', 'Draft'),('cancel', 'Reject'),('done', 'Approve')],'Status', readonly=True),
+        'state':fields.selection([('draft', 'Draft'),('cancel', 'Reject'),('done', 'Approve'),('time_leave_confirmed','Time Leave Evaluation Confirmed')],'Status', readonly=True),
         'type':fields.selection([('permission', 'Permission'),('shift', 'Waiting'),('punch', 'Punch In/Out')],'Type', readonly=True),
         'permission_id':fields.many2one('arul.hr.permission.onduty','Permission/On Duty'),
         'time_evaluate_id': fields.many2one('tpt.time.leave.evaluation','Time Evaluation'),
@@ -8225,6 +8225,19 @@ class tpt_time_leave_evaluation(osv.osv):
             res.append((record['id'], name))
         return res   
     def bt_confirm(self, cr, uid, ids, context=None):
+        for sub in self.browse(cr, uid, ids, context=context):
+            sql = '''
+            update arul_hr_punch_in_out_time set state='time_leave_confirmed' where extract(month from work_date) = '%s' and EXTRACT(year FROM work_date) = %s
+            and employee_id in (select id from hr_employee where payroll_area_id = %s)
+            '''%(sub.month,sub.year,sub.payroll_area_id.id)
+            cr.execute(sql)
+            
+            sql = '''
+            update arul_hr_permission_onduty set state='time_leave_confirmed' where extract(month from date) = '%s' and EXTRACT(year FROM date) = %s
+            and employee_id in (select id from hr_employee where payroll_area_id = %s)
+            '''%(sub.month,sub.year,sub.payroll_area_id.id)
+            cr.execute(sql)
+            
         return self.write(cr, uid, ids,{'state':'done'}) 
     def tpt_submit_evaluate(self, cr, uid, ids, context=None):
         for sub in self.browse(cr, uid, ids, context=context):

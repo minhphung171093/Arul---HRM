@@ -30,7 +30,7 @@ class Parser(report_sxw.rml_parse):
             'get_line': self.get_line,
             'get_amt': self.get_amt,
         })
-    #commentted by TPT-PRABHU
+    #commentted by TPT-P
     def get_amt(self, amt):          
         locale.setlocale(locale.LC_NUMERIC, "en_IN")
         inr_comma_format = locale.format("%.3f", amt, grouping=True)
