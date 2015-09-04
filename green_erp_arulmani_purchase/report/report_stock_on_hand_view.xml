@@ -62,32 +62,44 @@
 	            	<sheet>
 	            		<div class="oe_text_center">
             				<b>V.V. Titanium Pigments Pvt Ltd</b>
-            			</div>
-            			<div class="oe_text_center">
-            				TUTICORIN
-            			</div>
+            			</div>	
             			<div class="oe_text_center">
             				THOOTHUKKUDI
             			</div>
             			<div class="oe_text_center">
-            				<field name="name" nolabel="1"/>
+            				<b><field name="name" nolabel="1"/></b>
             			</div>
             			<group>
             				<field name="categ_id"/>
                 			<field name="product_id"/>
-                			<field name="location_id"/>
+                			<!-- <field name="location_id"/>  -->
                 			<field name="as_date"/>
+                			<field name="is_mrp"/>
             			</group>
 	                	<group>
 		                	<field name="stock_line" nolabel='1'>
 		                		<tree create="false" edit="false" delete="false">
 		                			<field name="code"/>
 		                			<field name="description"/>
+		                			<field name="unit_price"/>
 		                			<field name="uom"/>
 		                			<field name="bin_loc"/>
-		                			<field name="onhand_qty"/>
+		                			<field name="onhand_qty"/>  
+		                			<field name="onhand_qty_st_rm"/>
+		                			<field name="onhand_qty_st_spare"/>
+		                			<field name="onhand_qty_qa_ins"/>
+		                			<field name="onhand_qty_blocklist"/>       			
+		                			<field name="onhand_qty_pl_other"/>
+		                			<field name="onhand_qty_st_fsh"/>
+		                			<field name="onhand_qty_st_tio2"/>
+		                			<!--
 		                			<field name="ins_qty"/>
 		                			<field name="bl_qty"/>
+		                			 <field name="mrp"/>  -->
+		                			
+		                			<field name="min_stock"/>
+		                			<field name="max_stock"/>
+		                			<field name="re_stock"/>
 		                		</tree>
 		                	</field>
 	                	</group>

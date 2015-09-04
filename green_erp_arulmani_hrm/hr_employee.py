@@ -431,6 +431,13 @@ class arul_hr_employee_action_history(osv.osv):
                                                           'department_id':action_history.department_to_id.id and action_history.department_to_id.id or action_history.department_from_id.id,
                                                           'designation_id':action_history.designation_to_id.id and action_history.designation_to_id.id or action_history.designation_from_id.id,
                                                           }) 
+            emp_paystruct_obj = self.pool.get('arul.hr.payroll.employee.structure')
+            employee_ids = emp_paystruct_obj.search(cr, uid, [('employee_id','=',action_history.employee_id.id)])
+            emp_paystruct_obj.write(cr,uid,employee_ids, {
+                                                          'employee_category_id':action_history.employee_category_to_id and action_history.employee_category_to_id.id or False,
+                                                          'sub_category_id':action_history.sub_category_to_id and action_history.sub_category_to_id.id or False,
+                                                          
+                                                          }) 
             
         if context.get('create_transfer_employee'):
             action_history = self.browse(cr, uid, new_id)

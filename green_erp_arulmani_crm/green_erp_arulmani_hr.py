@@ -164,6 +164,12 @@ class hr_employee(osv.osv):
                 'lta' : fields.float('LTA'),
                 'bonus' : fields.float('Bonus'),
 #                 'employee_active' : fields.boolean('Active'),
+                'marital': fields.selection([('single', 'Single'), 
+                                             ('married', 'Married'), 
+                                             ('widower', 'Widower'),
+                                             ('widow', 'Widow'),
+                                             ('divorced', 'Divorced')
+                                              ], 'Marital Status'),
                 
                 }
     _defaults = {

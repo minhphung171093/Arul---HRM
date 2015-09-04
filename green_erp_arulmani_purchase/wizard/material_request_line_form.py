@@ -60,7 +60,7 @@ class tpt_material_request_line_report(osv.osv_memory):
      
     _columns = {
         'material_req_id': fields.many2one('tpt.material.request.report','Material Request', ondelete='cascade'),
-        'mat_req_no' : fields.char('Material Req.No', size = 1024),
+        'mat_req_no' : fields.many2one('tpt.material.request', 'Material Req.No'), #TPT-Y on 03Sept15, navigation line
         'mat_req_date': fields.date('Material Req Date'),
         'exp_date': fields.date('Expected Date'),
         'dept': fields.char('Department', size = 1024),
@@ -72,7 +72,7 @@ class tpt_material_request_line_report(osv.osv_memory):
         'cost_cent': fields.char('Cost Center', size = 1024),
         'uom': fields.char('UOM', size = 1024),
         'req_qty': fields.float('Req Qty'),
-        'on_hand_qty': fields.float('On-hand Qty'),
+        #'on_hand_qty': fields.float('On-hand Qty'), TPT-Y, fix - 3033
         'pen_qty': fields.float('Pending Qty'),
         'bin': fields.char('Bin Location', size = 1024),
         'project': fields.char('Project', size = 1024),         
@@ -276,7 +276,7 @@ class material_request_line_report(osv.osv_memory):
                 
                          
                 sql = '''
-                    select mr.name as mat_req_no,mr.date_request as mat_req_date,mr.date_expec as exp_date,d.name as department,
+                    select mr.name as mat_req_no_1,mr.id as mat_req_no,mr.date_request as mat_req_date,mr.date_expec as exp_date,d.name as department,
                     s.name as section,p.bin_location as bin_loc,e.name_related as requisitioner,e.employee_id as requisitioner_code,
                     e.last_name as lname,res.login as req_raise_by,p.default_code as mat_code,p.name_template as mat_desc,
                     pr.name as proj_name,cc.name as cost_center,u.name as uom,mrl.product_uom_qty as req_qty,                    
@@ -418,7 +418,7 @@ class material_request_line_report(osv.osv_memory):
                             'cost_cent': line['cost_center'],
                             'uom':line['uom'],
                             'req_qty':round(line['req_qty'],3) or 0.000,
-                            'on_hand_qty': get_on_hand_qty(line['lineid']) or 0.000,
+                            #'on_hand_qty': get_on_hand_qty(line['lineid']) or 0.000, TPT-Y, fix - 3033
                             #'pen_qty': line['pen_qty'] or 0.000, YuVi 
                             'pen_qty': get_pending_qty(line['lineid'],line['req_qty'],get_issue_qty_count(line['lineid'])) or 0.000,
                             'bin': line['bin_loc'],

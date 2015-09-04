@@ -30,19 +30,21 @@ class tpt_account_balance_report(osv.osv_memory):
     def print_xls(self, cr, uid, ids, context=None):
         if context is None:
             context = {}
-        datas = {'ids': context.get('active_ids', [])}
+#         datas = {'ids': context.get('active_ids', [])}
+        datas = {'ids': ids}
         datas['model'] = 'tpt.account.balance.report'
         datas['form'] = self.read(cr, uid, ids)[0]
-        datas['form'].update({'active_id':context.get('active_ids',False)})
+        datas['form'].update({'active_ids':ids})
+#         datas['form'].update({'active_id':context.get('active_ids',False)})
         return {'type': 'ir.actions.report.xml', 'report_name': 'trial_balance_report', 'datas': datas}
     
     def print_pdf(self, cr, uid, ids, context=None):
         if context is None:
             context = {}
-        datas = {'ids': context.get('active_ids', [])}
+        datas = {'ids': ids}
         datas['model'] = 'tpt.account.balance.report'
         datas['form'] = self.read(cr, uid, ids)[0]
-        datas['form'].update({'active_id':context.get('active_ids',False)})
+        datas['form'].update({'active_ids':ids})
         return {'type': 'ir.actions.report.xml', 'report_name': 'trial_balance_report_pdf', 'datas': datas}
     
 tpt_account_balance_report()
@@ -273,6 +275,7 @@ class account_balance_report(osv.osv_memory):
                     'balance': (open_sumdebit+sumdebit)-(open_sumcredit+sumcredit), # YuVi
                     'parent_id': account_rec['parent_id'],
                     'bal_type': '',
+                    'parent_left': account_rec['parent_left'],
                 }
 #                 self.sum_debit += account_rec['debit']
 #                 self.sum_credit += account_rec['credit']
@@ -317,7 +320,7 @@ class account_balance_report(osv.osv_memory):
             child_ids = obj_account._get_children_and_consol(cr, uid, [ids], ctx)
             if child_ids:
                 ids = child_ids
-            accounts = obj_account.read(cr, uid, ids, ['type','code','name','debit','credit','balance','parent_id','level','child_id'], ctx)
+            accounts = obj_account.read(cr, uid, ids, ['type','code','name','debit','credit','balance','parent_id','level','child_id','parent_left'], ctx)
     
             for parent in [parents]:
                     if parent in done:
@@ -328,10 +331,15 @@ class account_balance_report(osv.osv_memory):
     
         cr.execute('delete from tpt_account_balance_report')
         
+        def getKey(item):
+            return item['parent_left']
+        
         balance_obj = self.pool.get('tpt.account.balance.report')
         balance = self.browse(cr, uid, ids[0])
         balance_line = []
-        for line in lines(balance,get_account(balance),context):
+        values = lines(balance,get_account(balance),context)
+        values = sorted(values, key=getKey)
+        for line in values:
             balance_line.append((0,0,{
                 'code': line['code'],
                 'account': line['name'],
