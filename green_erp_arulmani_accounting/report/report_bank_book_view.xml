@@ -89,6 +89,7 @@
 		                			<field name="cheque_no"/>
 		                			<field name="cheque_date"/>
 		                			<field name="desc"/>
+		                			<field name="gl_doc_no"/>
 		                			<field name="ref"/>
 		                			<field name="voucher_desc"/>
 		                			<field name="opening_balance"/>

@@ -568,7 +568,7 @@
 						<notebook>
 							<page string = "Punch In/Punch Out Details">
 								<field name="punch_in_out_line" nolabel='1'>
-									<tree create='false' edit='false'>
+									<tree create='false' edit='false' colors="blue:state == 'draft';black:state in ('time_leave_confirmed');gray:state == 'cancel'">
 										<field name="work_date"/>
 										<field name="planned_work_shift_id" options="{'create': false, 'create_edit': false}"/>
 										<field name="actual_work_shift_id" options="{'create': false, 'create_edit': false}"/>
@@ -604,7 +604,7 @@
 						
 							<page string = "Permission and On Duty Details">
 								<field name="permission_onduty_details_line" nolabel='1'>
-									<tree  create='false' edit='false'>
+									<tree  create='false' edit='false' colors="blue:state == 'draft';black:state in ('time_leave_confirmed');gray:state == 'cancel'">
 										
 										<field name="non_availability_type_id" options="{'create': false, 'create_edit': false}"/>
 										<field name="date"/>										
@@ -1956,7 +1956,7 @@
 		</record>
           
 		<record id="action_tpt_time_data_move_form" model="ir.actions.act_window">
-            <field name="name">Move Time Data[NEW TIME MACHINE]</field>
+            <field name="name">Server Config[NEW TIME MACHINE]</field>
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">tpt.time.data.move</field>
             <field name="view_type">form</field>

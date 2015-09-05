@@ -520,6 +520,6 @@
 		<menuitem action="action_tpt_bank_reconciliation"
             id="menu_action_tpt_bank_reconciliation"
             parent="menu_tpt_accounting" sequence="25"/>
-		
+        
     </data>
 </openerp>

@@ -3168,7 +3168,7 @@
                 <tree string="Bank Reconciliation">
                     <field name="name"/>
                     <field name="date"/>
-                    <field name="state"/>
+                    <!--<field name="state"/>-->
                 </tree>
             </field>
         </record>
@@ -3179,13 +3179,14 @@
             <field name="arch" type="xml">
                 <form string="Bank Reconciliation" version="7.0">
                   <header>
-                      <button name="bt_confirm" string="Reconcile" states="draft" type='object' class="oe_highlight"/>
-                      <field name="state" widget="statusbar" statusbar_visible="draft,done"/>
+                      <button name="bt_confirm" string="Reconcile" type='object' class="oe_highlight"/>
+                      <button name="bt_load" string="Load" type='object' class="oe_highlight"/>
+                      <!--<field name="state" widget="statusbar" statusbar_visible="draft,done"/>-->
                   </header>
                   <sheet>
                     <group col="4" colspan="4">
-                        <field name="name" on_change="onchange_account(name, date)" domain="[('user_type.code','=','bank')]" options="{'create': false, 'create_edit': false}"/>
-                    	<field name="date" on_change="onchange_account(name, date)"/>
+                        <field name="name" domain="[('user_type.code','=','bank')]" options="{'create': false, 'create_edit': false}"/>
+                    	<field name="date"/>
                     </group>
                     <notebook colspan="4">
                         <page>
