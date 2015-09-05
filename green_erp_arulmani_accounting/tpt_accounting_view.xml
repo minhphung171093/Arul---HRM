@@ -2953,7 +2953,7 @@
             </field>
 	  </record>
 	  
-	  <record id="tpt_bank_reconciliation_tree" model="ir.ui.view">
+	  <!--<record id="tpt_bank_reconciliation_tree" model="ir.ui.view">
             <field name="name">tpt.bank.reconciliation.tree</field>
             <field name="model">tpt.bank.reconciliation</field>
             <field name="arch" type="xml">
@@ -2963,9 +2963,9 @@
                     <field name="state"/>
                 </tree>
             </field>
-        </record>
+        </record>-->
         
-        <record id="tpt_bank_reconciliation_form" model="ir.ui.view">
+        <!--<record id="tpt_bank_reconciliation_form" model="ir.ui.view">
             <field name="name">tpt.bank.reconciliation.form</field>
             <field name="model">tpt.bank.reconciliation</field>
             <field name="arch" type="xml">
@@ -2988,9 +2988,9 @@
 	                                    <field name="partner_id" readonly='1'/>
 	                                    <field name="name" string="Voucher No" readonly='1'/>
 	                                    <field name="date" string="Payment Date" readonly='1'/>
-	                         <!--           <field name="reference" string="Payment Ref"  readonly='1'/>  -->
-	                                    <!--<field name="account_id" readonly='1'/>
-	                                    <field name="amount" readonly='1'/>-->
+	                                    <field name="reference" string="Payment Ref"  readonly='1'/>  
+	                                    <field name="account_id" readonly='1'/>
+	                                    <field name="amount" readonly='1'/>
 	                                    <field name="cheque_date" readonly='1'/>
 	                                    <field name="cheque_no" readonly='1'/>
 	                                    <field name="debit" readonly='1'/>
@@ -3004,15 +3004,15 @@
                   </sheet>
                 </form>
             </field>
-        </record>
+        </record>-->
           
-       <record id="action_tpt_bank_reconciliation" model="ir.actions.act_window">
+       <!--<record id="action_tpt_bank_reconciliation" model="ir.actions.act_window">
             <field name="name">Bank Reconciliation</field>
             <field name="res_model">tpt.bank.reconciliation</field>
             <field name="view_type">form</field>
             <field name="view_mode">tree,form,graph</field>
             <field name="view_id" eval="tpt_bank_reconciliation_tree"/>
-        </record>
+        </record>-->
 
 	  <record id="tpt_auto_posting_tree_view" model="ir.ui.view">
 			<field name="name">tpt.auto.posting.tree</field>
