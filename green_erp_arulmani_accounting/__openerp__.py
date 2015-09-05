@@ -68,7 +68,7 @@
         'menu_inherit_view.xml',
     ],
     'css' : [
-#         "static/src/css/base.css",
+        "static/src/css/base.css",
     ],
     'js' : [
         "static/src/js/view_form.js",

@@ -3094,7 +3094,7 @@
                     </group>
                     <notebook colspan="4">
                         <page>
-                        	<div col='4' colspan='4' class='oe_green_erp_scroll'>
+                        	<div col='4' colspan='4'>
 	                            <field name="reconciliation_line" nolabel='1'>
 	                                <tree string="Voucher Items" create='false' delete='false' editable="bottom">
 	                                    <field name="doc_type" readonly='1'/>
