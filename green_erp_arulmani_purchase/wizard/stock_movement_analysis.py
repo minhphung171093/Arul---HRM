@@ -296,7 +296,7 @@ class stock_movement_analysis(osv.osv_memory):
                 hand_quantity = inventory['ton_sl'] or 0
                 total_cost = inventory['total_cost'] or 0
             sql = '''
-                   select id, action_taken, price_unit from stock_move where product_id = %s and picking_id in (select id from stock_picking where to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') between '%s' and '%s' and state = 'done')
+                   select * from stock_move where product_id = %s and picking_id in (select id from stock_picking where to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') between '%s' and '%s' and state = 'done')
                '''%(product_id,date_from,date_to) 
             cr.execute(sql)
             for line in cr.dictfetchall():
@@ -539,78 +539,7 @@ class stock_movement_analysis(osv.osv_memory):
                 
                 open_qty = (inventory and inventory['ton_sl'] or 0) - product_isu_qty
             return open_qty 
-        def get_tpt_opening_stock(o,product_id):
-            categ = o.categ_id.cate_name
-            date_from = o.date_from
-            if categ=='raw':
-                parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
-                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw Material','Raw Materials','Raw material']),('location_id','=',parent_ids[0])])
-                sql = '''
-                          select case when sum(st.product_qty)!=0 then sum(st.product_qty) else 0 end ton_sl,case when sum(st.price_unit*st.product_qty)!=0 then sum(st.price_unit*st.product_qty) else 0 end total_cost
-                            from stock_move st
-                                join stock_location loc1 on st.location_id=loc1.id
-                                join stock_location loc2 on st.location_dest_id=loc2.id
-                            where st.state='done' and st.location_dest_id=%s and st.product_id=%s and to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') < '%s'
-                                and st.location_dest_id != st.location_id
-                                and ( (picking_id is not null) 
-                                or  (inspec_id is not null)
-                                or (st.id in (select move_id from stock_inventory_move_rel where inventory_id in (select id from stock_inventory where to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') <'%s' and state = 'done')))
-                                    )
-                    '''%(locat_ids[0],product_id,date_from,date_from)
-                cr.execute(sql)
-                inventory = cr.dictfetchone()
-                sql = '''
-                        select case when sum(product_isu_qty)!=0 then sum(product_isu_qty) else 0 end product_isu_qty from tpt_material_issue_line  
-                        where product_id = %s and material_issue_id in (select id from tpt_material_issue where date_expec < '%s' and warehouse = %s and state = 'done')
-                    '''%(product_id, date_from,locat_ids[0])
-                cr.execute(sql)
-                product_isu_qty = cr.fetchone()[0]
-                
-#                 sql = '''
-#                     select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty 
-#                     from stock_move where product_id = %s and state = 'done' and issue_id is null 
-#                     and picking_id is null and inspec_id is null and location_id = %s 
-#                     and to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') < '%s' and location_id != location_dest_id
-#                 '''%(product_id, locat_ids[0], date_from)
-#                 cr.execute(sql)
-#                 product_qty = cr.dictfetchone()['product_qty']
-                
-                open_qty = (inventory and inventory['ton_sl'] or 0) - product_isu_qty 
-            if categ =='spares':
-                parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
-                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Spares','Spare','spares']),('location_id','=',parent_ids[0])])            
-                sql = '''
-                          select case when sum(st.product_qty)!=0 then sum(st.product_qty) else 0 end ton_sl,case when sum(st.price_unit*st.product_qty)!=0 then sum(st.price_unit*st.product_qty) else 0 end total_cost
-                            from stock_move st
-                                join stock_location loc1 on st.location_id=loc1.id
-                                join stock_location loc2 on st.location_dest_id=loc2.id
-                            where st.state='done' and st.location_dest_id=%s and st.product_id=%s and to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') < '%s' and state = 'done'
-                                and st.location_dest_id != st.location_id
-                                and ( (picking_id is not null) 
-                                or  (inspec_id is not null)
-                                or (st.id in (select move_id from stock_inventory_move_rel where inventory_id in (select id from stock_inventory where to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') <'%s' and state = 'done')))
-                                    )
-                    '''%(locat_ids[0],product_id,date_from,date_from)
-                cr.execute(sql)
-                inventory = cr.dictfetchone()
-                sql = '''
-                        select case when sum(product_isu_qty)!=0 then sum(product_isu_qty) else 0 end product_isu_qty from tpt_material_issue_line  
-                        where product_id = %s and material_issue_id in (select id from tpt_material_issue where date_expec < '%s' and warehouse = %s and state = 'done')
-                    '''%(product_id, date_from,locat_ids[0])
-                cr.execute(sql)
-                product_isu_qty = cr.fetchone()[0]
-                
-#                 sql = '''
-#                     select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty 
-#                     from stock_move where product_id = %s and state = 'done' and issue_id is null 
-#                     and picking_id is null and inspec_id is null and location_id = %s 
-#                     and to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') < '%s' and location_id != location_dest_id
-#                 '''%(product_id, locat_ids[0], date_from)
-#                 cr.execute(sql)
-#                 product_qty = cr.dictfetchone()['product_qty']
-                
-                open_qty = (inventory and inventory['ton_sl'] or 0) - product_isu_qty
-            return open_qty 
+        
         def get_opening_stock_value(o, product_id):
             date_from = o.date_from
             categ = o.categ_id.cate_name
@@ -714,7 +643,7 @@ class stock_movement_analysis(osv.osv_memory):
             parent_ids_spares = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
             locat_ids_spares = self.pool.get('stock.location').search(cr, uid, [('name','in',['Spares','Spare','spares']),('location_id','=',parent_ids_spares[0])])
             sql = '''
-                select id,doc_type, material_issue_id, product_dec, doc_type from account_move where doc_type in ('good', 'grn', 'product') 
+                select * from account_move where doc_type in ('good', 'grn', 'product') 
                     and date between '%(date_from)s' and '%(date_to)s'
                     and ( id in (select move_id from account_move_line where (move_id in (select move_id from account_invoice where to_char(date_invoice, 'YYYY-MM-DD') between '%(date_from)s' and '%(date_to)s' and id in (select invoice_id from account_invoice_line where product_id=%(product_id)s)))
                         or (LEFT(name,17) in (select name from stock_picking where id in (select picking_id from stock_move where to_char(date, 'YYYY-MM-DD') between '%(date_from)s' and '%(date_to)s' and product_id=%(product_id)s)))
@@ -735,7 +664,7 @@ class stock_movement_analysis(osv.osv_memory):
 #                     move_line.append(line)
                 if line['doc_type'] == 'grn':
                     sql = '''
-                        select id, action_taken,location_dest_id from stock_move
+                        select * from stock_move
                         where  picking_id in (select id from stock_picking where name in (select LEFT(name,17) from account_move_line where move_id = %s) and product_id = %s)
                     '''%(line['id'], product_id.id)
                     cr.execute(sql)
@@ -816,7 +745,7 @@ class stock_movement_analysis(osv.osv_memory):
                         quantity = qty['product_isu_qty']
                 if move_type == 'grn':
                     sql = '''
-                        select id, action_taken, product_qty, price_unit, location_dest_id from stock_move
+                        select * from stock_move
                         where picking_id in (select id from stock_picking where name in (select LEFT(name,17) from account_move_line where move_id = %s)) 
                         and product_id = %s and ((id in (select need_inspec_id from tpt_quanlity_inspection where state in ('done', 'remaining')) and action_taken='need') or action_taken='direct') order by si_no
                     '''%(move_id, product_id.id)
@@ -864,7 +793,7 @@ class stock_movement_analysis(osv.osv_memory):
                         quantity = qty['product_isu_qty']
                 if move_type == 'grn':
                     sql = '''
-                        select id, action_taken, location_dest_id, price_unit, product_qty from stock_move
+                        select * from stock_move
                         where picking_id in (select id from stock_picking where name in (select LEFT(name,17) from account_move_line where move_id = %s)) 
                         and product_id = %s and ((id in (select need_inspec_id from tpt_quanlity_inspection where state in ('done', 'remaining')) and action_taken='need') or action_taken='direct') order by si_no
                     '''%(move_id, product_id.id)
@@ -976,7 +905,7 @@ class stock_movement_analysis(osv.osv_memory):
                        hand_quantity = inventory['ton_sl'] or 0
                        total_cost = inventory['total_cost'] or 0
                    sql = '''
-                       select id,action_taken,price_unit  from stock_move where picking_id in (select id from stock_picking where name in (select LEFT(name,17) from account_move_line where move_id = %s))
+                       select * from stock_move where picking_id in (select id from stock_picking where name in (select LEFT(name,17) from account_move_line where move_id = %s))
                    '''%(move_id) 
                    cr.execute(sql)
                    for line in cr.dictfetchall():
@@ -1041,7 +970,7 @@ class stock_movement_analysis(osv.osv_memory):
                        hand_quantity = inventory['ton_sl'] or 0
                        total_cost = inventory['total_cost'] or 0
                    sql = '''
-                       select id,price_unit  from stock_move where picking_id in (select id from stock_picking where name in (select LEFT(name,17) from account_move_line where move_id = %s))
+                       select * from stock_move where picking_id in (select id from stock_picking where name in (select LEFT(name,17) from account_move_line where move_id = %s))
                    '''%(move_id) 
                    cr.execute(sql)
                    for line in cr.dictfetchall():
