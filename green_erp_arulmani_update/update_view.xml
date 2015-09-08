@@ -83,6 +83,7 @@
 		            	<button name="delete_material_request_6000167" string="delete MRS 6000167/2015" type="object" class="oe_highlight"/>
 		            	<button name="update_date_mrs_issue" string="update date MRS and Issue Negative stock details file" type="object" class="oe_highlight"/>
 		            	<button name="update_date_grn_negative_stock_file" string="update date grn negative stock file" type="object" class="oe_highlight"/>
+		            	<button name="config_GRN_3451_3883" string="update GRN 3451 3883" type="object" class="oe_highlight"/>
 		            </header>    
 	            	<group>
 	            		<field name="product_id"/>
