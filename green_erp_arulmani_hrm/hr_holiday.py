@@ -10662,4 +10662,82 @@ class tpt_time_data_move(osv.osv):
             
             print "TIME DATA MOVED"
             return True
+    def upload_employee(self, cr, uid, context=None):
+        time_obj = self.pool.get('tpt.time.data.move')
+        time_obj_id = time_obj.search(cr, uid, [('from_db_port','=','5432')])
+        if time_obj_id:
+            line = time_obj.browse(cr, uid, time_obj_id[0])
+    #         oorpc = OpenObjectRPC(line.host, line.database, line.username, line.password, line.port)
+            from_db_conn_string = "host='%s' port='%s' dbname='%s' user='%s' password='%s'"%(line.from_host, line.from_db_port, line.from_database, line.from_db_username, line.from_db_password)
+            from_conn = psycopg2.connect(from_db_conn_string)
+            from_cursor = from_conn.cursor()
+            sql = '''
+                select employee_id, name, action from hr_attendance
+            '''
+            from_cursor.execute(sql)
+            time_ids = from_cursor.fetchall()
+            
+            attn_obj = self.pool.get('tpt.hr.attendance')
+            vals = []
+            for time in time_ids:
+                vals = {'employee_id':time[0],
+                        'work_date':time[1],
+                        'punch_type':time[2],
+                        }
+                attn_obj.create(cr, uid, vals)
+            
+            ###
+            emp_obj = self.pool.get('hr.employee')
+            resource_obj = self.pool.get('resource.resource')
+            sql = '''
+            select id from hr_employee where resource_id in (select id from resource_resource where active in ('t'))
+            '''
+            self.cr.execute(sql)
+            emp_ids = [r[0] for r in self.cr.fetchall()]
+            for emp in emp_obj.browse(self.cr, self.uid, emp_ids):
+                sql = '''
+                select employee_id from hr_attendance where id=%s
+                '''%epm.id
+                from_cursor.execute(sql)
+                emp_ids = from_cursor.fetchall()
+                if emp_ids:
+                    sql = '''
+                    update hr_employee set rfid='%s' where id=%s
+                    '''%emp.id
+                    from_cursor.execute(sql)
+                else:
+                    rfid = emp.rfid
+                    if not rfid:
+                        rfid = ''
+                    sql = '''
+                    INSERT INTO resource_resource(
+                     create_uid, create_date, write_date, write_uid, time_efficiency,
+                      name,  active,  resource_type, rfid)
+                    VALUES ( 1, current_date,  current_date, 1, 0,
+                     '%s',  True,  'user', '%s')
+                    '''%(emp.name_related, rfid)
+                    from_cursor.execute(sql)
+                    #
+                    sql = '''
+                    select id from resource_resource where name='%s'
+                    '''%emp.name_related
+                    from_cursor.execute(sql)
+                    r_id = from_cursor.fetchone()
+                    resource_id = r_id[0]
+                    
+                    sql = '''
+                    INSERT INTO hr_employee(
+                     create_uid, create_date, write_date, write_uid, employee_id,
+                      name_related, rfid, resource_id)
+                    VALUES ( 1, current_date,  current_date, 1, '%s'
+                     '%s', '%s', %s)
+                    '''%(emp.employee_id, emp.name_related, rfid, resource_id)
+                    from_cursor.execute(sql)
+                    
+                    
+            ###
+            
+            
+            print "TIME DATA MOVED"
+            return True
 tpt_time_data_move()
