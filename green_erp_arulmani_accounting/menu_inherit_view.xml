@@ -253,11 +253,11 @@
 		</record>
 		
 		<record model="ir.ui.menu" id="green_erp_arulmani_accounting.menu_action_daily_sale_form_view">
-		    <field name="groups_id" eval="[(4, ref('group_vvti_accounting_user')),
-		    								(4, ref('green_erp_arulmani_production.group_vvti_production_user')),
-		    								(4, ref('green_erp_arulmani_sale.group_vvti_sale_user')),
-		    								(4, ref('green_erp_arulmani_sale.group_vvti_marketing_user')),
-		    								(4, ref('green_erp_arulmani_accounting.group_vvti_mag_direct'))]" />
+		    <field name="groups_id" eval="[(6,0, [ref('group_vvti_accounting_user'),
+		    								ref('green_erp_arulmani_production.group_vvti_production_mgr'),
+		    								ref('green_erp_arulmani_sale.group_vvti_sale_user'),
+		    								ref('green_erp_arulmani_sale.group_vvti_marketing_user'),
+		    								ref('green_erp_arulmani_accounting.group_vvti_mag_direct')])]" />
 		</record>
 		
 		<record model="ir.ui.menu" id="green_erp_arulmani_accounting.menu_action_w_form_view">
@@ -467,11 +467,10 @@
 		</record>
 		
 		<record model="ir.ui.menu" id="green_erp_arulmani_purchase.menu_action_stock_inward_outward_report_view">
-		    <field name="groups_id" eval="[(4, ref('green_erp_arulmani_purchase.group_vvti_purchase_user')),
-		    								(4, ref('green_erp_arulmani_purchase.group_vvti_purchase_store_user')),
-		    								(4, ref('green_erp_arulmani_production.group_vvti_production_user')),
-		    								(4, ref('group_vvti_accounting_user')),
-		    								(4, ref('green_erp_arulmani_purchase.group_vvti_hrm_plant_mm_user'))]" />
+		    <field name="groups_id" eval="[(6,0, [ref('green_erp_arulmani_purchase.group_vvti_purchase_user'),
+		    								ref('green_erp_arulmani_purchase.group_vvti_purchase_store_user'),
+		    								ref('green_erp_arulmani_production.group_vvti_production_user'),
+		    								ref('group_vvti_accounting_user')])]" />
 		</record>
 		
 		<record model="ir.ui.menu" id="green_erp_arulmani_purchase.menu_action_stock_movement_analysis_view">
@@ -499,7 +498,7 @@
 		    <field name="groups_id" eval="[(6, 0, [ref('group_vvti_accounting_user'),
 		    									ref('green_erp_arulmani_sale.group_vvti_sale_user'),
 		    									ref('green_erp_arulmani_sale.group_vvti_marketing_user'),
-		    									ref('green_erp_arulmani_production.group_vvti_production_user')])]" />
+		    									ref('green_erp_arulmani_production.group_vvti_production_mgr')])]" />
 		</record>
 		
 		<record model="ir.ui.menu" id="green_erp_arulmani_crm.menu_list_employee_report">
