@@ -3156,7 +3156,7 @@
             <field name="inherit_id" ref="green_erp_arulmani_purchase.view_tpt_purchase_indent_line_form_hod"/>
             <field name="arch" type="xml">
             	<xpath expr="//button[@name='%(green_erp_arulmani_purchase.action_reject_pur_line_form)d']" position="attributes">
-					<attribute name='groups'>green_erp_arulmani_production.group_vvti_production_mgr</attribute>
+					<attribute name='groups'>green_erp_arulmani_production.group_vvti_production_mgr,green_erp_arulmani_production.group_vvti_production_mgr</attribute>
 				</xpath>
             </field>
 	  </record>
