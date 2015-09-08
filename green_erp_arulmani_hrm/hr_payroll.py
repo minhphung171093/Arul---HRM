@@ -1030,7 +1030,7 @@ class arul_hr_payroll_executions(osv.osv):
             contribution_obj = self.pool.get('arul.hr.payroll.contribution.parameters')
             earning_obj = self.pool.get('arul.hr.payroll.earning.parameters')
             deduction_obj = self.pool.get('arul.hr.payroll.deduction.parameters')
- 
+            employee_ids = []
             ##    
             sql = '''
                 select employee_id from arul_hr_monthly_shift_schedule where 
@@ -1087,6 +1087,25 @@ class arul_hr_payroll_executions(osv.osv):
                     emp_code = emp_code +'\n'+ p.employee_id                               
                 raise osv.except_osv(_('Pay Structure not Approved for the following Employees'),_(emp_code))
             ###
+            
+            ### TPT-START: Inactive Employee Also
+            sql = '''
+            select distinct emp.id from hr_employee emp
+                left join arul_hr_punch_in_out_time io on emp.id=io.employee_id
+                where emp.resource_id in (select id from resource_resource where active in ('f'))
+                and extract(year from emp.date_of_resignation)= %s and 
+                extract(month from emp.date_of_resignation)= %s 
+                and extract(year from io.work_date)= %s and extract(month from io.work_date)= %s
+                and emp.payroll_area_id=%s
+            '''%(line.year, line.month, line.year, line.month, line.payroll_area_id.id)
+            cr.execute(sql)
+            emp_ids = []
+            emp_ids = [r[0] for r in cr.fetchall()]
+            employee_ids = employee_ids+emp_ids
+            print "1: %s "%emp_ids
+            print "2: %s "%employee_ids
+            ### TPT-END
+            
             for p in emp_obj.browse(cr,uid,employee_ids):
                 payroll_executions_details_ids = executions_details_obj.search(cr, uid, [('payroll_executions_id', '=', line.id), ('employee_id', '=', p.id)], context=context)
                 
@@ -1112,7 +1131,7 @@ class arul_hr_payroll_executions(osv.osv):
                 # Day of Joining = 15, Calendar Days for this Month = 30
                 # The Total No.Of Days Before DOJ = 30 - 15 - 1 = 14 Days
                 # So these 14 Days are Considered as LOP for Internal Process Only, Since there is no Pay for these Days
-                # Then this "Total No.Of Days Before DOJ" count is added with Real LOP/ESI Count (this count is taken from arul_hr_employee_leave_details table)
+                # Then this "Total No.Of Days Before DOJ" count is added with Actual LOP/ESI Count (Actual LOP/ESI Count:this count is taken from arul_hr_employee_leave_details table)
                 s3_working_days = 26
                 sql = '''
                     select extract(day from date_of_joining) doj from hr_employee where extract(year from date_of_joining)= %s and 
@@ -1134,6 +1153,36 @@ class arul_hr_payroll_executions(osv.osv):
                         #before_doj = s3_working_days - new_emp_day - 1
                         before_doj =  new_emp_day - 1
                         total_no_of_leave = total_no_of_leave + before_doj
+                    
+                ##TPT END
+                
+                #TPT BalamuruganPurushothaman ON 19/05/2015 - TO DEFINE RULES FOR LEFT EMPLOYEES IN BETWEEN A PAYROLL MONTH
+                # If Date Of Leaving is 15/04/2015 Then  
+                # Day of Leaving = 15, Calendar Days for this Month = 30
+                # The Total No.Of Days After DOL = 30 - 15  = 15 Days
+                # So these 15 Days are Considered as LOP for Internal Process Only, Since there is no Pay for these Days
+                # Then this "Total No.Of Days Before DOJ" count is added with Actual LOP/ESI Count (Actual LOP/ESI Count:this count is taken from arul_hr_employee_leave_details table)
+                s3_working_days = 26
+                sql = '''
+                    select extract(day from date_of_resignation) doj from hr_employee where extract(year from date_of_resignation)= %s and 
+                      extract(month from date_of_resignation)= %s and id=%s
+                    '''%(line.year,line.month,p.id)
+                cr.execute(sql)
+                k = cr.fetchone()
+                if k:
+                    new_emp_day = k[0]    
+                    if p.employee_category_id and p.employee_category_id.code == 'S1':           
+                        after_dol = calendar_days - new_emp_day
+                        #after_dol =  new_emp_day - 1
+                        total_no_of_leave = total_no_of_leave + after_dol
+                    if p.employee_category_id and p.employee_category_id.code == 'S2':           
+                        after_dol = calendar_days - new_emp_day
+                        #after_dol =  new_emp_day - 1
+                        total_no_of_leave = total_no_of_leave + after_dol
+                    if p.employee_category_id and p.employee_category_id.code == 'S3':
+                        after_dol = calendar_days - new_emp_day
+                        #after_dol =  new_emp_day - 1
+                        total_no_of_leave = total_no_of_leave + after_dol
                     
                 ##TPT END
                 sql = '''
