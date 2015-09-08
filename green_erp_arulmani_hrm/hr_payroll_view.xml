@@ -210,7 +210,7 @@
             <field name="arch" type="xml">
 	            <form string="Employee Payroll Structure" version="7.0">
 	            <header>
-	            	<button name="bt_approve" states='draft' string="Approve" type="object" class="oe_highlight" />
+	            	<button name="bt_approve" states='draft' string="Approve" type="object" class="oe_highlight" groups="green_erp_arulmani_hrm.group_vvti_hrm_gm"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,approved" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
 	            </header>    
 	            	<sheet>
@@ -470,7 +470,7 @@
 	            <form string="Payroll Executions" version="7.0">  
 	            <header>
 	                <button name="generate_payroll" states='draft' string="Generate Payroll" type="object" class="oe_highlight" groups="green_erp_arulmani_hrm.group_vvti_hrm_payroll_controller"/>
-	                <button name="rollback_payroll" states='draft' string="Roll Back Payroll" type="object" class="oe_highlight" groups="green_erp_arulmani_hrm.group_vvti_hrm_payroll_controller"/>
+	                <button name="rollback_payroll" states='draft' string="Roll Back Payroll" type="object" class="oe_highlight" groups="green_erp_arulmani_hrm.group_vvti_hrm_payroll_controller,green_erp_arulmani_hrm.group_vvti_hrm_hr_manager,green_erp_arulmani_hrm.group_vvti_hrm_gm"/>
 	               	<button name="confirm_payroll" states='draft' string="Confirm Payroll" type="object" class="oe_highlight" groups="green_erp_arulmani_hrm.group_vvti_hrm_payroll_controller"/>
 	               	<button name="print_payslip" string="Preview Payroll" type="object" class="oe_highlight" groups="green_erp_arulmani_hrm.group_vvti_hrm_payroll_controller,green_erp_arulmani_hrm.group_vvti_hrm_hr_key_user"/>
 	                <field name="state" widget="statusbar" statusbar_visible="draft,confirm,approve" statusbar_colors='{"draft":"blue","done":"blue"}'/>  
