@@ -58,9 +58,10 @@ class Parser(report_sxw.rml_parse):
             self.cr.execute(sql)
             #return 
             res = []
+            si_no = 1
             for line in self.cr.dictfetchall():
                 res.append({
-                            'si_no':line['si_no'] or '',
+                            'si_no': si_no or '',# line['si_no'] or '',
                             'indent_no':line['indent_no'] or '',
                             'req':line['req'] or '',
                             'code':line['code'] or '',
@@ -72,6 +73,7 @@ class Parser(report_sxw.rml_parse):
                             
                             
                             })
+                si_no = si_no + 1
             return res
     
     
