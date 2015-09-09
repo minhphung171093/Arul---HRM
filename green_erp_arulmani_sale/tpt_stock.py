@@ -1224,8 +1224,11 @@ class account_invoice(osv.osv):
         'agency_comm': fields.char('Agency Commission', size = 1024),
         'epcg_no': fields.char('EPCG License No', size = 1024),
         
-        'cform_comments': fields.char('Comments', size = 1024, ),
-        
+        #'cform_comments': fields.char('Comments', size = 1024, ),
+        'form_type': fields.selection([('cform', 'C-Form'), ('hform', 'H-Form'), ('iform', 'I-Form'), 
+                                       ('na', 'Not Applicable'), ('tbc', 'To Be Collect')],'Form Type'), 
+        'form_number': fields.char('Form Number'),
+                
         #TPT
         'street3':fields.char('Street3',size=128),
         'fsh_grade':fields.char('FSH Grade',size=128),
@@ -1256,6 +1259,7 @@ class account_invoice(osv.osv):
                 }
     _defaults = {
         'vvt_number': '/',
+        'form_type': 'tbc',
     }
     
     def onchange_date_invoice(self, cr, uid, ids, date_invoice=False, context=None):
