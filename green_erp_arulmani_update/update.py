@@ -3715,11 +3715,13 @@ class tpt_update_stock_move_report(osv.osv):
                 inv_id = cr.fetchone()
                 if inv_id:
                     invoice_id = invoice_obj.browse(cr, uid, inv_id[0])
-                    move_obj.button_cancel(cr, uid, [invoice_id.move_id.id])
-                    cr.execute(''' delete from account_move_line where move_id = %s''',(invoice_id.move_id.id,))
+                    if invoice_id.move_id and invoice_id.move_id.id:
+                        move_obj.button_cancel(cr, uid, [invoice_id.move_id.id])
+                        cr.execute(''' delete from account_move_line where move_id = %s''',(invoice_id.move_id.id,))
                     cr.execute(''' delete from account_invoice_line where invoice_id = %s''',(invoice_id.id,))
                     cr.execute(''' delete from account_invoice where id = %s''',(invoice_id.id,))
-                    cr.execute(''' delete from account_move where id = %s''',(invoice_id.move_id.id,))
+                    if invoice_id.move_id and invoice_id.move_id.id:
+                        cr.execute(''' delete from account_move where id = %s''',(invoice_id.move_id.id,))
                     
                     sql = '''
                         delete from account_move_line where left(name,17)=(select name from stock_picking where id = %s)
