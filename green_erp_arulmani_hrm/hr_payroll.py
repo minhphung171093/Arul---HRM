@@ -2617,7 +2617,7 @@ class arul_hr_payroll_executions(osv.osv):
                                             prev_total_earning += earning.float
                             ptax_total_earning = prev_total_earning + total_earning
                             sql = '''
-                                    select  pl.ptax_amt ptax_amt from tpt_hr_ptax_line pl
+                                    select  case when pl.ptax_amt>0 then pl.ptax_amt else 0 end ptax_amt from tpt_hr_ptax_line pl
                                         inner join tpt_hr_ptax_slab sl on pl.slab_id=sl.id
                                         where %s between sl.from_range and sl.to_range
                                         and ptax_id = 
