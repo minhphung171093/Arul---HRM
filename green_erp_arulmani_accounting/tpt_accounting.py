@@ -6459,3 +6459,127 @@ class tpt_bank_reconciliation_line(osv.osv):
     }
     
 tpt_bank_reconciliation_line()
+
+
+### TPT-START - ON 09/10/2015 - By BalamuruganPurushothaman - C-FORM
+class tpt_cform_invoice(osv.osv):
+    _name = 'tpt.cform.invoice'
+    _columns = {
+        #'name': fields.many2one('account.account', 'Bank GL Account', required=True),
+        #'date': fields.date('Payment Date'),
+        'name': fields.char('Name'),
+        'cform_line': fields.one2many('tpt.cform.invoice.line', 'cform_id', 'Line'),
+        'state':fields.selection([('draft', 'Draft'),('done', 'Done')],'Status', readonly=True),
+        'create_date': fields.datetime('Created Date',readonly = True),
+        'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
+    }
+    _defaults = {
+        'state': 'draft',
+        'name': 'Update C-Form',
+    }
+    def _check_state(self, cr, uid, ids, context=None):
+        for bank in self.browse(cr, uid, ids, context=context):
+            sql = '''
+                select id from tpt_cform_invoice where id != %s and state = 'draft'
+            '''%(bank.id)
+            cr.execute(sql)
+            bank_ids = [row[0] for row in cr.fetchall()]
+            if bank_ids:  
+                raise osv.except_osv(_('Warning!'),_('Can not create more than one record in this window!'))
+        return True
+    
+    
+    
+    _constraints = [
+        (_check_state, 'Identical Data', ['state']),
+       
+    ] 
+
+    def bt_load(self, cr, uid, ids,context=None):
+        if context is None:
+            context={}
+        vals = {}
+        if ids:
+            cr.execute(''' delete from tpt_cform_invoice_line where cform_id in %s ''',(tuple(ids),))
+        for bank in self.browse(cr, uid, ids):
+            invoice_obj = self.pool.get('account.invoice')
+            invoice_ids = invoice_obj.search(cr, uid, [('form_type' ,'=', 'tbc'), ('type', '=', 'out_invoice'), ('state', '=', 'open')])
+            cform_line = []
+            for invoice in invoice_obj.browse(cr, uid, invoice_ids):  
+                for line in invoice.invoice_line:
+                    product_id = line.product_id and line.product_id.id 
+                    uom_id = line.uos_id and line.uos_id.id              
+                cform_line.append((0,0,{
+                        'invoice_no': invoice.vvt_number or '',      
+                        'customer_code':  '['+invoice.partner_id.customer_code+'] '+ invoice.partner_id.name,           
+                        'partner_id': invoice.partner_id and invoice.partner_id.id or False,
+                        'date_invoiced': invoice.date_invoice,                        
+                        'invoice_id': invoice.id or False,
+                        'bill_amount': invoice.amount_total or 0,
+                        'form_type': invoice.form_type or '',
+                        'product_id': product_id or False,
+                        'uom_id': uom_id or False,    
+                        
+                    }))
+                
+                    
+                
+            vals = {'cform_line':cform_line}
+        return self.write(cr, uid, ids,vals)
+
+    def bt_confirm(self, cr, uid, ids, context=None):
+        for cform in self.browse(cr, uid, ids):
+            ### TO THROW WARNING IF FORM TYPE IS "To Be Collect" WHEN CONFIRM
+            sql = '''
+                select id from tpt_cform_invoice_line where form_type='tbc' and form_number is not null
+                and cform_id=%s
+                '''%cform.id
+            cr.execute(sql)
+            bank_ids = [row[0] for row in cr.fetchall()]
+            if bank_ids:  
+                sql = '''
+                select invoice_no from tpt_cform_invoice_line where form_type='tbc' and form_number is not null
+                and cform_id=%s
+                '''%cform.id
+                cr.execute(sql)
+                invoice='' 
+                for row in cr.fetchall():
+                    invoice = invoice +'\n'+ row[0]                               
+                raise osv.except_osv(_('Form Type Can not be "To Be Collect" for the following Invoices: '),_(invoice))
+            ###
+            for line in cform.cform_line:
+                if line.form_number:
+                    sql = ''' 
+                    update account_invoice set form_number='%s',form_type='%s' where id=%s 
+                    '''%(line.form_number,line.form_type, line.invoice_id.id)
+                    cr.execute(sql)
+            ###
+        self.bt_load(cr, uid, ids, context)
+        return True
+    
+tpt_cform_invoice()
+
+class tpt_cform_invoice_line(osv.osv):
+    _name = 'tpt.cform.invoice.line'
+    _columns = {  
+        #'name': fields.char('Voucher No', size=1024),
+        'invoice_no': fields.char('Invoice No', size=1024),
+        'customer_code': fields.char('Customer'),  
+        'partner_id': fields.many2one('res.partner', 'Customer'),  
+        'date_invoiced': fields.date('Invoice Date'),
+        'product_id': fields.many2one('product.product', 'Product'),  
+        'uom_id': fields.many2one('product.uom', 'UOM'),  
+        'bill_amount': fields.float('Bill Amount'),# [('domestic','Domestic/Indirect Export'),('export','Export')],
+        'form_type': fields.selection([('cform', 'C-Form'), ('hform', 'H-Form'), ('iform', 'I-Form'), 
+                                       ('na', 'Not Applicable'), ('tbc', 'To Be Collect')],'Form Type'), 
+        'form_number': fields.char('Form Number'),
+        'invoice_id': fields.many2one('account.invoice', 'Invoice ID'),
+        'cform_id': fields.many2one('tpt.cform.invoice', 'C Form', ondelete='cascade'),
+    }
+    def onchange_type(self, cr, uid, ids, type, context=None):
+        if type=='tbc':
+            raise osv.except_osv(_('Warning!'),_('Select other than "To Be Collect"!'))
+        return True
+    
+tpt_cform_invoice_line()
+###
