@@ -2,7 +2,7 @@
 <openerp>
     <data>
     <record model="ir.cron" id="em_time_data_update">
-	        <field name="name">Move Data: Time Machine to OpenERP [NEW TIME MACHINE]</field>
+	        <field name="name">[NEW TIME MACHINE] Move Data: Time Machine to OpenERP</field>
 	        <field name="interval_number">1</field>
 	        <field name="interval_type">hours</field>
 	        <field name="priority">1</field>
@@ -13,7 +13,7 @@
 	        <field name="args" eval="'()'" />
         </record>  
     <record model="ir.cron" id="emp_in_time_entry_update">
-	        <field name="name">Move Data: Temp table to Attendance/AST [NEW TIME MACHINE]</field>
+	        <field name="name">[NEW TIME MACHINE] Move Data: Temp table to Attendance/AST </field>
 	        <field name="interval_number">4</field>
 	        <field name="interval_type">hours</field>
 	        <field name="priority">1</field>
@@ -24,7 +24,7 @@
 	        <field name="args" eval="'()'" />
         </record>  
      <record model="ir.cron" id="emp_details_update">
-	        <field name="name">Synch Employee Details [NEW TIME MACHINE]</field>
+	        <field name="name">[NEW TIME MACHINE] Synch Employee Details</field>
 	        <field name="interval_number">4</field>
 	        <field name="interval_type">hours</field>
 	        <field name="priority">1</field>
