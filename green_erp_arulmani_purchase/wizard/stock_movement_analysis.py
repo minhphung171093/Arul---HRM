@@ -1154,18 +1154,22 @@ class stock_movement_analysis(osv.osv_memory):
                 sql = '''
                 select pp.default_code, pp.name_template as name, pu.name as uom,
                 
-                (select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton from 
-                (select st.product_qty
-                from stock_move st 
-                where st.state='done' and st.product_id = pp.id and 
-                st.location_dest_id = %(location_spare_id)s and date < '%(date_from)s'
-                and st.location_dest_id != st.location_id
-                and (picking_id is not null
-                or inspec_id is not null
-                or (id in (select move_id from stock_inventory_move_rel)))
-                and st.location_id != st.location_dest_id
-                and st.state='done'
-                )foo) - ((select case when sum(product_isu_qty)!=0 then sum(product_isu_qty) else 0 end product_isu_qty from tpt_material_issue_line  
+                (select case when sum(st.product_qty)!=0 then sum(st.product_qty) else 0 end ton_sl
+                            from stock_move st
+                                join stock_location loc1 on st.location_id=loc1.id
+                                join stock_location loc2 on st.location_dest_id=loc2.id
+                            where st.state='done' and st.location_dest_id=%(location_spare_id)s 
+                            and st.product_id=pp.id  and 
+                            to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') < '%(date_from)s'
+                            and state = 'done'
+                                and st.location_dest_id != st.location_id
+                                and ( (picking_id is not null) 
+                                or  (inspec_id is not null)
+                                or (st.id in (select move_id from 
+                                stock_inventory_move_rel where inventory_id in 
+                                (select id from stock_inventory where 
+          to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') < '%(date_from)s' and state = 'done')))
+                                    )) - ((select case when sum(product_isu_qty)!=0 then sum(product_isu_qty) else 0 end product_isu_qty from tpt_material_issue_line  
                 where product_id = pp.id and material_issue_id in (select id from tpt_material_issue where date_expec 
                 < '%(date_from)s' and warehouse = %(location_spare_id)s and state = 'done')) 
                 +
@@ -1174,18 +1178,25 @@ class stock_movement_analysis(osv.osv_memory):
                             and picking_id is null and inspec_id is null and location_id = %(location_spare_id)s 
                             and date < '%(date_from)s' and location_id != location_dest_id)) opening_stock, 
                 
-                ((select case when sum(st.price_unit*st.product_qty)!=0 then sum(st.price_unit*st.product_qty) else 0 end total_cost
-                        from stock_move st
-                        where st.state='done' and st.location_dest_id=%(location_spare_id)s and st.product_id=pp.id 
-                        and to_char(date, 'YYYY-MM-DD') < '%(date_from)s'
-                            and st.location_dest_id != st.location_id
-                            and ( picking_id is not null 
-                            or inspec_id is not null 
-                            or (st.id in (select move_id from stock_inventory_move_rel))
-                        ) )-(select case when sum(price_unit*product_qty)>0 then sum(price_unit*product_qty) else 0 end from stock_move 
+                (select case when sum(st.product_qty*price_unit)!=0 then sum(st.product_qty*price_unit) else 0 end ton_sl
+                            from stock_move st
+                                join stock_location loc1 on st.location_id=loc1.id
+                                join stock_location loc2 on st.location_dest_id=loc2.id
+                            where st.state='done' and st.location_dest_id=%(location_spare_id)s 
+                            and st.product_id=pp.id  and 
+                            to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') < '%(date_from)s'
+                            and state = 'done'
+                                and st.location_dest_id != st.location_id
+                                and ( (picking_id is not null) 
+                                or  (inspec_id is not null)
+                                or (st.id in (select move_id from 
+                                stock_inventory_move_rel where inventory_id in 
+                                (select id from stock_inventory where 
+          to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') < '%(date_from)s' and state = 'done')))
+                                    ))-(select case when sum(price_unit*product_qty)>0 then sum(price_unit*product_qty) else 0 end from stock_move 
                 where issue_id is not null and product_id=pp.id
                 and date < '%(date_from)s' 
-                and state='done' ) ) opening_stock_value, 
+                and state='done' )  opening_stock_value, 
                
                 (select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton from 
                                             (select st.product_qty
@@ -1224,7 +1235,7 @@ class stock_movement_analysis(osv.osv_memory):
                 inner join product_template pt on  pp.product_tmpl_id=pt.id
                 inner join product_uom pu on pt.uom_id=pu.id
                 where pp.cate_name='spares'
-                and pp.id in (%(product_id)s)
+                and pp.id=%(product_id)s
                 order by pp.default_code
                 '''%{'date_from':stock.date_from,
                     'date_to':stock.date_to,
@@ -1236,18 +1247,22 @@ class stock_movement_analysis(osv.osv_memory):
                 sql = '''
                 select pp.default_code, pp.name_template as name, pu.name as uom,
                 
-                (select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton from 
-                (select st.product_qty
-                from stock_move st 
-                where st.state='done' and st.product_id = pp.id and 
-                st.location_dest_id = %(location_spare_id)s and date < '%(date_from)s'
-                and st.location_dest_id != st.location_id
-                and (picking_id is not null
-                or inspec_id is not null
-                or (id in (select move_id from stock_inventory_move_rel)))
-                and st.location_id != st.location_dest_id
-                and st.state='done'
-                )foo) - ((select case when sum(product_isu_qty)!=0 then sum(product_isu_qty) else 0 end product_isu_qty from tpt_material_issue_line  
+                (select case when sum(st.product_qty)!=0 then sum(st.product_qty) else 0 end ton_sl
+                            from stock_move st
+                                join stock_location loc1 on st.location_id=loc1.id
+                                join stock_location loc2 on st.location_dest_id=loc2.id
+                            where st.state='done' and st.location_dest_id=%(location_spare_id)s 
+                            and st.product_id=pp.id  and 
+                            to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') < '%(date_from)s'
+                            and state = 'done'
+                                and st.location_dest_id != st.location_id
+                                and ( (picking_id is not null) 
+                                or  (inspec_id is not null)
+                                or (st.id in (select move_id from 
+                                stock_inventory_move_rel where inventory_id in 
+                                (select id from stock_inventory where 
+          to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') < '%(date_from)s' and state = 'done')))
+                                    ))- ((select case when sum(product_isu_qty)!=0 then sum(product_isu_qty) else 0 end product_isu_qty from tpt_material_issue_line  
                 where product_id = pp.id and material_issue_id in (select id from tpt_material_issue where date_expec 
                 < '%(date_from)s' and warehouse = %(location_spare_id)s and state = 'done')) 
                 +
@@ -1256,18 +1271,26 @@ class stock_movement_analysis(osv.osv_memory):
                             and picking_id is null and inspec_id is null and location_id = %(location_spare_id)s 
                             and date < '%(date_from)s' and location_id != location_dest_id)) opening_stock, 
                 
-                ((select case when sum(st.price_unit*st.product_qty)!=0 then sum(st.price_unit*st.product_qty) else 0 end total_cost
-                        from stock_move st
-                        where st.state='done' and st.location_dest_id=%(location_spare_id)s and st.product_id=pp.id 
-                        and to_char(date, 'YYYY-MM-DD') < '%(date_from)s'
-                            and st.location_dest_id != st.location_id
-                            and ( picking_id is not null 
-                            or inspec_id is not null 
-                            or (st.id in (select move_id from stock_inventory_move_rel))
-                        ) )-(select case when sum(price_unit*product_qty)>0 then sum(price_unit*product_qty) else 0 end from stock_move 
+                (select case when sum(st.product_qty*price_unit)!=0 then sum(st.product_qty*price_unit) else 0 end ton_sl
+                            from stock_move st
+                                join stock_location loc1 on st.location_id=loc1.id
+                                join stock_location loc2 on st.location_dest_id=loc2.id
+                            where st.state='done' and st.location_dest_id=%(location_spare_id)s 
+                            and st.product_id=pp.id  and 
+                            to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') < '%(date_from)s'
+                            and state = 'done'
+                                and st.location_dest_id != st.location_id
+                                and ( (picking_id is not null) 
+                                or  (inspec_id is not null)
+                                or (st.id in (select move_id from 
+                                stock_inventory_move_rel where inventory_id in 
+                                (select id from stock_inventory where 
+          to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') < '%(date_from)s' and state = 'done')))
+                                    )) -(select case when sum(price_unit*product_qty)>0 then sum(price_unit*product_qty) else 0 end 
+                                    from stock_move 
                 where issue_id is not null and product_id=pp.id
                 and date < '%(date_from)s' 
-                and state='done' ) ) opening_stock_value, 
+                and state='done' )  opening_stock_value, 
                
                 (select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton from 
                                             (select st.product_qty
