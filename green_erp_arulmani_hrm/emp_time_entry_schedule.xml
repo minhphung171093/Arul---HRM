@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+    <record model="ir.cron" id="em_time_data_update">
+	        <field name="name">[NEW TIME MACHINE] Move Data: Time Machine to OpenERP</field>
+	        <field name="interval_number">1</field>
+	        <field name="interval_type">hours</field>
+	        <field name="priority">1</field>
+	        <field name="numbercall">-1</field>
+	        <field name="doall" eval="False"/>
+	        <field name="model" eval="'tpt.time.data.move'"/>
+	        <field name="function" eval="'upload_time_data'"/>
+	        <field name="args" eval="'()'" />
+        </record>  
+    <record model="ir.cron" id="emp_in_time_entry_update">
+	        <field name="name">[NEW TIME MACHINE] Move Data: Temp table to Attendance/AST </field>
+	        <field name="interval_number">4</field>
+	        <field name="interval_type">hours</field>
+	        <field name="priority">1</field>
+	        <field name="numbercall">-1</field>
+	        <field name="doall" eval="False"/>
+	        <field name="model" eval="'tpt.hr.attendance'"/>
+	        <field name="function" eval="'upload_in_time_data'"/>
+	        <field name="args" eval="'()'" />
+        </record>  
+     <record model="ir.cron" id="emp_details_update">
+	        <field name="name">[NEW TIME MACHINE] Synch Employee Details</field>
+	        <field name="interval_number">4</field>
+	        <field name="interval_type">hours</field>
+	        <field name="priority">1</field>
+	        <field name="numbercall">-1</field>
+	        <field name="doall" eval="False"/>
+	        <field name="model" eval="'tpt.time.data.move'"/>
+	        <field name="function" eval="'upload_employee'"/>
+	        <field name="args" eval="'()'" />
+        </record>  
+        
+        <!-- 
+        <record model="ir.cron" id="emp_out_time_entry_update">
+	        <field name="name">Employee Move Out Time Details to Attendance</field>
+	        <field name="interval_number">4</field>
+	        <field name="interval_type">hours</field>
+	        <field name="priority">2</field>
+	        <field name="numbercall">-1</field>
+	        <field name="doall" eval="False"/>
+	        <field name="model" eval="'tpt.hr.attendance'"/>
+	        <field name="function" eval="'upload_out_time_data'"/>
+	        <field name="args" eval="'()'" />
+        </record>    
+         -->    
+        <!-- 
+        <record model="ir.cron" id="emp_time_data">
+	        <field name="name">Employee Move Time Details to Attendance</field>
+	        <field name="interval_number">1</field>
+	        <field name="interval_type">days</field>
+	        <field name="numbercall">-1</field>
+	        <field name="doall" eval="False"/>
+	        <field name="model" eval="'tpt.hr.attendance'"/>
+	        <field name="function" eval="'get_employee_time_entry'"/>
+	        <field name="args" eval="'()'" />
+        </record>  -->
+    </data>
+</openerp>

@@ -35,8 +35,14 @@
                             	<field name="factory_country_id" style="width: 45%%" placeholder="Country" options="{'create': false, 'create_edit': false}"/>
                                 <field name="factory_state_id" style="width: 53%%" domain="[('country_id', '=', factory_country_id)]" options="{'create': false, 'create_edit': false}" placeholder="State"/>
                             </div>
-                            <field name="factory_zip" placeholder="ZIP" style="width: 34%%"/>
+                            <field name="factory_zip" placeholder="ZIP" style="width: 34%%"/>  
                         </div>
+                        <field name="tin_no"/>
+                            <field name="cst_no"/>
+                            <field name="ex_reg_no"/>
+                            <field name="service_reg_no"/>
+                            <field name="pan_no"/>
+                            <field name="ie_code"/>
         			</xpath>
     		</field>
         </record>
@@ -252,7 +258,8 @@
             <field name="res_model">res.partner</field>
             <field name="view_type">form</field>
             <field name="view_mode">kanban,tree,form</field>
-            <field name="domain">[('is_company','=',True)]</field>
+            <field name="domain">[('is_company','=',True),('customer','=',1)]</field>
+            <!-- <field name="context">{'search_default_supplier': 1,'default_customer': 0,'default_supplier': 1}</field>  -->
             <field name="context">{"search_default_customer":1}</field>
             <field name="search_view_id" ref="base.view_res_partner_filter"/>
             <field name="help" type="html">

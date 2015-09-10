@@ -50,7 +50,7 @@ class customer_ledger_statement(osv.osv_memory):
                 sql = '''
                     select aml.id from account_move_line aml 
                     inner join account_move am on aml.move_id = am.id
-                    inner join res_partner p on (p.id=am.partner_id)
+                    left join res_partner p on (p.id=am.partner_id)
                     inner join account_account aa on (aa.id=aml.account_id)
                     where am.date between '%s' and '%s' 
                     and am.state='posted' 
@@ -66,7 +66,7 @@ class customer_ledger_statement(osv.osv_memory):
                 sql = '''
                     select aml.id from account_move_line aml 
                     inner join account_move am on aml.move_id = am.id
-                    inner join res_partner p on (p.id=am.partner_id)
+                    left join res_partner p on (p.id=am.partner_id)
                     inner join account_account aa on (aa.id=aml.account_id)
                     where am.date between '%s' and '%s' 
                     and am.state in ('draft','posted') 
@@ -161,7 +161,7 @@ class customer_ledger_statement(osv.osv_memory):
                 'date': line.move_id and line.move_id.date or '',
                 'document_no': line.move_id and line.move_id.name or '',
                 'narration': line.move_id and line.move_id.ref or '',
-                'sale_order_no': get_so_no(line.move_id.id, line.move_id.doc_type) + ' - ' + get_so_date(line.move_id.id, line.move_id.doc_type),
+                'sale_order_no': get_so_no(line.move_id.id, line.move_id.doc_type) + ' ' + get_so_date(line.move_id.id, line.move_id.doc_type),
                 'bill_no': get_bill_no(line.move_id.id, line.move_id.doc_type),
                 'bill_date': get_bill_date(line.move_id.id, line.move_id.doc_type),
                 'cheque_no': get_cheque_no(line.move_id.id),
@@ -253,7 +253,7 @@ class tpt_customer_ledger_line(osv.osv_memory):
         'date': fields.date('Date'),
         'document_no': fields.char('Document No.', size = 1024),
         'narration': fields.char('Narration', size = 1024),
-        'sale_order_no': fields.char('Sale Order No.', size = 1024),
+        'sale_order_no': fields.char('Sale Order No & Date', size = 1024),
         'bill_no': fields.char('Bill No', size = 1024),
         'bill_date': fields.date('Bill Date'),
         'cheque_no':fields.char('Cheque No', size = 1024),

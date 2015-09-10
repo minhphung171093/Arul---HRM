@@ -74,10 +74,14 @@
             			<div class="oe_bold oe_text_left">
             				<field name="date_to_title" nolabel = '1' class=" oe_text_left oe_inline"/> 
             				<field name="date_to" class = "oe_text_left oe_inline"/>
-            				<field name="product_name" class="oe_right oe_inline"/> 
-            			    <field name="product_name_title" nolabel = '1' class="oe_right oe_inline"/> 
 
             			</div>
+            			
+            			<div class="oe_bold oe_text_left">
+	            			<field name="product_name_title" nolabel = '1' class="oe_text_left oe_inline"/>
+	            			<field name="product_name" class="oe_text_left oe_inline"/>  
+            			</div>
+            			
 	                	<group>
 		                	<field name="movement_line" nolabel='1'>
 		                		<tree create="false" edit="false" delete="false">          

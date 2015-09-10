@@ -35,7 +35,7 @@
                     
                     </page>
                     
-                    <page string = 'Designation and Resource Budgets'>
+                    <page string = 'Designation and Resource Budgets' groups="green_erp_arulmani_hrm.group_vvti_hrm_hr_key_user,green_erp_arulmani_hrm.group_vvti_hrm_payroll_controller">
                     	<field name="designation_line" nolabel='1'>
                     		<tree editable='bottom'>
                    				 <field name = "designation_id" options="{'create': false, 'create_edit': false}"/>

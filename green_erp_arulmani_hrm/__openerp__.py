@@ -36,7 +36,8 @@
         'wizard/leave_balance_for_view.xml', ##
         'wizard/epf_statement_form_view.xml',
         'wizard/esi_statement_view.xml',
-        'wizard/time_data_check.xml',##
+        'wizard/time_data_check.xml', ## 
+        'wizard/emp_attendance_details.xml', ##
         'hr_employee_view.xml',
         'hr_department_view.xml',
         'hr_payroll_view.xml',
@@ -46,6 +47,7 @@
         'hr_demo_leave_types.xml',
         'hr_employee_data.xml',
         'emp_leave_status_schedule.xml',
+        'emp_time_entry_schedule.xml',
         'hr_payroll_earning_parameters_demo.xml',
         'hr_demo_payroll_deduction_parameters.xml',
         'report/arul_payslip_report.xml',
@@ -54,7 +56,8 @@
         'report/tpt_time_evaluation_report.xml',
         'report/epf_statement_report_view.xml',
         'report/esi_statement_report.xml',
-        'report/leave_balance_for_view.xml', ##
+        'report/leave_balance_for_view.xml', ## 
+        'report/emp_attendance_details.xml',
 #         'data_category.xml', 
         'import_view.xml',
         'green_erp_arulmani_sequence.xml',

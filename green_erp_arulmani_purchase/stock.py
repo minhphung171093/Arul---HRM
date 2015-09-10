@@ -25,6 +25,7 @@ class stock_picking(osv.osv):
         'action_taken': fields.related('move_lines', 'action_taken', type='selection',selection=[
             ('direct','Direct Stock Update'),('move','Move to Consumption'),('need','Need Inspection')
             ], string='Action to be Taken'),
+        'gate_out_id':fields.many2one('tpt.gate.out.pass','Gate Out Pass'),
                 }
     
                 
@@ -294,16 +295,36 @@ class stock_picking_in(osv.osv):
         'action_taken': fields.related('move_lines', 'action_taken', type='selection',selection=[
             ('direct','Direct Stock Update'),('move','Move to Consumption'),('need','Need Inspection')
             ], string='Action to be Taken'),
+        'gate_out_id':fields.many2one('tpt.gate.out.pass','Gate Out Pass No'),
                 }
 
     def onchange_picking_date(self, cr, uid, ids, date=False, context=None):
+        vals = {}
+        warning = {}
+        current = time.strftime("%Y-%m-%d %H:%M:%S")
+        if date and date > current:
+            vals = {'date':current}
+            warning = {
+                'title': _('Warning!'),
+                'message': _('GRN Date: Not allow future date!')
+            }
         for picking in self.browse(cr, uid, ids, context=context):
-            if date:
+            if date and date > current:
+                vals = {'date':current}
+                warning = {
+                    'title': _('Warning!'),
+                    'message': _('GRN Date: Not allow future date!')
+                }
+                sql = '''
+                    update stock_move set date = '%s' where picking_id = %s
+                '''%(current, picking.id)
+                cr.execute(sql)
+            if date and date <= current:
                 sql = '''
                     update stock_move set date = '%s' where picking_id = %s
                 '''%(date, picking.id)
                 cr.execute(sql)
-        return True
+        return {'value':vals,'warning':warning}
     
     def onchange_purchase_id(self, cr, uid, ids,purchase_id=False, context=None):
         vals = {}
@@ -384,8 +405,8 @@ class stock_move(osv.osv):
         'si_no':fields.integer('SI.No',readonly = True),
         'description':fields.char('Description', size = 50, readonly = True),
         'item_text':fields.text('Item Text'),
-        'inspec_id': fields.many2one('tpt.quanlity.inspection','Quanlity Inspection'),
-        'issue_id': fields.many2one('tpt.material.issue','Material Issue'),
+        'inspec_id': fields.many2one('tpt.quanlity.inspection','Quanlity Inspection',ondelete='restrict'),
+        'issue_id': fields.many2one('tpt.material.issue','Material Issue',ondelete='restrict'),
         'cost_center_id': fields.many2one('tpt.cost.center','Cost center'),
         'grn_no': fields.related('picking_id', 'name', type='char', string='GRN No'),
         'gate_out_sup_id':fields.many2one('tpt.gate.out.pass','Gate Out Pass'), # luu gate_out_pass kho khach hang
@@ -654,6 +675,7 @@ class account_invoice(osv.osv):
                 'amount_tax_debit': 0.0,
                 'amount_tax_credit': 0.0,
                 'aed': 0.0,
+                'amount_round_off': 0.0,
             }
             if line.type == 'out_invoice':
                 res[line.id] = {
@@ -745,6 +767,7 @@ class account_invoice(osv.osv):
                     qty = 0.0
                     aed = 0.0
                     tds_amount = 0.0
+                    deducte = 0
                     total_tax_credit_service = 0.0
                     voucher_rate = 1
                     if context is None:
@@ -763,63 +786,63 @@ class account_invoice(osv.osv):
                         fright = 0
                         qty += po.quantity
                         basic = (po.quantity * po.price_unit) - ( (po.quantity * po.price_unit)*po.disc/100)
-                        basic = round(basic)
+                        basic = round(basic,2)
                         amount_untaxed += basic
-                        amount_untaxed = round(amount_untaxed)
+                        amount_untaxed = round(amount_untaxed,2)
                         if po.p_f_type == '1' :
                             p_f = basic * po.p_f/100
-                            p_f = round(p_f)
+                            p_f = round(p_f,2)
                         elif po.p_f_type == '2' :
                             p_f = po.p_f
-                            p_f = round(p_f)
+                            p_f = round(p_f,2)
                         elif po.p_f_type == '3' :
                             p_f = po.p_f * po.quantity
-                            p_f = round(p_f)
+                            p_f = round(p_f,2)
                         else:
                             p_f = po.p_f
-                            p_f = round(p_f)
+                            p_f = round(p_f,2)
                         p_f_charge += p_f
-                        p_f_charge = round(p_f_charge)
+                        p_f_charge = round(p_f_charge,2)
                         if po.ed_type == '1' :
                             ed = (basic + p_f) * po.ed/100
-                            ed = round(ed)
+                            ed = round(ed,2)
                         elif po.ed_type == '2' :
                             ed = po.ed
-                            ed = round(ed)
+                            ed = round(ed,2)
                         elif po.ed_type == '3' :
                             ed = po.ed *  po.quantity
-                            ed = round(ed)
+                            ed = round(ed,2)
                         else:
                             ed = po.ed
-                            ed = round(ed)
+                            ed = round(ed,2)
                         excise_duty += ed
-                        excise_duty = round(excise_duty)
+                        excise_duty = round(excise_duty,2)
                         tax_amounts = [r.amount for r in po.invoice_line_tax_id]
                         for tax_amount in tax_amounts:
                             tax += tax_amount/100
                         amount_total_tax = (basic + p_f + ed + po.aed_id_1)*(tax)
 #                         amount_total_tax = round(amount_total_tax)
-                        total_tax += amount_total_tax
+                        total_tax += round(amount_total_tax,2)
 #                         total_tax = round(total_tax)
                         if po.tax_service_credit:
                             tax_credit_service = po.tax_service_credit.amount/100
                             amount_total_tax_credit_service = (basic + p_f + ed + po.aed_id_1)*(tax_credit_service)
-                            total_tax_credit_service += amount_total_tax_credit_service
+                            total_tax_credit_service += round(amount_total_tax_credit_service,2)
                             
                         if po.fright_type == '1' :
                             fright = (basic + p_f + ed + amount_total_tax) * po.fright/100
-                            fright = round(fright)
+                            fright = round(fright,2)
                         elif po.fright_type == '2' :
                             fright = po.fright
-                            fright = round(fright)
+                            fright = round(fright,2)
                         elif po.fright_type == '3' :
                             fright = po.fright * po.quantity
-                            fright = round(fright)
+                            fright = round(fright,2)
                         else:
                             fright = po.fright
-                            fright = round(fright)
+                            fright = round(fright,2)
                         total_fright += fright
-                        total_fright = round(total_fright)
+                        total_fright = round(total_fright,2)
                          
 #                         if po.aed_id:
 #                             aed += basic*po.aed_id.amount/100
@@ -828,17 +851,28 @@ class account_invoice(osv.osv):
                         if po.tds_id:    
                             tds_amount += po.quantity * po.price_unit * po.tds_id.amount/100
                             tds_amount = round(tds_amount,2)
-                            
-                    res[line.id]['amount_untaxed'] = round(amount_untaxed)
-                    res[line.id]['p_f_charge'] = round(p_f_charge)
-                    res[line.id]['excise_duty'] = round(excise_duty)
-                    res[line.id]['amount_tax'] = round(total_tax)
-                    res[line.id]['amount_tax_credit'] = round(total_tax_credit_service)
-                    res[line.id]['fright'] = round(total_fright)
-                    res[line.id]['aed'] = round(aed)
-                    res[line.id]['amount_total_tds'] = round(tds_amount)
-                    res[line.id]['amount_total'] = (round(amount_untaxed) + round(p_f_charge) + round(excise_duty) + round(total_tax) + round(total_fright) + round(aed)) - round(tds_amount) - round(total_tax_credit_service)
-                    res[line.id]['amount_total_inr'] = round(((round(amount_untaxed) + round(p_f_charge) + round(excise_duty) + round(total_tax) + round(total_fright) + round(aed)) - round(tds_amount) - round(total_tax_credit_service))/voucher_rate)
+                    
+                    total_round_2 = round(amount_untaxed,2) + round(p_f_charge,2) + round(excise_duty,2) + round(total_tax,2) + round(total_fright,2) + round(aed,2) - round(total_tax_credit_service,2) - round(tds_amount,2)
+                    total_round = round(round(amount_untaxed,2) + round(p_f_charge,2) + round(excise_duty,2) + round(total_tax,2) + round(total_fright,2) + round(aed,2) - round(total_tax_credit_service,2) - round(tds_amount,2))
+                    deducte = total_round_2 - total_round
+                    if deducte < 0:
+                        deducte = -(deducte)
+                    elif deducte > 0:
+                        deducte = -(deducte)
+                    else:
+                        deducte = 0
+                    
+                    res[line.id]['amount_untaxed'] = round(amount_untaxed,2)
+                    res[line.id]['p_f_charge'] = round(p_f_charge,2)
+                    res[line.id]['excise_duty'] = round(excise_duty,2)
+                    res[line.id]['amount_tax'] = round(total_tax,2)
+                    res[line.id]['amount_tax_credit'] = round(total_tax_credit_service,2)
+                    res[line.id]['fright'] = round(total_fright,2)
+                    res[line.id]['aed'] = round(aed,2)
+                    res[line.id]['amount_total_tds'] = round(tds_amount,2)
+                    res[line.id]['amount_round_off'] = deducte
+                    res[line.id]['amount_total'] = res[line.id]['amount_untaxed'] + res[line.id]['p_f_charge'] + res[line.id]['excise_duty'] + res[line.id]['amount_tax'] + res[line.id]['fright'] + res[line.id]['aed'] + res[line.id]['amount_round_off'] - res[line.id]['amount_total_tds'] - res[line.id]['amount_tax_credit']
+                    res[line.id]['amount_total_inr'] = round((res[line.id]['amount_untaxed'] + res[line.id]['p_f_charge'] + res[line.id]['excise_duty'] + res[line.id]['amount_tax'] + res[line.id]['fright'] + res[line.id]['aed'] + res[line.id]['amount_round_off'] - res[line.id]['amount_total_tds'] - res[line.id]['amount_tax_credit'])/voucher_rate)
                 else:
                     amount_untaxed = 0.0
                     p_f_charge=0.0
@@ -848,6 +882,7 @@ class account_invoice(osv.osv):
                     total_fright=0.0
                     qty = 0.0
                     tds_amount = 0.0
+                    deducte = 0
                     voucher_rate = 1
                     if context is None:
                         context = {}
@@ -865,93 +900,118 @@ class account_invoice(osv.osv):
                         fright = 0
                         qty += po.quantity
                         basic = (po.quantity * po.price_unit) - ( (po.quantity * po.price_unit)*po.disc/100)
-                        basic = round(basic)
+                        basic = round(basic,2)
                         amount_untaxed += basic
-                        amount_untaxed = round(amount_untaxed)
+                        amount_untaxed = round(amount_untaxed,2)
                         if po.p_f_type == '1' :
                             p_f = basic * po.p_f/100
-                            p_f = round(p_f)
+                            p_f = round(p_f,2)
                         elif po.p_f_type == '2' :
                             p_f = po.p_f
-                            p_f = round(p_f)
+                            p_f = round(p_f,2)
                         elif po.p_f_type == '3' :
                             p_f = po.p_f * po.quantity
-                            p_f = round(p_f)
+                            p_f = round(p_f,2)
                         else:
                             p_f = po.p_f
-                            p_f = round(p_f)
+                            p_f = round(p_f,2)
                         p_f_charge += p_f
-                        p_f_charge = round(p_f_charge)
+                        p_f_charge = round(p_f_charge,2)
                         if po.ed_type == '1' :
                             ed = (basic + p_f) * po.ed/100
-                            ed = round(ed)
+                            ed = round(ed,2)
                         elif po.ed_type == '2' :
                             ed = po.ed
-                            ed = round(ed)
+                            ed = round(ed,2)
                         elif po.ed_type == '3' :
                             ed = po.ed *  po.quantity
-                            ed = round(ed)
+                            ed = round(ed,2)
                         else:
                             ed = po.ed
-                            ed = round(ed)
+                            ed = round(ed,2)
                         excise_duty += ed
-                        excise_duty = round(excise_duty)
+                        excise_duty = round(excise_duty,2)
                         tax_amounts = [r.amount for r in po.invoice_line_tax_id]
                         for tax_amount in tax_amounts:
                             tax += tax_amount/100
                         amount_total_tax = (basic + p_f + ed)*(tax)
 #                         amount_total_tax = round(amount_total_tax)
-                        total_tax += amount_total_tax
+                        total_tax += round(amount_total_tax,2)
 #                         total_tax = round(total_tax)
                         if po.fright_type == '1' :
                             fright = (basic + p_f + ed + amount_total_tax) * po.fright/100
-                            fright = round(fright)
+                            fright = round(fright,2)
                         elif po.fright_type == '2' :
                             fright = po.fright
-                            fright = round(fright)
+                            fright = round(fright,2)
                         elif po.fright_type == '3' :
                             fright = po.fright * po.quantity
-                            fright = round(fright)
+                            fright = round(fright,2)
                         else:
                             fright = po.fright
-                            fright = round(fright)
+                            fright = round(fright,2)
                         total_fright += fright
-                        total_fright = round(total_fright)
+                        total_fright = round(total_fright,2)
                         if po.tds_id:    
                             tds_amount += po.quantity * po.price_unit * po.tds_id.amount/100
-                            tds_amount = round(tds_amount)
+                            tds_amount = round(tds_amount,2)
                     
-                    res[line.id]['amount_untaxed'] = round(amount_untaxed)
-                    res[line.id]['p_f_charge'] = round(p_f_charge)
-                    res[line.id]['excise_duty'] = round(excise_duty)
-                    res[line.id]['amount_tax'] = round(total_tax)
-                    res[line.id]['fright'] = round(total_fright)
-                    res[line.id]['amount_total_tds'] = round(tds_amount)
-                    res[line.id]['amount_total'] = round(amount_untaxed) +round(p_f_charge) + round(excise_duty) + round(total_tax) + round(total_fright) - round(tds_amount)
-                    res[line.id]['amount_total_inr'] = round((round(amount_untaxed) +round(p_f_charge) + round(excise_duty) + round(total_tax) + round(total_fright) - round(tds_amount))/voucher_rate)
+                    total_round_2 = round(amount_untaxed,2) + round(p_f_charge,2) + round(excise_duty,2) + round(total_tax,2) + round(total_fright,2) - round(tds_amount,2)
+                    total_round = round(round(amount_untaxed,2) + round(p_f_charge,2) + round(excise_duty,2) + round(total_tax,2) + round(total_fright,2) - round(tds_amount,2))
+                    deducte = total_round_2 - total_round
+                    if deducte < 0:
+                        deducte = -(deducte)
+                    elif deducte > 0:
+                        deducte = -(deducte)
+                    else:
+                        deducte = 0
+                    
+                    res[line.id]['amount_untaxed'] = round(amount_untaxed,2)
+                    res[line.id]['p_f_charge'] = round(p_f_charge,2)
+                    res[line.id]['excise_duty'] = round(excise_duty,2)
+                    res[line.id]['amount_tax'] = round(total_tax,2)
+                    res[line.id]['fright'] = round(total_fright,2)
+                    res[line.id]['amount_total_tds'] = round(tds_amount,2)
+                    res[line.id]['amount_round_off'] = deducte
+                    res[line.id]['amount_total'] = round(amount_untaxed,2) +round(p_f_charge,2) + round(excise_duty,2) + round(total_tax,2) + round(total_fright,2) + deducte - round(tds_amount,2)
+                    res[line.id]['amount_total_inr'] = round((round(amount_untaxed,2) +round(p_f_charge,2) + round(excise_duty,2) + round(total_tax,2) + round(total_fright,2) + deducte - round(tds_amount,2))/voucher_rate,2)
             if line.sup_inv_id and line.type=='in_invoice':
                 base = 0
                 tax_debit_amount = 0
                 tax_credit_amount = 0
                 tax_tds_amount = 0
+                deducte = 0
                 for inv_line in line.invoice_line:
                     if inv_line.fright_fi_type == '2':
-                        base_amount = round(inv_line.fright)
+                        base_amount = round(inv_line.fright,2)
                         base+=base_amount
-                        tax_debit_amount += round(base_amount*(inv_line.tax_id and inv_line.tax_id.amount/100 or 0))
-                        tax_credit_amount += round(base_amount*(inv_line.tax_credit and inv_line.tax_credit.amount/100 or 0))
-                        tax_tds_amount += round(base_amount*(inv_line.tds_id_2 and inv_line.tds_id_2.amount/100 or 0))
+                        tax_debit_amount += round(base_amount*(inv_line.tax_id and inv_line.tax_id.amount/100 or 0),2)
+                        tax_credit_amount += round(base_amount*(inv_line.tax_credit and inv_line.tax_credit.amount/100 or 0),2)
+                        tax_tds_amount += round(base_amount*(inv_line.tds_id_2 and inv_line.tds_id_2.amount/100 or 0),2)
                     else:
-                        base_amount = round(inv_line.fright*inv_line.quantity)
+                        base_amount = round(inv_line.fright*inv_line.quantity,2)
                         base += base_amount
-                        tax_debit_amount += round(base_amount*(inv_line.tax_id and inv_line.tax_id.amount/100 or 0))
-                        tax_credit_amount += round(base_amount*(inv_line.tax_credit and inv_line.tax_credit.amount/100 or 0))
-                        tax_tds_amount += round(base_amount*(inv_line.tds_id_2 and inv_line.tds_id_2.amount/100 or 0))
-                res[line.id]['amount_untaxed'] = round(base)
-                res[line.id]['amount_tax_debit'] = round(tax_debit_amount)
-                res[line.id]['amount_tax_credit'] = round(tax_credit_amount)
-                res[line.id]['amount_total_tds_2'] = round(tax_tds_amount)
-                res[line.id]['amount_total'] = res[line.id]['amount_untaxed'] + res[line.id]['amount_tax_debit'] - res[line.id]['amount_tax_credit'] - res[line.id]['amount_total_tds_2']
+                        tax_debit_amount += round(base_amount*(inv_line.tax_id and inv_line.tax_id.amount/100 or 0),2)
+                        tax_credit_amount += round(base_amount*(inv_line.tax_credit and inv_line.tax_credit.amount/100 or 0),2)
+                        tax_tds_amount += round(base_amount*(inv_line.tds_id_2 and inv_line.tds_id_2.amount/100 or 0),2)
+                
+                total_round_2 = round(base,2) + round(tax_debit_amount,2) - round(tax_credit_amount,2) - round(tax_tds_amount,2)
+                total_round = round(round(base,2) + round(tax_debit_amount,2) - round(tax_credit_amount,2) - round(tax_tds_amount,2))
+                deducte = total_round_2 - total_round
+                if deducte < 0:
+                    deducte = -(deducte)
+                elif deducte > 0:
+                    deducte = -(deducte)
+                else:
+                    deducte = 0
+                
+                
+                res[line.id]['amount_untaxed'] = round(base,2)
+                res[line.id]['amount_tax_debit'] = round(tax_debit_amount,2)
+                res[line.id]['amount_tax_credit'] = round(tax_credit_amount,2)
+                res[line.id]['amount_total_tds_2'] = round(tax_tds_amount,2)
+                res[line.id]['amount_round_off'] = deducte
+                res[line.id]['amount_total'] = res[line.id]['amount_untaxed'] + res[line.id]['amount_tax_debit'] + res[line.id]['amount_round_off'] - res[line.id]['amount_tax_credit'] - res[line.id]['amount_total_tds_2']
                 
                 
         return res
@@ -1031,6 +1091,11 @@ class account_invoice(osv.osv):
                 'account.invoice.line': (_get_invoice_line, ['quantity', 'uos_id', 'price_unit','discount','p_f','p_f_type',   
                                                                 'ed', 'ed_type','invoice_line_tax_id','fright','fright_type', 'tds_id','aed_id_1'], 10)}),
         'amount_tax_credit': fields.function(amount_all_supplier_invoice_line, multi='sums', string='Tax (Credit)',
+             store={
+                'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 10),   
+                'account.invoice.line': (_get_invoice_line, ['quantity', 'uos_id', 'price_unit','discount','p_f','p_f_type',   
+                                                                'ed', 'ed_type','invoice_line_tax_id','fright','fright_type', 'tds_id','aed_id_1'], 10)}),
+        'amount_round_off': fields.function(amount_all_supplier_invoice_line, multi='sums', string='Round OFF',
              store={
                 'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 10),   
                 'account.invoice.line': (_get_invoice_line, ['quantity', 'uos_id', 'price_unit','discount','p_f','p_f_type',   
@@ -1181,6 +1246,9 @@ class account_invoice_line(osv.osv):
             tax_amounts = [r.amount for r in line.invoice_line_tax_id]
             for tax in tax_amounts:
                 amount_total_tax += tax/100
+            ###
+            amount_total_tax = (amount_basic + amount_p_f + amount_ed)*(amount_total_tax)
+            ###
             res[line.id]['line_net'] = amount_total_tax+amount_fright+amount_ed+amount_p_f+amount_basic+line.aed_id_1
             
             if line.invoice_id.sup_inv_id and line.invoice_id.type=='in_invoice':

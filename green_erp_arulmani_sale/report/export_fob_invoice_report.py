@@ -69,12 +69,22 @@ class Parser(report_sxw.rml_parse):
             return partner.city
         elif not partner.street3 and not partner.city and partner.zip:
             return partner.zip
+    #===========================================================================
+    # def get_state_country(self,partner):
+    #     if partner.state_id.name:
+    #         if (partner.state_id.name).replace(" ", ""):
+    #             return partner.state_id.name+", "+partner.country_id.name
+    #         else:
+    #             return partner.country_id.name
+    #===========================================================================
     def get_state_country(self,partner):
-        if partner.state_id.name:
-            if (partner.state_id.name).replace(" ", ""):
-                return partner.state_id.name+", "+partner.country_id.name
-            else:
-                return partner.country_id.name
+        if partner.state_id:
+            if partner.state_id.name:
+                if partner.state_id.name:
+                    if (partner.state_id.name).replace(" ", ""):
+                        return partner.state_id.name+", "+partner.country_id.name
+                    else:
+                        return partner.country_id.name
     def get_s3(self,partner):
         if partner.street3:
             return partner.street3+", "+partner.city
@@ -109,12 +119,23 @@ class Parser(report_sxw.rml_parse):
             val2 = val2 + line.price_subtotal + line.quantity*line.freight + insurance*(line.quantity*1000)
         return round(val2, 2)
     
-    def amount_to_text(self, nbr, lang='en', currency=False):
-        if lang == 'vn':
-            return  amount_to_text_en.amount_to_text(nbr, lang)
-        else:
-            a= currency
-            return amount_to_text_en.amount_to_text(nbr, lang, 'usd') 
+    #===========================================================================
+    # def amount_to_text(self, nbr, lang='en', currency=False):
+    #     if lang == 'vn':
+    #         return  amount_to_text_en.amount_to_text(nbr, lang)
+    #     else:
+    #         a= currency
+    #         return amount_to_text_en.amount_to_text(nbr, lang, 'usd') 
+    #===========================================================================
+    def amount_to_text(self, nbr, currency):
+        lang='en'
+        if currency.name!='INR':
+            return amount_to_text_en.amount_to_text(nbr, lang, currency.name).upper() 
+        if currency.name=='INR':
+            text = Number2Words().convertNumberToWords(nbr).upper()
+            if text and len(text)>3 and text[:3]==' ':
+                text = text[3:]
+            return text
         
     def get_pre(self, pre_carriage_by):
         pre = ''

@@ -12,7 +12,14 @@
 	            			<newline/>
 	            			<field name="doc_type" />
 	            			<newline/>
-	            			<field name="doc_no" options="{'create': false, 'create_edit': false}" />
+	            			<field name="doc_no" options="{'create': false, 'create_edit': false}" /> 
+	            			<newline/>
+	            			<!-- 
+	            			<field name="employee" options="{'create': false, 'create_edit': false}" />
+	            			 -->
+	            			 <field name="employee_id" options="{'create': false, 'create_edit': false}" />
+	            			<newline/>
+	            			<field name="cost_center_id" options="{'create': false, 'create_edit': false}" />
 	            			<newline/>
 	            		    <field name="narration" />
 	            		    <newline/>	
@@ -44,9 +51,8 @@
 	    
         <menuitem action="action_general_ledger_statement_view"
             id="menu_action_general_ledger_statement_view"
-            parent="menu_tpt_accounting" sequence="203"/>
+            parent="account.menu_finance_reporting" sequence="203"/>
 	 
 	    
     </data>
 </openerp>
-

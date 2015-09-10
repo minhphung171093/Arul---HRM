@@ -208,7 +208,11 @@
             <field name="name">arul.hr.payroll.employee.structure.form</field>
             <field name="model">arul.hr.payroll.employee.structure</field>
             <field name="arch" type="xml">
-	            <form string="Employee Payroll Structure" version="7.0">   
+	            <form string="Employee Payroll Structure" version="7.0">
+	            <header>
+	            	<button name="bt_approve" states='draft' string="Approve" type="object" class="oe_highlight" />
+                    <field name="state" widget="statusbar" statusbar_visible="draft,approved" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
+	            </header>    
 	            	<sheet>
 		                <group col='4' colspan='2'>
 		                	<field name="flag" invisible='1'/>
@@ -219,9 +223,9 @@
 			                />
 			                <newline/>
 							<field name="employee_category_id" on_change="onchange_employee_category_id(employee_category_id,sub_category_id)" 
-							attrs="{'readonly':[('flag','=',False)]}" options="{'create': true, 'create_edit': true}"							
+							attrs="{'readonly':[('flag','=',True)]}" options="{'create': true, 'create_edit': true}"							
 							/>
-							<field name="sub_category_id" attrs="{'readonly':[('flag','=',False)]}" domain="[('category_id','=',employee_category_id)]" options="{'create': true, 'create_edit': true}"/>
+							<field name="sub_category_id" attrs="{'readonly':[('flag','=',True)]}" domain="[('category_id','=',employee_category_id)]" options="{'create': true, 'create_edit': true}"/>
 
 							<field name ="create_date"/>
 							<field name ="write_date"/>
@@ -399,6 +403,7 @@
 				<tree string="Approve Reject Payroll">
 					<field name="year"/>
 					<field name="month"/>
+					<field name="post_date" />
 					<field name="create_date"/>
 					<field name="create_uid"/>
 					<field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","done":"blue"}'/>
@@ -420,6 +425,7 @@
 		           <group col = '4' colspan = '2'>    
 						<field name="year" />
 						<field name="month" />
+						<field name="post_date" />
 						<field name="create_date"/>
 						<field name="create_uid"/>
 		           </group> 
@@ -466,7 +472,7 @@
 	                <button name="generate_payroll" states='draft' string="Generate Payroll" type="object" class="oe_highlight" groups="green_erp_arulmani_hrm.group_vvti_hrm_payroll_controller"/>
 	                <button name="rollback_payroll" states='draft' string="Roll Back Payroll" type="object" class="oe_highlight" groups="green_erp_arulmani_hrm.group_vvti_hrm_payroll_controller"/>
 	               	<button name="confirm_payroll" states='draft' string="Confirm Payroll" type="object" class="oe_highlight" groups="green_erp_arulmani_hrm.group_vvti_hrm_payroll_controller"/>
-	               	<button name="print_payslip" string="Preview Payroll" type="object" class="oe_highlight" groups="green_erp_arulmani_hrm.group_vvti_hrm_payroll_controller"/>
+	               	<button name="print_payslip" string="Preview Payroll" type="object" class="oe_highlight" groups="green_erp_arulmani_hrm.group_vvti_hrm_payroll_controller,green_erp_arulmani_hrm.group_vvti_hrm_hr_key_user"/>
 	                <field name="state" widget="statusbar" statusbar_visible="draft,confirm,approve" statusbar_colors='{"draft":"blue","done":"blue"}'/>  
 	            </header>    
 	            	<sheet>
@@ -494,7 +500,7 @@
 											<field name="company_id" options="{'create': false, 'create_edit': false}"/>
 											<newline/>
 											<field name="payroll_area_id" options="{'create': false, 'create_edit': false}"/>
-											<field name="payroll_sub_area_id" options="{'create': false, 'create_edit': false}"/>
+											<!-- <field name="payroll_sub_area_id" options="{'create': false, 'create_edit': false}"/>  -->
 											<field name="employee_id" options="{'create': false, 'create_edit': false}"/>
 											<newline/>
 											<field name="department_id" on_change="onchange_department_from_id(department_id)" options="{'create': false, 'create_edit': false}"/>
@@ -562,7 +568,7 @@
        <menuitem action="action_arul_hr_payroll_executions_form"
             id="menu_action_arul_hr_payroll_executions_form"
             parent="menu_hr_payroll_management" sequence="5"
-            groups="green_erp_arulmani_hrm.group_vvti_hrm_payroll_controller"/>
+            groups="green_erp_arulmani_hrm.group_vvti_hrm_payroll_controller,green_erp_arulmani_hrm.group_vvti_hrm_hr_key_user"/>
             
 		<record id="view_arul_hr_payroll_structure_configuration_tree_vew" model="ir.ui.view">
 			<field name="name">arul.hr.payroll.structure.configuration.tree</field>
@@ -623,7 +629,122 @@
             id="menu_action_arul_hr_payroll_structure_configuration_form"
             parent="menu_hr_payroll_management" sequence="6"/>
 
+         <!-- TPT-START -->   
+         <record id="view_tpt_hr_ptax_tree_vew" model="ir.ui.view">
+			<field name="name">tpt.hr.ptax.tree</field>
+			<field name="model">tpt.hr.ptax</field>
+			<field name="arch" type="xml">
+				<tree string="Proffesional Tax">	
+					<field name="name" />	
+					<field name="from_date" />	
+					<field name="to_date" />		
+				</tree>
+			</field>
+	   </record>
+	   
+	   <record id="view_tpt_hr_ptax_form_vew" model="ir.ui.view">
+            <field name="name">tpt.hr.ptax.form</field>
+            <field name="model">tpt.hr.ptax</field>
+            <field name="arch" type="xml">
+	            <form string="PTax " version="7.0">  
+	            <sheet>
+		           <group col='4' colspan='2'>
+		           		<field name="name" readonly='1' />
+		           </group>
+		           		<group col='4' colspan='2' string="PTax Period">
+						<field name="from_date" required='1'/>
+						<field name="to_date" required='1'/>
+		            </group>
+					<group col='4' colspan='2' string="Effective Payroll Executions Period">
+						<field name="month" required='1' on_change="onchange_load_slabs(month)"/>
+						<field name="year" />
+		            </group>	
+					
+					<group col='4' colspan='2'>
+					<field name ="create_date"/>
+                	<field name ="create_uid"/>
+                	 </group>
+		           <notebook>
+							<page string = "PTax Slab">
+								<field name="ptax_line" nolabel='1'>
+									<tree editable='top'>
+										<field name="slab_id"  domain="[('is_active','=',True)]"/>
+										<field name="ptax_amt" />
+									</tree>
+								</field>
+							</page>
+				   </notebook>
+				</sheet>
+		        </form>
+		     </field>   
+       </record>
+       
+       <record id="action_tpt_hr_ptax_form" model="ir.actions.act_window">
+            <field name="name">Professional Tax</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.hr.ptax</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_tpt_hr_ptax_tree_vew"/> 
+        </record>       
+       
             
+       <menuitem action="action_tpt_hr_ptax_form"
+            id="menu_action_tpt_hr_ptax_form"
+            parent="menu_hr_payroll_management" sequence="92"/>   
+            <!--  -->
+            <record id="view_tpt_hr_ptax_slab_tree_vew" model="ir.ui.view">
+			<field name="name">tpt.hr.ptax.slab.tree</field>
+			<field name="model">tpt.hr.ptax.slab</field>
+			<field name="arch" type="xml">
+				<tree string="Proffesional Tax Slab">	
+					<field name="name" />	
+					<field name="from_range" />
+					<field name="to_range" />
+					<field name ="create_date"/>
+                	<field name ="create_uid"/>
+				</tree>
+			</field>
+	   </record>
+	   
+	   <record id="view_tpt_hr_ptax_slab_form_vew" model="ir.ui.view">
+            <field name="name">tpt.hr.ptax.slab.form</field>
+            <field name="model">tpt.hr.ptax.slab</field>
+            <field name="arch" type="xml">
+	            <form string="PTax Slab Range" version="7.0">   
+	            <sheet>
+		           <group col='4' colspan='2' string="PTax Range">
+						<field name="from_range" required='1'/>
+						<field name="to_range" required='1'/>
+						<field name="is_active" />
+		            </group>	
+		            <group col='4' colspan='2' string="PTax Amount">
+						<field name="ptax_amt" />
+		            </group>	
+					<newline/>
+					<group col='4' colspan='2' >
+						<field name ="create_date"/>
+	                	<field name ="create_uid"/>
+                	 </group>	
+				</sheet>
+		        </form>
+		     </field>   
+       </record>
+       
+       <record id="action_tpt_hr_ptax_slab_form" model="ir.actions.act_window">
+            <field name="name">PTax Slab Range</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.hr.ptax.slab</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_tpt_hr_ptax_slab_tree_vew"/> 
+        </record>       
+       
+            
+       <menuitem action="action_tpt_hr_ptax_slab_form"
+            id="menu_action_tpt_hr_ptax_slab_form"
+            parent="menu_hr_payroll_management" sequence="93"/>  
+         <!-- TPT-END -->
     </data>
     
 </openerp>

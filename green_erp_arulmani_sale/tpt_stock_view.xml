@@ -170,6 +170,8 @@
 	                    <field name="residual" invisible="1" sum="Residual Amount"/>
 	                    <field name="amount_untaxed" sum="Untaxed Amount"/>
 	                    <field name="amount_total" sum="Total Amount"/>
+	                    <field name="form_type" />
+	                    <field name="form_number" />
 	                    <field name="state" invisible="1"/>
 	                </tree>
 	           	</tree>
@@ -198,7 +200,7 @@
             		<button name="invoice_open" states="draft" string="Validate" class="oe_highlight" groups="green_erp_arulmani_sale.group_vvti_sale_manager"/>
             	</xpath>
             	<xpath expr="//button[@name='invoice_print' and @string='Print Invoice']" position="replace">
-            		<button name='invoice_print' string="Print Invoice" type="object"/>
+            		<button name='invoice_print' string="Print Invoice" type="object" groups="green_erp_arulmani_sale.group_vvti_sale_user"/>
             	</xpath>
             	<xpath expr="//page[@string='Other Info']/group[@col='4']/group/field[@name='name']" position="replace">
 				</xpath>  
@@ -217,7 +219,7 @@
 				<xpath expr="//field[@name='fiscal_position']" position="replace">
 					<field name="fiscal_position" widget="selection" invisible = "1"/>
 					<field name="type" string = "Document Type" readonly = "0"/>
-					<field name="excise_duty_id" options="{'create': false, 'create_edit': false}" domain="[('type_tax_use','=','excise_duty')]"/>
+					<field name="excise_duty_id" readonly='1' options="{'create': false, 'create_edit': false}" domain="[('type_tax_use','=','excise_duty')]"/>
 					<field name="doc_status" readonly='1'/>
 					<field name="pre_carriage_by" />
 					<!--  
@@ -227,6 +229,7 @@
 					<!-- <field name="insurance" />  -->
 					<!-- <field name="other_charges" />   -->
 					<field name="agency_comm" /> 
+					<field name="epcg_no" /> 
 					
 					<group attrs="{'invisible': [('invoice_type', '=', 'export') ] }" colspan="2" >
 					
@@ -244,21 +247,21 @@
 				<xpath expr="//field[@name='journal_id']" position="replace">
 					<!-- <field name="cons_loca" domain="[('consignee_parent_id','=',partner_id)]" options="{'create': false, 'create_edit': false,'always_reload': True}" context="{'show_address': 1}"/>
 					 -->
-					 <field name="cons_loca" domain="[('customer_account_group_id','=','VVTI Ship to Party')]" options="{'create': false, 'create_edit': false}" />
+					 <field name="cons_loca" readonly='1' domain="[('disapprove','=',1),('customer_account_group_id','=','VVTI Ship to Party')]" options="{'create': false, 'create_edit': false}" />
 				</xpath>
 				<xpath expr="//field[@name='date_invoice']" position="attributes">
 					<attribute name="on_change">onchange_date_invoice(date_invoice)</attribute>
 				</xpath>
 				
 				<xpath expr="//field[@name='currency_id']" position="attributes">
-					<attribute name="readonly">0</attribute>
+					<attribute name="readonly">1</attribute>
 				</xpath>  
 				<xpath expr="//field[@name='account_id']" position="replace">
 					<field name="account_id" required = "0" invisible = "1"/>
 					<field name="sale_id" readonly="1" options="{'create': false, 'create_edit': false}"/>
-					<field name="payment_term" options="{'create': false, 'create_edit': false}"/>
-					<field name="sale_tax_id" domain="[('type_tax_use','=','sale')]" options="{'create': false, 'create_edit': false}"/>
-					<field name="invoice_type" required ='1'/>
+					<field name="payment_term" readonly='1' options="{'create': false, 'create_edit': false}"/>
+					<field name="sale_tax_id" readonly='1' domain="[('type_tax_use','=','sale')]" options="{'create': false, 'create_edit': false}"/>
+					<field name="invoice_type" readonly='1' required ='1'/>
 					<field name="header_text" />
 					<field name="material_info" readonly="1"/>
 					<field name="other_info" />
@@ -278,7 +281,7 @@
 				</xpath> 
 				
 				<xpath expr="//form/sheet/notebook/page[@string='Invoice Lines']/field/tree/field[@name='product_id']"  position="replace">
-					<field name="product_id" required = "1" options="{'create': false, 'create_edit': false}"/>
+					<field name="product_id" readonly='1' required = "1" options="{'create': false, 'create_edit': false}"/>
 				</xpath>
 				
 				<xpath expr="//page[@string='Invoice Lines']/group/field[@name='residual']" position="replace">
@@ -291,8 +294,8 @@
 				</xpath>
 				
 				<xpath expr="//form/sheet/notebook/page[@string='Invoice Lines']/field/tree/field[@name='name']"  position="after">
-					<field name="product_type" />
-					<field name="application_id" options="{'create': false, 'create_edit': false}"/>
+					<field name="product_type" readonly='1'/>
+					<field name="application_id" readonly='1' options="{'create': false, 'create_edit': false}"/>
 				</xpath>
 				
 				<xpath expr="//form/sheet/notebook/page[@string='Invoice Lines']/field/tree/field[@name='account_id']"  position="attributes">
@@ -303,13 +306,26 @@
 					<attribute name="invisible">1</attribute>
 				</xpath>
 				
+				<xpath expr="//form/sheet/notebook/page[@string='Invoice Lines']/field/tree/field[@name='name']"  position="attributes">
+					<attribute name="readonly">1</attribute>
+				</xpath>
+				<xpath expr="//form/sheet/notebook/page[@string='Invoice Lines']/field/tree/field[@name='quantity']"  position="attributes">
+					<attribute name="readonly">1</attribute>
+				</xpath>
+				<xpath expr="//form/sheet/notebook/page[@string='Invoice Lines']/field/tree/field[@name='price_unit']"  position="attributes">
+					<attribute name="readonly">1</attribute>
+				</xpath>
+				<xpath expr="//form/sheet/notebook/page[@string='Invoice Lines']/field/tree/field[@name='uos_id']"  position="attributes">
+					<attribute name="readonly">1</attribute>
+				</xpath>
+				
 				<xpath expr="//form/sheet/notebook/page[@string='Invoice Lines']/field/tree/field[@name='price_subtotal']"  position="replace">
 					<field name="amount_basic"/>
 					<field name="amount_ed"/>
 					<field name="price_subtotal" string ="SubTotal"/>
-					<field name="freight" />
-					<field name="insurance" />
-					<field name="others" />
+					<field name="freight" readonly='0'/>
+					<field name="insurance" readonly='0'/>
+					<field name="others" readonly='0'/>
 				</xpath>
 				
 				<xpath expr="//field[@name='amount_total']" position="after">
@@ -331,6 +347,10 @@
             	<xpath expr="//field[@name='product_id']"  position="attributes">
             		<attribute name='readonly'>1</attribute>
             	</xpath>
+            	<xpath expr="//field[@name='product_id']"  position="after">
+            		<field name="description" invisible="('default_type',False) and context.get('default_type')=='out' and 1 or 0" />
+            		<field name="item_text" invisible="('default_type',False) and context.get('default_type')=='out' and 1 or 0" />
+            	</xpath>
             </field>
         </record>
         
@@ -350,13 +370,17 @@
             <field name="inherit_id" ref="stock.view_picking_out_form"/>
             <field name="arch" type="xml">
             
+            	<xpath expr="//button[@name='button_cancel']"  position="replace">
+            		<button name="button_cancel" states="assigned,confirmed,draft" string="Cancel Transfer" groups="base.user_root"/>
+            	</xpath>
+            	
             	<xpath expr="//field[@name='invoice_state']" position="replace">
 					<field name="invoice_state" invisible="1"/>
 				</xpath> 
             	
             	<button name="%(stock.act_stock_return_picking)d" position="replace">
             		<button name="management_confirm" string="Management Confirm" attrs="{'invisible': ['|',('doc_status','!=','waiting'),('flag_confirm','=',True)]}" type="object" icon="gtk-apply" 
-		                groups="green_erp_arulmani_sale.group_vvti_sale_gm"/>
+		                groups="green_erp_arulmani_sale.group_vvti_sale_gm,green_erp_arulmani_accounting.group_vvti_accounting_mgr"/>
 		              <!--   
 		               <button name="management_confirm" string="Management Confirm" attrs="{'invisible': ['|',('doc_status','!=','waiting'),('flag_confirm','=',True)]}" type="object" icon="gtk-apply" 
 		                confirm="This Delivery Order is reached the credit limit. Do you want to confirm this Delivery Order?"
@@ -388,8 +412,12 @@
 				</xpath>
 				
 				<button name="action_assign" position="replace">
-					<button name="tpt_check_stock" states="confirmed" string="Check Availability" type="object" class="oe_highlight"/>
+					<button name="tpt_check_stock" states="confirmed" string="Check Availability" type="object" class="oe_highlight" groups="green_erp_arulmani_sale.group_vvti_sale_user"/>
 				</button>
+				
+				<xpath expr="//button[@name='action_process']" position="attributes">
+					<attribute name='groups'>green_erp_arulmani_sale.group_vvti_sale_user</attribute>
+				</xpath>
 				
             	<xpath expr="//field[@name='partner_id']"  position="replace">
                     <field name="partner_id" on_change="onchange_partner_in(partner_id)" string="Customer" domain="[('customer','=',1),('is_company','=',1)]" readonly = "1" options="{'create': false, 'create_edit': false}"/>
@@ -412,11 +440,11 @@
 		                    <field name="origin" invisible="1"/>
 		                    <field name="type" invisible="1" on_change="onchange_move_type(type)"/>
 		                    <field name="create_date" invisible="1" groups="base.group_no_one"/>
-		                    <field name="product_id" context="{'search_pro_by_so':1,'sale_id':parent.sale_id}" on_change="onchange_product_id(product_id,location_id,location_dest_id, False)" options="{'create': false, 'create_edit': false}"/>
-		                    <field name="product_type"/>
-            				<field name="application_id" options="{'create': false, 'create_edit': false}"/>
+		                    <field name="product_id" readonly = "1" context="{'search_pro_by_so':1,'sale_id':parent.sale_id}" on_change="onchange_product_id(product_id,location_id,location_dest_id, False)" options="{'create': false, 'create_edit': false}"/>
+		                    <field name="product_type" readonly = "1" />
+            				<field name="application_id" readonly = "1" options="{'create': false, 'create_edit': false}"/>
 		                    <field name="product_qty" readonly = "1" on_change="onchange_quantity(product_id, product_qty, product_uom, product_uos)"/>
-		                    <field name="product_uom" string="Unit of Measure" groups="product.group_uom" options="{'create': false, 'create_edit': false}"/>
+		                    <field name="product_uom" readonly = "1" string="Unit of Measure" groups="product.group_uom" options="{'create': false, 'create_edit': false}"/>
 		                    <field name="product_uos" invisible="1" groups="product.group_uos"/>
 		                    <button name="%(stock.move_scrap)d"
 		                        string="Scrap Products" type="action"
@@ -449,8 +477,8 @@
             	</xpath>
             	
             	<xpath expr="/form/header//button[@name='%(stock.report_picking_list_out)d']" position="replace">
-            		 <button name="print_dispatch_slip" string="Print Dispatch Slip" type="object" states="done" class="oe_highlight"/>
-            		 <button name="print_packing_list" string="Print Packing List" attrs="{'invisible':[('order_type', '=', 'domestic')]}" type="object" class="oe_highlight"/>
+            		 <button name="print_dispatch_slip" string="Print Dispatch Slip" type="object" states="done" class="oe_highlight" groups="green_erp_arulmani_sale.group_vvti_sale_user"/>
+            		 <button name="print_packing_list" string="Print Packing List" attrs="{'invisible':[('order_type', '=', 'domestic')]}" type="object" class="oe_highlight" groups="green_erp_arulmani_sale.group_vvti_sale_user,green_erp_arulmani_sale.group_vvti_marketing_user"/>
             	</xpath>
             	
             	<xpath expr="//page[@string='Products']" position="after">

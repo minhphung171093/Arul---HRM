@@ -31,8 +31,6 @@
             <field name="arch" type="xml">
 				<xpath expr="//field[@name='purchase_id']" position="attributes">
 					<attribute name='options'>{'create': false, 'create_edit': false}</attribute>
-				</xpath>
-				<xpath expr="//field[@name='purchase_id']" position="attributes">
 					<attribute name='on_change'>onchange_purchase_id(purchase_id)</attribute>
 					<attribute name='readonly'>1</attribute>
 				</xpath>
@@ -56,6 +54,11 @@
             <field name="model">stock.picking.in</field>
             <field name="inherit_id" ref="stock.view_picking_in_form"/>
             <field name="arch" type="xml">
+            	
+            	<!--<xpath expr="//button[@name='button_cancel']"  position="replace">
+            		<button name="button_cancel" states="assigned,confirmed,draft" string="Cancel Transfer" groups="base.user_root"/>
+            	</xpath>-->
+            	
             	<xpath expr="//header"  position="inside">
             		<button name="action_revert_done" string="Reopen" states="done,cancel" type="object" icon="gtk-cancel" 
 	                	confirm="Do you want to reopen this GRN?" groups="base.group_no_one"
@@ -78,14 +81,18 @@
 				</xpath>
 				<xpath expr="//field[@name='date']" position="after">
 				<field name="header_text"/>
+				<field name="gate_out_id" readonly="1"/>
 				</xpath>
 				<xpath expr="//field[@name='backorder_id']" position="attributes">
 					<attribute name='invisible'>1</attribute>
 				</xpath>
+				<xpath expr="//field[@name='invoice_state']" position="attributes">
+					<attribute name='attrs'>{'readonly': [('state', 'in', ['draft','auto','confirmed','assigned','done','cancel'])]}</attribute>
+				</xpath>
                 <xpath expr="//field[@name='partner_id']" position="replace">
                     <field name="partner_id" readonly="1" options="{'create': false, 'create_edit': false}" on_change="onchange_partner_in(partner_id)" string="Supplier" domain="[('supplier','=',True)]" context="{'default_supplier':1,'default_customer':0}"/>
                     <field name="document_type"/>
-                    <field name="warehouse" domain="[('usage','=','internal'),('chained_location_type','&lt;&gt;','customer')]" on_change="onchange_dest_loca_id(warehouse)" options="{'create': false, 'create_edit': false}"/>
+                    <field name="warehouse" domain="[('usage','=','internal'),('chained_location_type','&lt;&gt;','customer')]" on_change="onchange_dest_loca_id(warehouse)" required="1" options="{'create': false, 'create_edit': false}"/>
                     <field name="gate_in_pass_no" options="{'create': false, 'create_edit': false}"/>
                     <field name="truck"/>
                     <field name="invoice_no"/>                   
@@ -207,6 +214,11 @@
 				<xpath expr="//field[@name='amount_total']" position="after">
 					<field name="amount_total_inr" readonly="1" class="oe_subtotal_footer_separator" widget="monetary" attrs="{'invisible': [('amount_total','=','amount_total_inr')]}"/>
 				</xpath>
+				
+				<xpath expr="//field[@name='date_invoice']" position="attributes">
+					<attribute name="on_change">onchange_date_invoice(date_invoice)</attribute>
+				</xpath>
+				
             </field>
         </record>
         

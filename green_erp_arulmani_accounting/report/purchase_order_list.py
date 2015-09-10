@@ -41,6 +41,9 @@ class purchase_order_list(osv.osv_memory):
         'currency_id': fields.many2one('res.currency','UOM', readonly=True),
         'value': fields.float('Value',digits=(16,2), readonly=True),
         'pending_quantity': fields.float('Pending Quantity',digits=(16,3), readonly=True),
+        'po_indent_no': fields.many2one('tpt.purchase.indent','Indent No', readonly=True),
+        'indent_date': fields.date('Indent Date', readonly=True),
+        'indent_release_date': fields.date('Indent Release Date', readonly=True),
     }
 
 purchase_order_list()
@@ -81,6 +84,13 @@ class purchase_order_list_wizard(osv.osv_memory):
             '''%(order_line.id)
             cr.execute(sql)
             grn_qty = cr.fetchone()[0]
+            
+            ##    
+            indent_line_obj = self.pool.get('tpt.purchase.product') 
+            indent_line_obj_ids = indent_line_obj.search(cr, uid, [('pur_product_id','=',order_line.po_indent_no.id)])
+            indent_line_obj1 = indent_line_obj.browse(cr,uid,indent_line_obj_ids[0])
+            hod_date = indent_line_obj1.hod_date   
+            ##
             vals = {
                 'si_no': seq+1,
                 'po_id': order_line.order_id.id,
@@ -97,6 +107,9 @@ class purchase_order_list_wizard(osv.osv_memory):
                 'currency_id': order_line.order_id.currency_id.id,
                 'value': order_line.product_qty*order_line.price_unit,
                 'pending_quantity': order_line.product_qty-grn_qty,
+                'po_indent_no': order_line.po_indent_no.id,
+                'indent_date': order_line.po_indent_no.date_indent,
+                'indent_release_date': hod_date or False,
             }
             purchase_order_list_obj.create(cr, uid, vals)
         res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 

@@ -92,6 +92,8 @@ class arul_hr_employee_action_history(osv.osv):
             action_ids = self.pool.get('arul.employee.actions').search(cr, uid, [('name','=','Promotion')])
         elif context.get('action_default_transfer'):
             action_ids = self.pool.get('arul.employee.actions').search(cr, uid, [('name','=','Transfer')])
+        elif context.get('action_default_section_transfer'):
+            action_ids = self.pool.get('arul.employee.actions').search(cr, uid, [('name','=','Section Change')])
         else:
             action_ids = []
         if action_ids:
@@ -150,6 +152,8 @@ class arul_hr_employee_action_history(osv.osv):
         'note': fields.text('Note'),
         'department_from_id': fields.many2one('hr.department','Department From',ondelete='restrict'),
         'department_to_id': fields.many2one('hr.department','Department To',ondelete='restrict'),
+        'section_from_id': fields.many2one('arul.hr.section','Section From',ondelete='restrict'),
+        'section_to_id': fields.many2one('arul.hr.section','Section To',ondelete='restrict'),
         'designation_from_id':fields.many2one('hr.job','Designation From',ondelete='restrict'),
         'designation_to_id':fields.many2one('hr.job','Designation To',ondelete='restrict'),
         'employee_category_id':fields.many2one('vsis.hr.employee.category','Employee Category',ondelete='restrict'),
@@ -268,6 +272,7 @@ class arul_hr_employee_action_history(osv.osv):
             vals = {'employee_category_id':emp.employee_category_id.id,
                     'sub_category_id':emp.employee_sub_category_id.id,
                     'department_from_id':emp.department_id.id,
+                    'section_from_id':emp.section_id.id,
                     'designation_from_id':emp.job_id.id,                   
 #                     'payroll_area_id':emp.payroll_area_id.id,
                     }
@@ -301,6 +306,16 @@ class arul_hr_employee_action_history(osv.osv):
                     'payroll_sub_area_id':emp.payroll_sub_area_id.id,
                     'department_from_id':emp.department_id.id,
                     'designation_from_id':emp.job_id.id,#TPT
+                    }
+        return {'value': vals}
+    
+    def onchange_section_transfer_employee_id(self, cr, uid, ids,employee_id=False, context=None):
+        vals = {}
+        if employee_id:
+            emp = self.pool.get('hr.employee').browse(cr, uid, employee_id)
+            vals = {
+                    'department_from_id':emp.department_id.id,
+                    'section_from_id':emp.job_id.id,#TPT
                     }
         return {'value': vals}
 
@@ -391,25 +406,37 @@ class arul_hr_employee_action_history(osv.osv):
                 raise osv.except_osv(_('Warning!'),_('Not able to post Leaving Entry for Future Date!'))
                 return False
             action_history = self.browse(cr, uid, new_id)
-            self.pool.get('hr.employee').write(cr, uid, [action_history.employee_id.id], {'active': False})
+            self.pool.get('hr.employee').write(cr, uid, [action_history.employee_id.id], 
+                                               {'active': False,
+                                                'date_of_resignation':leaving_date
+                                                
+                                                })
         if context.get('create_promotion_employee'):
             action_history = self.browse(cr, uid, new_id)
             self.pool.get('hr.employee').write(cr, uid, [action_history.employee_id.id], {#'employee_category_id': action_history.employee_category_id and action_history.employee_category_id.id or False,
                                                                                           #'employee_sub_category_id': action_history.sub_category_id and action_history.sub_category_id.id or False,
-                                                                                          'employee_category_id': action_history.employee_category_to_id and action_history.employee_category_to_id.id or False,
-                                                                                          'employee_sub_category_id': action_history.sub_category_to_id and action_history.sub_category_to_id.id or False,
+                                               'employee_category_id': action_history.employee_category_to_id and action_history.employee_category_to_id.id or False,
+                                               'employee_sub_category_id': action_history.sub_category_to_id and action_history.sub_category_to_id.id or False,
                                                                                          
                                                                                           
-                                                                                          'job_id': action_history.designation_to_id.id and action_history.designation_to_id.id or action_history.designation_from_id.id,
-                                                                                          'department_id': action_history.department_to_id.id and action_history.department_to_id.id or action_history.department_from_id.id},
+                                               'job_id': action_history.designation_to_id.id and action_history.designation_to_id.id or action_history.designation_from_id.id,
+                                               'department_id': action_history.department_to_id.id and action_history.department_to_id.id or action_history.department_from_id.id,
+                                               'section_id': action_history.section_to_id.id and action_history.section_to_id.id or action_history.section_from_id.id},
                                                                                           )
             emp_attendence_obj = self.pool.get('arul.hr.employee.attendence.details')
             employee_ids = emp_attendence_obj.search(cr, uid, [('employee_id','=',action_history.employee_id.id)])
             emp_attendence_obj.write(cr,uid,employee_ids, {
-                                                          'employee_category_id':action_history.employee_id.employee_category_id and action_history.employee_id.employee_category_id.id or False,
-                                                          'sub_category_id':action_history.employee_id.employee_sub_category_id and action_history.employee_id.employee_sub_category_id.id or False,
-                                                          'department_id':action_history.employee_id.department_id and action_history.employee_id.department_id.id or False,
-                                                          'designation_id':action_history.employee_id.job_id and action_history.employee_id.job_id.id or False,
+                                                          'employee_category_id':action_history.employee_category_to_id and action_history.employee_category_to_id.id or False,
+                                                          'sub_category_id':action_history.sub_category_to_id and action_history.sub_category_to_id.id or False,
+                                                          'department_id':action_history.department_to_id.id and action_history.department_to_id.id or action_history.department_from_id.id,
+                                                          'designation_id':action_history.designation_to_id.id and action_history.designation_to_id.id or action_history.designation_from_id.id,
+                                                          }) 
+            emp_paystruct_obj = self.pool.get('arul.hr.payroll.employee.structure')
+            employee_ids = emp_paystruct_obj.search(cr, uid, [('employee_id','=',action_history.employee_id.id)])
+            emp_paystruct_obj.write(cr,uid,employee_ids, {
+                                                          'employee_category_id':action_history.employee_category_to_id and action_history.employee_category_to_id.id or False,
+                                                          'sub_category_id':action_history.sub_category_to_id and action_history.sub_category_to_id.id or False,
+                                                          
                                                           }) 
             
         if context.get('create_transfer_employee'):
@@ -420,6 +447,10 @@ class arul_hr_employee_action_history(osv.osv):
                                                                                           'payroll_area_id':action_history.payroll_area_id and action_history.payroll_area_id.id or False,
 #                                                                                           'payroll_sub_area_id':action_history.payroll_sub_area_id and action_history.payroll_sub_area_id.id or False,
                                                                                           'department_id': action_history.department_to_id.id and action_history.department_to_id.id or action_history.department_from_id.id})
+        if context.get('create_section_transfer_employee'):
+            action_history = self.browse(cr, uid, new_id)
+            self.pool.get('hr.employee').write(cr, uid, [action_history.employee_id.id], {'section_id': action_history.section_to_id.id and action_history.section_to_id.id or action_history.section_from_id.id, 
+                                                                                          'department_id': action_history.department_to_id.id and action_history.department_to_id.id or action_history.department_from_id.id})    
             
         return new_id
     
@@ -952,37 +983,69 @@ class meals_deduction(osv.osv):
         res = {}
         for line in self.browse(cr,uid,ids,context=context):
             #raise osv.except_osv(_('Warning!'),_(sql))
+            details_obj = self.pool.get('meals.deduction')
+            details_ids = details_obj.browse(cr,uid,ids[0])
+            
+            bf = 0
+            lunch = 0
+            dinner = 0
+            mid_dinner = 0
+            
             res[line.id] = {
-                'no_of_bf': 0.0,
-                'no_of_lunch': 0.0,
-                'no_of_dinner': 0.0,
-                'no_of_dinner': 0.0, 
-                'no_of_mid_dinner': 0.0,
-            }
-
-            sql = '''select count(*) from meals_details where meals_id=%s
-             and break_fast='t' '''%line.id
-            cr.execute(sql)
-            p = cr.fetchone()
-            bf = p[0]
-            
-            sql = '''select count(*) from meals_details where meals_id=%s
-             and lunch='t' '''%line.id
-            cr.execute(sql)
-            p = cr.fetchone()
-            lunch = p[0]
-            
-            sql = '''select count(*) from meals_details where meals_id=%s
-             and dinner='t' '''%line.id
-            cr.execute(sql)
-            p = cr.fetchone()
-            dinner = p[0]
-            
-            sql = '''select count(*) from meals_details where meals_id=%s
-             and midnight_tiffin='t' '''%line.id
-            cr.execute(sql)
-            p = cr.fetchone()
-            mid_dinner = p[0]
+                    'no_of_bf': 0.0,
+                    'no_of_lunch': 0.0,
+                    'no_of_dinner': 0.0,
+                    'no_of_dinner': 0.0, 
+                    'no_of_mid_dinner': 0.0,
+                }
+            if details_ids.meals_for=='employees':
+                sql = '''select count(*) from meals_details where meals_id=%s
+                 and break_fast='t' '''%line.id
+                cr.execute(sql)
+                p = cr.fetchone()
+                bf = p[0]
+                
+                sql = '''select count(*) from meals_details where meals_id=%s
+                 and lunch='t' '''%line.id
+                cr.execute(sql)
+                p = cr.fetchone()
+                lunch = p[0]
+                
+                sql = '''select count(*) from meals_details where meals_id=%s
+                 and dinner='t' '''%line.id
+                cr.execute(sql)
+                p = cr.fetchone()
+                dinner = p[0]
+                
+                sql = '''select count(*) from meals_details where meals_id=%s
+                 and midnight_tiffin='t' '''%line.id
+                cr.execute(sql)
+                p = cr.fetchone()
+                mid_dinner = p[0]
+            if details_ids.meals_for=='others':
+                sql = '''select case when sum(break_fast_num)=0 then 0 else sum(break_fast_num) end as break_fast_num from meals_details where meals_id=%s
+                 '''%line.id
+                cr.execute(sql)
+                p = cr.fetchone()
+                bf = p[0]
+                
+                sql = '''select case when sum(lunch_num)=0 then 0 else sum(lunch_num) end as lunch_num from meals_details where meals_id=%s
+                  '''%line.id
+                cr.execute(sql)
+                p = cr.fetchone()
+                lunch = p[0]
+                
+                sql = '''select case when sum(dinner_num)=0 then 0 else sum(dinner_num) end as dinner_num from meals_details where meals_id=%s
+                '''%line.id
+                cr.execute(sql)
+                p = cr.fetchone()
+                dinner = p[0]
+                
+                sql = '''select case when sum(midnight_tiffin_num)=0 then 0 else sum(midnight_tiffin_num) end as midnight_tiffin_num from meals_details where meals_id=%s
+                  '''%line.id
+                cr.execute(sql)
+                p = cr.fetchone()
+                mid_dinner = p[0]
             
             res[line.id]['no_of_bf'] = bf
             res[line.id]['no_of_lunch'] = lunch
@@ -1168,7 +1231,7 @@ class meals_details(osv.osv):
         'employee_amt' : fields.function(evaluate_amt,digits=(16,2),type='float',string='Employee Amt',multi='sum',store=True), 
         'free_cost_1' : fields.many2one('food.subsidy', 'Free Cost 1',ondelete='restrict'),
         'free_cost_2' : fields.many2one('food.subsidy', 'Free Cost 2',ondelete='restrict'),
-        'meals_id': fields.many2one('meals.deduction','Meal Deduction',ondelete='restrict'),
+        'meals_id': fields.many2one('meals.deduction','Meal Deduction',ondelete='cascade'),
     }
     
 meals_details()
@@ -1325,3 +1388,121 @@ class employee_leave_detail(osv.osv):
 employee_leave_detail()
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
 
+
+class tpt_hr_training_header(osv.osv):
+    _name = "tpt.hr.training.header"
+    def _total_no_of_emp(self, cr, uid, ids, field_name, args, context=None):
+        res = {}
+        for line in self.browse(cr,uid,ids,context=context):
+            training_obj = self.pool.get('tpt.hr.training.header')
+            training_ids = training_obj.browse(cr,uid,ids[0])
+            
+            total_emp = 0
+
+            res[line.id] = {
+                    'no_of_emp': 0.0, 
+                }
+            
+            sql = '''select case when count(*)=0 then 0 else count(*) end as total_emp from tpt_hr_training_line where training_id=%s
+                 '''%line.id
+            cr.execute(sql)
+            p = cr.fetchone()
+            total_emp = p[0]
+
+            res[line.id]['no_of_emp'] = total_emp  
+           
+        return res
+    
+    _columns = {   
+        'name': fields.char('Document No.'), 
+        'training_name': fields.char('Training Name'), 
+        'training_line': fields.one2many('tpt.hr.training.line', 'training_id', 'Employee Training'),
+        'training_master_id':fields.many2one('tpt.hr.training','Name of Training'),
+        'deliver_date': fields.date('Date Of Delivery'),
+        'effective_date': fields.date('Effective Date'),
+        'to_date': fields.date('To Date'),    
+        'site_name': fields.char('Name of Site/Plant'), 
+        'training_company': fields.char('Training Company'),     
+        'faculty_name': fields.char('Name of Faculty'),  
+        'time_from': fields.float('Start Time'), 
+        'time_to': fields.float('End Time'), 
+        'no_of_emp': fields.function(_total_no_of_emp, type='float',  string='No.of Employees Attended', multi='no_of_employees'),
+        'create_date': fields.datetime('Created Date',readonly = True), 
+        'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
+    }
+    _defaults={
+               'name':'/',     
+    }
+    #===========================================================================
+    def create(self, cr, uid, vals, context=None):
+         
+         if vals.get('name','/')=='/':
+            vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.emp.training.import') or '/'
+         return super(tpt_hr_training_header, self).create(cr, uid, vals, context)
+     
+    # def write(self, cr, uid, ids, vals, context=None):
+    #     ptax_obj = self.pool.get('tpt.hr.ptax') 
+    #     ptax_obj_id = ptax_obj.browse(cr,uid,ids[0])
+    #     if 'from_date' in vals :
+    #         vals.update({'name':'From '+str(vals['from_date'])+ ' to '+str(ptax_obj_id.to_date),
+    #                      })
+    #     if 'to_date' in vals :
+    #         vals.update({'name':'From '+str(ptax_obj_id.from_date)+ ' to '+str(vals['to_date']),
+    #                      })
+    #     new_write = super(tpt_hr_training_header, self).write(cr, uid,ids, vals, context)
+    #     return new_write
+    #===========================================================================
+tpt_hr_training_header()
+
+class tpt_hr_training_line(osv.osv):
+    _name = "tpt.hr.training.line"
+    _order = "employee_id asc"
+    _columns = {   
+        'training_id': fields.many2one('tpt.hr.training.header', 'Training'),
+        'employee_id':fields.many2one('hr.employee','Name of Attendees'),
+        'designation_id':fields.many2one('hr.job','Designation'),
+    
+    }
+    def create(self, cr, uid, vals, context=None):
+        if vals['employee_id']:
+            emp_id = self.pool.get('hr.employee').browse(cr, uid, vals['employee_id'])
+            vals.update(
+                    {'designation_id':emp_id.job_id.id}
+                    )
+            new_id = super(tpt_hr_training_line, self).create(cr, uid, vals, context)
+        return new_id
+    def onchange_employee_id(self, cr, uid, ids,employee_id=False, context=None):
+        if employee_id:
+            emp_id = self.pool.get('hr.employee').browse(cr, uid, employee_id)
+            return {'value': {'designation_id': emp_id.job_id.id }}
+        
+tpt_hr_training_line()
+
+class tpt_hr_training(osv.osv):
+    _name = "tpt.hr.training"
+    _columns = {  
+        'code': fields.char('Code'), 
+        'name': fields.char('Title'), 
+        'desc': fields.char('Description'), 
+        
+    }
+    #===========================================================================
+    # def create(self, cr, uid, vals, context=None):
+    #     vals.update({'name':'Between Rs.'+str(vals['from_range'])+ ' to Rs.'+str(vals['to_range']),
+    #                     })
+    #     return super(tpt_hr_training, self).create(cr, uid, vals, context)
+    # 
+    # def write(self, cr, uid, ids, vals, context=None):
+    #     ptax_obj = self.pool.get('tpt.hr.ptax.slab') 
+    #     ptax_obj_id = ptax_obj.browse(cr,uid,ids[0])
+    #     if 'from_range' in vals:
+    #         
+    #         vals.update({'name':'Between Rs.'+str(vals['from_range'])+ ' to Rs.'+str(ptax_obj_id.to_range),
+    #                      })
+    #     if 'to_range' in vals:
+    #         vals.update({'name':'Between Rs.'+str(ptax_obj_id.from_range)+ ' to Rs.'+str(vals['to_range']),
+    #                      })
+    #     new_write = super(tpt_hr_training, self).write(cr, uid,ids, vals, context)
+    #     return new_write
+    #===========================================================================
+tpt_hr_training()

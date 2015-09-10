@@ -101,8 +101,7 @@ class input_register_form(osv.osv_memory):
             return decamount
         #YuVi
             
-        def get_grn_date(inv_id):
-            print inv_id           
+        def get_grn_date(inv_id):      
             sql = '''
                   select date from stock_picking where id in (select grn_no from account_invoice where id = %s)
                   '''%(inv_id)

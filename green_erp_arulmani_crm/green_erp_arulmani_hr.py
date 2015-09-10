@@ -100,7 +100,7 @@ class hr_employee(osv.osv):
     _columns = {
                 'employee_id': fields.char('Employee ID',size=128,readonly=True,store=True),
                 'plant_id' : fields.many2one('hr.plant', 'Plant',ondelete='restrict'),
-                'date_of_joining' : fields.date('Date Of Joining', required=True),  
+                'date_of_joining' : fields.date('Date Of Joining'),  
                 'age_in_years': fields.integer('Age In Years'),
                 'age_in_yrs': fields.function(_age, string='Age in Yrs', multi='sums', help="Age."),
                 'place_of_birth': fields.many2one('res.country.state','State Of Birth',ondelete='restrict'),
@@ -164,6 +164,12 @@ class hr_employee(osv.osv):
                 'lta' : fields.float('LTA'),
                 'bonus' : fields.float('Bonus'),
 #                 'employee_active' : fields.boolean('Active'),
+                'marital': fields.selection([('single', 'Single'), 
+                                             ('married', 'Married'), 
+                                             ('widower', 'Widower'),
+                                             ('widow', 'Widow'),
+                                             ('divorced', 'Divorced')
+                                              ], 'Marital Status'),
                 
                 }
     _defaults = {
@@ -374,13 +380,14 @@ class hr_statutory (osv.osv):
     def _check_epf(self, cr, uid, ids, context=None):
         for record in self.browse(cr, uid, ids, context=context):
             record_ids = self.search(cr, uid, [('id','!=',record.id),('name','=',record.name)])
-            pension_ids = self.search(cr, uid, [('id','!=',record.id),('pension_no','=',record.pension_no)])
-            if pension_ids:
+            if record_ids:
                 raise osv.except_osv(_('Warning!'),_('EPF No. has already existed !'))
                 return False
-            if pension_ids:
-                raise osv.except_osv(_('Warning!'),_('Pension No. has already existed !'))
-                return False
+            if record.pension_no:
+                pension_ids = self.search(cr, uid, [('id','!=',record.id),('pension_no','=',record.pension_no)])
+                if pension_ids:
+                    raise osv.except_osv(_('Warning!'),_('Pension No. has already existed !'))
+                    return False
         return True
     _constraints = [
         (_check_epf, 'Identical Data', ['name']),

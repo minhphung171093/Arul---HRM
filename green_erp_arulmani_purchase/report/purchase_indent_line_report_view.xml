@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data> 
+	    <record id="tpt_purchase_indent_report_pdf" model="ir.actions.report.xml">
+		        <field name="name">tpt_purchase_indent_report_pdf</field>
+		        <field name="type">ir.actions.report.xml</field>
+		        <field name="model">tpt.purchase.indent.report</field>
+		        <field name="report_name">tpt_purchase_indent_report_pdf</field>
+		        <field name="report_type">aeroo</field>
+		        <field name="in_format">oo-ods</field>
+		        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-pdf'),('compatible_types','=','oo-ods')]"/>
+		        <field name="parser_loc">green_erp_arulmani_purchase/report/purchase_indent_line_report.py</field>
+		        <field name="report_rml">green_erp_arulmani_purchase/report/purchase_indent_line_report.ods</field>
+		        <field name="parser_state">loc</field>
+		        <field name="tml_source">file</field>
+		        <field name="attachment_use" eval="0"/>
+	    	</record>		    
+			
+			<report 
+				auto="True" 
+				menu="False"
+				id="tpt_purchase_indent_report_pdf" 
+				model="tpt.purchase.indent.report" 
+				name="tpt_purchase_indent_report_pdf"
+		        string="Purchase Indent Line Report"
+		        rml="green_erp_arulmani_purchase/report/purchase_indent_line_report.ods"/>
+		        
+		<record id="tpt_purchase_indent_report_xls" model="ir.actions.report.xml">
+	        <field name="name">tpt_purchase_indent_report_xls</field>
+	        <field name="type">ir.actions.report.xml</field>
+	        <field name="model">tpt.purchase.indent.report</field>
+	        <field name="report_name">tpt_purchase_indent_report_xls</field>
+	        <field name="report_type">aeroo</field>
+	        <field name="in_format">oo-ods</field>
+	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-xls'),('compatible_types','=','oo-ods')]"/>
+	        <field name="parser_loc">green_erp_arulmani_purchase/report/purchase_indent_line_report.py</field>
+	        <field name="report_rml">green_erp_arulmani_purchase/report/purchase_indent_line_report.ods</field>
+	        <field name="parser_state">loc</field>
+	        <field name="tml_source">file</field>
+	        <field name="attachment_use" eval="0"/>
+    	</record>		    
+		
+		<report 
+			auto="True" 
+			menu="False"
+			id="tpt_purchase_indent_report_xls" 
+			model="tpt.purchase.indent.report" 
+			name="tpt_purchase_indent_report_xls"
+	        string="Purchase Indent Line Report"
+	        rml="green_erp_arulmani_purchase/report/purchase_indent_line_report.ods"/>	             
+		    
+		<record id="view_tpt_purchase_indent_report" model="ir.ui.view">
+	        <field name="name">tpt.purchase.indent.report</field>
+	        <field name="model">tpt.purchase.indent.report</field>
+	        <field name="arch" type="xml">
+	            <form version='7.0' string="Purchase Indent Line Report" create="false" edit="false" delete="false">
+	            	<header>
+	            		<button name="print_report_xls" string="Print (.xls)" type="object" class="oe_highlight" />
+	            		<button name="print_report_pdf" string="Print (.pdf)" type="object" class="oe_highlight" />
+	            	</header>
+	            	<sheet>
+	            		<div class="oe_text_center">
+            			<b><field name="name" nolabel="1" class="oe_text_center oe_inline"/></b>
+            			</div>	            		
+            			<div class="oe_text_center">
+            			<field name="date_from" class="oe_text_center oe_inline"/>            			
+            			</div>
+            			<div class="oe_text_center">
+            			<field name="date_to" class="oe_text_center oe_inline"/> 
+            			</div>
+            			<div class="oe_text_center">
+            			<field name="pur_product_id" class="oe_text_center oe_inline"/> 
+            			</div>
+            			<div class="oe_text_center">
+            			<field name="department_id" class="oe_text_center oe_inline"/> 
+            			</div>
+            			<div class="oe_text_center">
+            			<field name="section_id" class="oe_text_center oe_inline"/> 
+            			</div>
+            			<div class="oe_text_center">
+            			<field name="requisitioner" class="oe_text_center oe_inline"/> 
+            			</div>
+            			<div class="oe_text_center">
+            			<field name="project_id" class="oe_text_center oe_inline"/> 
+            			</div>
+            			<div class="oe_text_center">
+            			<field name="project_section_id" class="oe_text_center oe_inline"/> 
+            			</div>
+            			<div class="oe_text_center">
+            			<field name="state" class="oe_text_center oe_inline"/> 
+            			</div>
+            			<group>
+		                	<field name="purchase_indent_line_id" nolabel='1'>
+		                		<tree create="false" edit="false" delete="false">
+		                			<field name="ind_no"/>
+		                			<field name="ind_date"/>                			
+		                			<field name="doc_type"/>
+		                			<field name="dep"/>
+		                			<field name="sec"/>		                			
+		                			<field name="requi"/>
+		                			<field name="mat_code"/>
+		                			<field name="mat_desc"/>
+		                			<field name="proj"/>
+		                			<field name="proj_sec"/>
+		                			<field name="uom"/>
+		                			<field name="unit_price"/>
+		                			<field name="ind_qty"/>
+		                			<field name="res_qty"/>
+		                			<field name="pend_qty"/>
+		                			<field name="on_hand_qty"/>		                			
+		                			<field name="tot"/>
+		                			<field name="state"/>		                			
+		                		</tree>
+		                	</field>
+	                	</group>
+	               	</sheet>
+	           </form>
+	        </field>
+	    </record>      
+		        
+      <!--  <record id="purchase_indent_line_report" model="ir.actions.report.xml">
+	        <field name="name">purchase_indent_line_report</field>
+	        <field name="type">ir.actions.report.xml</field>
+	        <field name="model">purchase.indent.line.report</field>
+	        <field name="report_name">purchase_indent_line_report</field>
+	        <field name="report_type">aeroo</field>
+	        <field name="in_format">oo-ods</field>
+	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-xls')]"/>
+	        <field name="parser_loc">green_erp_arulmani_purchase/report/purchase_indent_line_report.py</field>
+	        <field name="report_rml">green_erp_arulmani_purchase/report/purchase_indent_line_report.ods</field>
+	        <field name="parser_state">loc</field>
+	        <field name="tml_source">file</field>
+	        <field name="attachment_use" eval="0"/>
+    	</record>		    
+		
+		<report 
+			auto="True"
+			menu="False"
+			id="purchase_indent_line_report"
+			model="purchase.indent.line.report" 
+			name="purchase_indent_line_report"
+	        string="Purchase Indent Line Report"
+	        rml="green_erp_arulmani_purchase/report/purchase_indent_line_report.ods"/> -->
+          	
+    </data>
+</openerp>

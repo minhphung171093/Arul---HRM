@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>   
+        <record id="view_service_tax_register" model="ir.ui.view">
+            <field name="name">service.tax.register</field>
+            <field name="model">service.tax.register</field>
+            <field name="arch" type="xml">
+                <form string="Service Tax Register Report" version="7.0">
+                	<group>                	  
+                	    <field name="date_from" />
+                	    <field name="date_to" />
+                	    <field name='account_id' options="{'create': false, 'create_edit': false}"/>
+                	    <field name='assessee_id'/>
+                	    <field name='serv_tax_reg_no'/>              	    	                                                  
+                 	</group>
+                    <footer>
+                        <button name="print_report" string="Print" type="object" class="oe_highlight" context="{'type':'appointments'}"/>
+                        <button string="Cancel" class="oe_link" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>        
+        <record id="action_service_tax_register" model="ir.actions.act_window">
+            <field name="name">Service Tax Register Report</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">service.tax.register</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+        </record>
+        
+        <menuitem id="menu_tpt_accounting" name="Accounting" parent="account.menu_finance" sequence="0" groups="green_erp_arulmani_sale.group_vvti_unit_account"/>
+        <menuitem action="action_service_tax_register"
+            id="menu_action_service_tax_register"
+            parent="menu_tpt_accounting" sequence="22"/>
+        
+        
+    </data>
+</openerp>
+

@@ -39,6 +39,8 @@
         'report/report_stock_inward_outward_view.xml',
         'report/report_stock_movement_analysis_view.xml',
         'report/tpt_raw_stock_statement_report_view.xml',
+        'report/material_request_consumption_report_view.xml',
+        'report/grn_line_details_report_view.xml',
         'wizard/tick_purchase_chart_view.xml',
         'wizard/alert_form_purchase_view.xml',
         'wizard/alert_form_line_view.xml',
@@ -48,6 +50,11 @@
         'wizard/load_line_from_indent_form_view.xml',
         'wizard/stock_inward_outward_report_view.xml',
         'wizard/raw_material_stock_statement_report_view.xml',
+        'wizard/material_request_line_view.xml',
+        'wizard/grn_line_view.xml',
+        'wizard/purchase_indent_line_view.xml',
+        'report/purchase_indent_line_report_view.xml',
+
         'purchase_view.xml',
         'stock_view.xml',
         'tpt_purchase_view.xml',
@@ -56,6 +63,7 @@
         'menu_inherit_view.xml',
         'import_view.xml',
         'purchase_stock_data.xml',
+        'wizard/stock_pur_view.xml',
     ],
     'css' : [
     ],

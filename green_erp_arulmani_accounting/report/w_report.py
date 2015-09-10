@@ -67,8 +67,9 @@ class Parser(report_sxw.rml_parse):
             from (
             select ail.invoice_id,i.name as inv_doc,i.date_invoice,i.bill_number,i.bill_date,at.name as tax_name,
             rp.name as partnername,rp.tin, 
-            p.name_template as productname,
-            sum(ail.quantity) over (partition by ail.invoice_id,ailt.tax_id) as vatbased_qty,
+            ail.name as productname,
+            ail.quantity  as vatbased_qty,
+            --sum(ail.quantity) over (partition by ail.invoice_id,ailt.tax_id) as vatbased_qty,
             sum(ail.line_net-ail.fright) over (partition by ail.invoice_id,ailt.tax_id) as vatbased_amt,
             ailt.tax_id,at.amount as taxamt,
             pu.name as uom,ail.line_net-ail.fright as line_net
