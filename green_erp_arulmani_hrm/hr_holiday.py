@@ -10376,32 +10376,37 @@ class tpt_hr_attendance(osv.osv):
             if punch_type=='OUT':
                 out_time = float(hour)+float(min)/60+float(sec)/3600
                 attend_temp_obj_ids = attend_temp_obj.search(cr, uid, [('employee_id','=',employee_id), ('work_date','=',work_date_format)]) 
-                exist_emp_obj = attend_temp_obj.browse(cr,uid,attend_temp_obj_ids[0])
-                
-                if not exist_emp_obj: 
-                        attend_temp_obj.create(cr, uid, {
-                                 'employee_id': employee_id,
-                                 'work_date': work_date_format,
-                                 'in_time': 0,
-                                 'out_time': out_time,
-                                  }) 
-                        attend_obj.write(cr, uid, time_entry.id, {'is_processed':'t'})
-                else:
-                        exist_in_time = exist_emp_obj.in_time
-                        punch_in_date = exist_emp_obj.work_date
-                        attend_temp_obj.write(cr, uid, [exist_emp_obj.id], {
+                if attend_temp_obj_ids:
+                    exist_emp_obj = attend_temp_obj.browse(cr,uid,attend_temp_obj_ids[0])
+                    exist_in_time = exist_emp_obj.in_time
+                    punch_in_date = exist_emp_obj.work_date
+                    attend_temp_obj.write(cr, uid, [exist_emp_obj.id], {
                                  'employee_id': employee_id,
                                  'work_date': work_date_format,
                                  'in_time': exist_in_time,
                                  'out_time': out_time,
                                   }) 
                         
-                        self.auto_approve_to_attendance(cr, uid, employee_id, work_date_format, exist_in_time, out_time, shift_id, 
+                    self.auto_approve_to_attendance(cr, uid, employee_id, work_date_format, exist_in_time, out_time, shift_id, 
                                                         time_entry.employee_id,  punch_in_date)
-                        attend_temp_obj.write(cr, uid, [exist_emp_obj.id], {
+                    attend_temp_obj.write(cr, uid, [exist_emp_obj.id], {
                                  'is_auto_approved': True,
                                   })    
-                        attend_obj.write(cr, uid, time_entry.id, {'is_processed':'t'})
+                    attend_obj.write(cr, uid, time_entry.id, {'is_processed':'t'})
+                else:
+                    attend_temp_obj.create(cr, uid, {
+                                 'employee_id': employee_id,
+                                 'work_date': work_date_format,
+                                 'in_time': 0,
+                                 'out_time': out_time,
+                                  }) 
+                    attend_obj.write(cr, uid, time_entry.id, {'is_processed':'t'})
+                #===============================================================
+                # if not exist_emp_obj: 
+                #         
+                # else:
+                #===============================================================
+                        
             ###
             #attend_obj.write(cr, uid, time_entry.id, {'is_processed':'t'})
             ###
