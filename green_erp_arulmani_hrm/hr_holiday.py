@@ -10665,13 +10665,14 @@ class tpt_time_data_move(osv.osv):
                 attn_obj.create(cr, uid, vals)
             ntm_ids = str(ntm_ids).replace("[", "")
             ntm_ids = ntm_ids.replace("]", "")
-            sql = '''
-            update hr_attendance set is_moved='t' where id in (%s)
-            '''%ntm_ids
-            from_cursor.execute(sql)
+            if len(ntm_ids)>=1:
+                sql = '''
+                update hr_attendance set is_moved='t' where id in (%s)
+                '''%ntm_ids
+                from_cursor.execute(sql)
+                from_conn.commit()
             
-            
-            print "TIME DATA MOVED"
+                print "TIME DATA MOVED"
             return True
     def upload_employee(self, cr, uid, context=None):
         time_obj = self.pool.get('tpt.time.data.move')
@@ -10693,8 +10694,6 @@ class tpt_time_data_move(osv.osv):
             emp_ids = [r[0] for r in cr.fetchall()]
             for emp in emp_obj.browse(cr, uid, emp_ids):
                 #Get Employee ID
-                if emp.id==2:
-                    print "test"
                 sql = '''
                 select id from hr_employee where employee_id='%s'
                 '''%emp.employee_id
@@ -10713,11 +10712,13 @@ class tpt_time_data_move(osv.osv):
                     update hr_employee set rfid='%s' where id=%s
                     '''%(emp.rfid, ntm_emp_id[0])
                     from_cursor.execute(sql)
+                    from_conn.commit()
                     #Update Exsinting Resources                
                     sql = '''
                     update resource_resource set rfid='%s' where id=%s
                     '''%(emp.rfid, ntm_resource_id[0])
                     from_cursor.execute(sql)
+                    from_conn.commit()
                 else:
                     rfid = emp.rfid
                     if not rfid:
@@ -10731,6 +10732,7 @@ class tpt_time_data_move(osv.osv):
                      '%s',  True,  'user', '%s')
                     '''%(emp.name_related, rfid)
                     from_cursor.execute(sql)
+                    from_conn.commit()
                     #
                     sql = '''
                     select id from resource_resource where name='%s'
@@ -10748,11 +10750,12 @@ class tpt_time_data_move(osv.osv):
                      '%s', '%s', %s)
                     '''%(emp.employee_id, emp.name_related, rfid, resource_id)
                     from_cursor.execute(sql)
+                    from_conn.commit()
                     
                     
             ###
             
             
-            print "TIME DATA MOVED"
+            print "EMPLOYEE DATA MOVED"
             return True
 tpt_time_data_move()
