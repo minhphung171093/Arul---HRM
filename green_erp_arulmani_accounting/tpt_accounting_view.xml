@@ -2875,18 +2875,18 @@
                         	<div col='4' colspan='4'>
 	                            <field name="reconciliation_line" nolabel='1'>
 	                                <tree string="Voucher Items" create='false' delete='false' editable="bottom">
-	                                    <field name="doc_type" readonly='1'/>
-	                                    <field name="partner_id" readonly='1'/>
-	                                    <field name="name" string="Voucher No" readonly='1'/>
-	                                    <field name="date" string="Payment Date" readonly='1'/>
-	                         <!--           <field name="reference" string="Payment Ref"  readonly='1'/>  -->
-	                                    <!--<field name="account_id" readonly='1'/>
+	                                	<field name="date" string="Payment Date" readonly='1'/>
+	                                	<field name="name" string="Voucher No" readonly='1'/>
+	                                	<field name="partner_id" readonly='1'/>
+	                         			<!-- <field name="reference" string="Payment Ref"  readonly='1'/>  
+	                                    <field name="account_id" readonly='1'/>
 	                                    <field name="amount" readonly='1'/>-->
 	                                    <field name="cheque_date" readonly='1'/>
 	                                    <field name="cheque_no" readonly='1'/>
 	                                    <field name="debit" readonly='1'/>
 	                                    <field name="credit" readonly='1'/>
 	                                    <field name="reconciliation_date" attrs="{'readonly': [('cheque_no','in',['Total','Net Balance'])]}"/>
+	                                    <field name="doc_type" readonly='1'/>
 	                                </tree>
 	                            </field>
                             </div>

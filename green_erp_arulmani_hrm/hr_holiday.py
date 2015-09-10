@@ -10289,7 +10289,7 @@ tpt_coff_register()
 #===============================================================================
 
 #===============================================================================
-# TPT-START: NEW TIME MACHINE INTEGRATION
+# TPT-START: NEW TIME MACHINE INTEGRATION - ON 
 # -Time Office Local system has "hr_attendance" table. This table is at synch with Time Machine
 # -We need to copy this table to Staging/Production Server's tpt_hr_attendance
 #===============================================================================
@@ -10645,19 +10645,30 @@ class tpt_time_data_move(osv.osv):
             # '''
             #===================================================================
             sql = '''
-                select employee_id, name, action from hr_attendance
+                select employee_id, name, action, id from hr_attendance where is_moved='f'
             '''
             from_cursor.execute(sql)
             time_ids = from_cursor.fetchall()
             
             attn_obj = self.pool.get('tpt.hr.attendance')
             vals = []
+            ntm_ids = ''
             for time in time_ids:
                 vals = {'employee_id':time[0],
                         'work_date':time[1],
-                        'punch_type':time[2],
+                        'punch_type':time[2],     
                         }
+                if ntm_ids=='':
+                    ntm_ids = ntm_ids + str(time[3])
+                else:
+                    ntm_ids = ntm_ids +', '+ str(time[3])
                 attn_obj.create(cr, uid, vals)
+            ntm_ids = str(ntm_ids).replace("[", "")
+            ntm_ids = ntm_ids.replace("]", "")
+            sql = '''
+            update hr_attendance set is_moved='t' where id in (%s)
+            '''%ntm_ids
+            from_cursor.execute(sql)
             
             
             print "TIME DATA MOVED"
@@ -10671,20 +10682,6 @@ class tpt_time_data_move(osv.osv):
             from_db_conn_string = "host='%s' port='%s' dbname='%s' user='%s' password='%s'"%(line.from_host, line.from_db_port, line.from_database, line.from_db_username, line.from_db_password)
             from_conn = psycopg2.connect(from_db_conn_string)
             from_cursor = from_conn.cursor()
-            sql = '''
-                select employee_id, name, action from hr_attendance
-            '''
-            from_cursor.execute(sql)
-            time_ids = from_cursor.fetchall()
-            
-            attn_obj = self.pool.get('tpt.hr.attendance')
-            vals = []
-            for time in time_ids:
-                vals = {'employee_id':time[0],
-                        'work_date':time[1],
-                        'punch_type':time[2],
-                        }
-                attn_obj.create(cr, uid, vals)
             
             ###
             emp_obj = self.pool.get('hr.employee')
@@ -10692,23 +10689,40 @@ class tpt_time_data_move(osv.osv):
             sql = '''
             select id from hr_employee where resource_id in (select id from resource_resource where active in ('t'))
             '''
-            self.cr.execute(sql)
-            emp_ids = [r[0] for r in self.cr.fetchall()]
-            for emp in emp_obj.browse(self.cr, self.uid, emp_ids):
+            cr.execute(sql)
+            emp_ids = [r[0] for r in cr.fetchall()]
+            for emp in emp_obj.browse(cr, uid, emp_ids):
+                #Get Employee ID
+                if emp.id==2:
+                    print "test"
                 sql = '''
-                select employee_id from hr_attendance where id=%s
-                '''%epm.id
+                select id from hr_employee where employee_id='%s'
+                '''%emp.employee_id
                 from_cursor.execute(sql)
-                emp_ids = from_cursor.fetchall()
-                if emp_ids:
+                ntm_emp_id = from_cursor.fetchone()
+                #Get Resource ID
+                sql = '''
+                select id from resource_resource where name='%s'
+                '''%emp.name_related
+                from_cursor.execute(sql)
+                ntm_resource_id = from_cursor.fetchone()
+                
+                if ntm_emp_id and ntm_resource_id:
+                    #Update Exsting Employees
                     sql = '''
                     update hr_employee set rfid='%s' where id=%s
-                    '''%emp.id
+                    '''%(emp.rfid, ntm_emp_id[0])
+                    from_cursor.execute(sql)
+                    #Update Exsinting Resources                
+                    sql = '''
+                    update resource_resource set rfid='%s' where id=%s
+                    '''%(emp.rfid, ntm_resource_id[0])
                     from_cursor.execute(sql)
                 else:
                     rfid = emp.rfid
                     if not rfid:
                         rfid = ''
+                    #Create Entry in reource_resource table if not
                     sql = '''
                     INSERT INTO resource_resource(
                      create_uid, create_date, write_date, write_uid, time_efficiency,
@@ -10725,11 +10739,12 @@ class tpt_time_data_move(osv.osv):
                     r_id = from_cursor.fetchone()
                     resource_id = r_id[0]
                     
+                    #Create Entry in hr_employee table if not
                     sql = '''
                     INSERT INTO hr_employee(
                      create_uid, create_date, write_date, write_uid, employee_id,
                       name_related, rfid, resource_id)
-                    VALUES ( 1, current_date,  current_date, 1, '%s'
+                    VALUES ( 1, current_date,  current_date, 1, '%s',
                      '%s', '%s', %s)
                     '''%(emp.employee_id, emp.name_related, rfid, resource_id)
                     from_cursor.execute(sql)
