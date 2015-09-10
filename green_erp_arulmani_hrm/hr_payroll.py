@@ -1102,8 +1102,8 @@ class arul_hr_payroll_executions(osv.osv):
             emp_ids = []
             emp_ids = [r[0] for r in cr.fetchall()]
             employee_ids = employee_ids+emp_ids
-            print "1: %s "%emp_ids
-            print "2: %s "%employee_ids
+            #print "1: %s "%emp_ids
+            #print "2: %s "%employee_ids
             ### TPT-END
             
             for p in emp_obj.browse(cr,uid,employee_ids):
@@ -1758,6 +1758,8 @@ class arul_hr_payroll_executions(osv.osv):
                                             prev_total_earning +=   earning.float
                             #raise osv.except_osv(_('Warning !'), _(prev_total_earning))
                             ptax_total_earning = prev_total_earning + total_earning 
+                            if ptax_total_earning<0:
+                                ptax_total_earning = 0
                             sql = '''
                                     select  pl.ptax_amt ptax_amt from tpt_hr_ptax_line pl
                                         inner join tpt_hr_ptax_slab sl on pl.slab_id=sl.id
@@ -2181,6 +2183,8 @@ class arul_hr_payroll_executions(osv.osv):
                                         if earning.earning_parameters_id.code=='TOTAL_EARNING':
                                             prev_total_earning += earning.float
                             ptax_total_earning = prev_total_earning + total_earning
+                            if ptax_total_earning<0:
+                                ptax_total_earning = 0
                             sql = '''
                                     select  pl.ptax_amt ptax_amt from tpt_hr_ptax_line pl
                                         inner join tpt_hr_ptax_slab sl on pl.slab_id=sl.id
@@ -2616,8 +2620,10 @@ class arul_hr_payroll_executions(osv.osv):
                                         if earning.earning_parameters_id.code=='TOTAL_EARNING':
                                             prev_total_earning += earning.float
                             ptax_total_earning = prev_total_earning + total_earning
+                            if ptax_total_earning<0:
+                                ptax_total_earning = 0
                             sql = '''
-                                    select  pl.ptax_amt ptax_amt from tpt_hr_ptax_line pl
+                                    select  case when pl.ptax_amt>0 then pl.ptax_amt else 0 end ptax_amt from tpt_hr_ptax_line pl
                                         inner join tpt_hr_ptax_slab sl on pl.slab_id=sl.id
                                         where %s between sl.from_range and sl.to_range
                                         and ptax_id = 

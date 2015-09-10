@@ -170,6 +170,8 @@
 	                    <field name="residual" invisible="1" sum="Residual Amount"/>
 	                    <field name="amount_untaxed" sum="Untaxed Amount"/>
 	                    <field name="amount_total" sum="Total Amount"/>
+	                    <field name="form_type" />
+	                    <field name="form_number" />
 	                    <field name="state" invisible="1"/>
 	                </tree>
 	           	</tree>

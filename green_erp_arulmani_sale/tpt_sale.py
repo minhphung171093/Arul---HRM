@@ -886,6 +886,7 @@ class sale_order(osv.osv):
             'company_id': order.company_id.id,
             'warehouse':warehouse,
         }
+        
     def onchange_date_order(self, cr, uid, ids, date_order=False, context=None):
         vals = {}
         current = time.strftime('%Y-%m-%d')
