@@ -5459,6 +5459,16 @@ class mrp_production(osv.osv):
                 raise osv.except_osv(_('Warning!'),_('Period is not null, please configure it in Period master !'))
 # neu co them freight vao trong report thi phai xac dinh lai price unit cho data moi = cach cong them value cua freight vao total_cost_in  
             if 'state' in vals and line.state=='done':
+                for p in line.move_created_ids2:
+                    prod_ware = self.pool.get('product.product').browse(cr, uid, p.product_id.id)
+                    if not prod_ware.prod_dest_id:
+                        raise osv.except_osv(_('Warning'), _('Production Destination Location is not null, please configure it in Product Master of %s !'%prod_ware.default_code))
+                    else:
+                        stock_move_obj.write(cr, 1, [p.id],{'location_dest_id':prod_ware.prod_dest_id.id})
+#                             sql = '''
+#                                 update stock_move set location_dest_id = %s where id = %s
+#                             '''%(prod_ware.prod_dest_id.id,p.id)
+#                             cr.execute(sql)
                 for mat in line.move_lines2:
                     categ = mat.product_id.categ_id.cate_name
                     if categ=='finish':
