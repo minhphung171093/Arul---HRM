@@ -10538,7 +10538,7 @@ class tpt_hr_attendance(osv.osv):
                 punch_io_values.update({'punch_in_out_id':employee_ids[0]}) 
                 punch_io_obj.create(cr,uid,punch_io_values)
                 ## C.OFF LOGIC
-                sql=''' SELECT work_date FROM arul_hr_punch_in_out_time WHERE TO_CHAR(work_date,'YYYY-MM-DD') = ('%s') and employee_id=%s '''%(work_date_format,employee_id)
+                sql=''' SELECT work_date FROM arul_hr_punch_in_out_time WHERE TO_CHAR(work_date,'YYYY-MM-DD') = ('%s') and employee_id=%s '''%(work_date_format,emp_root.id)
                 cr.execute(sql)                
                 same_work_date=cr.fetchone()
                 if same_work_date:
