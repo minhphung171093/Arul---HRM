@@ -1210,14 +1210,27 @@ class arul_hr_payroll_executions(osv.osv):
                 # AND EXTRACT(year FROM date) = %s AND EXTRACT(month FROM date) = %s and employee_id =%s and total_shift_worked>=1 and approval='t'
                 # '''%(line.year,line.month,p.id)
                 #===============================================================
+                
                 sql = '''
-                    select case when sum(total_shift_worked)!=0 then sum(total_shift_worked) else 0 end total_shift_worked from arul_hr_permission_onduty where shift_type='G2' and 
+                    select case when sum(total_shift_worked)!=0 then sum(total_shift_worked) else 0 end total_shift_worked 
+                    from arul_hr_permission_onduty where total_shift_worked=1 and 
                     EXTRACT(year FROM date) = %s AND EXTRACT(month FROM date) = %s and employee_id=%s
                     and approval='t'
                     '''%(line.year,line.month,p.id)
                 cr.execute(sql)
                 c =  cr.fetchone()
                 onduty_count = c[0]
+                
+                sql = '''
+                    select case when sum(total_shift_worked)!=0 then sum(total_shift_worked) else 0 end total_shift_worked 
+                    from arul_hr_permission_onduty where shift_type='G2' and 
+                    EXTRACT(year FROM date) = %s AND EXTRACT(month FROM date) = %s and employee_id=%s
+                    and approval='t'
+                    '''%(line.year,line.month,p.id)
+                cr.execute(sql)
+                c =  cr.fetchone()
+                g2_type = c[0]
+                onduty_count = onduty_count + g2_type
                 
                 #TOTAL SHIFT WORKED
                 total_shift_worked = 0.0    

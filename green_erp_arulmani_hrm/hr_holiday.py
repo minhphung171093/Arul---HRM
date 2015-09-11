@@ -10740,10 +10740,10 @@ class tpt_time_data_move(osv.osv):
                     sql = '''
                     INSERT INTO resource_resource(
                      create_uid, create_date, write_date, write_uid, time_efficiency,
-                      name,  active,  resource_type, rfid)
+                      name,  active,  resource_type, rfid, id)
                     VALUES ( 1, current_date,  current_date, 1, 0,
-                     '%s',  True,  'user', '%s')
-                    '''%(emp.name_related, rfid)
+                     '%s',  True,  'user', '%s', %s)
+                    '''%(emp.name_related, rfid, emp.id)
                     from_cursor.execute(sql)
                     from_conn.commit()
                     #
@@ -10758,10 +10758,10 @@ class tpt_time_data_move(osv.osv):
                     sql = '''
                     INSERT INTO hr_employee(
                      create_uid, create_date, write_date, write_uid, employee_id,
-                      name_related, rfid, resource_id)
+                      name_related, rfid, resource_id, id)
                     VALUES ( 1, current_date,  current_date, 1, '%s',
-                     '%s', '%s', %s)
-                    '''%(emp.employee_id, emp.name_related, rfid, resource_id)
+                     '%s', '%s', %s, %s)
+                    '''%(emp.employee_id, emp.name_related, rfid, resource_id, emp.id)
                     from_cursor.execute(sql)
                     from_conn.commit()
                     
