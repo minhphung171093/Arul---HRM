@@ -45,8 +45,8 @@ class res_company(osv.osv):
                 
                 'tin_no': fields.char('TIN', size=128),
                 'cst_no': fields.char('CST', size=128),
-                'ex_reg_no': fields.char('Excise Registration No', size=128),
-                'service_reg_no': fields.char('Service Registration No', size=128),
+                'ex_reg_no': fields.char('Excise Reg. No', size=128),
+                'service_reg_no': fields.char('Service Tax Reg. No', size=128),
                 'pan_no': fields.char('PAN', size=128),
                 'ie_code': fields.char('IE Code', size=128),            
                 }
