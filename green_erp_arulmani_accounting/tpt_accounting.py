@@ -6540,23 +6540,23 @@ class tpt_bank_reconciliation(osv.osv):
                 if line.reconciliation_date:
                     cr.execute(''' update account_voucher set reconciliation_date=%s,tpt_bank_re='t', status=%s where id=%s ''',(line.reconciliation_date,line.status, line.voucher_id.id,))
         
-        #Auto Reload
-        self.bt_load(cr, uid, ids, context)   
-        #
-        #Info - to view status of Processing
-        res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
-                                            'green_erp_arulmani_accounting', 'alert_bank_form_view')           
-        return {
-                                    'name': 'Information',
-                                    'view_type': 'form',
-                                    'view_mode': 'form',
-                                    'view_id': res[1],
-                                    'res_model': 'alert.form',
-                                    'domain': [],
-                                    'context': {'default_message':'Updated Successfully!','audit_id':ids[0]},
-                                    'type': 'ir.actions.act_window',
-                                    'target': 'new',
-                                }
+            #Auto Reload
+            self.bt_load(cr, uid, ids, context)   
+            #
+            #Info - to view status of Processing
+            res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
+                                                'green_erp_arulmani_accounting', 'alert_bank_form_view')           
+            return {
+                                        'name': 'Information',
+                                        'view_type': 'form',
+                                        'view_mode': 'form',
+                                        'view_id': res[1],
+                                        'res_model': 'alert.form',
+                                        'domain': [],
+                                        'context': {'default_message':'Updated Successfully!','audit_id':ids[0]},
+                                        'type': 'ir.actions.act_window',
+                                        'target': 'new',
+                                    }
         return True
     
     
