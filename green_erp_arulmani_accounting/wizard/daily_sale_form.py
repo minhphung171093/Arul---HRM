@@ -272,7 +272,7 @@ class daily_sale_form(osv.osv_memory):
                     'cst_tax':get_cst_tax(line.invoice_id.sale_tax_id, line.invoice_id.amount_untaxed) or 0.00,
                     'vat_tax':get_vat_tax(line.invoice_id.sale_tax_id, line.invoice_id.amount_untaxed) or 0.00,
                     'tcs_tax':get_tcs_tax(line.invoice_id.sale_tax_id, line.invoice_id.amount_untaxed) or 0.00,
-                    'freight':line.freight or 0.00,
+                    'freight':(line.freight * line.quantity) or 0.00,
                     'insurance':line.invoice_id.insurance or 0.00,
                     'other_charges':line.invoice_id.other_charges or 0.00,
                     'currency':line.invoice_id.currency_id and line.invoice_id.currency_id.name or '',
