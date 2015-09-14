@@ -10523,7 +10523,7 @@ class tpt_hr_attendance(osv.osv):
             work_shift_code=k[8] 
             work_shift_id=k[9]
             
-        if shift_count==1:
+        if shift_count==1  and shift_id:
             punch_io_values={'employee_id':emp_root.id,'planned_work_shift_id':shift_id,'actual_work_shift_id':work_shift_id,'work_date':work_date_format,
                             'in_time':in_time,'out_time':out_time,'work_shift_code':work_shift_code, 
                             'a_shift_count1':a_shift,
@@ -10602,6 +10602,12 @@ class tpt_hr_attendance(osv.osv):
                             'designation_id':emp_root.job_id and emp_root.job_id.id or False,
                             'punch_in_out_line':[(0,0,punch_io_values)]}) 
         elif a_shift==0 and g1_shift==0 and g2_shift==0 and b_shift==0 and c_shift==0 and shift_count==0:
+            ast_values={'employee_id':emp_root.id,'planned_work_shift_id':shift_id,'actual_work_shift_id':work_shift_id,'work_date':work_date_format,
+                        'punch_in_date':punch_in_date,'punch_out_date':work_date_format,'in_time':in_time,'out_time':out_time,
+                        'ref_in_time':in_time,'ref_out_time':out_time,'type':'punch','employee_category_id':emp_root.employee_category_id.id
+                        }
+            ast_obj.create(cr,uid,ast_values)
+        elif shift_count==1  and not shift_id:
             ast_values={'employee_id':emp_root.id,'planned_work_shift_id':shift_id,'actual_work_shift_id':work_shift_id,'work_date':work_date_format,
                         'punch_in_date':punch_in_date,'punch_out_date':work_date_format,'in_time':in_time,'out_time':out_time,
                         'ref_in_time':in_time,'ref_out_time':out_time,'type':'punch','employee_category_id':emp_root.employee_category_id.id
