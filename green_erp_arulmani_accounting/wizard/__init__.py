@@ -15,4 +15,5 @@ import account_report_common
 import service_tax_register #YuVi
 import ed_type_pop_up
 import daywise_consumption_form
+import alert_form
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

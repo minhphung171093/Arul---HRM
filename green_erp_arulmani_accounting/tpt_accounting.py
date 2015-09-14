@@ -6300,13 +6300,29 @@ class tpt_bank_reconciliation(osv.osv):
                 tt_credit = 0.0
                 voucher_obj = self.pool.get('account.voucher')
                 ###TPTT-START - By BalamuruganPurushothaman ON 10/09/2015 
+                is_reconciled = False
+                is_unreconciled = False
+                is_confirmed = False
+                ### FROM POSTING ENTRIES
+                sql = '''
+                select av.id from account_voucher av
+                inner join account_move am on av.move_id=am.id
+                inner join account_move_line aml on am.id=aml.move_id
+                where aml.account_id=(select id from account_account where id=%s)
+                '''%bank.name.id
+                cr.execute(sql)
+                voucher_ids = [r[0] for r in cr.fetchall()]
+                ###
                 if not bank.date:
                     if bank.action_type=='action_unreconcile':
-                        voucher_ids = voucher_obj.search(cr, uid, [('account_id','=',bank.name.id), ('status','=','unreconcile')])
+                        voucher_ids = voucher_obj.search(cr, uid, [('id','in',voucher_ids), ('status','=','unreconcile')])
+                        is_unreconciled = True
                     elif bank.action_type=='action_reconcile':
-                        voucher_ids = voucher_obj.search(cr, uid, [('account_id','=',bank.name.id), ('status','=','reconcile')])
+                        voucher_ids = voucher_obj.search(cr, uid, [('id','in',voucher_ids), ('status','=','reconcile')])
+                        is_reconciled = True
                     elif bank.action_type=='action_confirm':
-                        voucher_ids = voucher_obj.search(cr, uid, [('account_id','=',bank.name.id), ('status','in',['confirmed'])])
+                        voucher_ids = voucher_obj.search(cr, uid, [('id','in',voucher_ids), ('status','in',['confirmed'])])
+                        is_confirmed = True
                 #===============================================================
                 # if bank.date:
                 #     #voucher_ids = voucher_obj.search(cr, uid, [('account_id','=',bank.name.id),('reconciliation_date','=',False),('tpt_bank_re','=',False),('date','=',bank.date)])
@@ -6314,13 +6330,16 @@ class tpt_bank_reconciliation(osv.osv):
                 #===============================================================
                 else:
                     if bank.action_type=='action_unreconcile':
-                        voucher_ids = voucher_obj.search(cr, uid, [('account_id','=',bank.name.id), ('status','=','unreconcile'),('date','=',bank.date)])
+                        voucher_ids = voucher_obj.search(cr, uid, [('id','in',voucher_ids), ('status','=','unreconcile'),('date','=',bank.date)])
+                        is_unreconciled = True
                     elif bank.action_type=='action_reconcile':
-                        voucher_ids = voucher_obj.search(cr, uid, [('account_id','=',bank.name.id), ('status','=','reconcile'),('date','=',bank.date)])
+                        voucher_ids = voucher_obj.search(cr, uid, [('id','in',voucher_ids), ('status','=','reconcile'),('date','=',bank.date)])
+                        is_reconciled = True
                     elif bank.action_type=='action_confirm':
-                        voucher_ids = voucher_obj.search(cr, uid, [('account_id','=',bank.name.id), ('status','in',['confirmed']),('date','=',bank.date)])
+                        voucher_ids = voucher_obj.search(cr, uid, [('id','in',voucher_ids), ('status','in',['confirmed']),('date','=',bank.date)])
+                        is_confirmed = True
                 ###TPT-END
-                reconciliation_line = []                                                  
+                reconciliation_line = []                                                        
                 for voucher in voucher_obj.browse(cr, uid, voucher_ids):
                     doc_type = ''
                     debit = 0.0
@@ -6342,6 +6361,8 @@ class tpt_bank_reconciliation(osv.osv):
                     
                     tt_debit += debit
                     tt_credit += credit
+                    ###
+                    ###
                     reconciliation_line.append((0,0,{
                         'partner_id': voucher.partner_id and voucher.partner_id.id or False,
                         'name': voucher.number, #voucher.name, TPT-By Balamurugan Purushothaman on 10/09/2015
@@ -6357,6 +6378,9 @@ class tpt_bank_reconciliation(osv.osv):
                         'voucher_id': voucher.id,
                         'reconciliation_date':voucher.reconciliation_date,
                         'status': voucher.status,
+                        'is_reconciled': is_reconciled,
+                        'is_unreconciled': is_unreconciled,
+                        'is_confirmed': is_confirmed,
                     }))
                 reconciliation_line.append((0,0,{
                     'cheque_no': 'Total',
@@ -6390,10 +6414,49 @@ class tpt_bank_reconciliation(osv.osv):
                     vouchers = vouchers +'\n'+ row[0]                               
                 raise osv.except_osv(_('Status Can not be "Un_reconciled" for the following Vouchers: '),_(vouchers))
             ###
+            ###
+            sql = '''
+                select id from tpt_bank_reconciliation_line where status='confirmed' and reconciliation_date is not null
+                and is_unreconciled='t'
+                and bank_reconciliation_id=%s
+                '''%bank_reconciliation.id
+            cr.execute(sql)
+            uc_ids = [row[0] for row in cr.fetchall()]
+            if uc_ids:  
+                sql = '''
+                select name from tpt_bank_reconciliation_line where status='confirmed' and reconciliation_date is not null
+                and is_unreconciled='t'
+                and bank_reconciliation_id=%s
+                '''%bank_reconciliation.id
+                cr.execute(sql)
+                vouchers='' 
+                for row in cr.fetchall():
+                    vouchers = vouchers +'\n'+ row[0]                               
+                raise osv.except_osv(_('Status Can not be Changed to "Confirmed" directly from Un-Reconciled, for the following Vouchers: '),_(vouchers))
+            ###
             for line in bank_reconciliation.reconciliation_line:
                 if line.reconciliation_date:
                     cr.execute(''' update account_voucher set reconciliation_date=%s,tpt_bank_re='t', status=%s where id=%s ''',(line.reconciliation_date,line.status, line.voucher_id.id,))
+        
+        #Auto Reload
+        self.bt_load(cr, uid, ids, context)   
+        #
+        #Info - to view status of Processing
+        res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
+                                            'green_erp_arulmani_accounting', 'alert_bank_form_view')           
+        return {
+                                    'name': 'Information',
+                                    'view_type': 'form',
+                                    'view_mode': 'form',
+                                    'view_id': res[1],
+                                    'res_model': 'alert.form',
+                                    'domain': [],
+                                    'context': {'default_message':'Updated Successfully!','audit_id':ids[0]},
+                                    'type': 'ir.actions.act_window',
+                                    'target': 'new',
+                                }
         return True
+    
     
 tpt_bank_reconciliation()
 
@@ -6417,6 +6480,10 @@ class tpt_bank_reconciliation_line(osv.osv):
         
         'status': fields.selection([('reconcile', 'Reconciled'), ('unreconcile', 'Un-Reconciled'), 
                                     ('confirmed', 'Confirmed')],'Status'), 
+        
+        'is_reconciled':fields.boolean('Is Reconciled',readonly =True ), 
+        'is_unreconciled':fields.boolean('Is Un-Reconciled',readonly =True ),  
+        'is_confirmed':fields.boolean('Is Confirmed',readonly =True ),         
                 
     }
     
