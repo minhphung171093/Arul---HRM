@@ -2987,7 +2987,13 @@
 	                                    <field name="doc_type" readonly='1'/>
 	                                    <field name="reconciliation_date" attrs="{'readonly': [('cheque_no','in',['Total','Net Balance'])]}"
 	                                    			required='1'/>
-	                                    <field name="status" required='1'/>
+	                                    <field name="status"
+	                                    required='1' attrs="{'readonly': [('is_confirmed','=',True)]}"/>
+	                                    
+	                                    <field name="is_reconciled" invisible="1"/>
+	                                    <field name="is_unreconciled" invisible="1"/> 
+	                                    <field name="is_confirmed" invisible="1"/>  
+	                                    
 	                                </tree>
 	                            </field>
                             </div>

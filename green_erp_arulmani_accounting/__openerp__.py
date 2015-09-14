@@ -66,6 +66,7 @@
         'accounting_data.xml',
         'tpt_accounting_view.xml',
         'menu_inherit_view.xml',
+        'wizard/alert_form_view.xml',
     ],
     'css' : [
         "static/src/css/base.css",
