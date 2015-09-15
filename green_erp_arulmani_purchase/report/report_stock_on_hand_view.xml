@@ -90,6 +90,7 @@
 		                			<field name="onhand_qty_qa_ins"/>
 		                			<field name="onhand_qty_blocklist"/>       			
 		                			<field name="onhand_qty_pl_other"/>
+		                			<field name="onhand_qty_pl_rm"/> <!--TPT-  15/09/2015 -->     			
 		                			<field name="onhand_qty_st_fsh"/>
 		                			<field name="onhand_qty_st_tio2"/>
 		                			<!--

@@ -183,9 +183,23 @@ class Parser(report_sxw.rml_parse):
                         where st.state='done' and st.product_id = pp.id and 
                         st.location_id =(select id from stock_location where name='TIO2' and 
                         usage='internal' and location_id=(select id from stock_location where name='Store'))
-                    )foo) store_tio2                
+                    )foo) store_tio2,                 
             
-            
+            (select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton from 
+                    (
+                    select st.product_qty
+                        from stock_move st 
+                        where st.state='done' and st.product_id = pp.id and 
+                        st.location_dest_id =(select id from stock_location where name='Raw Material' and 
+                        usage='internal' and location_id=(select id from stock_location where name='Production Line'))
+                    union all
+                    select st.product_qty*-1
+                        from stock_move st 
+                        where st.state='done' and st.product_id = pp.id and 
+                        st.location_id =(select id from stock_location where name='Raw Material' and 
+                        usage='internal' and location_id=(select id from stock_location where name='Production Line'))
+                    )foo) pl_rm
+                     
             from product_product pp
             inner join product_template pt on pp.id=pt.id 
             inner join product_uom pu on pt.uom_id=pu.id
@@ -243,6 +257,7 @@ class Parser(report_sxw.rml_parse):
                  'onhand_qty_st_spare': line['store_spare'] or 0 ,
                  'onhand_qty_st_fsh': line['store_fsh'] or 0,
                  'onhand_qty_st_tio2': line['store_tio2'] or 0,  
+                 'onhand_qty_pl_rm': line['pl_rm'] or 0,
             })
         return res
         
