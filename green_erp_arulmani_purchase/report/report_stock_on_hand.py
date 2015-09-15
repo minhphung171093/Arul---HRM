@@ -201,7 +201,7 @@ class Parser(report_sxw.rml_parse):
                     )foo) pl_rm
                      
             from product_product pp
-            inner join product_template pt on pp.id=pt.id 
+            inner join product_template pt on pp.product_tmpl_id=pt.id 
             inner join product_uom pu on pt.uom_id=pu.id
             '''
             
@@ -246,12 +246,12 @@ class Parser(report_sxw.rml_parse):
                 'description': line['name'] or '',
                  'uom': line['uom'] or '',
                  'bin_loc': line['bin_location'] or '',
-                 'onhand_qty': line['onhand_qty'] or '',
+                 'onhand_qty': line['onhand_qty'] or 0,
                  #'mrp': line['mrp'] or '',
-                 'min_stock': line['min_stock'] or '',
-                 'max_stock': line['max_stock'] or '',
-                 're_stock': line['re_stock'] or '',
-                 'unit_price': line['standard_price'] or '',
+                 'min_stock': line['min_stock'] or 0,
+                 'max_stock': line['max_stock'] or 0,
+                 're_stock': line['re_stock'] or 0,
+                 'unit_price': line['standard_price'] or 0,
                  'onhand_qty_blocklist': line['block_qty'] or 0 ,
                  'onhand_qty_pl_other': line['pl_others'] or 0,
                  'onhand_qty_qa_ins': line['ins_qty'] or 0 , 
