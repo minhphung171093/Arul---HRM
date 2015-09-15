@@ -652,6 +652,8 @@ class stock_on_hand_report(osv.osv_memory):
             if not categ_id and product_id and is_mrp is True:
                 str = " pp.id = %s and pp.mrp_control = 't'" % (product_id)
                 sql = sql+str
+            str = " order by pp.default_code asc"
+            sql = sql+str
             cr.execute(sql)
             return cr.dictfetchall()
         ###
