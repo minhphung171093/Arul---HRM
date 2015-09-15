@@ -620,7 +620,7 @@ class stock_on_hand_report(osv.osv_memory):
             
             
             from product_product pp
-            inner join product_template pt on pp.id=pt.id 
+            inner join product_template pt on pp.product_tmpl_id=pt.id 
             inner join product_uom pu on pt.uom_id=pu.id
             '''
             
