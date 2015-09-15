@@ -237,5 +237,11 @@
         <menuitem action="action_tpt_map_price_material_form_view"
             id="menu_action_tpt_map_price_material_form_view"
             parent="purchase.menu_procurement_management" sequence="566"/>
+            
+            <record id="res_partner_title_ms" model="res.partner.title">
+            <field name="domain">contact</field>
+            <field name="name">M/S</field>
+            <field name="shortcut">M/S</field>
+        </record>
     </data>
 </openerp>
