@@ -237,6 +237,8 @@ class Parser(report_sxw.rml_parse):
         if not categ_id and product_id and is_mrp is True:
             str = " pp.id = %s and pp.mrp_control = 't'" % (product_id)
             sql = sql+str
+        str = " order by pp.default_code asc"
+        sql = sql+str
         self.cr.execute(sql)        
         for line in self.cr.dictfetchall():
             res.append({
