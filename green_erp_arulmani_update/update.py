@@ -3240,6 +3240,11 @@ class tpt_update_stock_move_report(osv.osv):
                 update stock_move set date = '%s' where id in (select move_id from mrp_production_move_ids where production_id = %s)
             '''%(production['date_planned'], production['id'])
             cr.execute(sql)
+        move_ids = self.pool.get('stock.move').search(cr, uid, [('production_id','!=',False)])
+        for line in move_ids:
+            line_id = self.pool.get('stock.move').browse(cr, uid, line)
+            if line_id.production_id:
+                self.pool.get('stock.move').write(cr, 1,[line_id.id],{'date':line_id.production_id.date_planned})
         return self.write(cr, uid, ids, {'result':'update_date_between_production_and_stockmove Done'})  
     
     def update_date_between_freight_and_accountmove(self, cr, uid, ids, context=None):
@@ -3750,7 +3755,15 @@ class tpt_update_stock_move_report(osv.osv):
                 picking_obj.action_revert_done(cr, uid, [num], context)
 
         
-        return self.write(cr, uid, ids, {'result':'config GRN 3451 3883 Done'})    
+        return self.write(cr, uid, ids, {'result':'config GRN 3451 3883 Done'})   
+    
+    def update_price_unit_for_production_declaration(self, cr, uid, ids, context=None):
+        if context is None:
+            context = {}
+        
+        production_obj = self.pool.get('mrp.production')
+        production_ids = production_obj.search(cr, uid, [('state','=','done')])
+        return self.write(cr, uid, ids, {'result':'update_price_unit_for_production_declaration Done'})  
     
 tpt_update_stock_move_report()
 

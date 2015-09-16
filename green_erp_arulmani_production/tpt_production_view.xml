@@ -300,6 +300,7 @@
 	                        <field name="description"/>
 		                    <field name="product_qty" string="Quantity"/>
 		                    <field name="product_uom" string="UOM" options="{'create': false, 'create_edit': false}" on_change="onchange_uom(product_id, product_uom)" groups="product.group_uom"/>
+		                    <field name="price_unit" string="Unit Price"/>
 		                    <field name="subproduct_type" invisible='1'/>
 	                    </tree>
                     </xpath>
