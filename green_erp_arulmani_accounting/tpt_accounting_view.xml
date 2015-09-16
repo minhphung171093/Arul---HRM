@@ -353,6 +353,7 @@
 				<xpath expr="//page[@string='Accounting']/group[@name='properties']/group/field[@name='supplier_taxes_id']" position="after">
 					<field name="product_asset_acc_id" options="{'create': false, 'create_edit': false}"/>
 					<field name="product_cose_acc_id" options="{'create': false, 'create_edit': false}"/>
+					<field name="product_credit_id" options="{'create': false, 'create_edit': false}"/>
 				</xpath>
 				<xpath expr="//page[@string='Information']/group/group/field[@name='default_code']" position="after">
 					<field name="chapter" />

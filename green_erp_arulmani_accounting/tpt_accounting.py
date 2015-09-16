@@ -3107,6 +3107,7 @@ class product_product(osv.osv):
         'chapter': fields.char('Chapter ID', size = 1024),
         'warehouse_id':fields.many2one('stock.location', 'Sale Warehouse'),
         'prod_dest_id':fields.many2one('stock.location', 'Production Destination Location'),
+        'product_credit_id': fields.many2one('account.account', 'Product Credit Account'),
         }
     
     def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
@@ -5451,13 +5452,14 @@ class mrp_production(osv.osv):
         journal_line = []
         credit = 0
         price = 0
+        debit = 0
         for line in self.browse(cr,uid,ids):
             sql = '''
                     select id from account_journal
             '''
             cr.execute(sql)
             journal_ids = [r[0] for r in cr.fetchall()]
-            date_period = line.date_planned,
+            date_period = line.date_planned
             sql = '''
                 select id from account_period where '%s' between date_start and date_stop and special is False
             '''%(date_period)
@@ -5467,6 +5469,16 @@ class mrp_production(osv.osv):
             if not period_ids:
                 raise osv.except_osv(_('Warning!'),_('Period is not null, please configure it in Period master !'))
 # neu co them freight vao trong report thi phai xac dinh lai price unit cho data moi = cach cong them value cua freight vao total_cost_in  
+            move_date_ids = stock_move_obj.search(cr, uid, [('production_id','=',line.id)])
+            if move_date_ids:
+                stock_move_obj.write(cr, 1, move_date_ids,{'date':line.date_planned})
+            sql='''
+                select move_id from mrp_production_move_ids where production_id = %s
+            '''%(line.id)
+            cr.execute(sql)
+            move_material_ids = [row[0] for row in cr.fetchall()]
+            if move_material_ids:
+                stock_move_obj.write(cr, 1, move_material_ids,{'date':line.date_planned})
             if 'state' in vals and line.state=='done':
                 for p in line.move_created_ids2:
                     prod_ware = self.pool.get('product.product').browse(cr, uid, p.product_id.id)
@@ -5481,115 +5493,225 @@ class mrp_production(osv.osv):
                 for mat in line.move_lines2:
                     categ = mat.product_id.categ_id.cate_name
                     if categ=='finish':
-                        avg_cost_ids = avg_cost_obj.search(cr, uid, [('product_id','=',mat.product_id.id),('warehouse_id','=',line.location_src_id.id)])
-                        if avg_cost_ids:
-                            avg_cost_id = avg_cost_obj.browse(cr, uid, avg_cost_ids[0])
-                            unit = avg_cost_id.avg_cost
-                            cost = unit * mat.product_qty
-                            price += cost
-                            if cost:
-                                if mat.product_id.purchase_acc_id:
+                        sql = '''
+                            select case when sum(st.product_qty)!=0 then sum(st.product_qty) else 0 end ton_sl,
+                            case when sum(st.price_unit*st.product_qty)!=0 then sum(st.price_unit*st.product_qty) else 0 end total_cost
+                            from stock_move st
+                            where state='done' and product_id = %s and to_char(date, 'YYYY-MM-DD')<'%s'
+                                and location_dest_id != location_id
+                                and  (action_taken = 'direct'
+                                or (inspec_id is not null and location_dest_id = %s)
+                                or (production_id is not null and location_dest_id = %s)
+                                or (id in (select move_id from stock_inventory_move_rel where inventory_id != 173))
+                        )
+                        '''%(mat.product_id.id,line.date_planned,line.location_src_id.id,line.location_src_id.id)
+                        cr.execute(sql)
+                        inventory = cr.dictfetchone()
+                        if inventory:
+                            hand_quantity_in = inventory['ton_sl'] or 0
+                            total_cost_in = inventory['total_cost'] or 0
+                        sql = '''
+                            select case when sum(st.product_qty)!=0 then sum(st.product_qty) else 0 end ton_sl,
+                            case when sum(st.price_unit*st.product_qty)!=0 then sum(st.price_unit*st.product_qty) else 0 end total_cost
+                            from stock_move st
+                            where state='done' and product_id = %s and to_char(date, 'YYYY-MM-DD')<'%s'
+                                and location_dest_id != location_id
+                                and  (issue_id is not null
+                                or (location_id = %s and id in (select move_id from mrp_production_move_ids))
+                        )
+                        '''%(mat.product_id.id,line.date_planned, line.location_src_id.id)
+                        cr.execute(sql)
+                        inventory = cr.dictfetchone()
+                        if inventory:
+                            hand_quantity_out = inventory['ton_sl'] or 0
+                            hand_quantity_out = hand_quantity_out - mat.product_qty
+                            total_cost_out = inventory['total_cost'] or 0
+                        price_unit = (hand_quantity_in-hand_quantity_out) and (total_cost_in-total_cost_out)/(hand_quantity_in-hand_quantity_out)
+                        stock_move_obj.write(cr, 1, [mat.id],{'price_unit':price_unit})
+                        cost = price_unit*mat.product_qty or 0
+                        debit += cost
+                        if cost:
+                            if mat.product_id.default_code not in ['M0501010005','M0501010004','M0501010002']:
+                                if line.product_id.product_credit_id:
                                     journal_line.append((0,0,{
-                                                    'name':mat.product_id.code, 
-                                                    'account_id': mat.product_id.purchase_acc_id and mat.product_id.purchase_acc_id.id,
-                                                    'debit':cost,
-                                                    'credit':0,
+                                                    'name':mat.product_id.default_code, 
+                                                    'account_id': line.product_id.product_credit_id and line.product_id.product_credit_id.id,
+                                                    'debit':0,
+                                                    'credit':cost,
                                                    }))
                                 else:
-                                    raise osv.except_osv(_('Warning!'),_("Purchase GL Account is not configured for Product '%s'! Please configured it!")%(mat.product_id.code))
+                                    raise osv.except_osv(_('Warning!'),_("Product Credit Account is not configured for Product '%s'! Please configured it!")%(mat.product_id.default_code))
+                            else:
+                                if mat.product_id.product_asset_acc_id:
+                                    journal_line.append((0,0,{
+                                                    'name':mat.product_id.default_code, 
+                                                    'account_id': mat.product_id.product_asset_acc_id and mat.product_id.product_asset_acc_id.id,
+                                                    'debit':0,
+                                                    'credit':cost,
+                                                   }))
+                                else:
+                                    raise osv.except_osv(_('Warning!'),_("Product Asset Account is not configured for Product '%s'! Please configured it!")%(mat.product_id.default_code))
+#                         avg_cost_ids = avg_cost_obj.search(cr, uid, [('product_id','=',mat.product_id.id),('warehouse_id','=',line.location_src_id.id)])
+#                         if avg_cost_ids:
+#                             avg_cost_id = avg_cost_obj.browse(cr, uid, avg_cost_ids[0])
+#                             unit = avg_cost_id.avg_cost
+#                             cost = unit * mat.product_qty
+#                             price += cost
+#                             if cost:
+#                                 if mat.product_id.purchase_acc_id:
+#                                     journal_line.append((0,0,{
+#                                                     'name':mat.product_id.code, 
+#                                                     'account_id': mat.product_id.purchase_acc_id and mat.product_id.purchase_acc_id.id,
+#                                                     'debit':cost,
+#                                                     'credit':0,
+#                                                    }))
+#                                 else:
+#                                     raise osv.except_osv(_('Warning!'),_("Purchase GL Account is not configured for Product '%s'! Please configured it!")%(mat.product_id.code))
+                    
                     if categ=='raw':
                         parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
                         locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw Material','Raw Materials','Raw material']),('location_id','=',parent_ids[0])])
-                        if locat_ids[0] == line.location_src_id.id:
-                            sql = '''
-                                select case when sum(st.product_qty)!=0 then sum(st.product_qty) else 0 end ton_sl,
-                                case when sum(st.price_unit*st.product_qty)!=0 then sum(st.price_unit*st.product_qty) else 0 end total_cost
-                                from stock_move st
-                                where state='done' and product_id = %s
-                                    and location_dest_id != location_id
-                                    and  (action_taken = 'direct'
-                                    or (inspec_id is not null and location_dest_id = %s)
-                                    or (id in (select move_id from stock_inventory_move_rel where inventory_id != 173))
-                            )
-                            '''%(mat.product_id.id, locat_ids[0])
-                            cr.execute(sql)
-                            inventory = cr.dictfetchone()
-                            if inventory:
-                                hand_quantity_in = inventory['ton_sl'] or 0
-                                total_cost_in = inventory['total_cost'] or 0
-                                
-                            sql = '''
-                                select case when sum(st.product_qty)!=0 then sum(st.product_qty) else 0 end ton_sl,
-                                case when sum(st.price_unit*st.product_qty)!=0 then sum(st.price_unit*st.product_qty) else 0 end total_cost
-                                from stock_move st
-                                where state='done' and product_id = %s
-                                    and location_dest_id != location_id
-                                    and  (issue_id is not null
-                                    or (location_id = %s and id in (select move_id from mrp_production_move_ids))
-                            )
-                            '''%(mat.product_id.id, locat_ids[0])
-                            cr.execute(sql)
-                            inventory = cr.dictfetchone()
-                            if inventory:
-                                hand_quantity_out = inventory['ton_sl'] or 0
-                                hand_quantity_out = hand_quantity_out - mat.product_qty
-                                total_cost_out = inventory['total_cost'] or 0
-                            price_unit = (hand_quantity_in-hand_quantity_out) and (total_cost_in-total_cost_out)/(hand_quantity_in-hand_quantity_out)
-                            sql = '''
-                                update stock_move set price_unit = %s where id = %s
-                            '''%(price_unit, mat.id)
-                            cr.execute(sql)
-                            cost = price_unit*mat.product_qty or 0
-                            price += cost
-                            if cost:
-                                if mat.product_id.purchase_acc_id:
-                                    journal_line.append((0,0,{
-                                                    'name':mat.product_id.code, 
-                                                    'account_id': mat.product_id.purchase_acc_id and mat.product_id.purchase_acc_id.id,
-                                                    'debit':cost,
-                                                    'credit':0,
-                                                   }))
-                                else:
-                                    raise osv.except_osv(_('Warning!'),_("Purchase GL Account is not configured for Product '%s'! Please configured it!")%(mat.product_id.code))
-                        else:
-                            avg_cost_ids = avg_cost_obj.search(cr, uid, [('product_id','=',mat.product_id.id),('warehouse_id','=',line.location_src_id.id)])
-                            if avg_cost_ids:
-                                avg_cost_id = avg_cost_obj.browse(cr, uid, avg_cost_ids[0])
-                                unit = avg_cost_id.avg_cost
-                                cost = unit * mat.product_qty
-                                price += cost
+                        if mat.product_id.default_code == 'M0501060001':
+                            if locat_ids[0] == line.location_src_id.id:
+                                sql = '''
+                                    select case when sum(st.product_qty)!=0 then sum(st.product_qty) else 0 end ton_sl,
+                                    case when sum(st.price_unit*st.product_qty)!=0 then sum(st.price_unit*st.product_qty) else 0 end total_cost
+                                    from stock_move st
+                                    where state='done' and product_id = %s and to_char(date, 'YYYY-MM-DD')<'%s'
+                                        and location_dest_id != location_id
+                                        and  (action_taken = 'direct'
+                                        or (inspec_id is not null and location_dest_id = %s)
+                                        or (id in (select move_id from stock_inventory_move_rel where inventory_id != 173))
+                                )
+                                '''%(mat.product_id.id,line.date_planned, locat_ids[0])
+                                cr.execute(sql)
+                                inventory = cr.dictfetchone()
+                                if inventory:
+                                    hand_quantity_in = inventory['ton_sl'] or 0
+                                    total_cost_in = inventory['total_cost'] or 0
+                                    
+                                sql = '''
+                                    select case when sum(st.product_qty)!=0 then sum(st.product_qty) else 0 end ton_sl,
+                                    case when sum(st.price_unit*st.product_qty)!=0 then sum(st.price_unit*st.product_qty) else 0 end total_cost
+                                    from stock_move st
+                                    where state='done' and product_id = %s and to_char(date, 'YYYY-MM-DD')<'%s'
+                                        and location_dest_id != location_id
+                                        and  (issue_id is not null
+                                        or (location_id = %s and id in (select move_id from mrp_production_move_ids))
+                                )
+                                '''%(mat.product_id.id,line.date_planned, locat_ids[0])
+                                cr.execute(sql)
+                                inventory = cr.dictfetchone()
+                                if inventory:
+                                    hand_quantity_out = inventory['ton_sl'] or 0
+                                    hand_quantity_out = hand_quantity_out - mat.product_qty
+                                    total_cost_out = inventory['total_cost'] or 0
+                                price_unit = (hand_quantity_in-hand_quantity_out) and (total_cost_in-total_cost_out)/(hand_quantity_in-hand_quantity_out)
+                                sql = '''
+                                    update stock_move set price_unit = %s where id = %s
+                                '''%(price_unit, mat.id)
+                                cr.execute(sql)
+                                cost = price_unit*mat.product_qty or 0
+                                debit += cost
                                 if cost:
-                                    if mat.product_id.purchase_acc_id:
+                                    if line.product_id.product_credit_id:
                                         journal_line.append((0,0,{
                                                         'name':mat.product_id.code, 
-                                                        'account_id': mat.product_id.purchase_acc_id and mat.product_id.purchase_acc_id.id,
-                                                        'debit':cost,
-                                                        'credit':0,
+                                                        'account_id': line.product_id.product_credit_id and line.product_id.product_credit_id.id,
+                                                        'debit':0,
+                                                        'credit':cost,
                                                        }))
                                     else:
-                                        raise osv.except_osv(_('Warning!'),_("Purchase GL Account is not configured for Product '%s'! Please configured it!")%(mat.product_id.code))
+                                        raise osv.except_osv(_('Warning!'),_("Product Credit Account is not configured for Product '%s'! Please configured it!")%(mat.product_id.default_code))
+                            else:
+                                avg_cost_ids = avg_cost_obj.search(cr, uid, [('product_id','=',mat.product_id.id),('warehouse_id','=',line.location_src_id.id)])
+                                if avg_cost_ids:
+                                    avg_cost_id = avg_cost_obj.browse(cr, uid, avg_cost_ids[0])
+                                    unit = avg_cost_id.avg_cost
+                                    cost = unit * mat.product_qty
+                                    debit += cost
+                                    if cost:
+                                        if line.product_id.product_credit_id:
+                                            journal_line.append((0,0,{
+                                                            'name':mat.product_id.code, 
+                                                            'account_id': line.product_id.product_credit_id and line.product_id.product_credit_id.id,
+                                                            'debit':0,
+                                                            'credit':cost,
+                                                           }))
+                                        else:
+                                            raise osv.except_osv(_('Warning!'),_("Product Credit Account is not configured for Product '%s'! Please configured it!")%(mat.product_id.default_code))
+                        else:
+#                             stock_move_obj.search(cr, uid, [('date','=',line.date_planned),('product_id','=',mat.product_id.id),('issue_id','!=',False)])
+                            sql='''
+                                select price_unit from stock_move where date='%s' and product_id=%s 
+                                    and issue_id in (select id from tpt_material_issue where request_type='production')
+                                    order by id
+                            '''%(line.date_planned,mat.product_id.id)
+                            cr.execute(sql)
+                            move_ids = cr.fetchone()
+                            if move_ids:
+                                stock_move_obj.write(cr, 1, [mat.id],{'price_unit':move_ids[0]})
+                                price_raw = move_ids[0] * (mat.product_qty or 0)
+                                debit += price_raw
+                                if line.product_id.product_credit_id:
+                                    journal_line.append((0,0,{
+                                                        'name':mat.product_id.code, 
+                                                        'account_id': line.product_id.product_credit_id and line.product_id.product_credit_id.id,
+                                                        'debit':0,
+                                                        'credit':price_raw,
+                                                               }))
+                                else:
+                                    raise osv.except_osv(_('Warning!'),_("Product Credit Account is not configured! Please configured it!"))
+                            else:
+                                raise osv.except_osv(_('Warning!'),_("Do not have material issue for this Production Declaration! Please check it!"))
+                
+                for produce in line.move_created_ids2:
+                    if produce.product_id.id != line.product_id.id:
+                        sql = '''
+                            select price_unit from mrp_subproduct where bom_id=%s and product_id=%s
+                        '''%(line.bom_id.id,produce.product_id.id)
+                        cr.execute(sql)
+                        price_ids = cr.fetchone()
+                        produce_price = (price_ids and price_ids[0] or 0) * (produce.product_qty or 0)
+                        debit -= produce_price
+                        if line.product_id.product_asset_acc_id:
+                            journal_line.append((0,0,{
+                                                    'name':produce.product_id.default_code, 
+                                                    'account_id': produce.product_id.product_asset_acc_id and produce.product_id.product_asset_acc_id.id,
+                                                    'debit':produce_price,
+                                                    'credit':0,
+                                                   }))
+                        else:
+                            raise osv.except_osv(_('Warning!'),_("Product Asset Account is not configured for Product '%s'! Please configured it!")%(produce.product_id.default_code))
                 for act in line.bom_id.activities_line:
-                    if act.activities_id.act_acc_id:
-                        credit += act.product_cost
+                    if line.product_id.product_credit_id:
+#                         credit += act.product_cost
+                        debit += act.product_cost
                         journal_line.append((0,0,{
                                                 'name':act.activities_id.code, 
-                                                'account_id': act.activities_id.act_acc_id and act.activities_id.act_acc_id.id,
-                                                'debit':act.product_cost or 0,
-                                                'credit':0,
+                                                'account_id': line.product_id.product_credit_id and line.product_id.product_credit_id.id,
+                                                'debit':0,
+                                                'credit':act.product_cost or 0,
                                                }))
                     else:
-                        raise osv.except_osv(_('Warning!'),_("Activity Account is not configured for Activity '%s'! Please configured it!")%(act.activities_id.code))
-                credit += price
-                if credit:
+                        raise osv.except_osv(_('Warning!'),_("Product Credit Account is not configured! Please configured it!"))
+#                         raise osv.except_osv(_('Warning!'),_("Activity Account is not configured for Activity '%s'! Please configured it!")%(act.activities_id.code))
+#                 credit += price
+                if debit:
                     if line.product_id.product_asset_acc_id:
                         journal_line.append((0,0,{
                                                 'name':line.product_id.code, 
                                                 'account_id': line.product_id.product_asset_acc_id and line.product_id.product_asset_acc_id.id,
-                                                'debit': 0,
-                                                'credit':credit ,
+                                                'debit': debit,
+                                                'credit':0,
                                                }))
                     else:
                         raise osv.except_osv(_('Warning!'),_("Product Asset Account is not configured for Product '%s'! Please configured it!")%(line.product_id.code))
+                    unit_produce = debit/line.product_qty
+                    move_ids = stock_move_obj.search(cr, uid, [('product_id','=',line.product_id.id),('production_id','=',line.id)])
+                    if move_ids:
+                        stock_move_obj.write(cr, 1, move_ids,{'price_unit':unit_produce})
+                    
                 value={
                             'journal_id':journal_ids[0],
                             'period_id':period_ids[0] ,
