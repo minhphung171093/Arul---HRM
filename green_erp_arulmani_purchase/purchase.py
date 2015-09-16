@@ -3953,7 +3953,22 @@ class tpt_gate_out_pass(osv.osv):
                 'message': _('Gate Out Pass Date: Not allow future date!')
             }
         return {'value':vals,'warning':warning}
-     
+    def print_out_pass(self, cr, uid, ids, context=None):
+        '''
+        This function prints the invoice and mark it as sent, so that we can see more easily the next step of the workflow
+        '''
+        assert len(ids) == 1, 'This option should only be used for a single id at a time.'
+        self.write(cr, uid, ids, {'sent': True}, context=context)
+        datas = {
+             'ids': ids,
+             'model': 'tpt.gate.out.pass',
+             'form': self.read(cr, uid, ids[0], context=context)
+        }
+        
+        return {
+                'type': 'ir.actions.report.xml',
+                'report_name': 'gate_out_pass_report',
+            }   
 tpt_gate_out_pass()
 
 class tpt_gate_out_pass_line(osv.osv):
