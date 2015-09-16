@@ -892,6 +892,7 @@ class mrp_subproduct(osv.osv):
     _inherit = 'mrp.subproduct'
     _columns={
         'description':fields.text('Description'),
+        'price_unit': fields.float('Unit Price', digits=(16,2)),
     }
 
     def create(self, cr, uid, vals, context=None):
