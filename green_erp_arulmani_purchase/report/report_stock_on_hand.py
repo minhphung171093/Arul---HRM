@@ -183,11 +183,25 @@ class Parser(report_sxw.rml_parse):
                         where st.state='done' and st.product_id = pp.id and 
                         st.location_id =(select id from stock_location where name='TIO2' and 
                         usage='internal' and location_id=(select id from stock_location where name='Store'))
-                    )foo) store_tio2                
+                    )foo) store_tio2,                 
             
-            
+            (select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton from 
+                    (
+                    select st.product_qty
+                        from stock_move st 
+                        where st.state='done' and st.product_id = pp.id and 
+                        st.location_dest_id =(select id from stock_location where name='Raw Material' and 
+                        usage='internal' and location_id=(select id from stock_location where name='Production Line'))
+                    union all
+                    select st.product_qty*-1
+                        from stock_move st 
+                        where st.state='done' and st.product_id = pp.id and 
+                        st.location_id =(select id from stock_location where name='Raw Material' and 
+                        usage='internal' and location_id=(select id from stock_location where name='Production Line'))
+                    )foo) pl_rm
+                     
             from product_product pp
-            inner join product_template pt on pp.id=pt.id 
+            inner join product_template pt on pp.product_tmpl_id=pt.id 
             inner join product_uom pu on pt.uom_id=pu.id
             '''
             
@@ -223,6 +237,8 @@ class Parser(report_sxw.rml_parse):
         if not categ_id and product_id and is_mrp is True:
             str = " pp.id = %s and pp.mrp_control = 't'" % (product_id)
             sql = sql+str
+        str = " order by pp.default_code asc"
+        sql = sql+str
         self.cr.execute(sql)        
         for line in self.cr.dictfetchall():
             res.append({
@@ -230,12 +246,12 @@ class Parser(report_sxw.rml_parse):
                 'description': line['name'] or '',
                  'uom': line['uom'] or '',
                  'bin_loc': line['bin_location'] or '',
-                 'onhand_qty': line['onhand_qty'] or '',
+                 'onhand_qty': line['onhand_qty'] or 0,
                  #'mrp': line['mrp'] or '',
-                 'min_stock': line['min_stock'] or '',
-                 'max_stock': line['max_stock'] or '',
-                 're_stock': line['re_stock'] or '',
-                 'unit_price': line['standard_price'] or '',
+                 'min_stock': line['min_stock'] or 0,
+                 'max_stock': line['max_stock'] or 0,
+                 're_stock': line['re_stock'] or 0,
+                 'unit_price': line['standard_price'] or 0,
                  'onhand_qty_blocklist': line['block_qty'] or 0 ,
                  'onhand_qty_pl_other': line['pl_others'] or 0,
                  'onhand_qty_qa_ins': line['ins_qty'] or 0 , 
@@ -243,6 +259,7 @@ class Parser(report_sxw.rml_parse):
                  'onhand_qty_st_spare': line['store_spare'] or 0 ,
                  'onhand_qty_st_fsh': line['store_fsh'] or 0,
                  'onhand_qty_st_tio2': line['store_tio2'] or 0,  
+                 'onhand_qty_pl_rm': line['pl_rm'] or 0,
             })
         return res
         

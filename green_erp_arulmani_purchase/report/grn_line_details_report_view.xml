@@ -105,6 +105,9 @@
 		                			<field name="product_id"/>
 		                			<field name="uom"/>
 		                			<field name="qty"/>
+		                			<field name="store"/>
+		                			<field name="qlty_insp"/>
+		                			<field name="blk_list"/>
 		                			<field name="action_taken"/>
 		                			<field name="bin"/>
 		                			<field name="state"/>
