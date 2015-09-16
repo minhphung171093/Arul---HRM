@@ -64,6 +64,7 @@ class tpt_stock_on_hand_line(osv.osv):
         'onhand_qty_st_rm': fields.float('Store / Raw Material',digits=(16,3)),
         'onhand_qty_st_spare': fields.float('Store / Spare',digits=(16,3)),
         'onhand_qty_st_tio2': fields.float('Store / TIO2',digits=(16,3)),
+        'onhand_qty_pl_rm': fields.float('Production Line / Raw Material',digits=(16,3)),  
     }
 
 tpt_stock_on_hand_line()
@@ -600,11 +601,26 @@ class stock_on_hand_report(osv.osv_memory):
                         where st.state='done' and st.product_id = pp.id and 
                         st.location_id =(select id from stock_location where name='TIO2' and 
                         usage='internal' and location_id=(select id from stock_location where name='Store'))
-                    )foo) store_tio2                
+                    )foo) store_tio2,
+                    
+            (select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton from 
+                    (
+                    select st.product_qty
+                        from stock_move st 
+                        where st.state='done' and st.product_id = pp.id and 
+                        st.location_dest_id =(select id from stock_location where name='Raw Material' and 
+                        usage='internal' and location_id=(select id from stock_location where name='Production Line'))
+                    union all
+                    select st.product_qty*-1
+                        from stock_move st 
+                        where st.state='done' and st.product_id = pp.id and 
+                        st.location_id =(select id from stock_location where name='Raw Material' and 
+                        usage='internal' and location_id=(select id from stock_location where name='Production Line'))
+                    )foo) pl_rm
             
             
             from product_product pp
-            inner join product_template pt on pp.id=pt.id 
+            inner join product_template pt on pp.product_tmpl_id=pt.id 
             inner join product_uom pu on pt.uom_id=pu.id
             '''
             
@@ -636,6 +652,8 @@ class stock_on_hand_report(osv.osv_memory):
             if not categ_id and product_id and is_mrp is True:
                 str = " pp.id = %s and pp.mrp_control = 't'" % (product_id)
                 sql = sql+str
+            str = " order by pp.default_code asc"
+            sql = sql+str
             cr.execute(sql)
             return cr.dictfetchall()
         ###
@@ -661,7 +679,8 @@ class stock_on_hand_report(osv.osv_memory):
                  'onhand_qty_st_rm': line['store_rm'] or '',
                  'onhand_qty_st_spare': line['store_spare'] or '' ,
                  'onhand_qty_st_fsh': line['store_fsh'] or '',
-                 'onhand_qty_st_tio2': line['store_tio2'] or '',  
+                 'onhand_qty_st_tio2': line['store_tio2'] or '', 
+                 'onhand_qty_pl_rm': line['pl_rm'] or '',   
             }))
         ## TPT-FOLLOWING SNIPPET IS COMMENTED - BY BalamuruganPurushothaman
         #=======================================================================
