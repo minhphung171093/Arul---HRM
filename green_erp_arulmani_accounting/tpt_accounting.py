@@ -5473,7 +5473,7 @@ class mrp_production(osv.osv):
             '''
             cr.execute(sql)
             journal_ids = [r[0] for r in cr.fetchall()]
-            date_period = line.date_planned,
+            date_period = line.date_planned
             sql = '''
                 select id from account_period where '%s' between date_start and date_stop and special is False
             '''%(date_period)
@@ -5483,6 +5483,16 @@ class mrp_production(osv.osv):
             if not period_ids:
                 raise osv.except_osv(_('Warning!'),_('Period is not null, please configure it in Period master !'))
 # neu co them freight vao trong report thi phai xac dinh lai price unit cho data moi = cach cong them value cua freight vao total_cost_in  
+            move_date_ids = stock_move_obj.search(cr, uid, [('production_id','=',line.id)])
+            if move_date_ids:
+                stock_move_obj.write(cr, 1, move_date_ids,{'date':line.date_planned})
+            sql='''
+                select move_id from mrp_production_move_ids where production_id = %s
+            '''%(line.id)
+            cr.execute(sql)
+            move_material_ids = [row[0] for row in cr.fetchall()]
+            if move_material_ids:
+                stock_move_obj.write(cr, 1, move_material_ids,{'date':line.date_planned})
             if 'state' in vals and line.state=='done':
                 for p in line.move_created_ids2:
                     prod_ware = self.pool.get('product.product').browse(cr, uid, p.product_id.id)
