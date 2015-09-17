@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+	<data>
+    	<record id="gate_out_pass_report" model="ir.actions.report.xml">
+	        <field name="name">form.are.1.report</field>
+	        <field name="type">ir.actions.report.xml</field>
+	        <field name="model">tpt.gate.out.pass</field>
+	        <field name="report_name">Print Gate Out Pass</field>
+	        <field name="report_type">aeroo</field>
+	        <field name="in_format">oo-odt</field>
+	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-pdf'),('compatible_types','=','oo-odt')]"/>
+	        <field name="parser_loc">green_erp_arulmani_purchase/report/print_gate_out_pass.py</field>
+	        <field name="report_rml">green_erp_arulmani_purchase/report/print_gate_out_pass.odt</field>
+	        <field name="parser_state">loc</field>
+	        <field name="tml_source">file</field>
+	        <field name="attachment_use" eval="0"/>
+    	</record> 
+    	   
+    	<report 
+			auto="False" 
+			menu="True"
+			id="gate_out_pass_report" 
+			model="tpt.gate.out.pass" 
+			name="gate_out_pass_report"
+	        string="Print Gate Out Pass"
+	        rml="green_erp_arulmani_purchase/report/print_gate_out_pass.odt"/> 	
+	</data>
+</openerp>

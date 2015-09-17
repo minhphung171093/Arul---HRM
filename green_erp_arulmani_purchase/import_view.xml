@@ -237,5 +237,12 @@
         <menuitem action="action_tpt_map_price_material_form_view"
             id="menu_action_tpt_map_price_material_form_view"
             parent="purchase.menu_procurement_management" sequence="566"/>
+            <!-- TPT-START: Added By BalamuruganPurushothaman - ON 15/09/2015 - To create "Messieurs" as Title for Vendor Master -->
+            <record id="res_partner_title_ms" model="res.partner.title">
+            <field name="domain">contact</field>
+            <field name="name">M/S</field>
+            <field name="shortcut">M/S</field>
+            <!--TPT-END: 15/09/2015-->
+        </record>
     </data>
 </openerp>

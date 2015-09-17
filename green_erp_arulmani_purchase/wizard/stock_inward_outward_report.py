@@ -85,6 +85,7 @@ class tpt_stock_inward_outward_line(osv.osv):
         'gl_document_no': fields.char('GL Document No', size=1024),
         'document_type': fields.char('Document Type', size=1024),
         'transaction_quantity': fields.float('Transaction Quantity',digits=(16,3)),
+        'closing_quantity': fields.float('Closing Quantity',digits=(16,3)),
         'stock_value': fields.float('Stock Value',digits=(16,3)),
         'current_material_value': fields.float('Current Material Value',digits=(16,3)),
         'price_unit': fields.float('Price Unit',digits=(16,3)),
@@ -118,6 +119,7 @@ class stock_inward_outward_report(osv.osv_memory):
         cr.execute('delete from tpt_stock_inward_outward')
         stock = self.browse(cr, uid, ids[0])
         self.current = 0
+        self.closing_qty = 0
         self.num_call_grn = {'grn_name':'','num':-1}
         self.transaction_qty = 0
         self.current_transaction_qty = 0
@@ -987,8 +989,11 @@ class stock_inward_outward_report(osv.osv_memory):
             self.st_sum_value += st_value
             if seq == 0:
                 cur = get_opening_stock_value(stock)+st_value+self.current
+                closing_qty = get_opening_stock(stock) - get_qty_opening_chuaro(stock) + trans_qty + self.closing_qty
             else:
                 cur = st_value+self.current
+                closing_qty = trans_qty + self.closing_qty
+            self.closing_qty = closing_qty
             self.current = cur
             stock_in_out_line.append((0,0,{
                 'creation_date': get_create_date(line['id'], line['material_issue_id'], line['product_dec'], line['doc_type']),
@@ -997,6 +1002,7 @@ class stock_inward_outward_report(osv.osv_memory):
                 'gl_document_no': line['name'],
                 'document_type': get_doc_type(line['doc_type']),
                 'transaction_quantity': trans_qty,
+                'closing_quantity': closing_qty,
                 'price_unit': price,
                 'stock_value': st_value,
                 'current_material_value':cur,

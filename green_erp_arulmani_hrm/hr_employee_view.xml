@@ -1475,7 +1475,7 @@
             <field name="name">tpt.hr.training.header.form</field>
             <field name="model">tpt.hr.training.header</field>
             <field name="arch" type="xml">
-                <form string="Training Master" version="7.0">  
+                <form string="Training List" version="7.0">  
                 	<sheet>  
                 		<group col='4' colspan='2'>
                 			<field name ="name" readonly='1'/>
@@ -1532,7 +1532,7 @@
 			<field name="name">tpt.hr.training.tree</field>
 			<field name="model">tpt.hr.training</field>
 			<field name="arch" type="xml">
-				<tree string="Training Master">
+				<tree string="Training List">
 					<field name ="code" />
 					<field name ="name" />
 					<field name ="desc" />
@@ -1544,7 +1544,7 @@
             <field name="name">tpt.hr.training.form</field>
             <field name="model">tpt.hr.training</field>
             <field name="arch" type="xml">
-                <form string="Training Master" version="7.0">  
+                <form string="Training List" version="7.0">  
                 	<sheet>  
                 		<group>
                 			<field name ="code" required='1'/>
@@ -1557,7 +1557,7 @@
 		</record>
 
         <record id="action_tpt_hr_training_form" model="ir.actions.act_window">
-            <field name="name">Training Master</field>
+            <field name="name">Training List</field>
 			<field name="type">ir.actions.act_window</field>
             <field name="res_model">tpt.hr.training</field>
             <field name="view_type">form</field>

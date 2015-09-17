@@ -78,10 +78,21 @@
 		            	<button name="create_all_do_posting" string="TPT-Create all DO posting" type="object" class="oe_highlight"/>
 		            	 -->
 		            	<button name="update_internal_move_1795" string="Update internal move 1795" type="object" class="oe_highlight"/>
+		            	<button name="delete_dup_issue" string="delete duplicate issue" type="object" class="oe_highlight"/>
+		            	<button name="update_issue_date_and_03092015" string="update date issue 03092015" type="object" class="oe_highlight"/>
+		            	<button name="delete_material_request_6000167" string="delete MRS 6000167/2015" type="object" class="oe_highlight"/>
+		            	<button name="update_date_mrs_issue" string="update date MRS and Issue Negative stock details file" type="object" class="oe_highlight"/>
+		            	<button name="update_date_grn_negative_stock_file" string="update date grn negative stock file" type="object" class="oe_highlight"/>
+		            	<button name="config_GRN_3451_3883" string="update GRN 3451 3883" type="object" class="oe_highlight"/>
 		            </header>    
 	            	<group>
 	            		<field name="product_id"/>
 	                    <field name="result"/>
+	                    <label for="datas" string="Data Upload Field"/>
+						<div>
+							<field name="datas" filename="datas_fname"/>
+                        	<field name="datas_fname" invisible="1" class="oe_inline oe_right"/>
+                        </div>
 	                </group>
 	                <field name='update_line'>
 	                	<tree editable='top'>

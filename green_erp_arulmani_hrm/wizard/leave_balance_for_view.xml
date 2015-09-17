@@ -12,7 +12,7 @@
 	                    <field name='employee' options="{'create': false, 'create_edit': false}"/>
 	                    <field name='employee_category' options="{'create': false, 'create_edit': false}"/>
 	                    <field name='department' options="{'create': false, 'create_edit': false}"/>	                    
-	                    <field name="is_active"/>                                 
+	                    <field name="state"/>                                 
                  	</group>
                     <footer>
                         <button name="print_report" string="Print" type="object" class="oe_highlight" context="{'type':'appointments'}"/>

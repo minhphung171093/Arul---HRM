@@ -64,6 +64,7 @@ class tpt_stock_on_hand_line(osv.osv_memory):
         'onhand_qty_st_rm': fields.float('Store / Raw Material',digits=(16,3)),
         'onhand_qty_st_spare': fields.float('Store / Spare',digits=(16,3)),
         'onhand_qty_st_tio2': fields.float('Store / TIO2',digits=(16,3)),
+        'onhand_qty_pl_rm': fields.float('Production Line / Raw Material',digits=(16,3)),  
     }
 
 tpt_stock_on_hand_line()
@@ -477,36 +478,239 @@ class stock_on_hand_report(osv.osv_memory):
             cr.execute(sql)
             ton = cr.dictfetchone()
             return ton and ton['ton'] or 0 
+        ### 
+        ###
+        ##TPT-START - TO ADDRESS PERFORMANCE ISSUE - BY BalamuruganPurushothaman  on 02/09/2015
+        def get_prod(o):
+            sql = '''
+                        select pp.default_code, pt.name, pt.standard_price, pu.name as uom, pp.bin_location,
+              pp.min_stock,  pp.max_stock,  pp.re_stock,
+             (select case when sum(onhand_qty)>0 then sum(onhand_qty) else 0 end ton
+                        From
+                        (SELECT
+                               
+                            case when loc1.usage != 'internal' and loc2.usage = 'internal'
+                            then stm.primary_qty
+                            else
+                            case when loc1.usage = 'internal' and loc2.usage != 'internal'
+                            then -1*stm.primary_qty 
+                            else 0.0 end
+                            end onhand_qty
+                                    
+                        FROM stock_move stm 
+                            join stock_location loc1 on stm.location_id=loc1.id
+                            join stock_location loc2 on stm.location_dest_id=loc2.id
+                        WHERE stm.state= 'done' and product_id=pp.id)foo) onhand_qty,
+            
+            (select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton from 
+                    (
+                    select st.product_qty
+                        from stock_move st 
+                        where st.state='done' and st.product_id = pp.id and 
+                        st.location_dest_id =(select id from stock_location where name='Raw Material' and 
+                        usage='internal' and location_id=(select id from stock_location where name='Store'))
+                    union all
+                    select st.product_qty*-1
+                        from stock_move st 
+                        where st.state='done' and st.product_id = pp.id and 
+                        st.location_id =(select id from stock_location where name='Raw Material' and 
+                        usage='internal' and location_id=(select id from stock_location where name='Store'))
+                    )foo) store_rm,
+                    
+             (select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton from 
+                    (
+                    select st.product_qty
+                        from stock_move st 
+                        where st.state='done' and st.product_id = pp.id and st.location_dest_id 
+                        =(select id from stock_location where name='Spares' and 
+                        usage='internal')
+                    union all
+                    select st.product_qty*-1
+                        from stock_move st 
+                        where st.state='done' and st.product_id = pp.id and st.location_id 
+                        =(select id from stock_location where name='Spares' and 
+                        usage='internal')
+                    )foo) store_spare,
+                    
+            (select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton from 
+                    (
+                    select st.product_qty
+                        from stock_move st 
+                        where st.state='done' and st.product_id = pp.id and 
+                        st.location_dest_id =(select id from stock_location where name='Inspection' and 
+                        usage='internal')
+                    union all
+                    select st.product_qty*-1
+                        from stock_move st 
+                        where st.state='done' and st.product_id = pp.id and 
+                        st.location_id =(select id from stock_location where name='Inspection' and 
+                        usage='internal')
+                    )foo) ins_qty,
+            (select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton from 
+                    (
+                    select st.product_qty
+                        from stock_move st 
+                        where st.state='done' and st.product_id = pp.id and 
+                        st.location_dest_id =(select id from stock_location where name='Block List' and 
+                        usage='internal')
+                    union all
+                    select st.product_qty*-1
+                        from stock_move st 
+                        where st.state='done' and st.product_id = pp.id and 
+                        st.location_id =(select id from stock_location where name='Block List' and 
+                        usage='internal')
+                    )foo) block_qty,
+             (select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton from 
+                    (
+                    select st.product_qty
+                        from stock_move st 
+                        where st.state='done' and st.product_id = pp.id and 
+                        st.location_dest_id =(select id from stock_location where name='Other' and 
+                        usage='internal' and location_id=(select id from stock_location where name='Production Line'))
+                    union all
+                    select st.product_qty*-1
+                        from stock_move st 
+                        where st.state='done' and st.product_id = pp.id and 
+                        st.location_id =(select id from stock_location where name='Other' and 
+                        usage='internal' and location_id=(select id from stock_location where name='Production Line'))
+                    )foo) pl_others,
+             (select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton from 
+                    (
+                    select st.product_qty
+                        from stock_move st 
+                        where st.state='done' and st.product_id = pp.id and 
+                        st.location_dest_id =(select id from stock_location where name='FSH' and 
+                        usage='internal' and location_id=(select id from stock_location where name='Store'))
+                    union all
+                    select st.product_qty*-1
+                        from stock_move st 
+                        where st.state='done' and st.product_id = pp.id and 
+                        st.location_id =(select id from stock_location where name='FSH' and 
+                        usage='internal' and location_id=(select id from stock_location where name='Store'))
+                    )foo) store_fsh    ,
+            (select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton from 
+                    (
+                    select st.product_qty
+                        from stock_move st 
+                        where st.state='done' and st.product_id = pp.id and 
+                        st.location_dest_id =(select id from stock_location where name='TIO2' and 
+                        usage='internal' and location_id=(select id from stock_location where name='Store'))
+                    union all
+                    select st.product_qty*-1
+                        from stock_move st 
+                        where st.state='done' and st.product_id = pp.id and 
+                        st.location_id =(select id from stock_location where name='TIO2' and 
+                        usage='internal' and location_id=(select id from stock_location where name='Store'))
+                    )foo) store_tio2,
+                    
+            (select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton from 
+                    (
+                    select st.product_qty
+                        from stock_move st 
+                        where st.state='done' and st.product_id = pp.id and 
+                        st.location_dest_id =(select id from stock_location where name='Raw Material' and 
+                        usage='internal' and location_id=(select id from stock_location where name='Production Line'))
+                    union all
+                    select st.product_qty*-1
+                        from stock_move st 
+                        where st.state='done' and st.product_id = pp.id and 
+                        st.location_id =(select id from stock_location where name='Raw Material' and 
+                        usage='internal' and location_id=(select id from stock_location where name='Production Line'))
+                    )foo) pl_rm
+            
+            
+            from product_product pp
+            inner join product_template pt on pp.product_tmpl_id=pt.id 
+            inner join product_uom pu on pt.uom_id=pu.id
+            '''
+            
+            categ_id = o.categ_id and o.categ_id.id
+            product_id = o.product_id and o.product_id.id
+            is_mrp = stock.is_mrp
+            
+            if categ_id or product_id or stock.is_mrp:
+                str = " where"
+                sql = sql+str
+            if categ_id and not product_id and is_mrp is False:
+                str = " pt.categ_id=%s" % categ_id
+                sql = sql+str
+            if not categ_id and product_id and is_mrp is False:
+                str = " pp.id = %s" % product_id
+                sql = sql+str 
+            if not categ_id and not product_id and is_mrp is True:
+                str = " pp.mrp_control = 't'"
+                sql = sql+str 
+            if categ_id and product_id and is_mrp is True:
+                str = "  pt.categ_id=%s and pp.id = %s and pp.mrp_control = 't'" % (categ_id,product_id)
+                sql = sql+str
+            if categ_id and product_id and is_mrp is False:
+                str = "  pt.categ_id=%s and pp.id = %s" % (categ_id,product_id)
+                sql = sql+str
+            if categ_id and not product_id and is_mrp is True :
+                str = "  pt.categ_id=%s and pp.mrp_control = 't'" % (categ_id)
+                sql = sql+str
+            if not categ_id and product_id and is_mrp is True:
+                str = " pp.id = %s and pp.mrp_control = 't'" % (product_id)
+                sql = sql+str
+            str = " order by pp.default_code asc"
+            sql = sql+str
+            cr.execute(sql)
+            return cr.dictfetchall()
         ###
         cr.execute('delete from tpt_stock_on_hand')
         stock_obj = self.pool.get('tpt.stock.on.hand')
         stock = self.browse(cr, uid, ids[0])
         stock_line = []
-        for line in get_categ(stock):
-            stock_line.append((0,0,{
-                'code': line.code or False,
-                'description': line.name or False,
-                'uom': line.uom_id and line.uom_id.name or False,
-                'bin_loc': line.bin_location or False,
-                'onhand_qty': get_ton_sl(stock,line),
-                'ins_qty': get_ins_qty(stock,line),
-                'bl_qty': get_blo_qty(stock,line),
-                'mrp': get_mrp(stock,line),
-                'min_stock': get_min_stock(stock,line),
-                'max_stock': get_max_stock(stock,line),
-                're_stock': get_re_stock(stock,line),
-                'unit_price': get_unit_price(stock,line),
-                
-                'onhand_qty_blocklist': get_blocklist(stock,line),
-                'onhand_qty_pl_other': get_pl_other(stock,line),
-                'onhand_qty_qa_ins': get_qa_ins(stock,line),
-                'onhand_qty_st_fsh': get_st_fsh(stock,line),
-                'onhand_qty_st_rm': get_st_rm(stock,line),
-                'onhand_qty_st_spare': get_st_spare(stock,line),
-                'onhand_qty_st_tio2': get_st_tio2(stock,line),
-                
-                
+        for line in get_prod(stock):
+                stock_line.append((0,0,{
+                'code': line['default_code'] or '',
+                'description': line['name'] or '',
+                 'uom': line['uom'] or '',
+                 'bin_loc': line['bin_location'] or '',
+                 'onhand_qty': line['onhand_qty'] or '',
+                 #'mrp': line['mrp'] or '',
+                 'min_stock': line['min_stock'] or '',
+                 'max_stock': line['max_stock'] or '',
+                 're_stock': line['re_stock'] or '',
+                 'unit_price': line['standard_price'] or '',
+                 'onhand_qty_blocklist': line['block_qty'] or '' ,
+                 'onhand_qty_pl_other': line['pl_others'] or '',
+                 'onhand_qty_qa_ins': line['ins_qty'] or '' , 
+                 'onhand_qty_st_rm': line['store_rm'] or '',
+                 'onhand_qty_st_spare': line['store_spare'] or '' ,
+                 'onhand_qty_st_fsh': line['store_fsh'] or '',
+                 'onhand_qty_st_tio2': line['store_tio2'] or '', 
+                 'onhand_qty_pl_rm': line['pl_rm'] or '',   
             }))
+        ## TPT-FOLLOWING SNIPPET IS COMMENTED - BY BalamuruganPurushothaman
+        #=======================================================================
+        # for line in get_categ(stock):
+        #     stock_line.append((0,0,{
+        #         'code': line.code or False,
+        #         'description': line.name or False,
+        #         'uom': line.uom_id and line.uom_id.name or False,
+        #         'bin_loc': line.bin_location or False,
+        #         'onhand_qty': get_ton_sl(stock,line),
+        #         'ins_qty': get_ins_qty(stock,line),
+        #         'bl_qty': get_blo_qty(stock,line),
+        #         'mrp': get_mrp(stock,line),
+        #         'min_stock': get_min_stock(stock,line),
+        #         'max_stock': get_max_stock(stock,line),
+        #         're_stock': get_re_stock(stock,line),
+        #         'unit_price': get_unit_price(stock,line),
+        #         
+        #         'onhand_qty_blocklist': get_blocklist(stock,line),
+        #         'onhand_qty_pl_other': get_pl_other(stock,line),
+        #         'onhand_qty_qa_ins': get_qa_ins(stock,line),
+        #         'onhand_qty_st_fsh': get_st_fsh(stock,line),
+        #         'onhand_qty_st_rm': get_st_rm(stock,line),
+        #         'onhand_qty_st_spare': get_st_spare(stock,line),
+        #         'onhand_qty_st_tio2': get_st_tio2(stock,line),
+        #         
+        #         
+        #     }))
+        #=======================================================================
+        
         vals = {
             'name': 'STOCK ON HAND REPORT',
             'categ_id': stock.categ_id and stock.categ_id.id or False,

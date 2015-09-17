@@ -150,7 +150,7 @@ class Parser(report_sxw.rml_parse):
             p = self.cr.fetchone()
             cost_center = ''
             if p and p[0]:
-                cost_center = self.pool.get('tpt.cost.center').browse(cr,uid, p[0]).name
+                cost_center = self.pool.get('tpt.cost.center').browse(self.cr,self.uid, p[0]).name
             return cost_center
     
     def get_date_from(self):

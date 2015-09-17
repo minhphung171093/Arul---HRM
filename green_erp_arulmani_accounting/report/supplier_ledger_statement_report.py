@@ -113,7 +113,7 @@ class Parser(report_sxw.rml_parse):
             
                 select aml.id from account_move_line aml 
                 inner join account_move am on aml.move_id = am.id
-                inner join res_partner p on (p.id=am.partner_id)
+                left join res_partner p on (p.id=am.partner_id)
                 inner join account_account aa on (aa.id=aml.account_id)
                     where am.date between '%s' and '%s' 
                     and am.state='posted' 
@@ -133,7 +133,7 @@ class Parser(report_sxw.rml_parse):
             
                 select aml.id from account_move_line aml 
                 inner join account_move am on aml.move_id = am.id
-                inner join res_partner p on (p.id=am.partner_id)
+                left join res_partner p on (p.id=am.partner_id)
                 inner join account_account aa on (aa.id=aml.account_id)
                     where am.date between '%s' and '%s' 
                     and am.state in ('draft','posted') 

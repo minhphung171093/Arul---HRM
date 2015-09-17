@@ -3199,6 +3199,7 @@ class account_voucher(osv.osv):
         'name': fields.char( 'Journal no.',size = 256),
         'memo':fields.char('Memo', size=256, readonly=True, states={'draft':[('readonly',False)]}),
         'cheque_date': fields.date('Cheque Date'),
+        'reconciliation_date': fields.date('Reconciliation Date'),
         'cheque_no': fields.char('Cheque No'),
         'sum_amount': fields.float('Amount'),
         'type_trans':fields.selection([
@@ -3235,6 +3236,10 @@ class account_voucher(osv.osv):
         'employee_id':fields.many2one('hr.employee','Employee'),
         'cost_center_id':fields.many2one('tpt.cost.center','Cost Center'),
         'tpt_exchange_rate':fields.float('Realization Rate', digits=(12,14),),#TPT
+        'tpt_bank_re':fields.boolean('Bank Reconciliation Updated'),
+        
+        'status': fields.selection([('reconcile', 'Reconciled'), ('unreconcile', 'Un-Reconciled'), 
+                                    ('confirmed', 'Confirmed')],'Reconcile-Status'), 
         }
     
     def voucher_print_button(self, cr, uid, ids, context={}):
@@ -3313,6 +3318,7 @@ class account_voucher(osv.osv):
         'journal_id': _default_journal_id,
         'tpt_currency_id': _get_tpt_currency,
         'is_tpt_currency': _get_is_tpt_currency,
+        'status': 'unreconcile',
     }
     
     def _check_sum_amount(self, cr, uid, ids, context=None):
@@ -3517,8 +3523,11 @@ class account_voucher(osv.osv):
 #/phuoc
         else:
             if voucher.type in ('purchase', 'payment'):
-                credit = voucher.paid_amount_in_company_currency #TPT-Commented By BalamuruganPurushothaman ON 18/08/2015- TO TAKE REALIZATION RATE AS EXCHANGE RATE
+                if voucher.tpt_currency_id.name=='INR':
+                    credit = voucher.paid_amount_in_company_currency #TPT-Commented By BalamuruganPurushothaman ON 18/08/2015- TO TAKE REALIZATION RATE AS EXCHANGE RATE
                 #credit = voucher.tpt_amount #TPT-Added By BalamuruganPurushothaman ON 18/08/2015- TO TAKE REALIZATION RATE AS EXCHANGE RATE
+                else:                 
+                    credit = voucher.tpt_amount #TPT-Added By BalamuruganPurushothaman ON 18/08/2015- TO TAKE REALIZATION RATE AS EXCHANGE RATE
                 if voucher.type == 'payment':
                     if voucher.journal_id.type == 'cash':
                         sql = '''
@@ -3541,8 +3550,10 @@ class account_voucher(osv.osv):
                 else:
                     account_id = voucher.account_id.id
             elif voucher.type in ('sale', 'receipt'):
-                debit = voucher.paid_amount_in_company_currency #TPT-Commented By BalamuruganPurushothaman ON 18/08/2015- TO TAKE REALIZATION RATE AS EXCHANGE RATE
-                #debit = voucher.tpt_amount #TPT-Added By BalamuruganPurushothaman ON 18/08/2015- TO TAKE REALIZATION RATE AS EXCHANGE RATE
+                if voucher.tpt_currency_id.name=='INR':
+                    debit = voucher.paid_amount_in_company_currency #TPT-Commented By BalamuruganPurushothaman ON 18/08/2015- TO TAKE REALIZATION RATE AS EXCHANGE RATE
+                else:
+                    debit = voucher.tpt_amount #TPT-Added By BalamuruganPurushothaman ON 18/08/2015- TO TAKE REALIZATION RATE AS EXCHANGE RATE
                 if voucher.type == 'receipt':
                     if voucher.journal_id.type == 'cash':
                         sql = '''
@@ -6187,3 +6198,417 @@ class tpt_auto_posting(osv.osv):
                     
         return True  
 tpt_auto_posting()
+
+class tpt_bank_reconciliation(osv.osv):
+    _name = 'tpt.bank.reconciliation'
+    _columns = {
+        'name': fields.many2one('account.account', 'Bank GL Account', required=True),
+        'date': fields.date('Payment Date'),
+        'reconciliation_line': fields.one2many('tpt.bank.reconciliation.line', 'bank_reconciliation_id', 'Line'),
+        'state':fields.selection([('draft', 'Draft'),('done', 'Done')],'Status', readonly=True),
+        'action_type': fields.selection([('action_reconcile', 'Load Reconciled Data'), ('action_unreconcile', 'Load Un-Reconciled Data'), 
+                                    ('action_confirm', 'Load Confirmed Data')],'Action Type'), 
+    }
+    _defaults = {
+        'state': 'draft',
+    }
+    def _check_state(self, cr, uid, ids, context=None):
+        for bank in self.browse(cr, uid, ids, context=context):
+            sql = '''
+                select id from tpt_bank_reconciliation where id != %s and state = 'draft'
+            '''%(bank.id)
+            cr.execute(sql)
+            bank_ids = [row[0] for row in cr.fetchall()]
+            if bank_ids:  
+                raise osv.except_osv(_('Warning!'),_('Can not create more than one record in this window!'))
+        return True
+    _constraints = [
+        (_check_state, 'Identical Data', ['state']),
+    ] 
+
+    def onchange_account(self, cr, uid, ids, account_id=False, date = False, context=None):
+        if context is None:
+            context={}
+        vals = {}
+        if ids:
+            cr.execute(''' delete from tpt_bank_reconciliation_line where bank_reconciliation_id in %s ''',(tuple(ids),))
+        if account_id:
+            tt_debit = 0.0
+            tt_credit = 0.0
+            voucher_obj = self.pool.get('account.voucher')
+            voucher_ids = voucher_obj.search(cr, uid, [('account_id','=',account_id),('reconciliation_date','=',False)])
+            if date:
+                voucher_ids = voucher_obj.search(cr, uid, [('account_id','=',account_id),('reconciliation_date','=',False), ('date','=',date)])
+            reconciliation_line = []
+            for voucher in voucher_obj.browse(cr, uid, voucher_ids):
+                doc_type = ''
+                debit = 0.0
+                credit = 0.0
+                
+                if voucher.journal_id.type=='bank':
+                    if not voucher.tpt_sup_reconcile and voucher.type == 'payment':
+                        doc_type='Supplier Payments'
+                    if not voucher.tpt_sup_reconcile and voucher.type == 'receipt':
+                        doc_type='Customer Payments'
+                    if voucher.type_trans:
+                        doc_type='Bank Transaction'
+                    for move_id in voucher.move_ids:
+                        if move_id.account_id.id == account_id:
+                            if move_id.debit:
+                                debit = move_id.debit
+                            if move_id.credit:
+                                credit = move_id.credit
+                
+                tt_debit += debit
+                tt_credit += credit
+                reconciliation_line.append((0,0,{
+                    'partner_id': voucher.partner_id and voucher.partner_id.id or False,
+                    'name': voucher.name,
+                    'doc_type': doc_type,
+                    'reference': voucher.reference,
+                    'date': voucher.date,
+                    'cheque_no': voucher.cheque_no,
+                    'cheque_date': voucher.cheque_date,
+                    'account_id': voucher.account_id and voucher.account_id.id or False,
+                    'amount': voucher.amount,
+                    'debit': debit,
+                    'credit': credit,
+                    'voucher_id': voucher.id,
+                }))
+            reconciliation_line.append((0,0,{
+                'cheque_no': 'Total',
+                'debit': tt_debit,
+                'credit': tt_credit,
+            }))
+            reconciliation_line.append((0,0,{
+                'cheque_no': 'Net Balance',
+                'debit': tt_debit-tt_credit,
+            }))
+            vals = {'reconciliation_line':reconciliation_line}
+        return {'value': vals}
+    
+    def bt_load(self, cr, uid, ids,context=None):
+        if context is None:
+            context={}
+        vals = {}
+        if ids:
+            cr.execute(''' delete from tpt_bank_reconciliation_line where bank_reconciliation_id in %s ''',(tuple(ids),))
+        
+        for bank in self.browse(cr, uid, ids):
+            if bank.name:
+                tt_debit = 0.0
+                tt_credit = 0.0
+                voucher_obj = self.pool.get('account.voucher')
+                ###TPTT-START - By BalamuruganPurushothaman ON 10/09/2015 
+                is_reconciled = False
+                is_unreconciled = False
+                is_confirmed = False
+                ### FROM POSTING ENTRIES
+                sql = '''
+                select av.id from account_voucher av
+                inner join account_move am on av.move_id=am.id
+                inner join account_move_line aml on am.id=aml.move_id
+                where aml.account_id=(select id from account_account where id=%s)
+                '''%bank.name.id
+                cr.execute(sql)
+                voucher_ids = [r[0] for r in cr.fetchall()]
+                ###
+                if not bank.date:
+                    if bank.action_type=='action_unreconcile':
+                        voucher_ids = voucher_obj.search(cr, uid, [('id','in',voucher_ids), ('status','=','unreconcile')])
+                        is_unreconciled = True
+                    elif bank.action_type=='action_reconcile':
+                        voucher_ids = voucher_obj.search(cr, uid, [('id','in',voucher_ids), ('status','=','reconcile')])
+                        is_reconciled = True
+                    elif bank.action_type=='action_confirm':
+                        voucher_ids = voucher_obj.search(cr, uid, [('id','in',voucher_ids), ('status','in',['confirmed'])])
+                        is_confirmed = True
+                #===============================================================
+                # if bank.date:
+                #     #voucher_ids = voucher_obj.search(cr, uid, [('account_id','=',bank.name.id),('reconciliation_date','=',False),('tpt_bank_re','=',False),('date','=',bank.date)])
+                #     voucher_ids = voucher_obj.search(cr, uid, [('account_id','=',bank.name.id),('date','=',bank.date)])
+                #===============================================================
+                else:
+                    if bank.action_type=='action_unreconcile':
+                        voucher_ids = voucher_obj.search(cr, uid, [('id','in',voucher_ids), ('status','=','unreconcile'),('date','=',bank.date)])
+                        is_unreconciled = True
+                    elif bank.action_type=='action_reconcile':
+                        voucher_ids = voucher_obj.search(cr, uid, [('id','in',voucher_ids), ('status','=','reconcile'),('date','=',bank.date)])
+                        is_reconciled = True
+                    elif bank.action_type=='action_confirm':
+                        voucher_ids = voucher_obj.search(cr, uid, [('id','in',voucher_ids), ('status','in',['confirmed']),('date','=',bank.date)])
+                        is_confirmed = True
+                ###TPT-END
+                reconciliation_line = []                                                        
+                for voucher in voucher_obj.browse(cr, uid, voucher_ids):
+                    doc_type = ''
+                    debit = 0.0
+                    credit = 0.0
+                    
+                    if voucher.journal_id.type=='bank':
+                        if not voucher.tpt_sup_reconcile and voucher.type == 'payment':
+                            doc_type='Supplier Payments'
+                        if not voucher.tpt_sup_reconcile and voucher.type == 'receipt':
+                            doc_type='Customer Payments'
+                        if voucher.type_trans:
+                            doc_type='Bank Transaction'
+                        for move_id in voucher.move_ids:
+                            if move_id.account_id.id == bank.name.id:
+                                if move_id.debit:
+                                    debit = move_id.debit
+                                if move_id.credit:
+                                    credit = move_id.credit
+                    
+                    tt_debit += debit
+                    tt_credit += credit
+                    ###
+                    ###
+                    reconciliation_line.append((0,0,{
+                        'partner_id': voucher.partner_id and voucher.partner_id.id or False,
+                        'name': voucher.number, #voucher.name, TPT-By Balamurugan Purushothaman on 10/09/2015
+                        'doc_type': doc_type,
+                        'reference': voucher.reference,
+                        'date': voucher.date,
+                        'cheque_no': voucher.cheque_no,
+                        'cheque_date': voucher.cheque_date,
+                        'account_id': voucher.account_id and voucher.account_id.id or False,
+                        'amount': voucher.amount,
+                        'debit': debit,
+                        'credit': credit,
+                        'voucher_id': voucher.id,
+                        'reconciliation_date':voucher.reconciliation_date,
+                        'status': voucher.status,
+                        'is_reconciled': is_reconciled,
+                        'is_unreconciled': is_unreconciled,
+                        'is_confirmed': is_confirmed,
+                    }))
+                reconciliation_line.append((0,0,{
+                    'cheque_no': 'Total',
+                    'debit': tt_debit,
+                    'credit': tt_credit,
+                }))
+                reconciliation_line.append((0,0,{
+                    'cheque_no': 'Net Balance',
+                    'debit': tt_debit-tt_credit,
+                }))
+                vals = {'reconciliation_line':reconciliation_line}
+        return self.write(cr, uid, ids,vals)
+
+    def bt_confirm(self, cr, uid, ids, context=None):
+        for bank_reconciliation in self.browse(cr, uid, ids):
+            ### TO THROW WARNING IF FORM TYPE IS "Un-Reconcile" WHEN CONFIRM
+            sql = '''
+                select id from tpt_bank_reconciliation_line where status='unreconcile' and reconciliation_date is not null
+                and bank_reconciliation_id=%s
+                '''%bank_reconciliation.id
+            cr.execute(sql)
+            bank_ids = [row[0] for row in cr.fetchall()]
+            if bank_ids:  
+                sql = '''
+                select name from tpt_bank_reconciliation_line where status='unreconcile' and reconciliation_date is not null
+                and bank_reconciliation_id=%s
+                '''%bank_reconciliation.id
+                cr.execute(sql)
+                vouchers='' 
+                for row in cr.fetchall():
+                    vouchers = vouchers +'\n'+ row[0]                               
+                raise osv.except_osv(_('Status Can not be "Un_reconciled" for the following Vouchers: '),_(vouchers))
+            ###
+            ###
+            sql = '''
+                select id from tpt_bank_reconciliation_line where status='confirmed' and reconciliation_date is not null
+                and is_unreconciled='t'
+                and bank_reconciliation_id=%s
+                '''%bank_reconciliation.id
+            cr.execute(sql)
+            uc_ids = [row[0] for row in cr.fetchall()]
+            if uc_ids:  
+                sql = '''
+                select name from tpt_bank_reconciliation_line where status='confirmed' and reconciliation_date is not null
+                and is_unreconciled='t'
+                and bank_reconciliation_id=%s
+                '''%bank_reconciliation.id
+                cr.execute(sql)
+                vouchers='' 
+                for row in cr.fetchall():
+                    vouchers = vouchers +'\n'+ row[0]                               
+                raise osv.except_osv(_('Status Can not be Changed to "Confirmed" directly from Un-Reconciled, for the following Vouchers: '),_(vouchers))
+            ###
+            for line in bank_reconciliation.reconciliation_line:
+                if line.reconciliation_date:
+                    cr.execute(''' update account_voucher set reconciliation_date=%s,tpt_bank_re='t', status=%s where id=%s ''',(line.reconciliation_date,line.status, line.voucher_id.id,))
+        
+            #Auto Reload
+            self.bt_load(cr, uid, ids, context)   
+            #
+            #Info - to view status of Processing
+            res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
+                                                'green_erp_arulmani_accounting', 'alert_bank_form_view')           
+            return {
+                                        'name': 'Information',
+                                        'view_type': 'form',
+                                        'view_mode': 'form',
+                                        'view_id': res[1],
+                                        'res_model': 'alert.form',
+                                        'domain': [],
+                                        'context': {'default_message':'Updated Successfully!','audit_id':ids[0]},
+                                        'type': 'ir.actions.act_window',
+                                        'target': 'new',
+                                    }
+        return True
+    
+    
+tpt_bank_reconciliation()
+
+class tpt_bank_reconciliation_line(osv.osv):
+    _name = 'tpt.bank.reconciliation.line'
+    _columns = {
+        'partner_id': fields.many2one('res.partner', 'Customer/Verdor'),
+        'name': fields.char('Voucher No', size=1024),
+        'doc_type': fields.char('Document Type', size=1024),
+        'reference': fields.char('Payment Ref', size=1024),
+        'date': fields.date('Payment Date'),
+        'cheque_no': fields.char('Cheque No', size=1024),
+        'cheque_date': fields.date('Cheque Date'),
+        'reconciliation_date': fields.date('Reconciliation Date'),
+        'account_id': fields.many2one('account.account', 'Bank GL Account'),
+        'voucher_id': fields.many2one('account.voucher', 'Voucher'),
+        'amount': fields.float('Payment Amount'),
+        'debit': fields.float('Debit'),
+        'credit': fields.float('Credit'),
+        'bank_reconciliation_id': fields.many2one('tpt.bank.reconciliation', 'Bank Reconciliation', ondelete='cascade'),
+        
+        'status': fields.selection([('reconcile', 'Reconciled'), ('unreconcile', 'Un-Reconciled'), 
+                                    ('confirmed', 'Confirmed')],'Status'), 
+        
+        'is_reconciled':fields.boolean('Is Reconciled',readonly =True ), 
+        'is_unreconciled':fields.boolean('Is Un-Reconciled',readonly =True ),  
+        'is_confirmed':fields.boolean('Is Confirmed',readonly =True ),         
+                
+    }
+    
+tpt_bank_reconciliation_line()
+
+
+### TPT-START - ON 09/10/2015 - By BalamuruganPurushothaman - C-FORM
+class tpt_cform_invoice(osv.osv):
+    _name = 'tpt.cform.invoice'
+    _columns = {
+        #'name': fields.many2one('account.account', 'Bank GL Account', required=True),
+        #'date': fields.date('Payment Date'),
+        'name': fields.char('Name'),
+        'cform_line': fields.one2many('tpt.cform.invoice.line', 'cform_id', 'Line'),
+        'state':fields.selection([('draft', 'Draft'),('done', 'Done')],'Status', readonly=True),
+        'create_date': fields.datetime('Created Date',readonly = True),
+        'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
+    }
+    _defaults = {
+        'state': 'draft',
+        'name': 'Update C-Form',
+    }
+    def _check_state(self, cr, uid, ids, context=None):
+        for bank in self.browse(cr, uid, ids, context=context):
+            sql = '''
+                select id from tpt_cform_invoice where id != %s and state = 'draft'
+            '''%(bank.id)
+            cr.execute(sql)
+            bank_ids = [row[0] for row in cr.fetchall()]
+            if bank_ids:  
+                raise osv.except_osv(_('Warning!'),_('Can not create more than one record in this window!'))
+        return True
+    
+    
+    
+    _constraints = [
+        (_check_state, 'Identical Data', ['state']),
+       
+    ] 
+
+    def bt_load(self, cr, uid, ids,context=None):
+        if context is None:
+            context={}
+        vals = {}
+        if ids:
+            cr.execute(''' delete from tpt_cform_invoice_line where cform_id in %s ''',(tuple(ids),))
+        for bank in self.browse(cr, uid, ids):
+            invoice_obj = self.pool.get('account.invoice')
+            invoice_ids = invoice_obj.search(cr, uid, [('form_type' ,'=', 'tbc'), ('type', '=', 'out_invoice'), ('state', '=', 'open')])
+            cform_line = []
+            for invoice in invoice_obj.browse(cr, uid, invoice_ids):  
+                for line in invoice.invoice_line:
+                    product_id = line.product_id and line.product_id.id 
+                    uom_id = line.uos_id and line.uos_id.id              
+                cform_line.append((0,0,{
+                        'invoice_no': invoice.vvt_number or '',      
+                        'customer_code':  '['+invoice.partner_id.customer_code+'] '+ invoice.partner_id.name,           
+                        'partner_id': invoice.partner_id and invoice.partner_id.id or False,
+                        'date_invoiced': invoice.date_invoice,                        
+                        'invoice_id': invoice.id or False,
+                        'bill_amount': invoice.amount_total or 0,
+                        'form_type': invoice.form_type or '',
+                        'product_id': product_id or False,
+                        'uom_id': uom_id or False,    
+                        
+                    }))
+                
+                    
+                
+            vals = {'cform_line':cform_line}
+        return self.write(cr, uid, ids,vals)
+
+    def bt_confirm(self, cr, uid, ids, context=None):
+        for cform in self.browse(cr, uid, ids):
+            ### TO THROW WARNING IF FORM TYPE IS "To Be Collect" WHEN CONFIRM
+            sql = '''
+                select id from tpt_cform_invoice_line where form_type='tbc' and form_number is not null
+                and cform_id=%s
+                '''%cform.id
+            cr.execute(sql)
+            bank_ids = [row[0] for row in cr.fetchall()]
+            if bank_ids:  
+                sql = '''
+                select invoice_no from tpt_cform_invoice_line where form_type='tbc' and form_number is not null
+                and cform_id=%s
+                '''%cform.id
+                cr.execute(sql)
+                invoice='' 
+                for row in cr.fetchall():
+                    invoice = invoice +'\n'+ row[0]                               
+                raise osv.except_osv(_('Form Type Can not be "To Be Collect" for the following Invoices: '),_(invoice))
+            ###
+            for line in cform.cform_line:
+                if line.form_number:
+                    sql = ''' 
+                    update account_invoice set form_number='%s',form_type='%s' where id=%s 
+                    '''%(line.form_number,line.form_type, line.invoice_id.id)
+                    cr.execute(sql)
+            ###
+        self.bt_load(cr, uid, ids, context)
+        return True
+    
+tpt_cform_invoice()
+
+class tpt_cform_invoice_line(osv.osv):
+    _name = 'tpt.cform.invoice.line'
+    _columns = {  
+        #'name': fields.char('Voucher No', size=1024),
+        'invoice_no': fields.char('Invoice No', size=1024),
+        'customer_code': fields.char('Customer'),  
+        'partner_id': fields.many2one('res.partner', 'Customer'),  
+        'date_invoiced': fields.date('Invoice Date'),
+        'product_id': fields.many2one('product.product', 'Product'),  
+        'uom_id': fields.many2one('product.uom', 'UOM'),  
+        'bill_amount': fields.float('Bill Amount'),# [('domestic','Domestic/Indirect Export'),('export','Export')],
+        'form_type': fields.selection([('cform', 'C-Form'), ('hform', 'H-Form'), ('iform', 'I-Form'), 
+                                       ('na', 'Not Applicable'), ('tbc', 'To Be Collect')],'Form Type'), 
+        'form_number': fields.char('Form Number'),
+        'invoice_id': fields.many2one('account.invoice', 'Invoice ID'),
+        'cform_id': fields.many2one('tpt.cform.invoice', 'C Form', ondelete='cascade'),
+    }
+    def onchange_type(self, cr, uid, ids, type, context=None):
+        if type=='tbc':
+            raise osv.except_osv(_('Warning!'),_('Select other than "To Be Collect"!'))
+        return True
+    
+tpt_cform_invoice_line()
+###

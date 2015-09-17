@@ -6,12 +6,13 @@ import time
 from openerp import SUPERUSER_ID
 from openerp.tools import DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_DATETIME_FORMAT, DATETIME_FORMATS_MAP, float_compare
 from datetime import datetime
-#import datetime
+import datetime
 import base64
 import calendar
 from twisted.internet._threadedselect import raiseException
 #from dateutil import rrule
 from dateutil.rrule import rrule, DAILY
+import psycopg2
 
 class arul_hr_holiday_special(osv.osv):
     _name = "arul.hr.holiday.special"
@@ -3842,12 +3843,12 @@ class arul_hr_audit_shift_time(osv.osv):
                                                           'punch_in_out_line':[(0,0,val1)]}) 
                 ##
                 #C.OFF ENTRY CREATION
-                #if flag==1 or line.additional_shifts or (line.employee_id.employee_category_id and line.employee_id.employee_category_id.code!='S1'):
-                coff_obj = self.pool.get('tpt.coff.register')
-                coff_obj.create(cr, uid, {
-                                          'employee_id': line.employee_id.id,
-                                           'work_date': line.work_date,
-                                           'total_shift_worked': shift_count,
+                if flag==1 or line.additional_shifts or (line.employee_id.employee_category_id and line.employee_id.employee_category_id.code!='S1'):
+                    coff_obj = self.pool.get('tpt.coff.register')
+                    coff_obj.create(cr, uid, {
+                                              'employee_id': line.employee_id.id,
+                                               'work_date': line.work_date,
+                                               'total_shift_worked': shift_count,
                                            'coff_count': c_off_day#(shift_count-1) if shift_count>1 else 0 ,
                                                               
                                                                        })
@@ -5168,7 +5169,7 @@ class arul_hr_permission_onduty(osv.osv):
         
         'total_shift_worked': fields.function(_shift_total,store=True, type='float', string='No.Of Shift Worked', multi='shift_total', help="The total amount."),
         
-        'state':fields.selection([('draft', 'Draft'),('cancel', 'Reject'),('done', 'Approve')],'Status', readonly=True),
+        'state':fields.selection([('draft', 'Draft'),('cancel', 'Reject'),('done', 'Approve'),('time_leave_confirmed','Time Leave Evaluation Confirmed')],'Status', readonly=True),
               }
     _defaults = {
            'state': 'draft',  
@@ -5785,7 +5786,7 @@ class arul_hr_punch_in_out_time(osv.osv):
         'out_time': fields.float('Out Time', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
         'total_hours': fields.function(_time_total, store=True, string='Total Hours', multi='sums', help="The total amount.", states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
         'approval': fields.boolean('Select for Approval', readonly =  True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
-        'state':fields.selection([('draft', 'Draft'),('cancel', 'Reject'),('done', 'Approve')],'Status', readonly=True),
+        'state':fields.selection([('draft', 'Draft'),('cancel', 'Reject'),('done', 'Approve'),('time_leave_confirmed','Time Leave Evaluation Confirmed')],'Status', readonly=True),
         'type':fields.selection([('permission', 'Permission'),('shift', 'Waiting'),('punch', 'Punch In/Out')],'Type', readonly=True),
         'permission_id':fields.many2one('arul.hr.permission.onduty','Permission/On Duty'),
         'time_evaluate_id': fields.many2one('tpt.time.leave.evaluation','Time Evaluation'),
@@ -8224,6 +8225,19 @@ class tpt_time_leave_evaluation(osv.osv):
             res.append((record['id'], name))
         return res   
     def bt_confirm(self, cr, uid, ids, context=None):
+        for sub in self.browse(cr, uid, ids, context=context):
+            sql = '''
+            update arul_hr_punch_in_out_time set state='time_leave_confirmed' where extract(month from work_date) = '%s' and EXTRACT(year FROM work_date) = %s
+            and employee_id in (select id from hr_employee where payroll_area_id = %s)
+            '''%(sub.month,sub.year,sub.payroll_area_id.id)
+            cr.execute(sql)
+            
+            sql = '''
+            update arul_hr_permission_onduty set state='time_leave_confirmed' where extract(month from date) = '%s' and EXTRACT(year FROM date) = %s
+            and employee_id in (select id from hr_employee where payroll_area_id = %s)
+            '''%(sub.month,sub.year,sub.payroll_area_id.id)
+            cr.execute(sql)
+            
         return self.write(cr, uid, ids,{'state':'done'}) 
     def tpt_submit_evaluate(self, cr, uid, ids, context=None):
         for sub in self.browse(cr, uid, ids, context=context):
@@ -10275,9 +10289,9 @@ tpt_coff_register()
 #===============================================================================
 
 #===============================================================================
-# TPT-START: NEW TIME MACHINE INTEGRATION
+# TPT-START: NEW TIME MACHINE INTEGRATION - ON 
 # -Time Office Local system has "hr_attendance" table. This table is at synch with Time Machine
-# -We need to  copy this table to 
+# -We need to copy this table to Staging/Production Server's tpt_hr_attendance
 #===============================================================================
 class tpt_hr_temp_attendance(osv.osv):
     _name='tpt.hr.temp.attendance'
@@ -10299,7 +10313,8 @@ class tpt_hr_attendance(osv.osv):
     _name='tpt.hr.attendance'
 
     _columns={                                    
-              'employee_id': fields.many2one('hr.employee','Employee ID'),      
+              #'employee_id': fields.many2one('hr.employee','Employee ID'),  
+              'employee_id': fields.char('Employee ID'),    
               'work_date': fields.datetime('Work Date'),
               'punch_type': fields.char('Punch Type'),
               'is_processed': fields.boolean('Is Processed'),  
@@ -10308,15 +10323,18 @@ class tpt_hr_attendance(osv.osv):
     _defaults = {
         'work_date':lambda *a: time.strftime("%Y-%m-%d %H:%M:%S"),
     }
-    def create(self, cr, uid, vals, context=None):
-        #now = datetime.datetime.now()
-        #current_year = now.year
-        #vals['work_date']
-        my_date = fields.datetime.context_timestamp(cr, uid, datetime.now(), context=context)
-   
-        vals['work_date'] = my_date
-        
-        return super(tpt_hr_attendance, self).create(cr, uid, vals, context)
+   #============================================================================
+   #  def create(self, cr, uid, vals, context=None):
+   #      #now = datetime.datetime.now()
+   #      #current_year = now.year
+   #      #vals['work_date']
+   #      my_date = fields.datetime.context_timestamp(cr, uid, datetime.now(), context=context)
+   # 
+   #      vals['work_date'] = my_date
+   #      
+   #      return super(tpt_hr_attendance, self).create(cr, uid, vals, context)
+   #============================================================================
+    
     def upload_in_time_data(self, cr, uid, context=None):
         #print "SCHEDULER JOB - STARTED"
         #
@@ -10324,7 +10342,20 @@ class tpt_hr_attendance(osv.osv):
         attend_temp_obj = self.pool.get('tpt.hr.temp.attendance') 
         attend_obj_ids = attend_obj.search(cr, uid, [('is_processed','=',False)]) #, ('punch_type','=','IN')
         for time_entry in attend_obj.browse(cr,uid,attend_obj_ids):
-            employee_id = time_entry.employee_id.id 
+            #===================================================================
+            # sql = '''
+            # select id from hr_employee where employee_id='%s'
+            # '''%time_entry.employee_id
+            # cr.execute(sql)
+            # emp_id = cr.fetchone()
+            # employee_id = emp_id[0]  #time_entry.employee_id.id
+            #===================================================================
+            ###Get Employee
+            emp_obj = self.pool.get('hr.employee') 
+            emp_obj_ids = emp_obj.search(cr, uid, [('employee_id','=',time_entry.employee_id)]) 
+            emp_root = emp_obj.browse(cr,uid,emp_obj_ids[0])
+            #employee_id = emp_root
+            ###
             work_date = time_entry.work_date
             punch_type = time_entry.punch_type
             #Example Work_date = "2015-08-27 05:48:14.976784"
@@ -10336,7 +10367,7 @@ class tpt_hr_attendance(osv.osv):
             sec = work_date[17:19]
             punch_obj = self.pool.get('arul.hr.punch.in.out') 
             
-            shift_id = punch_obj.get_work_shift(cr, uid, employee_id, int(day), int(month), year)
+            shift_id = punch_obj.get_work_shift(cr, uid, emp_root.id, int(day), int(month), year)
             
             work_date_format = work_date[:4]+'-'+work_date[5:7]+'-'+work_date[8:10]
             
@@ -10344,7 +10375,7 @@ class tpt_hr_attendance(osv.osv):
             if punch_type=='IN':
                 in_time = float(hour)+float(min)/60+float(sec)/3600
                 attend_temp_obj.create(cr, uid, {
-                                 'employee_id': employee_id,
+                                 'employee_id': emp_root.id,
                                  'work_date': work_date_format,
                                  'in_time': in_time,
                                  'out_time': 0,
@@ -10352,33 +10383,38 @@ class tpt_hr_attendance(osv.osv):
                 attend_obj.write(cr, uid, time_entry.id, {'is_processed':'t'})
             if punch_type=='OUT':
                 out_time = float(hour)+float(min)/60+float(sec)/3600
-                attend_temp_obj_ids = attend_temp_obj.search(cr, uid, [('employee_id','=',employee_id), ('work_date','=',work_date_format)]) 
-                exist_emp_obj = attend_temp_obj.browse(cr,uid,attend_temp_obj_ids[0])
-                
-                if not exist_emp_obj: 
-                        attend_temp_obj.create(cr, uid, {
-                                 'employee_id': employee_id,
-                                 'work_date': work_date_format,
-                                 'in_time': 0,
-                                 'out_time': out_time,
-                                  }) 
-                        attend_obj.write(cr, uid, time_entry.id, {'is_processed':'t'})
-                else:
-                        exist_in_time = exist_emp_obj.in_time
-                        punch_in_date = exist_emp_obj.work_date
-                        attend_temp_obj.write(cr, uid, [exist_emp_obj.id], {
-                                 'employee_id': employee_id,
+                attend_temp_obj_ids = attend_temp_obj.search(cr, uid, [('employee_id','=',emp_root.id), ('work_date','=',work_date_format)]) 
+                if attend_temp_obj_ids:
+                    exist_emp_obj = attend_temp_obj.browse(cr,uid,attend_temp_obj_ids[0])
+                    exist_in_time = exist_emp_obj.in_time
+                    punch_in_date = exist_emp_obj.work_date
+                    attend_temp_obj.write(cr, uid, [exist_emp_obj.id], {
+                                 'employee_id': emp_root.id,
                                  'work_date': work_date_format,
                                  'in_time': exist_in_time,
                                  'out_time': out_time,
                                   }) 
                         
-                        self.auto_approve_to_attendance(cr, uid, employee_id, work_date_format, exist_in_time, out_time, shift_id, 
-                                                        time_entry.employee_id,  punch_in_date)
-                        attend_temp_obj.write(cr, uid, [exist_emp_obj.id], {
+                    self.auto_approve_to_attendance(cr, uid, emp_root, work_date_format, exist_in_time, out_time, shift_id, 
+                                                          punch_in_date)
+                    attend_temp_obj.write(cr, uid, [exist_emp_obj.id], {
                                  'is_auto_approved': True,
                                   })    
-                        attend_obj.write(cr, uid, time_entry.id, {'is_processed':'t'})
+                    attend_obj.write(cr, uid, time_entry.id, {'is_processed':'t'})
+                else:
+                    attend_temp_obj.create(cr, uid, {
+                                 'employee_id': emp_root.id,
+                                 'work_date': work_date_format,
+                                 'in_time': 0,
+                                 'out_time': out_time,
+                                  }) 
+                    attend_obj.write(cr, uid, time_entry.id, {'is_processed':'t'})
+                #===============================================================
+                # if not exist_emp_obj: 
+                #         
+                # else:
+                #===============================================================
+                        
             ###
             #attend_obj.write(cr, uid, time_entry.id, {'is_processed':'t'})
             ###
@@ -10447,7 +10483,7 @@ class tpt_hr_attendance(osv.osv):
 
         return True
     
-    def auto_approve_to_attendance(self, cr, uid, employee_id, work_date_format, in_time, out_time, shift_id, emp, punch_in_date, context=None):
+    def auto_approve_to_attendance(self, cr, uid, emp_root, work_date_format, in_time, out_time, shift_id, punch_in_date, context=None):
         #Module Object Declaration
         emp_attendence_obj = self.pool.get('arul.hr.employee.attendence.details')
         ast_obj = self.pool.get('arul.hr.audit.shift.time')
@@ -10487,8 +10523,8 @@ class tpt_hr_attendance(osv.osv):
             work_shift_code=k[8] 
             work_shift_id=k[9]
             
-        if shift_count==1:
-            punch_io_values={'employee_id':employee_id,'planned_work_shift_id':shift_id,'actual_work_shift_id':work_shift_id,'work_date':work_date_format,
+        if shift_count==1  and shift_id:
+            punch_io_values={'employee_id':emp_root.id,'planned_work_shift_id':shift_id,'actual_work_shift_id':work_shift_id,'work_date':work_date_format,
                             'in_time':in_time,'out_time':out_time,'work_shift_code':work_shift_code, 
                             'a_shift_count1':a_shift,
                             'g1_shift_count1':g1_shift,
@@ -10497,12 +10533,12 @@ class tpt_hr_attendance(osv.osv):
                             'c_shift_count1':c_shift,
                             'total_shift_worked1':shift_count,
                             'approval':1}
-            employee_ids = emp_attendence_obj.search(cr, uid, [('employee_id','=',employee_id)])
+            employee_ids = emp_attendence_obj.search(cr, uid, [('employee_id','=',emp_root.id)])
             if employee_ids: 
                 punch_io_values.update({'punch_in_out_id':employee_ids[0]}) 
                 punch_io_obj.create(cr,uid,punch_io_values)
                 ## C.OFF LOGIC
-                sql=''' SELECT work_date FROM arul_hr_punch_in_out_time WHERE TO_CHAR(work_date,'YYYY-MM-DD') = ('%s') and employee_id=%s '''%(work_date_format,employee_id)
+                sql=''' SELECT work_date FROM arul_hr_punch_in_out_time WHERE TO_CHAR(work_date,'YYYY-MM-DD') = ('%s') and employee_id=%s '''%(work_date_format,emp_root.id)
                 cr.execute(sql)                
                 same_work_date=cr.fetchone()
                 if same_work_date:
@@ -10521,9 +10557,9 @@ class tpt_hr_attendance(osv.osv):
                     flag = 1
                 sql = '''
                 select ec.code from hr_employee emp
-                                            inner join vsis_hr_employee_category ec on emp.employee_category_id=ec.id
+                inner join vsis_hr_employee_category ec on emp.employee_category_id=ec.id
                                             where emp.id=%s
-                '''%employee_id
+                '''%emp_root.id
                 cr.execute(sql)                
                 categ=cr.fetchone()
                 categ = categ[0]
@@ -10531,7 +10567,7 @@ class tpt_hr_attendance(osv.osv):
                 if flag==1 and categ!='S1':
                     c_off_day = shift_count
                 ##
-                employee_leave_ids = employee_leave_obj.search(cr, uid, [('year','=',work_date_format[7:11]),('employee_id','=',employee_id)])
+                employee_leave_ids = employee_leave_obj.search(cr, uid, [('year','=',work_date_format[7:11]),('employee_id','=',emp_root.id)])
                 leave_type_ids = leave_type_obj.search(cr, uid, [('code','=','C.Off')])
                 if not leave_type_ids:
                     raise osv.except_osv(_('Warning!'),_('Can not find Leave Type C.Off. Please Create Leave Type C.Off before'))
@@ -10551,7 +10587,7 @@ class tpt_hr_attendance(osv.osv):
                 
                 else:
                         employee_leave_obj.create(cr, uid, {
-                            'employee_id': employee_id,
+                            'employee_id': emp_root.id,
                             'year': work_date_format[7:11],
                             'emp_leave_details_ids': [(0,0,{
                             'leave_type_id': leave_type_ids[0],
@@ -10559,16 +10595,22 @@ class tpt_hr_attendance(osv.osv):
                              })],})
                 ## C.OFF LOGIC
             else:
-                emp_attendence_obj.create(cr,uid,{'employee_id':employee_id,
-                            'employee_category_id':emp.employee_category_id and emp.employee_category_id.id or False,
-                            'sub_category_id':emp.employee_sub_category_id and emp.employee_sub_category_id.id or False,
-                            'department_id':emp.department_id and emp.department_id.id or False,
-                            'designation_id':emp.job_id and emp.job_id.id or False,
+                emp_attendence_obj.create(cr,uid,{'employee_id':emp_root.id,
+                            'employee_category_id':emp_root.employee_category_id and emp_root.employee_category_id.id or False,
+                            'sub_category_id':emp_root.employee_sub_category_id and emp_root.employee_sub_category_id.id or False,
+                            'department_id':emp_root.department_id and emp_root.department_id.id or False,
+                            'designation_id':emp_root.job_id and emp_root.job_id.id or False,
                             'punch_in_out_line':[(0,0,punch_io_values)]}) 
         elif a_shift==0 and g1_shift==0 and g2_shift==0 and b_shift==0 and c_shift==0 and shift_count==0:
-            ast_values={'employee_id':employee_id,'planned_work_shift_id':shift_id,'actual_work_shift_id':work_shift_id,'work_date':work_date_format,
+            ast_values={'employee_id':emp_root.id,'planned_work_shift_id':shift_id,'actual_work_shift_id':work_shift_id,'work_date':work_date_format,
                         'punch_in_date':punch_in_date,'punch_out_date':work_date_format,'in_time':in_time,'out_time':out_time,
-                        'ref_in_time':in_time,'ref_out_time':out_time,'type':'punch','employee_category_id':emp.employee_category_id.id
+                        'ref_in_time':in_time,'ref_out_time':out_time,'type':'punch','employee_category_id':emp_root.employee_category_id.id
+                        }
+            ast_obj.create(cr,uid,ast_values)
+        elif shift_count==1  and not shift_id:
+            ast_values={'employee_id':emp_root.id,'planned_work_shift_id':shift_id,'actual_work_shift_id':work_shift_id,'work_date':work_date_format,
+                        'punch_in_date':punch_in_date,'punch_out_date':work_date_format,'in_time':in_time,'out_time':out_time,
+                        'ref_in_time':in_time,'ref_out_time':out_time,'type':'punch','employee_category_id':emp_root.employee_category_id.id
                         }
             ast_obj.create(cr,uid,ast_values)
             
@@ -10582,3 +10624,157 @@ tpt_hr_attendance()
 #===============================================================================
 # TPT-END: NEW TIME MACHINE INTEGRATION
 #===============================================================================
+
+class tpt_time_data_move(osv.osv):
+    _name = "tpt.time.data.move"
+    
+    _columns = {
+        'from_host': fields.char('Host', size=1024),
+        'from_port': fields.char('Port', size=1024),
+        'from_database': fields.char('Database', size=1024),
+        'from_username': fields.char('Username', size=1024),
+        'from_password': fields.char('Password', size=1024),
+        'from_db_port': fields.char('DB Port', size=1024),
+        'from_db_username': fields.char('DB Username', size=1024),
+        'from_db_password': fields.char('DB Password', size=1024),
+        
+        'to_host': fields.char('Host', size=1024),
+        'to_port': fields.char('Port', size=1024),
+        'to_database': fields.char('Database', size=1024),
+        'to_username': fields.char('Username', size=1024),
+        'to_password': fields.char('Password', size=1024),
+        'to_db_port': fields.char('DB Port', size=1024),
+        'to_db_username': fields.char('DB Username', size=1024),
+        'to_db_password': fields.char('DB Password', size=1024),
+        
+        'result': fields.text('Result', readonly=True ),
+    }
+    def upload_time_data(self, cr, uid, context=None):
+        time_obj = self.pool.get('tpt.time.data.move')
+        time_obj_id = time_obj.search(cr, uid, [('from_db_port','=','5432')])
+        if time_obj_id:
+            line = time_obj.browse(cr, uid, time_obj_id[0])
+    #         oorpc = OpenObjectRPC(line.host, line.database, line.username, line.password, line.port)
+            from_db_conn_string = "host='%s' port='%s' dbname='%s' user='%s' password='%s'"%(line.from_host, line.from_db_port, line.from_database, line.from_db_username, line.from_db_password)
+            from_conn = psycopg2.connect(from_db_conn_string)
+            from_cursor = from_conn.cursor()
+            #===================================================================
+            # sql = '''
+            #     select employee_id, work_date, punch_type from tpt_hr_attendance
+            # '''
+            #===================================================================
+            sql = '''
+                select employee_id, name, action, id from hr_attendance where is_moved='f'
+            '''
+            from_cursor.execute(sql)
+            time_ids = from_cursor.fetchall()
+            
+            attn_obj = self.pool.get('tpt.hr.attendance')
+            vals = []
+            ntm_ids = ''
+            for time in time_ids:
+                vals = {'employee_id':time[0],
+                        'work_date':time[1],
+                        'punch_type':time[2],     
+                        }
+                if ntm_ids=='':
+                    ntm_ids = ntm_ids + str(time[3])
+                else:
+                    ntm_ids = ntm_ids +', '+ str(time[3])
+                attn_obj.create(cr, uid, vals)
+            ntm_ids = str(ntm_ids).replace("[", "")
+            ntm_ids = ntm_ids.replace("]", "")
+            if len(ntm_ids)>=1:
+                sql = '''
+                update hr_attendance set is_moved='t' where id in (%s)
+                '''%ntm_ids
+                from_cursor.execute(sql)
+                from_conn.commit()
+            
+                print "TIME DATA MOVED"
+            return True
+    def upload_employee(self, cr, uid, context=None):
+        time_obj = self.pool.get('tpt.time.data.move')
+        time_obj_id = time_obj.search(cr, uid, [('from_db_port','=','5432')])
+        if time_obj_id:
+            line = time_obj.browse(cr, uid, time_obj_id[0])
+    #         oorpc = OpenObjectRPC(line.host, line.database, line.username, line.password, line.port)
+            from_db_conn_string = "host='%s' port='%s' dbname='%s' user='%s' password='%s'"%(line.from_host, line.from_db_port, line.from_database, line.from_db_username, line.from_db_password)
+            from_conn = psycopg2.connect(from_db_conn_string)
+            from_cursor = from_conn.cursor()
+            
+            ###
+            emp_obj = self.pool.get('hr.employee')
+            resource_obj = self.pool.get('resource.resource')
+            sql = '''
+            select id from hr_employee where resource_id in (select id from resource_resource where active in ('t'))
+            '''
+            cr.execute(sql)
+            emp_ids = [r[0] for r in cr.fetchall()]
+            for emp in emp_obj.browse(cr, uid, emp_ids):
+                #Get Employee ID
+                sql = '''
+                select id from hr_employee where employee_id='%s'
+                '''%emp.employee_id
+                from_cursor.execute(sql)
+                ntm_emp_id = from_cursor.fetchone()
+                #Get Resource ID
+                sql = '''
+                select id from resource_resource where name='%s'
+                '''%emp.name_related
+                from_cursor.execute(sql)
+                ntm_resource_id = from_cursor.fetchone()
+                
+                if ntm_emp_id and ntm_resource_id:
+                    #Update Exsting Employees
+                    sql = '''
+                    update hr_employee set rfid='%s' where id=%s
+                    '''%(emp.rfid, ntm_emp_id[0])
+                    from_cursor.execute(sql)
+                    from_conn.commit()
+                    #Update Exsinting Resources                
+                    sql = '''
+                    update resource_resource set rfid='%s' where id=%s
+                    '''%(emp.rfid, ntm_resource_id[0])
+                    from_cursor.execute(sql)
+                    from_conn.commit()
+                else:
+                    rfid = emp.rfid
+                    if not rfid:
+                        rfid = ''
+                    #Create Entry in reource_resource table if not
+                    sql = '''
+                    INSERT INTO resource_resource(
+                     create_uid, create_date, write_date, write_uid, time_efficiency,
+                      name,  active,  resource_type, rfid, id)
+                    VALUES ( 1, current_date,  current_date, 1, 0,
+                     '%s',  True,  'user', '%s', %s)
+                    '''%(emp.name_related, rfid, emp.id)
+                    from_cursor.execute(sql)
+                    from_conn.commit()
+                    #
+                    sql = '''
+                    select id from resource_resource where name='%s'
+                    '''%emp.name_related
+                    from_cursor.execute(sql)
+                    r_id = from_cursor.fetchone()
+                    resource_id = r_id[0]
+                    
+                    #Create Entry in hr_employee table if not
+                    sql = '''
+                    INSERT INTO hr_employee(
+                     create_uid, create_date, write_date, write_uid, employee_id,
+                      name_related, rfid, resource_id, id)
+                    VALUES ( 1, current_date,  current_date, 1, '%s',
+                     '%s', '%s', %s, %s)
+                    '''%(emp.employee_id, emp.name_related, rfid, resource_id, emp.id)
+                    from_cursor.execute(sql)
+                    from_conn.commit()
+                    
+                    
+            ###
+            
+            
+            print "EMPLOYEE DATA MOVED"
+            return True
+tpt_time_data_move()

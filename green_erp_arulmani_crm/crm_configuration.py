@@ -41,7 +41,14 @@ class res_company(osv.osv):
                 'factory_zip': fields.char('Zip', change_default=True, size=24),
                 'factory_city': fields.char('City', size=128),
                 'factory_state_id': fields.many2one("res.country.state", 'State'),
-                'factory_country_id': fields.many2one('res.country', 'Country'),              
+                'factory_country_id': fields.many2one('res.country', 'Country'), 
+                
+                'tin_no': fields.char('TIN', size=128),
+                'cst_no': fields.char('CST', size=128),
+                'ex_reg_no': fields.char('Excise Reg. No', size=128),
+                'service_reg_no': fields.char('Service Tax Reg. No', size=128),
+                'pan_no': fields.char('PAN', size=128),
+                'ie_code': fields.char('IE Code', size=128),            
                 }
 res_company()    
 
