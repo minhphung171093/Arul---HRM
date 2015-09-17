@@ -3976,7 +3976,7 @@ class tpt_update_stock_move_report(osv.osv):
 #                 print ValueError
                 print 'production_id', line.id
 #                 break
-        return self.write(cr, uid, ids, {'result':'create_one_production_declaration_one_posting Done'})  
+        return self.write(cr, uid, ids, {'result':'create_one_production_declaration_one_posting remaining'})  
     
 tpt_update_stock_move_report()
 
