@@ -5720,7 +5720,7 @@ class mrp_production(osv.osv):
                                                 'credit':0,
                                                }))
                     else:
-                        raise osv.except_osv(_('Warning!'),_("Product Asset Account is not configured for Product '%s'! Please configured it!")%(line.product_id.code))
+                        raise osv.except_osv(_('Warning!'),_("Product Asset Account is not configured for Product '%s'! Please configured it!")%(line.product_id.default_code))
                     unit_produce = debit/line.product_qty
                     move_ids = stock_move_obj.search(cr, uid, [('product_id','=',line.product_id.id),('production_id','=',line.id)])
                     if move_ids:
