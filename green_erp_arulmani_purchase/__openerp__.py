@@ -53,7 +53,8 @@
         'wizard/material_request_line_view.xml',
         'wizard/grn_line_view.xml',
         'wizard/purchase_indent_line_view.xml',
-        'report/purchase_indent_line_report_view.xml',
+        'report/purchase_indent_line_report_view.xml', 
+        'report/print_gate_out_pass_view.xml',
 
         'purchase_view.xml',
         'stock_view.xml',
