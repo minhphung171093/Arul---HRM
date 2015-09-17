@@ -5529,7 +5529,7 @@ class mrp_production(osv.osv):
                         price_unit = (hand_quantity_in-hand_quantity_out) and (total_cost_in-total_cost_out)/(hand_quantity_in-hand_quantity_out)
                         stock_move_obj.write(cr, 1, [mat.id],{'price_unit':price_unit})
                         cost = price_unit*mat.product_qty or 0
-                        debit += cost
+                        debit += round(cost,2)
                         if cost:
                             if mat.product_id.default_code not in ['M0501010005','M0501010004','M0501010002']:
                                 if line.product_id.product_credit_id:
@@ -5537,7 +5537,7 @@ class mrp_production(osv.osv):
                                                     'name':mat.product_id.default_code, 
                                                     'account_id': line.product_id.product_credit_id and line.product_id.product_credit_id.id,
                                                     'debit':0,
-                                                    'credit':cost,
+                                                    'credit':round(cost,2),
                                                    }))
                                 else:
                                     raise osv.except_osv(_('Warning!'),_("Product Credit Account is not configured for Product '%s'! Please configured it!")%(mat.product_id.default_code))
@@ -5547,7 +5547,7 @@ class mrp_production(osv.osv):
                                                     'name':mat.product_id.default_code, 
                                                     'account_id': mat.product_id.product_asset_acc_id and mat.product_id.product_asset_acc_id.id,
                                                     'debit':0,
-                                                    'credit':cost,
+                                                    'credit':round(cost,2),
                                                    }))
                                 else:
                                     raise osv.except_osv(_('Warning!'),_("Product Asset Account is not configured for Product '%s'! Please configured it!")%(mat.product_id.default_code))
@@ -5612,14 +5612,14 @@ class mrp_production(osv.osv):
                                 '''%(price_unit, mat.id)
                                 cr.execute(sql)
                                 cost = price_unit*mat.product_qty or 0
-                                debit += cost
+                                debit += round(cost,2)
                                 if cost:
                                     if line.product_id.product_credit_id:
                                         journal_line.append((0,0,{
                                                         'name':mat.product_id.code, 
                                                         'account_id': line.product_id.product_credit_id and line.product_id.product_credit_id.id,
                                                         'debit':0,
-                                                        'credit':cost,
+                                                        'credit':round(cost,2),
                                                        }))
                                     else:
                                         raise osv.except_osv(_('Warning!'),_("Product Credit Account is not configured for Product '%s'! Please configured it!")%(mat.product_id.default_code))
@@ -5629,14 +5629,14 @@ class mrp_production(osv.osv):
                                     avg_cost_id = avg_cost_obj.browse(cr, uid, avg_cost_ids[0])
                                     unit = avg_cost_id.avg_cost
                                     cost = unit * mat.product_qty
-                                    debit += cost
+                                    debit += round(cost,2)
                                     if cost:
                                         if line.product_id.product_credit_id:
                                             journal_line.append((0,0,{
                                                             'name':mat.product_id.code, 
                                                             'account_id': line.product_id.product_credit_id and line.product_id.product_credit_id.id,
                                                             'debit':0,
-                                                            'credit':cost,
+                                                            'credit':round(cost,2),
                                                            }))
                                         else:
                                             raise osv.except_osv(_('Warning!'),_("Product Credit Account is not configured for Product '%s'! Please configured it!")%(mat.product_id.default_code))
@@ -5652,13 +5652,13 @@ class mrp_production(osv.osv):
                             if move_ids:
                                 stock_move_obj.write(cr, 1, [mat.id],{'price_unit':move_ids[0]})
                                 price_raw = move_ids[0] * (mat.product_qty or 0)
-                                debit += price_raw
+                                debit += round(price_raw,2)
                                 if line.product_id.product_credit_id:
                                     journal_line.append((0,0,{
                                                         'name':mat.product_id.code, 
                                                         'account_id': line.product_id.product_credit_id and line.product_id.product_credit_id.id,
                                                         'debit':0,
-                                                        'credit':price_raw,
+                                                        'credit':round(price_raw,2),
                                                                }))
                                 else:
                                     raise osv.except_osv(_('Warning!'),_("Product Credit Account is not configured! Please configured it!"))
@@ -5673,12 +5673,12 @@ class mrp_production(osv.osv):
                         cr.execute(sql)
                         price_ids = cr.fetchone()
                         produce_price = (price_ids and price_ids[0] or 0) * (produce.product_qty or 0)
-                        debit -= produce_price
+                        debit -= round(produce_price,2)
                         if line.product_id.product_asset_acc_id:
                             journal_line.append((0,0,{
                                                     'name':produce.product_id.default_code, 
                                                     'account_id': produce.product_id.product_asset_acc_id and produce.product_id.product_asset_acc_id.id,
-                                                    'debit':produce_price,
+                                                    'debit':round(produce_price,2),
                                                     'credit':0,
                                                    }))
                         else:
@@ -5686,12 +5686,12 @@ class mrp_production(osv.osv):
                 for act in line.bom_id.activities_line:
                     if line.product_id.product_credit_id:
 #                         credit += act.product_cost
-                        debit += act.product_cost
+                        debit += act.product_cost and round(act.product_cost,2) or 0
                         journal_line.append((0,0,{
                                                 'name':act.activities_id.code, 
                                                 'account_id': line.product_id.product_credit_id and line.product_id.product_credit_id.id,
                                                 'debit':0,
-                                                'credit':act.product_cost or 0,
+                                                'credit':act.product_cost and round(act.product_cost,2) or 0,
                                                }))
                     else:
                         raise osv.except_osv(_('Warning!'),_("Product Credit Account is not configured! Please configured it!"))
@@ -5702,7 +5702,7 @@ class mrp_production(osv.osv):
                         journal_line.append((0,0,{
                                                 'name':line.product_id.code, 
                                                 'account_id': line.product_id.product_asset_acc_id and line.product_id.product_asset_acc_id.id,
-                                                'debit': debit,
+                                                'debit': round(debit,2),
                                                 'credit':0,
                                                }))
                     else:
