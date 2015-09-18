@@ -13,7 +13,7 @@ from twisted.internet._threadedselect import raiseException
 #from dateutil import rrule
 from dateutil.rrule import rrule, DAILY
 import psycopg2
-from numpy.ma.core import subtract
+#from numpy.ma.core import subtract
 
 class arul_hr_holiday_special(osv.osv):
     _name = "arul.hr.holiday.special"
