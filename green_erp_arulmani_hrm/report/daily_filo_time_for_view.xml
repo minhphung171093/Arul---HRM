@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+        <record id="daily_filo_time_xls" model="ir.actions.report.xml">
+	        <field name="name">daily_filo_time_xls</field>
+	        <field name="type">ir.actions.report.xml</field>
+	        <field name="model">daily.filo.time</field>
+	        <field name="report_name">daily_filo_time_xls</field>
+	        <field name="report_type">aeroo</field>
+	        <field name="in_format">oo-ods</field>
+	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-xls')]"/>
+	        <field name="parser_loc">green_erp_arulmani_hrm/report/daily_filo_time_report.py</field>
+	        <field name="report_rml">green_erp_arulmani_hrm/report/daily_filo_time_report.ods</field>
+	        <field name="parser_state">loc</field>
+	        <field name="tml_source">file</field>
+	        <field name="attachment_use" eval="0"/>
+    	</record>
+    	
+    	<report 
+			auto="True" 
+			menu="False"
+			id="daily_filo_time_xls" 
+			model="daily.filo.time" 
+			name="daily_filo_time_xls"
+	        string="Daily First IN and Last OUT TIME Report"
+	        rml="green_erp_arulmani_hrm/report/daily_filo_time_report.ods"/>
+	        
+	    <record id="daily_filo_time_pdf" model="ir.actions.report.xml">
+	        <field name="name">daily_filo_time_pdf</field>
+	        <field name="type">ir.actions.report.xml</field>
+	        <field name="model">daily.filo.time</field>
+	        <field name="report_name">daily_filo_time_pdf</field>
+	        <field name="report_type">aeroo</field>
+	        <field name="in_format">oo-ods</field>
+	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-pdf')]"/>
+	        <field name="parser_loc">green_erp_arulmani_hrm/report/daily_filo_time_report.py</field>
+	        <field name="report_rml">green_erp_arulmani_hrm/report/daily_filo_time_report.ods</field>
+	        <field name="parser_state">loc</field>
+	        <field name="tml_source">file</field>
+	        <field name="attachment_use" eval="0"/>
+    	</record>
+    	
+    	<report 
+			auto="True" 
+			menu="False"
+			id="daily_filo_time_pdf" 
+			model="daily.filo.time" 
+			name="daily_filo_time_pdf"
+	        string="Daily First IN and Last OUT TIME Report"
+	        rml="green_erp_arulmani_hrm/report/daily_filo_time_report.ods"/>
+	        
+	        
+	   <record id="view_daily_filo_time" model="ir.ui.view">
+	        <field name="name">view.daily.filo.time</field>
+	        <field name="model">daily.filo.time</field>
+	        <field name="arch" type="xml">
+	            <form version='7.0' string="Daily First IN and Last OUT TIME Report" create="false" edit="false" delete="false">
+	            	<header>
+	            		<button name="print_xls" string="Print (.xls)" type="object" class="oe_highlight" />
+	            		<button name="print_pdf" string="Print (.pdf)" type="object" class="oe_highlight" />
+	            	</header>
+	            	<sheet>
+	            	    <div class="oe_text_center oe_bold">
+            				<field name="name" nolabel="1" class="oe_text_center oe_inline"/>            				
+            			</div>
+            			<div class="oe_text_center">            				 
+            				<field name="date_to" class = "oe_inline"/>            				    				 
+            			</div> 
+            			<div class="oe_text_center">
+            				<field name="emp_categ_name" class = "oe_inline"/>
+            			</div>
+            			<div class="oe_text_center">  
+            				<field name="dept_name" class = "oe_inline"/>    				 
+            			</div>          				                	
+		                	<field name="dailyfilo_line" nolabel='1'>
+		                		<tree create="false" edit="false" delete="false">
+		                			<field name="emp_code"/>
+		                			<field name="emp_name"/>		                			
+		                			<field name="desgn"/>
+		                			<field name="dept"/>		                			
+		                			<field name="emp_cat"/>		                			
+		                			<field name="in_time" widget = "float_time"/>
+		                			<field name="out_time" widget = "float_time"/>
+		                			<field name="work_day"/>
+		                		</tree>
+		                	</field>
+	               	   </sheet>
+	              </form>
+	          </field>
+	      </record>
+    
+    	<!-- <record id="daily_filo_time" model="ir.actions.report.xml">
+	        <field name="name">daily_filo_time</field>
+	        <field name="type">ir.actions.report.xml</field>
+	        <field name="model">daily.filo.time</field>
+	        <field name="report_name">daily_filo_time</field>
+	        <field name="report_type">aeroo</field>
+	        <field name="in_format">oo-ods</field>
+	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-xls'),('compatible_types','=','oo-ods')]"/>
+	        <field name="parser_loc">green_erp_arulmani_hrm/report/daily_filo_time_report.py</field>
+	        <field name="report_rml">green_erp_arulmani_hrm/report/daily_filo_time_report.ods</field>
+	        <field name="parser_state">loc</field>
+	        <field name="tml_source">file</field>
+	        <field name="attachment_use" eval="0"/>
+    	</record>		    
+		
+		<report 
+			auto="True" 
+			menu="False"
+			id="daily_filo_time" 
+			model="daily.filo.time" 
+			name="daily_filo_time"
+	        string="Daily FILO Time Report"
+	        rml="green_erp_arulmani_hrm/report/daily_filo_time_report.ods"/> -->
+	        
+	    
+    </data>
+</openerp>

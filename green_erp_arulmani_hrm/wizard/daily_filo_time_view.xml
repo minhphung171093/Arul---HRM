@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>   
+        <record id="view_tpt_daily_filo_time" model="ir.ui.view">
+            <field name="name">tpt.daily.filo.time</field>
+            <field name="model">tpt.daily.filo.time</field>
+            <field name="arch" type="xml">
+                <form string="Daily First IN and Last OUT Time Report" version="7.0">
+                	<group>	                      
+	                    <field name='date_to'/>
+	                    <field name='employee_category_ids' widget = 'many2many_tags' options="{'create': false, 'create_edit': false}"/>
+	                    <field name='department_ids' widget = 'many2many_tags' options="{'create': false, 'create_edit': false}"/>
+                 	</group>
+                    <footer>
+                        <button name="print_report" string="Print" type="object" class="oe_highlight" />
+                        <button string="Cancel" class="oe_link" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>        
+        <record id="action_tpt_daily_filo_time" model="ir.actions.act_window">
+            <field name="name">Daily First IN and Last OUT Time Report</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.daily.filo.time</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="view_tpt_daily_filo_time" />
+            <field name="target">new</field>
+        </record>
+        
+        
+    </data>
+</openerp>
+
