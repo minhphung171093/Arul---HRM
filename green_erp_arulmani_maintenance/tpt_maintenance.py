@@ -757,13 +757,15 @@ class tpt_material_request(osv.osv):
                 issue_line_ids = issue_line_obj.search(cr, uid, [('request_line_id','=',req.id)])
 #                 if issue_line_ids:
                 for price in issue_line_obj.browse(cr,uid,issue_line_ids):
+                    price_unit = 0
 #                     for price in [issue_line_obj.browse(cr,uid,x) for x in issue_line_ids]:
                     sql='''
                         select price_unit from stock_move where issue_id=%s and product_id=%s 
                             and issue_id in (select id from tpt_material_issue where state = 'done')
                     '''%(price.material_issue_id.id,price.product_id.id)
                     cr.execute(sql)
-                    price_unit = cr.fetchone() and cr.fetchone()[0] or 0
+                    if cr.fetchone():
+                        price_unit = cr.fetchone() and cr.fetchone()[0] or 0
                     amount += price_unit*price.product_isu_qty
                         
             res[line.id]['total'] = amount
