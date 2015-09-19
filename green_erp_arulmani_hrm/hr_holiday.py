@@ -10397,6 +10397,7 @@ class tpt_hr_attendance(osv.osv):
                                  'in_time': in_time,
                                  'out_time': 0,
                                  'employee_category_id':emp_root.employee_category_id.id,
+                                 'type':'punch',
                                   })
             if punch_type=='OUT':
                 out_time = float(hour)+float(min)/60+float(sec)/3600
@@ -10486,6 +10487,7 @@ class tpt_hr_attendance(osv.osv):
                                  'ref_out_time': out_time,
                                  'out_time': out_time,
                                  'employee_category_id':emp_root.employee_category_id.id,
+                                 'type':'punch',
                                   }) 
                     #ast_obj.write(cr, uid, time_entry.id, {'is_processed':'t'})
                     ### end 2nd version
@@ -10684,7 +10686,11 @@ class tpt_hr_attendance(osv.osv):
         
             #CHANGE STATE OF AST TO DONE - IF ITS AUTO APPROVED
             #A = A
-            ast_obj.write(cr, uid, ast_id, {'state':'done', 'approval':True})
+            sql = '''
+            update arul_hr_audit_shift_time set state='done', approval='t' where id=%s
+            '''%ast_id
+            cr.execute(sql)
+            #ast_obj.write(cr, uid, ast_id, {'state':'done', 'approval':True})
         
         elif a_shift==0 and g1_shift==0 and g2_shift==0 and b_shift==0 and c_shift==0 and shift_count==0:
             ast_values={'employee_id':emp_root.id,'planned_work_shift_id':shift_id,'actual_work_shift_id':work_shift_id,'work_date':work_date_format,
