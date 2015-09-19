@@ -62,6 +62,7 @@ class tpt_equipment(osv.osv):
         'end_date': fields.date('Installation End Date',required=True),
         'men_power_line':fields.one2many('tpt.men.power','equipment_id','Men Power Consumption'),
         'document_attach_line':fields.one2many('tpt.document.attach','equipment_id','Document Attachments'),
+        'maintenance_oder_line':fields.one2many('tpt.maintenance.oder','equipment_id','Equipment Master History',readonly=True),
     }
     def _check_name_code(self, cr, uid, ids, context=None):
         for equip in self.browse(cr, uid, ids, context=context):
@@ -294,7 +295,7 @@ class tpt_maintenance_oder(osv.osv):
         
         'employee_id': fields.many2one('hr.employee', 'Assigned to',required=True,states={'close': [('readonly', True)]},ondelete='restrict'),
         'priority':fields.selection([('high', 'High'),('medium', 'Medium'),('low', 'Low')],'Priority',states={'close': [('readonly', True)]}),
-#         'equip_id': fields.many2one('tpt.equipment', 'Equipment',required=True,states={'close': [('readonly', True)]}),
+        'equipment_id': fields.many2one('tpt.equipment', 'Equipment'),
 #         'machine_id': fields.many2one('tpt.machineries', 'Machineries',required=True,states={'close': [('readonly', True)]}),
         'start_date': fields.date('Work Start Date',required=True,states={'close': [('readonly', True)]}),
         'completion_date': fields.date('Target Date of Completion',required=True,states={'close': [('readonly', True)]}),
@@ -332,6 +333,7 @@ class tpt_maintenance_oder(osv.osv):
                         'priority':False,
                         'notif_type':False,
                         'employee_id':False,
+                        'equipment_id':False,
                       }
                }
         if notification_id:
@@ -345,6 +347,7 @@ class tpt_maintenance_oder(osv.osv):
                         'issue_type':no_id.issue_type or False,
                         'priority':no_id.priority or False,
                         'notif_type':no_id.notif_type or False,
+                        'equipment_id':no_id.equip_id and no_id.equip_id.id or False,
             })
         return res
     
@@ -385,6 +388,7 @@ class tpt_maintenance_oder(osv.osv):
                     'domain': [],
                     'context': {
                                 'default_maintenance_id':order_id.id or False,
+                                'default_service_type':'employee',
                                 'default_section_id':order_id.section_id and order_id.section_id.id or False,
                                 'default_department_id':order_id.department_id and order_id.department_id.id or False,
                                 'default_equip_id':order_id.equip_id and order_id.equip_id.id or False,
@@ -549,7 +553,9 @@ class tpt_service_entry_line(osv.osv):
     _columns = {
         'service_entry_id': fields.many2one('tpt.service.entry','Service Entry',ondelete='cascade'),
         'line_no': fields.integer('S.No', readonly = True),
-        'po_id':fields.many2one('purchase.order','Purchase Order', ondelete = 'restrict'),
+#         'po_id':fields.many2one('purchase.order','Purchase Order', ondelete = 'restrict'),
+        'employee_ids':fields.many2many('hr.employee','service_entry_employee_ref','service_entry_id','employee_id','Employee'),
+        'work_day': fields.date('Work Day',required=True),
         'po_line_id':fields.many2one('purchase.order.line','Particulars', ondelete = 'restrict'),
         'uom_id': fields.many2one('product.uom', 'UOM'),
         'product_uom_qty': fields.float('Quantity',digits=(16,3)),   
@@ -597,17 +603,17 @@ class tpt_service_entry_line(osv.osv):
             })
         return res
     
-    def onchange_po_id(self, cr, uid, ids,po_id=False,po_line_id=False):
-        res = {'value':{}}
-        if po_id and po_line_id:
-            cr.execute('select id from purchase_order_line where order_id = %s and id = %s',(po_id,po_line_id,))
-            line = cr.fetchall()
-            if not line:
-                res['value'].update({'uom_id':False,
-                                    'product_uom_qty':False,
-                                    'price_unit':False,
-                                    'po_line_id':False,})
-        return res
+#     def onchange_po_id(self, cr, uid, ids,po_id=False,po_line_id=False):
+#         res = {'value':{}}
+#         if po_id and po_line_id:
+#             cr.execute('select id from purchase_order_line where order_id = %s and id = %s',(po_id,po_line_id,))
+#             line = cr.fetchall()
+#             if not line:
+#                 res['value'].update({'uom_id':False,
+#                                     'product_uom_qty':False,
+#                                     'price_unit':False,
+#                                     'po_line_id':False,})
+#         return res
     
 tpt_service_entry_line()
 
@@ -738,10 +744,36 @@ tpt_third_service_entry_line()
 
 class tpt_material_request(osv.osv):
     _inherit = "tpt.material.request"
+    
+    def amount_issue_line(self, cr, uid, ids, field_name, args, context=None):
+        res = {}
+        issue_line_obj = self.pool.get('tpt.material.issue.line')
+        for line in self.browse(cr,uid,ids,context=context):
+            res[line.id] = {
+                'total': 0.0,
+            }
+            amount = 0.0 
+            for req in line.material_request_line:
+                issue_line_ids = issue_line_obj.search(cr, uid, [('request_line_id','=',req.id)])
+#                 if issue_line_ids:
+                for price in issue_line_obj.browse(cr,uid,issue_line_ids):
+#                     for price in [issue_line_obj.browse(cr,uid,x) for x in issue_line_ids]:
+                    sql='''
+                        select price_unit from stock_move where issue_id=%s and product_id=%s 
+                            and issue_id in (select id from tpt_material_issue where state = 'done')
+                    '''%(price.material_issue_id.id,price.product_id.id)
+                    cr.execute(sql)
+                    price_unit = cr.fetchone() and cr.fetchone()[0] or 0
+                    amount += price_unit*price.product_isu_qty
+                        
+            res[line.id]['total'] = amount
+        return res
+    
     _columns = {
                 'maintenance_id':fields.many2one('tpt.maintenance.oder','Maintenance Order No',readonly = True),
                 'chargeable_maintenance_id':fields.many2one('tpt.maintenance.oder','Maintenance Order No',readonly = True),
                 'mrs_type':fields.selection([('normal','Normal MRS'),('chargeable', 'Chargeable MRS')],'MRS Type',readonly = True),
+                'total': fields.function(amount_issue_line, multi='sums',string='Total',digits=(16,2))
                 }
     def bt_main_save(self, cr, uid, ids,vals,context=None):
         return True
