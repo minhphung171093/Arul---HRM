@@ -10,6 +10,7 @@
 	                <field name="date_from" />
 	                <field name="date_to" />
 	                <field name="type_trans" />
+	                <field name="type_recon" />
 	                <field name="account_id" required='1' string = "Bank GL Account" domain = "[('user_type.name','=','Bank')]" options="{'create': false, 'create_edit': false}"/>
 	                <field name="is_posted" />
 	                </group>

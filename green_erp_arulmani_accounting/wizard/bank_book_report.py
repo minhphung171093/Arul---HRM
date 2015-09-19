@@ -16,6 +16,7 @@ class tpt_bank_book(osv.osv):
         'date_from': fields.date('Date From'),
         'date_to': fields.date('Date To'),
         'type_trans':fields.selection([('payment', 'Payment'),('receipt', 'Receipt')],'Transaction type'),
+        'type_recon':fields.selection([('unreconcile', 'UnReconcile'),('reconcile', 'Reconcile'),('confirmed', 'Confirmed')],'Reconcile type'),#TPT-Y
         'account_id':fields.many2one('account.account','Bank GL Account'),
         'is_posted': fields.boolean('Is Posted'),
     }
@@ -67,6 +68,7 @@ class bank_book_report(osv.osv_memory):
                 'date_from': fields.date('Date From', required=True),
                 'date_to': fields.date('Date To', required=True),
                 'type_trans':fields.selection([('payment', 'Payment'),('receipt', 'Receipt')],'Transaction type'),
+                'type_recon':fields.selection([('unreconcile', 'UnReconcile'),('reconcile', 'Reconcile'),('confirmed', 'Confirmed')],'Reconcile type'),#TPT-Y
                 'account_id':fields.many2one('account.account','Bank GL Account'),
                 'is_posted': fields.boolean('Is Posted'),
                 }
@@ -187,151 +189,192 @@ class bank_book_report(osv.osv_memory):
             date_from = o.date_from
             date_to = o.date_to
             type = o.type_trans
+            rec_type = o.type_recon
             account_id = o.account_id
             is_posted = o.is_posted
             
-            if is_posted is True:
-                    if type == 'payment':
-                            cr.execute('''
-                                select aa.name as acc_name,aml.account_id,sum(aml.debit) as debit,sum(aml.credit) as credit,
-                                av.name as voucher_name,av.date as voucher_date,aml.ref as ref, aml.name as voucher_desc,
-                                av.cheque_no cheque_no_1,
-                                case when av.cheque_no is null then av.cheque_number
-                                else av.cheque_no end as cheque_no,
-                                av.cheque_date cheque_date,av.number as voucher_no,av.narration as desc
-                                from account_move_line aml
-                                inner join account_move am on (am.id=aml.move_id)
-                                inner join account_account aa on (aa.id=aml.account_id)
-                                inner join account_voucher av on av.move_id = aml.move_id
-                                inner join (
-                                select distinct am.id as cash_header_id,aml.account_id as cash_account_id from account_move_line aml
-                                inner join account_move am on (am.id=aml.move_id)
-                                inner join account_account acc on (acc.id=aml.account_id and acc.id=%s)
-                                )a on (a.cash_header_id=am.id and cash_account_id<>aml.account_id)
-                                where av.type in ('payment') and av.state in ('posted') and av.date between %s and %s 
-                                group by aa.name,aml.account_id,av.name,av.date,aml.ref,av.payee,aml.name,av.cheque_no, av.cheque_date,
-                                av.number,av.narration,av.cheque_number
-                                order by av.date,av.cheque_no,av.cheque_number
-                            ''',(account_id.id,date_from, date_to,))
-                            return cr.dictfetchall()
-                    elif type == 'receipt':
-                            cr.execute('''
-                                select aa.name as acc_name,aml.account_id,sum(aml.debit) as debit,sum(aml.credit) as credit,
-                                av.name as voucher_name,av.date as voucher_date,aml.ref as ref, aml.name as voucher_desc,
-                                av.cheque_no cheque_no_1,
-                                case when av.cheque_no is null then av.cheque_number
-                                else av.cheque_no end as cheque_no,
-                                av.cheque_date cheque_date,av.number as voucher_no,av.narration as desc
-                                from account_move_line aml
-                                inner join account_move am on (am.id=aml.move_id)
-                                inner join account_account aa on (aa.id=aml.account_id)
-                                inner join account_voucher av on av.move_id = aml.move_id
-                                inner join (
-                                select distinct am.id as cash_header_id,aml.account_id as cash_account_id from account_move_line aml
-                                inner join account_move am on (am.id=aml.move_id)
-                                inner join account_account acc on (acc.id=aml.account_id and acc.id=%s)
-                                )a on (a.cash_header_id=am.id and cash_account_id<>aml.account_id)
-                                where av.type in ('receipt') and av.state in ('posted') and av.date between %s and %s  
-                                group by aa.name,aml.account_id,av.name,av.date,aml.ref,av.payee,aml.name,av.cheque_no, av.cheque_date,
-                                av.number,av.narration,av.cheque_number
-                                order by av.date,av.cheque_no,av.cheque_number
-                            
-                            ''',(account_id.id,date_from, date_to,))
-                            return cr.dictfetchall()
-                    else:
-                            cr.execute('''
-                                select aa.name as acc_name,aml.account_id,sum(aml.debit) as debit,sum(aml.credit) as credit,
-                                av.name as voucher_name,av.date as voucher_date,aml.ref as ref, aml.name as voucher_desc,
-                                av.cheque_no cheque_no_1,
-                                case when av.cheque_no is null then av.cheque_number
-                                else av.cheque_no end as cheque_no,
-                                av.cheque_date cheque_date,av.number as voucher_no,av.narration as desc
-                                from account_move_line aml
-                                inner join account_move am on (am.id=aml.move_id)
-                                inner join account_account aa on (aa.id=aml.account_id)
-                                inner join account_voucher av on av.move_id = aml.move_id
-                                inner join (
-                                select distinct am.id as cash_header_id,aml.account_id as cash_account_id from account_move_line aml
-                                inner join account_move am on (am.id=aml.move_id)
-                                inner join account_account acc on (acc.id=aml.account_id and acc.id=%s)
-                                )a on (a.cash_header_id=am.id and cash_account_id<>aml.account_id)
-                                where av.type in ('payment','receipt') and av.state in ('posted') and av.date between %s and %s 
-                                group by aa.name,aml.account_id,av.name,av.date,aml.ref,av.payee,aml.name,av.cheque_no, av.cheque_date,
-                                av.number,av.narration,av.cheque_number
-                                order by av.date,av.cheque_no,av.cheque_number
-                            ''',(account_id.id,date_from, date_to,))
-                            return cr.dictfetchall()
-             
-            else: #MAJOR IF ELSE
-                    if type == 'payment':
-                            cr.execute('''
-                                select aa.name as acc_name,aml.account_id,sum(aml.debit) as debit,sum(aml.credit) as credit,
-                                av.name as voucher_name,av.date as voucher_date,aml.ref as ref, aml.name as voucher_desc,
-                                av.cheque_no cheque_no_1,
-                                case when av.cheque_no is null then av.cheque_number
-                                else av.cheque_no end as cheque_no, 
-                                av.cheque_date cheque_date,av.number as voucher_no,av.narration as desc
-                                from account_move_line aml
-                                inner join account_move am on (am.id=aml.move_id)
-                                inner join account_account aa on (aa.id=aml.account_id)
-                                inner join account_voucher av on av.move_id = aml.move_id
-                                inner join (
-                                select distinct am.id as cash_header_id,aml.account_id as cash_account_id from account_move_line aml
-                                inner join account_move am on (am.id=aml.move_id)
-                                inner join account_account acc on (acc.id=aml.account_id and acc.id=%s)
-                                )a on (a.cash_header_id=am.id and cash_account_id<>aml.account_id)
-                                where av.type in ('payment') and av.state in ('draft','posted') and av.date between %s and %s  
-                                group by aa.name,aml.account_id,av.name,av.date,aml.ref,av.payee,aml.name,av.cheque_no, av.cheque_date,
-                                av.number,av.narration,av.cheque_number
-                                order by av.date,av.cheque_no,av.cheque_number
-                            ''',(account_id.id,date_from, date_to,))
-                            return cr.dictfetchall()
-                    elif type == 'receipt':
-                            cr.execute('''
-                                select aa.name as acc_name,aml.account_id,sum(aml.debit) as debit,sum(aml.credit) as credit,
-                                av.name as voucher_name,av.date as voucher_date,aml.ref as ref, aml.name as voucher_desc,
-                                av.cheque_no cheque_no_1,
-                                case when av.cheque_no is null then av.cheque_number
-                                else av.cheque_no end as cheque_no, 
-                                av.cheque_date cheque_date,av.number as voucher_no,av.narration as desc
-                                from account_move_line aml
-                                inner join account_move am on (am.id=aml.move_id)
-                                inner join account_account aa on (aa.id=aml.account_id)
-                                inner join account_voucher av on av.move_id = aml.move_id
-                                inner join (
-                                select distinct am.id as cash_header_id,aml.account_id as cash_account_id from account_move_line aml
-                                inner join account_move am on (am.id=aml.move_id)
-                                inner join account_account acc on (acc.id=aml.account_id and acc.id=%s)
-                                )a on (a.cash_header_id=am.id and cash_account_id<>aml.account_id)
-                                where av.type in ('receipt') and av.state in ('draft','posted') and av.date between %s and %s  
-                                group by aa.name,aml.account_id,av.name,av.date,aml.ref,av.payee,aml.name,av.cheque_no, av.cheque_date,
-                                av.number,av.narration,av.cheque_number
-                                order by av.date,av.cheque_no,av.cheque_number
-                            ''',(account_id.id,date_from, date_to,))
-                            return cr.dictfetchall()
-                    else:
-                            cr.execute('''
-                                select aa.name as acc_name,aml.account_id,sum(aml.debit) as debit,sum(aml.credit) as credit,
-                                av.name as voucher_name,av.date as voucher_date,aml.ref as ref, aml.name as voucher_desc,
-                                av.cheque_no cheque_no_1,
-                                case when av.cheque_no is null then av.cheque_number
-                                else av.cheque_no end as cheque_no,                 
-                                av.cheque_date cheque_date,av.number as voucher_no,av.narration as desc
-                                from account_move_line aml
-                                inner join account_move am on (am.id=aml.move_id)
-                                inner join account_account aa on (aa.id=aml.account_id)
-                                inner join account_voucher av on av.move_id = aml.move_id
-                                inner join (
-                                select distinct am.id as cash_header_id,aml.account_id as cash_account_id from account_move_line aml
-                                inner join account_move am on (am.id=aml.move_id)
-                                inner join account_account acc on (acc.id=aml.account_id and acc.id=%s)
-                                )a on (a.cash_header_id=am.id and cash_account_id<>aml.account_id)
-                                where av.type in ('receipt','payment') and av.state in ('draft','posted') and av.date between %s and %s  
-                                group by aa.name,aml.account_id,av.name,av.date,aml.ref,av.payee,aml.name,av.cheque_no, av.cheque_date,
-                                av.number,av.narration,av.cheque_number
-                                order by av.date,av.cheque_no,av.cheque_number
-                            ''',(account_id.id,date_from, date_to,))
-                            return cr.dictfetchall()
+            #TPT-Y
+            sql = '''
+                    select aa.name as acc_name,aml.account_id,sum(aml.debit) as debit,sum(aml.credit) as credit,
+                    av.name as voucher_name,av.date as voucher_date,aml.ref as ref, aml.name as voucher_desc,
+                    av.cheque_no cheque_no_1,
+                    case when av.cheque_no is null then av.cheque_number
+                    else av.cheque_no end as cheque_no,
+                    av.cheque_date cheque_date,av.number as voucher_no,av.narration as desc,av.payee as payee
+                    from account_move_line aml
+                    inner join account_move am on (am.id=aml.move_id)
+                    inner join account_account aa on (aa.id=aml.account_id)
+                    inner join account_voucher av on av.move_id = aml.move_id
+                    inner join (
+                    select distinct am.id as cash_header_id,aml.account_id as cash_account_id from account_move_line aml
+                    inner join account_move am on (am.id=aml.move_id)
+                    inner join account_account acc on (acc.id=aml.account_id and acc.id=%s)
+                    )a on (a.cash_header_id=am.id and cash_account_id<>aml.account_id)
+                    where av.date between '%s' and '%s'
+                '''%(account_id.id,date_from, date_to)
+            if type:
+                qstr = " and av.type = '%s'"%(type)
+                sql = sql+qstr
+            if rec_type:
+                qstr = " and av.status in ('%s')"%(rec_type)
+                sql = sql+qstr
+            if is_posted:
+                qstr = " and av.state in ('posted')"
+                sql = sql+qstr
+            else:
+                qstr = " and av.state in ('draft','posted')"
+                sql = sql+qstr
+            sql=sql+" group by aa.name,aml.account_id,av.name,av.date,aml.ref,av.payee,aml.name,av.cheque_no, av.cheque_date, av.number,av.narration,av.cheque_number  order by av.date,av.cheque_no,av.cheque_number "
+            
+            cr.execute(sql)
+            return cr.dictfetchall()
+            
+            #===================================================================
+            # if is_posted is True:
+            #         if type == 'payment':
+            #                 cr.execute('''
+            #                     select aa.name as acc_name,aml.account_id,sum(aml.debit) as debit,sum(aml.credit) as credit,
+            #                     av.name as voucher_name,av.date as voucher_date,aml.ref as ref, aml.name as voucher_desc,
+            #                     av.cheque_no cheque_no_1,
+            #                     case when av.cheque_no is null then av.cheque_number
+            #                     else av.cheque_no end as cheque_no,
+            #                     av.cheque_date cheque_date,av.number as voucher_no,av.narration as desc
+            #                     from account_move_line aml
+            #                     inner join account_move am on (am.id=aml.move_id)
+            #                     inner join account_account aa on (aa.id=aml.account_id)
+            #                     inner join account_voucher av on av.move_id = aml.move_id
+            #                     inner join (
+            #                     select distinct am.id as cash_header_id,aml.account_id as cash_account_id from account_move_line aml
+            #                     inner join account_move am on (am.id=aml.move_id)
+            #                     inner join account_account acc on (acc.id=aml.account_id and acc.id=%s)
+            #                     )a on (a.cash_header_id=am.id and cash_account_id<>aml.account_id)
+            #                     where av.type in ('payment') and av.state in ('posted') and av.date between %s and %s 
+            #                     group by aa.name,aml.account_id,av.name,av.date,aml.ref,av.payee,aml.name,av.cheque_no, av.cheque_date,
+            #                     av.number,av.narration,av.cheque_number
+            #                     order by av.date,av.cheque_no,av.cheque_number
+            #                 ''',(account_id.id,date_from, date_to,))
+            #                 return cr.dictfetchall()
+            #         elif type == 'receipt':
+            #                 cr.execute('''
+            #                     select aa.name as acc_name,aml.account_id,sum(aml.debit) as debit,sum(aml.credit) as credit,
+            #                     av.name as voucher_name,av.date as voucher_date,aml.ref as ref, aml.name as voucher_desc,
+            #                     av.cheque_no cheque_no_1,
+            #                     case when av.cheque_no is null then av.cheque_number
+            #                     else av.cheque_no end as cheque_no,
+            #                     av.cheque_date cheque_date,av.number as voucher_no,av.narration as desc
+            #                     from account_move_line aml
+            #                     inner join account_move am on (am.id=aml.move_id)
+            #                     inner join account_account aa on (aa.id=aml.account_id)
+            #                     inner join account_voucher av on av.move_id = aml.move_id
+            #                     inner join (
+            #                     select distinct am.id as cash_header_id,aml.account_id as cash_account_id from account_move_line aml
+            #                     inner join account_move am on (am.id=aml.move_id)
+            #                     inner join account_account acc on (acc.id=aml.account_id and acc.id=%s)
+            #                     )a on (a.cash_header_id=am.id and cash_account_id<>aml.account_id)
+            #                     where av.type in ('receipt') and av.state in ('posted') and av.date between %s and %s  
+            #                     group by aa.name,aml.account_id,av.name,av.date,aml.ref,av.payee,aml.name,av.cheque_no, av.cheque_date,
+            #                     av.number,av.narration,av.cheque_number
+            #                     order by av.date,av.cheque_no,av.cheque_number
+            #                 
+            #                 ''',(account_id.id,date_from, date_to,))
+            #                 return cr.dictfetchall()
+            #         else:
+            #                 cr.execute('''
+            #                     select aa.name as acc_name,aml.account_id,sum(aml.debit) as debit,sum(aml.credit) as credit,
+            #                     av.name as voucher_name,av.date as voucher_date,aml.ref as ref, aml.name as voucher_desc,
+            #                     av.cheque_no cheque_no_1,
+            #                     case when av.cheque_no is null then av.cheque_number
+            #                     else av.cheque_no end as cheque_no,
+            #                     av.cheque_date cheque_date,av.number as voucher_no,av.narration as desc
+            #                     from account_move_line aml
+            #                     inner join account_move am on (am.id=aml.move_id)
+            #                     inner join account_account aa on (aa.id=aml.account_id)
+            #                     inner join account_voucher av on av.move_id = aml.move_id
+            #                     inner join (
+            #                     select distinct am.id as cash_header_id,aml.account_id as cash_account_id from account_move_line aml
+            #                     inner join account_move am on (am.id=aml.move_id)
+            #                     inner join account_account acc on (acc.id=aml.account_id and acc.id=%s)
+            #                     )a on (a.cash_header_id=am.id and cash_account_id<>aml.account_id)
+            #                     where av.type in ('payment','receipt') and av.state in ('posted') and av.date between %s and %s 
+            #                     group by aa.name,aml.account_id,av.name,av.date,aml.ref,av.payee,aml.name,av.cheque_no, av.cheque_date,
+            #                     av.number,av.narration,av.cheque_number
+            #                     order by av.date,av.cheque_no,av.cheque_number
+            #                 ''',(account_id.id,date_from, date_to,))
+            #                 return cr.dictfetchall()
+            #  
+            # else: #MAJOR IF ELSE
+            #         if type == 'payment':
+            #                 cr.execute('''
+            #                     select aa.name as acc_name,aml.account_id,sum(aml.debit) as debit,sum(aml.credit) as credit,
+            #                     av.name as voucher_name,av.date as voucher_date,aml.ref as ref, aml.name as voucher_desc,
+            #                     av.cheque_no cheque_no_1,
+            #                     case when av.cheque_no is null then av.cheque_number
+            #                     else av.cheque_no end as cheque_no, 
+            #                     av.cheque_date cheque_date,av.number as voucher_no,av.narration as desc
+            #                     from account_move_line aml
+            #                     inner join account_move am on (am.id=aml.move_id)
+            #                     inner join account_account aa on (aa.id=aml.account_id)
+            #                     inner join account_voucher av on av.move_id = aml.move_id
+            #                     inner join (
+            #                     select distinct am.id as cash_header_id,aml.account_id as cash_account_id from account_move_line aml
+            #                     inner join account_move am on (am.id=aml.move_id)
+            #                     inner join account_account acc on (acc.id=aml.account_id and acc.id=%s)
+            #                     )a on (a.cash_header_id=am.id and cash_account_id<>aml.account_id)
+            #                     where av.type in ('payment') and av.state in ('draft','posted') and av.date between %s and %s  
+            #                     group by aa.name,aml.account_id,av.name,av.date,aml.ref,av.payee,aml.name,av.cheque_no, av.cheque_date,
+            #                     av.number,av.narration,av.cheque_number
+            #                     order by av.date,av.cheque_no,av.cheque_number
+            #                 ''',(account_id.id,date_from, date_to,))
+            #                 return cr.dictfetchall()
+            #         elif type == 'receipt':
+            #                 cr.execute('''
+            #                     select aa.name as acc_name,aml.account_id,sum(aml.debit) as debit,sum(aml.credit) as credit,
+            #                     av.name as voucher_name,av.date as voucher_date,aml.ref as ref, aml.name as voucher_desc,
+            #                     av.cheque_no cheque_no_1,
+            #                     case when av.cheque_no is null then av.cheque_number
+            #                     else av.cheque_no end as cheque_no, 
+            #                     av.cheque_date cheque_date,av.number as voucher_no,av.narration as desc
+            #                     from account_move_line aml
+            #                     inner join account_move am on (am.id=aml.move_id)
+            #                     inner join account_account aa on (aa.id=aml.account_id)
+            #                     inner join account_voucher av on av.move_id = aml.move_id
+            #                     inner join (
+            #                     select distinct am.id as cash_header_id,aml.account_id as cash_account_id from account_move_line aml
+            #                     inner join account_move am on (am.id=aml.move_id)
+            #                     inner join account_account acc on (acc.id=aml.account_id and acc.id=%s)
+            #                     )a on (a.cash_header_id=am.id and cash_account_id<>aml.account_id)
+            #                     where av.type in ('receipt') and av.state in ('draft','posted') and av.date between %s and %s  
+            #                     group by aa.name,aml.account_id,av.name,av.date,aml.ref,av.payee,aml.name,av.cheque_no, av.cheque_date,
+            #                     av.number,av.narration,av.cheque_number
+            #                     order by av.date,av.cheque_no,av.cheque_number
+            #                 ''',(account_id.id,date_from, date_to,))
+            #                 return cr.dictfetchall()
+            #         else:
+            #                 cr.execute('''
+            #                     select aa.name as acc_name,aml.account_id,sum(aml.debit) as debit,sum(aml.credit) as credit,
+            #                     av.name as voucher_name,av.date as voucher_date,aml.ref as ref, aml.name as voucher_desc,
+            #                     av.cheque_no cheque_no_1,
+            #                     case when av.cheque_no is null then av.cheque_number
+            #                     else av.cheque_no end as cheque_no,                 
+            #                     av.cheque_date cheque_date,av.number as voucher_no,av.narration as desc
+            #                     from account_move_line aml
+            #                     inner join account_move am on (am.id=aml.move_id)
+            #                     inner join account_account aa on (aa.id=aml.account_id)
+            #                     inner join account_voucher av on av.move_id = aml.move_id
+            #                     inner join (
+            #                     select distinct am.id as cash_header_id,aml.account_id as cash_account_id from account_move_line aml
+            #                     inner join account_move am on (am.id=aml.move_id)
+            #                     inner join account_account acc on (acc.id=aml.account_id and acc.id=%s)
+            #                     )a on (a.cash_header_id=am.id and cash_account_id<>aml.account_id)
+            #                     where av.type in ('receipt','payment') and av.state in ('draft','posted') and av.date between %s and %s  
+            #                     group by aa.name,aml.account_id,av.name,av.date,aml.ref,av.payee,aml.name,av.cheque_no, av.cheque_date,
+            #                     av.number,av.narration,av.cheque_number
+            #                     order by av.date,av.cheque_no,av.cheque_number
+            #                 ''',(account_id.id,date_from, date_to,))
+            #                 return cr.dictfetchall()
+            #===================================================================
+                        
+                        
         def get_code_account(code_id):
             code = ''
             if code_id:
@@ -410,6 +453,7 @@ class bank_book_report(osv.osv_memory):
             'date_to': cb.date_to,
             #'type_trans': 'Transaction type : '+ cb.type_trans,
             'type_trans': cb.type_trans,
+            'type_recon': cb.type_recon, #TPT-Y
             'is_posted': cb.is_posted,
             'account_id' : cb.account_id.id,
             #'bank_acc_no': 'Bank Account No : '+get_account_master_code()+' - '+ get_account_master_name()
