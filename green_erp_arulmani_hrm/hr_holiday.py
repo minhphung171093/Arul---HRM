@@ -10662,11 +10662,10 @@ class tpt_hr_attendance(osv.osv):
                          cr.execute(sql)
                     else:
                           employee_leave_detail_obj.create(cr, uid, {
-                                                                                               'leave_type_id': leave_type_ids[0],
-                                                                                               'emp_leave_id': employee_leave_ids[0],
-                                                                                               'total_day': c_off_day,
-                                                                                               })
-                
+                                   'leave_type_id': leave_type_ids[0],
+                                   'emp_leave_id': employee_leave_ids[0],
+                                   'total_day': c_off_day,
+                                    })                
                 else:
                         employee_leave_obj.create(cr, uid, {
                             'employee_id': emp_root.id,
@@ -10685,7 +10684,7 @@ class tpt_hr_attendance(osv.osv):
                             'punch_in_out_line':[(0,0,punch_io_values)]}) 
         
             #CHANGE STATE OF AST TO DONE - IF ITS AUTO APPROVED
-            #A = A
+
             sql = '''
             update arul_hr_audit_shift_time set state='done', approval='t' where id=%s
             '''%ast_id
