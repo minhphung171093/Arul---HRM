@@ -326,7 +326,7 @@ class arul_hr_audit_shift_time(osv.osv):
                    'arul.hr.audit.shift.time': (lambda self, cr, uid, ids, c={}: ids, ['employee_id','work_date'], 10),
                    'arul.hr.punch.in.out.time': (_get_audit, ['employee_id', 'work_date'], 10),
                    }),
-              'approval': fields.boolean('Select for Approval', readonly =  True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+              'approval': fields.boolean('Is Approved', readonly =  True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
               'state':fields.selection([('draft', 'Draft'),('cancel', 'Reject'),('done', 'Approve')],'Status', readonly=True),
               'type':fields.selection([('permission', 'Permission'),('on_duty', 'On Duty'),('shift', 'Waiting'),('punch', 'Punch In/Out'),
                                        ('punch_edited', 'Punch In/Out-Edited'),
@@ -5786,7 +5786,7 @@ class arul_hr_punch_in_out_time(osv.osv):
         'in_time': fields.float('In Time', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
         'out_time': fields.float('Out Time', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
         'total_hours': fields.function(_time_total, store=True, string='Total Hours', multi='sums', help="The total amount.", states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
-        'approval': fields.boolean('Select for Approval', readonly =  True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+        'approval': fields.boolean('Is Approved', readonly =  True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
         'state':fields.selection([('draft', 'Draft'),('cancel', 'Reject'),('done', 'Approve'),('time_leave_confirmed','Time Leave Evaluation Confirmed')],'Status', readonly=True),
         'type':fields.selection([('permission', 'Permission'),('shift', 'Waiting'),('punch', 'Punch In/Out')],'Type', readonly=True),
         'permission_id':fields.many2one('arul.hr.permission.onduty','Permission/On Duty'),
@@ -10397,6 +10397,7 @@ class tpt_hr_attendance(osv.osv):
                                  'in_time': in_time,
                                  'out_time': 0,
                                  'employee_category_id':emp_root.employee_category_id.id,
+                                 'type':'punch',
                                   })
             if punch_type=='OUT':
                 out_time = float(hour)+float(min)/60+float(sec)/3600
@@ -10486,6 +10487,7 @@ class tpt_hr_attendance(osv.osv):
                                  'ref_out_time': out_time,
                                  'out_time': out_time,
                                  'employee_category_id':emp_root.employee_category_id.id,
+                                 'type':'punch',
                                   }) 
                     #ast_obj.write(cr, uid, time_entry.id, {'is_processed':'t'})
                     ### end 2nd version
@@ -10684,7 +10686,11 @@ class tpt_hr_attendance(osv.osv):
         
             #CHANGE STATE OF AST TO DONE - IF ITS AUTO APPROVED
             #A = A
-            ast_obj.write(cr, uid, ast_id, {'state':'done', 'approval':True})
+            sql = '''
+            update arul_hr_audit_shift_time set state='done', approval='t' where id=%s
+            '''%ast_id
+            cr.execute(sql)
+            #ast_obj.write(cr, uid, ast_id, {'state':'done', 'approval':True})
         
         elif a_shift==0 and g1_shift==0 and g2_shift==0 and b_shift==0 and c_shift==0 and shift_count==0:
             ast_values={'employee_id':emp_root.id,'planned_work_shift_id':shift_id,'actual_work_shift_id':work_shift_id,'work_date':work_date_format,
