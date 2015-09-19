@@ -10396,6 +10396,7 @@ class tpt_hr_attendance(osv.osv):
                                  'ref_in_time': in_time,
                                  'in_time': in_time,
                                  'out_time': 0,
+                                 'employee_category_id':emp_root.employee_category_id.id,
                                   })
             if punch_type=='OUT':
                 out_time = float(hour)+float(min)/60+float(sec)/3600
@@ -10427,10 +10428,11 @@ class tpt_hr_attendance(osv.osv):
                                  'employee_id': emp_root.id,
                                  'punch_out_date':work_date_format,
                                  #'work_date': work_date_format,
-                                 'ref_in_time': exist_in_time,
-                                 'in_time': exist_in_time,
+                                 #'ref_in_time': exist_in_time,
+                                 #'in_time': exist_in_time,
                                  'ref_out_time': out_time,
                                  'out_time': out_time,
+                                 
                                   }) 
                     ### 
                         
@@ -10483,6 +10485,7 @@ class tpt_hr_attendance(osv.osv):
                                  'in_time': 0,
                                  'ref_out_time': out_time,
                                  'out_time': out_time,
+                                 'employee_category_id':emp_root.employee_category_id.id,
                                   }) 
                     #ast_obj.write(cr, uid, time_entry.id, {'is_processed':'t'})
                     ### end 2nd version
