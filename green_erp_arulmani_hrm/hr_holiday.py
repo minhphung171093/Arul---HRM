@@ -10391,6 +10391,7 @@ class tpt_hr_attendance(osv.osv):
                 #AST Creation
                 ast_obj.create(cr, uid, {
                                  'employee_id': emp_root.id,
+                                 'punch_in_date':work_date_format,
                                  'work_date': work_date_format,
                                  'ref_in_time': in_time,
                                  'in_time': in_time,
@@ -10424,7 +10425,8 @@ class tpt_hr_attendance(osv.osv):
                     ast_id = exist_ast_obj.id
                     ast_obj.write(cr, uid, [exist_ast_obj.id], {
                                  'employee_id': emp_root.id,
-                                 'work_date': work_date_format,
+                                 'punch_out_date':work_date_format,
+                                 #'work_date': work_date_format,
                                  'ref_in_time': exist_in_time,
                                  'in_time': exist_in_time,
                                  'ref_out_time': out_time,
@@ -10476,6 +10478,7 @@ class tpt_hr_attendance(osv.osv):
                     ### 2nd Version
                     ast_obj.create(cr, uid, {
                                  'employee_id': emp_root.id,
+                                 'punch_out_date':work_date_format,
                                  'work_date': work_date_format,
                                  'in_time': 0,
                                  'ref_out_time': out_time,
