@@ -94,6 +94,13 @@
 									</tree>
 								</field>
 							</page>
+							<page string = "Equipment Master History">
+								<field name="maintenance_oder_line" nolabel='1'>
+									<tree editable='top'>
+										<field name="name" string='Maintenance Order'/>
+									</tree>
+								</field>
+							</page>
 						</notebook>
 		         	</sheet>
 		         </form>
@@ -266,6 +273,7 @@
 					<field name="service_type"/>
 					<field name="work_taken"/>
 					<field name="create_uid" options="{'create': false, 'create_edit': false}"/>
+					<field name="grand_total"/>
 				</tree>
 			</field>
 	  </record>
@@ -275,15 +283,15 @@
             <field name="model">tpt.service.entry</field>
             <field name="arch" type="xml">
 	            <form string="Staff Service Entry" version="7.0">   
-	            	<header>
+	            	<!--<header>
 	            		<button name="bt_service_invoice" string="Create Service Invoice" type="object" attrs="{'invisible':['|',('service_type','=','employee'),('name','=',False)]}" class="oe_highlight"/>
-	                </header>
+	                </header>-->
 	            	<sheet>
 	            		<group col='4' colspan='2'>
 							<field name="name"/>
 							<field name="create_date"/>
 							<field name="maintenance_id" options="{'create': false, 'create_edit': false}"/>
-							<field name="service_type"/>
+							<field name="service_type" readonly='1'/>
 							<field name="work_taken"/>
 							<field name="department_id" options="{'create': false, 'create_edit': false}"/>
 							<field name="section_id" options="{'create': false, 'create_edit': false}"/>
@@ -296,8 +304,10 @@
 								<field name="service_entry_line" nolabel='1'>
 									<tree editable='top'>
 										<field name="line_no"/>
-										<field name="po_id" domain="[('po_document_type','=','service'),('state','=','done')]" on_change="onchange_po_id(po_id,po_line_id)" options="{'create': false, 'create_edit': false}"/>
-										<field name="po_line_id" domain="[('order_id','=',po_id)]" on_change="onchange_po_line_id(po_line_id)" context="{'name_maintance_service_entry':True}" options="{'create': false, 'create_edit': false}"/>
+										<!--<field name="po_id" domain="[('po_document_type','=','service'),('state','=','done')]" on_change="onchange_po_id(po_id,po_line_id)" options="{'create': false, 'create_edit': false}"/>-->
+										<field name="employee_ids" widget="many2many_tags"/>
+										<field name="work_day"/>
+										<field name="po_line_id" domain="[('order_id.po_document_type','=','service'),('order_id.state','=','done')]" on_change="onchange_po_line_id(po_line_id)" context="{'name_maintance_service_entry':True}" options="{'no_open': true,'create': false, 'create_edit': false}"/>
 										<field name="uom_id" options="{'create': false, 'create_edit': false}"/>
 										<field name="product_uom_qty"/>
 										<field name="price_unit"/>
@@ -337,7 +347,8 @@
 					<field name="name"/>
 					<field name="service_type"/>
 					<field name="work_taken"/>
-					<field name="create_uid" options="{'create': false, 'create_edit': false}"/>
+					<field name="create_uid" options="{'create': false, 'create_edit': false}"/> 
+					<field name="grand_total"/>
 				</tree>
 			</field>
 	  </record>
@@ -442,6 +453,7 @@
 							<field name="cost_center_id" required='1' options="{'create': false, 'create_edit': false}" />
 							<field name="maintenance_id"/>
 							<field name="mrs_type"/>
+							<field name="total"/>
 						</group>
 						<notebook>
 							<page string = "Materials">
@@ -501,6 +513,7 @@
 							<field name="start_date"/>
 							<field name="completion_date"/> 
 							<field name="create_uid" options="{'create': false, 'create_edit': false}"/>
+							<field name="equipment_id" invisible='1'/> 
 						</group>
 						<group>
 							<field name="issue_reported"/>
@@ -522,6 +535,7 @@
 										<field name="project_id"  />
 										<field name="project_section_id"  />
 										<field name="create_uid" options="{'create': false, 'create_edit': false}" />
+										<field name="total"/>
 										<field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue"}'/>
 									</tree>
 								</field>
@@ -541,6 +555,7 @@
 										<field name="project_id"  />
 										<field name="project_section_id"  />
 										<field name="create_uid" options="{'create': false, 'create_edit': false}" />
+										<field name="total"/>
 										<field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue"}'/>
 									</tree>
 								</field>
@@ -572,6 +587,7 @@
             	<xpath expr="//field[@name='cost_center_id']" position="after">
 					<field name="maintenance_id"/>
 					<field name="mrs_type"/>
+					<field name="total"/>
 				</xpath> 
             </field>
         </record>

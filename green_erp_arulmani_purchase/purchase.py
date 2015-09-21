@@ -3303,12 +3303,12 @@ class purchase_order_line(osv.osv):
         if context.get('name_maintance_service_entry'):
             reads = self.read(cr, uid, ids, ['description'], context)
             for record in reads:
-                name = record['description']
+                name = record['description'] or '/'
                 res.append((record['id'], name))
         else:
             reads = self.read(cr, uid, ids, ['name'], context)
             for record in reads:
-                name = record['name']
+                name = record['name'] or '/'
                 res.append((record['id'], name))
         return res 
 #     def onchange_product_id(self, cr, uid, ids, product_id=False, po_indent_no=False, context=None):
