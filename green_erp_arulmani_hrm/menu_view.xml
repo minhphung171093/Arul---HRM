@@ -174,7 +174,10 @@
             parent="menu_hr_leave_management" sequence="36"/>
         <menuitem action="action_time_data_report"
             id="menu_action_time_data_check"
-            parent="menu_hr_leave_management" sequence="37"/> 
+            parent="menu_hr_leave_management" sequence="37"/>
+        <menuitem action="action_tpt_daily_filo_time"
+            id="menu_action_daily_filo_time"
+            parent="menu_hr_leave_management" sequence="38"/>
         
         <!-- <menuitem action="action_upload_time_data_report"
             id="menu_action_time_data_upload"
