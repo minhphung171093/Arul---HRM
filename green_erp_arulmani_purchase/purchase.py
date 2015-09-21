@@ -4561,19 +4561,19 @@ class tpt_material_request(osv.osv):
         user = self.pool.get('res.users').browse(cr,uid,uid)
         return user.employee_id and user.employee_id.department_id and user.employee_id.department_id.id or False
     _columns = {
-        'name': fields.char('Material Request No', size = 1024,readonly = True,states={'done':[('readonly', True)]}),
-        'date_request':fields.date('Material Request Date',required = True,states={'done':[('readonly', True)]}),
-        'date_expec':fields.date('Expected Date',states={'done':[('readonly', True)]}),
-        'department_id':fields.many2one('hr.department','Department',required = True,  states={ 'done':[('readonly', True)]}),
+        'name': fields.char('Material Request No', size = 1024,readonly = True,states={'done':[('readonly', True)], 'cancel':[('readonly', True)]}),
+        'date_request':fields.date('Material Request Date',required = True,states={'done':[('readonly', True)], 'cancel':[('readonly', True)]}),
+        'date_expec':fields.date('Expected Date',states={'done':[('readonly', True)], 'cancel':[('readonly', True)]}),
+        'department_id':fields.many2one('hr.department','Department',required = True,  states={ 'done':[('readonly', True)], 'cancel':[('readonly', True)]}),
         'create_uid':fields.many2one('res.users','Request Raised By', readonly = True),
-        'section_id': fields.many2one('arul.hr.section','Section',ondelete='restrict', states={'done':[('readonly', True)]}),
-        'requisitioner':fields.many2one('hr.employee','Requisitioner', states={'done':[('readonly', True)]}),
-        'project_id': fields.many2one('tpt.project','Project', states={'done':[('readonly', True)]}),
-        'project_section_id': fields.many2one('tpt.project.section','Project Section',ondelete='restrict',states={'done':[('readonly', True)]}),
-        'material_request_line':fields.one2many('tpt.material.request.line','material_request_id','Vendor Group',states={'done':[('readonly', True)]}),
-        'state':fields.selection([('draft', 'Draft'),('done', 'Approve'),('partially', 'Partially Issued'),('closed', 'Closed')],'Status', readonly=True),
-        'cost_center_id': fields.many2one('tpt.cost.center','Cost center',states={'done':[('readonly', True)]}),
-        'request_type':fields.selection([('production', 'Production'),('normal', 'Normal'),('main', 'Maintenance')],'Request Type', states={'done':[('readonly', True)]}),
+        'section_id': fields.many2one('arul.hr.section','Section',ondelete='restrict', states={'done':[('readonly', True)], 'cancel':[('readonly', True)]}),
+        'requisitioner':fields.many2one('hr.employee','Requisitioner', states={'done':[('readonly', True)], 'cancel':[('readonly', True)]}),
+        'project_id': fields.many2one('tpt.project','Project', states={'done':[('readonly', True)], 'cancel':[('readonly', True)]}),
+        'project_section_id': fields.many2one('tpt.project.section','Project Section',ondelete='restrict',states={'done':[('readonly', True)], 'cancel':[('readonly', True)]}),
+        'material_request_line':fields.one2many('tpt.material.request.line','material_request_id','Vendor Group',states={'done':[('readonly', True)], 'cancel':[('readonly', True)]}),
+        'state':fields.selection([('draft', 'Draft'),('done', 'Approve'),('cancel', 'Cancelled'),('partially', 'Partially Issued'),('closed', 'Closed')],'Status', readonly=True),
+        'cost_center_id': fields.many2one('tpt.cost.center','Cost center',states={'done':[('readonly', True)], 'cancel':[('readonly', True)]}),
+        'request_type':fields.selection([('production', 'Production'),('normal', 'Normal'),('main', 'Maintenance')],'Request Type', states={'done':[('readonly', True)], 'cancel':[('readonly', True)]}),
                 }
     _defaults = {
         'state':'draft',      
@@ -4852,6 +4852,14 @@ class tpt_material_request(osv.osv):
         for line in self.browse(cr, uid, ids):
             self.write(cr, uid, ids,{'state':'done'})
         return True   
+    def bt_cancel(self, cr, uid, ids, context=None):
+        for line in self.browse(cr, uid, ids):
+            self.write(cr, uid, ids,{'state':'cancel'})
+        return True 
+    def bt_draft(self, cr, uid, ids, context=None):
+        for line in self.browse(cr, uid, ids):
+            self.write(cr, uid, ids,{'state':'draft'})
+        return True 
 
     def onchange_date_expect(self, cr, uid, ids,date_request=False, context=None):
         vals = {}
