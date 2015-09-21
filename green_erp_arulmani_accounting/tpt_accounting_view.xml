@@ -1476,6 +1476,26 @@
                     <xpath expr="//button[@name='proforma_voucher']" position="attributes" >
                        <attribute name='context'>{'journal_entry_create':1}</attribute>
                     </xpath>
+                    
+                    <!--  -->
+                    <xpath expr="//form/sheet/notebook/page[@string='Voucher Entry']/field/tree/field[@name='amount']"  position="replace">
+					<field name="amount" />
+					</xpath>
+					
+					<xpath expr="//form/sheet/notebook/page[@string='Voucher Entry']/group/group" position="attributes">
+					<attribute name='invisible'>1</attribute>
+				    </xpath>
+				    
+				    <xpath expr="//form/sheet/notebook/page[@string='Voucher Entry']/group/field[@name='narration']" position="after">  
+	                     <div class="oe_subtotal_footer_separator" >
+	                        <div col='4' colspan='4'>
+	                        <label for="tpt_sub_total_amt"/>
+	                        <button type="object"  name="compute_total_amt" class="oe_link oe_edit_only" string="(Update)" attrs="{'invisible': [('state','!=','draft')]}"/>
+	                        <field name="tpt_sub_total_amt" class="oe_subtotal_footer_separator" nolabel="1" readonly='0'/>
+	                   		</div>
+	                    </div>	
+				    </xpath>
+
                 </data>
             </field>
         </record>

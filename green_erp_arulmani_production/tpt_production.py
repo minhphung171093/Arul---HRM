@@ -1881,10 +1881,21 @@ class tpt_quality_verification(osv.osv):
         return {'value': {'batch_quality_line': details}}
     
     def create(self, cr, uid, vals, context=None):
-        return super(tpt_quality_verification, self).create(cr,1, vals, context)
+        #TPT-Added by BalamuruganPurushothaman ON 21/09/2015 - To Avoid saving Blank Lines
+        new_id = super(tpt_quality_verification, self).create(cr, uid, vals, context=context)
+        batch = self.browse(cr, uid, new_id)
+        if not batch.batch_quality_line:
+            raise osv.except_osv(_('Warning!'),_('You can not create a Quality Verification without Lines!'))
+        return new_id#super(tpt_quality_verification, self).create(cr,1, vals, context)
     
     def write(self, cr, uid,ids, vals, context=None):
-        return super(tpt_quality_verification, self).write(cr,1,ids,vals,context) 
+        #TPT-Added by BalamuruganPurushothaman ON 21/09/2015 - To Avoid saving Blank Lines
+        new_write = super(tpt_quality_verification, self).write(cr,1,ids,vals,context) 
+        for batch in self.browse(cr, uid, ids):
+            con_ids = []
+            if not batch.batch_quality_line:
+                raise osv.except_osv(_('Warning!'),_('You can not create a Quality Verification without Lines!'))
+        return new_write#super(tpt_quality_verification, self).write(cr,1,ids,vals,context) 
 
 tpt_quality_verification()
 
