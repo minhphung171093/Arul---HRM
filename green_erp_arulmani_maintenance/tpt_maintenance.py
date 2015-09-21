@@ -197,7 +197,7 @@ class tpt_notification(osv.osv):
         'equip_id': fields.many2one('tpt.equipment', 'Equipment',readonly = True,states={'draft': [('readonly', False)]}),
         'machine_id': fields.many2one('tpt.machineries', 'Machineries',readonly = True,states={'draft': [('readonly', False)]}),
         'issue_date': fields.date('Issue Dated on',required=True,readonly = True,states={'draft': [('readonly', False)]}),
-        'issue_type':fields.selection([('major', 'Major'),('minor', 'Minor'),('critical', 'Critical')],'Issue Type',readonly = True,states={'draft': [('readonly', False)]}),
+        'issue_type':fields.selection([('major', 'Major'),('minor', 'Minor'),('critical', 'Critical')],'Complexity',readonly = True,states={'draft': [('readonly', False)]}),
         'priority':fields.selection([('high', 'High'),('medium', 'Medium'),('low', 'Low')],'Priority',readonly = True,states={'draft': [('readonly', False)]}),
         'issue_reported':fields.text('Issue Reported',readonly = True,states={'draft': [('readonly', False)]}),
         'create_uid':fields.many2one('res.users','Raised By', readonly = True),
