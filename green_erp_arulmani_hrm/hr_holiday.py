@@ -5,7 +5,7 @@ from openerp.tools.translate import _
 import time
 from openerp import SUPERUSER_ID
 from openerp.tools import DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_DATETIME_FORMAT, DATETIME_FORMATS_MAP, float_compare
-from datetime import datetime
+from datetime import date, datetime
 import datetime
 import base64
 import calendar
@@ -13,6 +13,7 @@ from twisted.internet._threadedselect import raiseException
 #from dateutil import rrule
 from dateutil.rrule import rrule, DAILY
 import psycopg2
+#from numpy.ma.core import subtract
 
 class arul_hr_holiday_special(osv.osv):
     _name = "arul.hr.holiday.special"
@@ -325,7 +326,7 @@ class arul_hr_audit_shift_time(osv.osv):
                    'arul.hr.audit.shift.time': (lambda self, cr, uid, ids, c={}: ids, ['employee_id','work_date'], 10),
                    'arul.hr.punch.in.out.time': (_get_audit, ['employee_id', 'work_date'], 10),
                    }),
-              'approval': fields.boolean('Select for Approval', readonly =  True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+              'approval': fields.boolean('Is Approved', readonly =  True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
               'state':fields.selection([('draft', 'Draft'),('cancel', 'Reject'),('done', 'Approve')],'Status', readonly=True),
               'type':fields.selection([('permission', 'Permission'),('on_duty', 'On Duty'),('shift', 'Waiting'),('punch', 'Punch In/Out'),
                                        ('punch_edited', 'Punch In/Out-Edited'),
@@ -5785,7 +5786,7 @@ class arul_hr_punch_in_out_time(osv.osv):
         'in_time': fields.float('In Time', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
         'out_time': fields.float('Out Time', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
         'total_hours': fields.function(_time_total, store=True, string='Total Hours', multi='sums', help="The total amount.", states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
-        'approval': fields.boolean('Select for Approval', readonly =  True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+        'approval': fields.boolean('Is Approved', readonly =  True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
         'state':fields.selection([('draft', 'Draft'),('cancel', 'Reject'),('done', 'Approve'),('time_leave_confirmed','Time Leave Evaluation Confirmed')],'Status', readonly=True),
         'type':fields.selection([('permission', 'Permission'),('shift', 'Waiting'),('punch', 'Punch In/Out')],'Type', readonly=True),
         'permission_id':fields.many2one('arul.hr.permission.onduty','Permission/On Duty'),
@@ -10334,12 +10335,18 @@ class tpt_hr_attendance(osv.osv):
    #      
    #      return super(tpt_hr_attendance, self).create(cr, uid, vals, context)
    #============================================================================
-    
+    def length_month(self,year, month):
+        if month == 2 and (year % 4 == 0) and (year % 100 != 0) or (year % 400 == 0):
+            value =  29
+        else: 
+            value =  [0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][month]
+        return value
     def upload_in_time_data(self, cr, uid, context=None):
         #print "SCHEDULER JOB - STARTED"
         #
         attend_obj = self.pool.get('tpt.hr.attendance') 
         attend_temp_obj = self.pool.get('tpt.hr.temp.attendance') 
+        ast_obj = self.pool.get('arul.hr.audit.shift.time') 
         attend_obj_ids = attend_obj.search(cr, uid, [('is_processed','=',False)]) #, ('punch_type','=','IN')
         for time_entry in attend_obj.browse(cr,uid,attend_obj_ids):
             #===================================================================
@@ -10376,11 +10383,22 @@ class tpt_hr_attendance(osv.osv):
                 in_time = float(hour)+float(min)/60+float(sec)/3600
                 attend_temp_obj.create(cr, uid, {
                                  'employee_id': emp_root.id,
-                                 'work_date': work_date_format,
+                                 'work_date': work_date_format,                             
                                  'in_time': in_time,
                                  'out_time': 0,
                                   })
                 attend_obj.write(cr, uid, time_entry.id, {'is_processed':'t'})
+                #AST Creation
+                ast_obj.create(cr, uid, {
+                                 'employee_id': emp_root.id,
+                                 'punch_in_date':work_date_format,
+                                 'work_date': work_date_format,
+                                 'ref_in_time': in_time,
+                                 'in_time': in_time,
+                                 'out_time': 0,
+                                 'employee_category_id':emp_root.employee_category_id.id,
+                                 'type':'punch',
+                                  })
             if punch_type=='OUT':
                 out_time = float(hour)+float(min)/60+float(sec)/3600
                 attend_temp_obj_ids = attend_temp_obj.search(cr, uid, [('employee_id','=',emp_root.id), ('work_date','=',work_date_format)]) 
@@ -10393,15 +10411,66 @@ class tpt_hr_attendance(osv.osv):
                                  'work_date': work_date_format,
                                  'in_time': exist_in_time,
                                  'out_time': out_time,
-                                  }) 
-                        
-                    self.auto_approve_to_attendance(cr, uid, emp_root, work_date_format, exist_in_time, out_time, shift_id, 
-                                                          punch_in_date)
+                                  })
+                    #self.auto_approve_to_attendance(cr, uid, emp_root, work_date_format, exist_in_time, out_time, shift_id, 
+                    #                                      punch_in_date)
                     attend_temp_obj.write(cr, uid, [exist_emp_obj.id], {
                                  'is_auto_approved': True,
                                   })    
                     attend_obj.write(cr, uid, time_entry.id, {'is_processed':'t'})
-                else:
+                ### AST UPDATE
+                ast_ids = ast_obj.search(cr, uid, [('employee_id','=',emp_root.id), ('work_date','=',work_date_format)]) 
+                if ast_ids:
+                    exist_ast_obj = ast_obj.browse(cr,uid,ast_ids[0])
+                    exist_in_time = exist_ast_obj.in_time
+                    punch_in_date = exist_ast_obj.work_date
+                    ast_id = exist_ast_obj.id
+                    ast_obj.write(cr, uid, [exist_ast_obj.id], {
+                                 'employee_id': emp_root.id,
+                                 'punch_out_date':work_date_format,
+                                 #'work_date': work_date_format,
+                                 #'ref_in_time': exist_in_time,
+                                 #'in_time': exist_in_time,
+                                 'ref_out_time': out_time,
+                                 'out_time': out_time,
+                                 
+                                  }) 
+                    ### 
+                        
+                    self.auto_approve_to_attendance(cr, uid, emp_root, work_date_format, exist_in_time, out_time, shift_id, 
+                                                          punch_in_date, ast_id)
+                   
+                    attend_temp_obj.write(cr, uid, [exist_emp_obj.id], {
+                                 'is_auto_approved': True,
+                                  })    
+                    attend_obj.write(cr, uid, time_entry.id, {'is_processed':'t'})
+                else:    
+                    work_date_format = work_date[:4]+'-'+work_date[5:7]+'-'+work_date[8:10]
+                    ### TO GET PREVIOUS DATE
+                    day = int(work_date[8:10]) - 1 # prev day
+                    month = work_date[5:7]
+                    year = work_date[:4]
+                    
+                    if day==0:
+                        if int(month)-1==0: #31-12-2015
+                            day = 31
+                            month = 12
+                            year = int(year) - 1
+                        elif (int(month)-1) >= 1:
+                            day = self.length_month(int(year),int(month) - 1)
+                            month = int(month) - 1
+    
+                    if len(str(day)) == 1:
+                        day = '0'+str(day)
+                    if len(str(month)) == 1:
+                        month = '0'+str(month)
+                    prev_work_date = str(year)+'-'+str(month)+'-'+ str(day)
+                    
+                    #print "1: %s"%work_date_format        
+                    #print "2: %s"%prev_work_date
+                    ### END
+                    attend_temp_obj_ids = attend_temp_obj.search(cr, uid, [('employee_id','=',emp_root.id), ('work_date','=',prev_work_date)]) 
+                    ###
                     attend_temp_obj.create(cr, uid, {
                                  'employee_id': emp_root.id,
                                  'work_date': work_date_format,
@@ -10409,6 +10478,19 @@ class tpt_hr_attendance(osv.osv):
                                  'out_time': out_time,
                                   }) 
                     attend_obj.write(cr, uid, time_entry.id, {'is_processed':'t'})
+                    ### 2nd Version
+                    ast_obj.create(cr, uid, {
+                                 'employee_id': emp_root.id,
+                                 'punch_out_date':work_date_format,
+                                 'work_date': work_date_format,
+                                 'in_time': 0,
+                                 'ref_out_time': out_time,
+                                 'out_time': out_time,
+                                 'employee_category_id':emp_root.employee_category_id.id,
+                                 'type':'punch',
+                                  }) 
+                    #ast_obj.write(cr, uid, time_entry.id, {'is_processed':'t'})
+                    ### end 2nd version
                 #===============================================================
                 # if not exist_emp_obj: 
                 #         
@@ -10471,7 +10553,7 @@ class tpt_hr_attendance(osv.osv):
                               }) 
                     
                     self.auto_approve_to_attendance(cr, uid, employee_id, work_date_format, exist_in_time, out_time, shift_id, 
-                                                    time_entry.employee_id,  punch_in_date)
+                                                    time_entry.employee_id,  punch_in_date, ast_id)
                     attend_temp_obj.write(cr, uid, [exist_emp_obj.id], {
                              'is_auto_approved': True,
                               })
@@ -10483,7 +10565,7 @@ class tpt_hr_attendance(osv.osv):
 
         return True
     
-    def auto_approve_to_attendance(self, cr, uid, emp_root, work_date_format, in_time, out_time, shift_id, punch_in_date, context=None):
+    def auto_approve_to_attendance(self, cr, uid, emp_root, work_date_format, in_time, out_time, shift_id, punch_in_date, ast_id, context=None):
         #Module Object Declaration
         emp_attendence_obj = self.pool.get('arul.hr.employee.attendence.details')
         ast_obj = self.pool.get('arul.hr.audit.shift.time')
@@ -10580,11 +10662,10 @@ class tpt_hr_attendance(osv.osv):
                          cr.execute(sql)
                     else:
                           employee_leave_detail_obj.create(cr, uid, {
-                                                                                               'leave_type_id': leave_type_ids[0],
-                                                                                               'emp_leave_id': employee_leave_ids[0],
-                                                                                               'total_day': c_off_day,
-                                                                                               })
-                
+                                   'leave_type_id': leave_type_ids[0],
+                                   'emp_leave_id': employee_leave_ids[0],
+                                   'total_day': c_off_day,
+                                    })                
                 else:
                         employee_leave_obj.create(cr, uid, {
                             'employee_id': emp_root.id,
@@ -10601,6 +10682,15 @@ class tpt_hr_attendance(osv.osv):
                             'department_id':emp_root.department_id and emp_root.department_id.id or False,
                             'designation_id':emp_root.job_id and emp_root.job_id.id or False,
                             'punch_in_out_line':[(0,0,punch_io_values)]}) 
+        
+            #CHANGE STATE OF AST TO DONE - IF ITS AUTO APPROVED
+
+            sql = '''
+            update arul_hr_audit_shift_time set state='done', approval='t' where id=%s
+            '''%ast_id
+            cr.execute(sql)
+            #ast_obj.write(cr, uid, ast_id, {'state':'done', 'approval':True})
+        
         elif a_shift==0 and g1_shift==0 and g2_shift==0 and b_shift==0 and c_shift==0 and shift_count==0:
             ast_values={'employee_id':emp_root.id,'planned_work_shift_id':shift_id,'actual_work_shift_id':work_shift_id,'work_date':work_date_format,
                         'punch_in_date':punch_in_date,'punch_out_date':work_date_format,'in_time':in_time,'out_time':out_time,
