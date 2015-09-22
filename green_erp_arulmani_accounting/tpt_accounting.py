@@ -3214,6 +3214,21 @@ class account_voucher(osv.osv):
             
             self.write(cr, uid, [voucher.id], {'tpt_sub_total_amt':total})
         return True
+    
+    def _tpt_sub_total(self, cr, uid, ids, name, args, context=None):
+        if not ids: return {}
+        currency_obj = self.pool.get('res.currency')
+        res = {}
+        debit = credit = 0.0
+        for voucher in self.browse(cr, uid, ids, context=context):
+            sign = voucher.type == 'payment' and -1 or 1
+            for l in voucher.line_dr_ids:
+                debit += l.amount
+            for l in voucher.line_cr_ids:
+                credit += l.amount
+            currency = voucher.currency_id or voucher.company_id.currency_id
+            res[voucher.id] =  credit#currency_obj.round(cr, uid, currency, voucher.amount - sign * (credit))
+        return res
     ###
     _columns = {
         'name': fields.char( 'Journal no.',size = 256),
@@ -3257,6 +3272,7 @@ class account_voucher(osv.osv):
         'cost_center_id':fields.many2one('tpt.cost.center','Cost Center'),
         'tpt_exchange_rate':fields.float('Realization Rate', digits=(12,14),),#TPT
         'tpt_sub_total_amt':fields.float('Total'),#TPT
+        'tpt_amount_total': fields.function(_tpt_sub_total, type='float', readonly=True, string='Total' ),#TPT
         'tpt_bank_re':fields.boolean('Bank Reconciliation Updated'),
         
         'status': fields.selection([('reconcile', 'Reconciled'), ('unreconcile', 'Un-Reconciled'), 
