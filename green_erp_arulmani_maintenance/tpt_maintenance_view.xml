@@ -216,13 +216,14 @@
 	            		<button name="bt_generate" states='draft' string="Generate Notification" type="object" class="oe_highlight"/>
 	            		<button name="bt_approve" states='waiting' string="Approve Notification" type="object" class="oe_highlight"/>
 	            		<button name="bt_close" states='in' string="Close Notification" type="object" class="oe_highlight"/>
+	            		<button name="bt_cancel" states='draft,waiting,in,close' string="Cancel Notification" type="object" class="oe_highlight"/>
 	                    <field name ="state" widget="statusbar" statusbar_visible="draft,waiting,in,close" statusbar_colors='{"draft":"blue","in":"red","close":"grey"}'/>
 	                </header>
 	            	<sheet>
 	            		<group col='4' colspan='2'>
 							<field name="name"/>
 							<field name="notif_type" on_change="onchange_notif_type(notif_type, context)"/>
-							<field name="department_id" options="{'create': false, 'create_edit': false}"/>
+							<field name="department_id" on_change="onchange_department_id(department_id)" options="{'create': false, 'create_edit': false}"/>
 							<field name="section_id" domain="[('department_id','=',department_id)]" options="{'create': false, 'create_edit': false}"/>
 							<field name="equip_id" on_change="onchange_equip_id(equip_id)" options="{'create': false, 'create_edit': false}"/>
 							<field name="machine_id" domain="[('equip_id','=',equip_id)]" options="{'create': false, 'create_edit': false}"/>
@@ -257,6 +258,7 @@
             <field name="res_model">tpt.notification</field>
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
+            <field name="context">{'search_tpt_notification':1}</field>
             <field name="view_id" ref="view_tpt_notification_tree"/>
         </record>
         
@@ -423,6 +425,7 @@
 					<field name="start_date"/>
 					<field name="completion_date"/> 
 					<field name="create_uid"/>
+					<field name="net_value"/> 
 					<field name="state"/>
 				</tree>
 			</field>
@@ -487,33 +490,38 @@
             <field name="arch" type="xml">
 	            <form string="Maintenance Order" version="7.0">   
 	            	<header>
-	            		<button name="bt_process" string="Process Order" type="object" class="oe_highlight" attrs="{'invisible': [('state', '=', 'close')]}"/>
-	            		<button name="bt_service_entry" string="Create Service Entry" type="object" class="oe_highlight" attrs="{'invisible': [('state', '=', 'close')]}"/>
-	            		<button name="bt_third_service_entry" string="Create 3rd Party Service Entry" type="object" class="oe_highlight" attrs="{'invisible': [('state', '=', 'close')]}"/>
-	            		<button name="bt_return_rq" string="Return Request" type="object" class="oe_highlight" attrs="{'invisible': [('state', '=', 'close')]}"/>
-	            		<button name="bt_create_mrs" string="Create MRS" type="object" class="oe_highlight" attrs="{'invisible': [('state', '=', 'close')]}"/>
-	            		<button name="bt_chargeable_mrs" string="Chargeable MRS" type="object" class="oe_highlight" attrs="{'invisible': [('state', '=', 'close')]}"/>
+	            		<button name="bt_create_order" string="Create Order" type="object" class="oe_highlight" attrs="{'invisible': [('state', '!=', 'draft')]}"/>
+	            		<button name="bt_approve_order" string="Approve Order" type="object" class="oe_highlight" attrs="{'invisible': ['|',('state', '!=', 'confirm'),('check_approve', '!=', True)]}"/>
+	            		<button name="bt_service_entry" states='in' string="Create Service Entry" type="object" class="oe_highlight"/>
+	            		<button name="bt_third_service_entry" states='in' string="Create 3rd Party Service Entry" type="object" class="oe_highlight"/>
+	            		<button name="bt_return_rq" states='in' string="Return Request" type="object" class="oe_highlight"/>
+	            		<button name="bt_create_mrs" states='in' string="Create MRS" type="object" class="oe_highlight"/>
+	            		<button name="bt_chargeable_mrs" states='in' string="Chargeable MRS" type="object" class="oe_highlight"/>
 	            		<button name="bt_close" string="Close Order" type="object" class="oe_highlight" attrs="{'invisible': [('state', '=', 'close')]}"/>
+	            		<button name="bt_cancel" string="Cancel Order" type="object" class="oe_highlight"/>
+	            		<button name="bt_set_to" states='cancel' string="Set to draft" type="object" class="oe_highlight"/>
 	                    <field name ="state" widget="statusbar" statusbar_visible="draft,in,completed,put,close" statusbar_colors='{"draft":"blue","in":"red","close":"grey"}'/>
 	                </header>
 	            	<sheet>
 	            		<group col='4' colspan='2'>
 							<field name="name"/>
 							<field name="issue_type"/>
-							<field name="notification_id" on_change="onchange_notification_id(notification_id)" domain="[('state','=','close')]" options="{'create': false, 'create_edit': false}"/>
+							<field name="notification_id" on_change="onchange_notification_id(notification_id)" domain="[('state','=','in')]" options="{'create': false, 'create_edit': false}"/>
 							<field name="create_date"/>
 							<field name="notif_type"/> 
-							<!--<field name="department_id" on_change="onchange_department_id(department_id,section_id,employee_id)" options="{'create': false, 'create_edit': false}"/>-->
-							<field name="department_id" options="{'create': false, 'create_edit': false}"/>
+							<field name="department_id" on_change="onchange_department_id(department_id,section_id,employee_id)" options="{'create': false, 'create_edit': false}"/>
+							<!--<field name="department_id" options="{'create': false, 'create_edit': false}"/>-->
 							<field name="section_id" domain="[('department_id','=',department_id)]" options="{'create': false, 'create_edit': false}"/>
 							<field name="employee_id" domain="[('department_id','=',department_id)]" options="{'create': false, 'create_edit': false}"/>
 							<field name="priority"/>
 							<field name="equip_id" options="{'create': false, 'create_edit': false}"/>
 							<field name="machine_id" options="{'create': false, 'create_edit': false}"/>
-							<field name="start_date"/>
-							<field name="completion_date"/> 
+							<field name="start_date" on_change="onchange_start_date(notification_id,start_date)"/>
+							<field name="completion_date" on_change="onchange_completion_date(notification_id,completion_date)"/> 
 							<field name="create_uid" options="{'create': false, 'create_edit': false}"/>
 							<field name="equipment_id" invisible='1'/> 
+							<field name="check_approve" invisible='1'/> 
+							<field name="net_value"/> 
 						</group>
 						<group>
 							<field name="issue_reported"/>
@@ -560,6 +568,8 @@
 									</tree>
 								</field>
 							</page>
+							<page string = "Return Request">
+							</page> 
 						</notebook>
 		         	</sheet>
 		         </form>

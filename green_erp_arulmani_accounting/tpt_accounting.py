@@ -3171,6 +3171,26 @@ class account_voucher(osv.osv):
             res[voucher.id] = amount
         return res
     #TPT-END
+    ###
+    def compute_total_amt(self, cr, uid, ids, context=None):
+        tax_pool = self.pool.get('account.tax')
+        partner_pool = self.pool.get('res.partner')
+        position_pool = self.pool.get('account.fiscal.position')
+        voucher_line_pool = self.pool.get('account.voucher.line')
+        voucher_pool = self.pool.get('account.voucher')
+        if context is None: context = {}
+
+        for voucher in voucher_pool.browse(cr, uid, ids, context=context):
+            voucher_amount = 0.0
+            for line in voucher.line_ids:
+                if line.type=='cr':
+                    voucher_amount += line.untax_amount or line.amount
+
+            total = voucher_amount
+            
+            self.write(cr, uid, [voucher.id], {'tpt_sub_total_amt':total})
+        return True
+    ###
     _columns = {
         'name': fields.char( 'Journal no.',size = 256),
         'memo':fields.char('Memo', size=256, readonly=True, states={'draft':[('readonly',False)]}),
@@ -3212,10 +3232,11 @@ class account_voucher(osv.osv):
         'employee_id':fields.many2one('hr.employee','Employee'),
         'cost_center_id':fields.many2one('tpt.cost.center','Cost Center'),
         'tpt_exchange_rate':fields.float('Realization Rate', digits=(12,14),),#TPT
+        'tpt_sub_total_amt':fields.float('Total'),#TPT
         'tpt_bank_re':fields.boolean('Bank Reconciliation Updated'),
         
         'status': fields.selection([('reconcile', 'Reconciled'), ('unreconcile', 'Un-Reconciled'), 
-                                    ('confirmed', 'Confirmed')],'Reconcile-Status'), 
+                                    ('confirmed', 'Confirmed')],'Reconcile-Status'),  #TPT
         }
     
     def voucher_print_button(self, cr, uid, ids, context={}):

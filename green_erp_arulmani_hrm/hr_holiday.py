@@ -10341,6 +10341,13 @@ class tpt_hr_attendance(osv.osv):
         else: 
             value =  [0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][month]
         return value
+    def get_date_format(self,work_date):
+        work_date = str(work_date)
+        day = work_date[8:10]
+        month = work_date[5:7]
+        year = work_date[:4]
+        work_date_format = work_date[:4]+'-'+work_date[5:7]+'-'+work_date[8:10]
+        return work_date_format
     def upload_in_time_data(self, cr, uid, context=None):
         #print "SCHEDULER JOB - STARTED"
         #
@@ -10419,21 +10426,21 @@ class tpt_hr_attendance(osv.osv):
                                   })    
                     attend_obj.write(cr, uid, time_entry.id, {'is_processed':'t'})
                 ### AST UPDATE
+                perv_work_date_format = datetime.datetime.strptime(work_date_format,'%Y-%m-%d')
+                perv_work_date_format -= datetime.timedelta(days=1)
+                perv_work_date = self.get_date_format(perv_work_date_format)
                 ast_ids = ast_obj.search(cr, uid, [('employee_id','=',emp_root.id), ('work_date','=',work_date_format)]) 
+                prev_day_ast_ids = ast_obj.search(cr, uid, [('employee_id','=',emp_root.id), ('work_date','=',perv_work_date),('in_time','>',0), ('out_time','=',0)])  
                 if ast_ids:
                     exist_ast_obj = ast_obj.browse(cr,uid,ast_ids[0])
                     exist_in_time = exist_ast_obj.in_time
                     punch_in_date = exist_ast_obj.work_date
                     ast_id = exist_ast_obj.id
                     ast_obj.write(cr, uid, [exist_ast_obj.id], {
-                                 'employee_id': emp_root.id,
+                                 #'employee_id': emp_root.id,
                                  'punch_out_date':work_date_format,
-                                 #'work_date': work_date_format,
-                                 #'ref_in_time': exist_in_time,
-                                 #'in_time': exist_in_time,
                                  'ref_out_time': out_time,
                                  'out_time': out_time,
-                                 
                                   }) 
                     ### 
                         
@@ -10444,6 +10451,28 @@ class tpt_hr_attendance(osv.osv):
                                  'is_auto_approved': True,
                                   })    
                     attend_obj.write(cr, uid, time_entry.id, {'is_processed':'t'})
+                                           
+                elif prev_day_ast_ids:
+                    exist_ast_obj = ast_obj.browse(cr,uid,prev_day_ast_ids[0])
+                    exist_in_time = exist_ast_obj.in_time
+                    punch_in_date = exist_ast_obj.work_date
+                    ast_id = exist_ast_obj.id
+                    ast_obj.write(cr, uid, [exist_ast_obj.id], {
+                                 #'employee_id': emp_root.id,
+                                 'punch_out_date':perv_work_date,
+                                 'ref_out_time': out_time,
+                                 'out_time': out_time,
+                                  }) 
+                    ### 
+                        
+                    self.auto_approve_to_attendance(cr, uid, emp_root, perv_work_date, exist_in_time, out_time, shift_id, 
+                                                          punch_in_date, ast_id)
+                   
+                    attend_temp_obj.write(cr, uid, [exist_emp_obj.id], {
+                                 'is_auto_approved': True,
+                                  })    
+                    attend_obj.write(cr, uid, time_entry.id, {'is_processed':'t'})
+                    
                 else:    
                     work_date_format = work_date[:4]+'-'+work_date[5:7]+'-'+work_date[8:10]
                     ### TO GET PREVIOUS DATE
@@ -10584,6 +10613,7 @@ class tpt_hr_attendance(osv.osv):
         shift_count = 0
         c_off_day = 0
         work_shift_id = False
+        flag = 0
         
         sql = '''
              select id,a_shift,g1_shift,g2_shift,b_shift,c_shift,shift_count,time_total, code, work_shift_id from tpt_work_shift where 
