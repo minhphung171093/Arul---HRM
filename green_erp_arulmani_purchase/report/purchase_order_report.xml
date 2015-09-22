@@ -25,5 +25,32 @@
 	        string="Print VVTi Purchase Order"
 	        rml="green_erp_arulmani_purchase/report/purchase_order_report.odt"
 	        groups="green_erp_arulmani_purchase.group_vvti_purchase_user,green_erp_arulmani_accounting.group_vvti_accounting_user"/> 	
+	
+	<!--  Service PO -->
+	<record id="tpt_purchase_order_service" model="ir.actions.report.xml">
+	        <field name="name">tpt.comparison.chart</field>
+	        <field name="type">ir.actions.report.xml</field>
+	        <field name="model">purchase.order</field>
+	        <field name="report_name">Purchase Order</field>
+	        <field name="report_type">aeroo</field>
+	        <field name="in_format">oo-odt</field>
+	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-pdf'),('compatible_types','=','oo-odt')]"/>
+	        <field name="parser_loc">green_erp_arulmani_purchase/report/purchase_order_report.py</field>
+	        <field name="report_rml">green_erp_arulmani_purchase/report/purchase_order_service_report.odt</field>
+	        <field name="parser_state">loc</field>
+	        <field name="tml_source">file</field>
+	        <field name="attachment_use" eval="0"/>
+    	</record> 
+    	
+    	<report 
+			auto="False" 
+			menu="True"
+			id="tpt_purchase_order_service" 
+			model="purchase.order" 
+			name="tpt_purchase_order_service"
+	        string="Print Service Purchase Order"
+	        rml="green_erp_arulmani_purchase/report/purchase_order_service_report.odt"
+	        groups="green_erp_arulmani_purchase.group_vvti_purchase_user,green_erp_arulmani_accounting.group_vvti_accounting_user"/>
+	<!--  Service PO -->
 	</data>
 </openerp>
