@@ -1831,6 +1831,11 @@ class tpt_quality_verification(osv.osv):
     }
     def bt_update(self, cr, uid, ids, context=None):
         for quality in self.browse(cr,uid,ids):
+            ###TPT
+            for line in quality.batch_quality_line:
+                if line.exp_value is False:
+                    raise osv.except_osv(_('Warning!'),_('You can not Update Batch without Experiment Value!'))
+            ###
             sql='''
                 update stock_production_lot set phy_batch_no='%s',application_id=%s where id =%s
             '''%(quality.phy_batch_no,quality.applicable_id.id,quality.prod_batch_id.id)

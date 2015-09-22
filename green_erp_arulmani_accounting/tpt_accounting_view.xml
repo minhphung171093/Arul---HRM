@@ -1489,9 +1489,11 @@
 				    <xpath expr="//form/sheet/notebook/page[@string='Voucher Entry']/group/field[@name='narration']" position="after">  
 	                     <div class="oe_subtotal_footer_separator" >
 	                        <div col='4' colspan='4'>
-	                        <label for="tpt_sub_total_amt"/>
-	                        <button type="object"  name="compute_total_amt" class="oe_link oe_edit_only" string="(Update)" attrs="{'invisible': [('state','!=','draft')]}"/>
-	                        <field name="tpt_sub_total_amt" class="oe_subtotal_footer_separator" nolabel="1" readonly='0'/>
+	                        <label for="tpt_amount_total"/>
+	                        <button type="object"  name="_tpt_sub_total" class="oe_link oe_edit_only" string="(Update)" attrs="{'invisible': [('state','!=','draft')]}"/>
+	                        <!-- <field name="tpt_sub_total_amt" class="oe_subtotal_footer_separator" nolabel="1" readonly='0'/>  -->
+	                   		<field name="tpt_amount_total" class="oe_subtotal_footer_separator" nolabel="1"/>
+	                   		
 	                   		</div>
 	                    </div>	
 				    </xpath>
