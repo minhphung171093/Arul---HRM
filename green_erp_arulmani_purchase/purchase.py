@@ -2306,13 +2306,18 @@ class purchase_order(osv.osv):
              'model': 'purchase.order',
              'form': self.read(cr, uid, ids[0], context=context)
         }
-        invoice_ids = self.browse(cr, uid, ids[0])  
-        
-        return {
+        po_ids = self.browse(cr, uid, ids[0])  
+        if po_ids.po_document_type=='service':
+            return {
+                'type': 'ir.actions.report.xml',
+                'report_name': 'tpt_purchase_order_service',
+                'datas': datas,
+                }
+        else:
+            return {
                 'type': 'ir.actions.report.xml',
                 'report_name': 'tpt_purchase_order',
-                 'datas': datas,
-#                 'nodestroy' : True
+                'datas': datas,
                 }
         #TPT ENDss
     

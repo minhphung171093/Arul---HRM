@@ -1978,10 +1978,11 @@
                         <field name="vendor_code"  placeholder="Vendor Code" attrs="{'invisible': [('supplier','=',False)],'required':[('supplier','!=',False)]}" />
                     	<field name="title" placeholder="Title" domain="[('domain', '=', 'contact')]" options="{&quot;no_open&quot;: True,'create': false, 'create_edit': false}"/>
                     </xpath>
-                    
+                    <!-- TPT - Commented By BalamuruganPurushothaman as per customer Req No:3080 - ON 22/09/2015
                      <xpath expr="//field[@name='email']" position="after">
                         <field name="vendor_sub_group_id"  domain="[('vendor_group_id','=',vendor_group_id)]" attrs="{'invisible': [('supplier','=',False)],'required':[('supplier','!=',False)]}" options="{'create': false, 'create_edit': false}" />
                     </xpath>
+                     -->
                 </data>
             </field>
         </record>
