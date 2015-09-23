@@ -97,7 +97,7 @@ class Parser(report_sxw.rml_parse):
     def get_supplier_code_name(self, supplier_id=False):
         code_name = ""
         if supplier_id:
-            code_name = supplier_id.vendor_code + " - "  + supplier_id.name
+            code_name = supplier_id.vendor_code + "-"  + supplier_id.name
         return code_name    
         
         
