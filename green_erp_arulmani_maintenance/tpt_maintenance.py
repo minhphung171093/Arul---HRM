@@ -190,21 +190,21 @@ class tpt_notification(osv.osv):
         'notif_type':fields.selection([
                                 ('prevent','Preventive Maintenance'),
                                 ('break','Breakdown')],'Notification Type',required = True,readonly = True,states={'draft': [('readonly', False)]}),
-#         'department_id': fields.many2one('hr.department', 'Department',required=True,readonly = True,states={'draft': [('readonly', False)]}),
-#         'section_id': fields.many2one('arul.hr.section', 'Section',required=True,readonly = True,states={'draft': [('readonly', False)]}),
-        'department_id': fields.related('equip_id','department_id',type='many2one', relation='hr.department',string='Department', readonly = True),
-        'section_id': fields.related('equip_id','section_id',type='many2one', relation='arul.hr.section',string='Section', readonly = True),
-        'equip_id': fields.many2one('tpt.equipment', 'Equipment',readonly = True,states={'draft': [('readonly', False)]}),
-        'machine_id': fields.many2one('tpt.machineries', 'Machineries',readonly = True,states={'draft': [('readonly', False)]}),
+        'department_id': fields.many2one('hr.department', 'Department',required=True,readonly = True,states={'draft': [('readonly', False)]}),
+        'section_id': fields.many2one('arul.hr.section', 'Section',required=True,readonly = True,states={'draft': [('readonly', False)]}),
+#         'department_id': fields.related('equip_id','department_id',type='many2one', relation='hr.department',string='Department', readonly = True),
+#         'section_id': fields.related('equip_id','section_id',type='many2one', relation='arul.hr.section',string='Section', readonly = True),
+        'equip_id': fields.many2one('tpt.equipment', 'Equipment',required = True,readonly = True,states={'draft': [('readonly', False)]}),
+        'machine_id': fields.many2one('tpt.machineries', 'Machineries',required = True,readonly = True,states={'draft': [('readonly', False)]}),
         'issue_date': fields.date('Issue Dated on',required=True,readonly = True,states={'draft': [('readonly', False)]}),
-        'issue_type':fields.selection([('major', 'Major'),('minor', 'Minor'),('critical', 'Critical')],'Complexity',readonly = True,states={'draft': [('readonly', False)]}),
-        'priority':fields.selection([('high', 'High'),('medium', 'Medium'),('low', 'Low')],'Priority',readonly = True,states={'draft': [('readonly', False)]}),
-        'issue_reported':fields.text('Issue Reported',readonly = True,states={'draft': [('readonly', False)]}),
+        'issue_type':fields.selection([('major', 'Major'),('minor', 'Minor'),('critical', 'Critical')],'Complexity',required = True,readonly = True,states={'draft': [('readonly', False)]}),
+        'priority':fields.selection([('high', 'High'),('medium', 'Medium'),('low', 'Low')],'Priority',required = True,readonly = True,states={'draft': [('readonly', False)]}),
+        'issue_reported':fields.text('Issue Reported',required = True,readonly = True,states={'draft': [('readonly', False)]}),
         'create_uid':fields.many2one('res.users','Raised By', readonly = True),
         'create_date': fields.datetime('Created Date',readonly = True),
         'schedule_line':fields.one2many('tpt.schedule','notification_id','Schedule',readonly = True,states={'draft': [('readonly', False)]}),
         'state':fields.selection([('draft', 'Drafted'),('waiting', 'Waiting For Approval'),
-                                  ('in', 'In Progress'),('close','Closed')],'Status', readonly=True),
+                                  ('in', 'In Progress'),('close','Closed'),('cancel','Cancelled')],'Status', readonly=True),
     }
     _defaults = {
         'state':'draft',
@@ -241,20 +241,21 @@ class tpt_notification(osv.osv):
     
     def onchange_department_id(self, cr, uid, ids,department_id=False):
         res = {'value':{'section_id':False}}
-        if department_id:
-            return res
+#         if department_id:
+        return res
     
     def onchange_equip_id(self, cr, uid, ids,equip_id=False):
         res = {'value':{'machine_id':False,
-                        'department_id':False,
-                        'section_id':False,}}
-        if equip_id:
-            no_id = self.pool.get('tpt.equipment').browse(cr,uid,equip_id)
-            res['value'].update({
-                        'department_id':no_id.department_id and no_id.department_id.id or False,
-                        'section_id':no_id.section_id and no_id.section_id.id or False,
-            })
-            return res
+#                         'department_id':False,
+#                         'section_id':False,
+                        }}
+#         if equip_id:
+#             no_id = self.pool.get('tpt.equipment').browse(cr,uid,equip_id)
+#             res['value'].update({
+#                         'department_id':no_id.department_id and no_id.department_id.id or False,
+#                         'section_id':no_id.section_id and no_id.section_id.id or False,
+#             })
+        return res
         
     def bt_generate(self, cr, uid, ids, context=None):
         return self.write(cr, uid, ids,{'state':'waiting'})
@@ -264,6 +265,64 @@ class tpt_notification(osv.osv):
     
     def bt_close(self, cr, uid, ids, context=None):
         return self.write(cr, uid, ids,{'state':'close'})
+    
+    def bt_cancel(self, cr, uid, ids, context=None):
+        step = 0
+        for line in self.browse(cr,uid,ids,context=context):
+            maintenance_ids = self.pool.get('tpt.maintenance.oder').search(cr, uid,[('notification_id','=',line.id)])
+            if maintenance_ids:
+                for main in maintenance_ids:
+                    main_id = self.pool.get('tpt.maintenance.oder').browse(cr,uid,main)
+                    if main_id.state == 'close':
+                        step = 1
+                    else:
+                        raise osv.except_osv(_('Warning!'),_('Can not cancel this notification!'))
+            else:
+                step = 1
+            if line.state == 'in':
+                sql = '''
+                    select %s in (select primary_auditor_id from hr_department
+                    where id =%s)
+                '''%(uid,line.department_id.id)
+                cr.execute(sql)
+                notif = cr.fetchone()
+                if not notif[0]:
+                    raise osv.except_osv(_('Warning!'),_('Do not have permission to cancel this notification!'))
+        return self.write(cr, uid, ids,{'state':'cancel'})
+    
+    def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
+        if context is None:
+            context = {}
+        if context.get('search_tpt_notification'):
+            sql = '''
+                select id from tpt_notification
+                where department_id in (select id from hr_department where primary_auditor_id =%s)
+            '''%(uid)
+            cr.execute(sql)
+            notification_ids = [row[0] for row in cr.fetchall()]
+            sql='''
+                select %s in (select uid from res_groups_users_rel where gid in (select id from res_groups 
+                    where name in ('Purchase Store Mgr','Production GM','Production Admin')
+                    and category_id in (select id from ir_module_category where name='VVTI - PRODUCTION')))
+            '''%(uid)
+            cr.execute(sql)
+            notif = cr.fetchone()
+            if notif:
+                sql = '''
+                select id from tpt_notification
+                where state = 'in'
+                '''
+                cr.execute(sql)
+                notif_ids = [row[0] for row in cr.fetchall()]
+                for noti in notif_ids:
+                    notification_ids.append(noti)
+            args = [('id','in',notification_ids)]
+            
+        return super(tpt_notification, self).search(cr, uid, args, offset=offset, limit=limit, order=order, context=context, count=count)
+    
+    def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
+       ids = self.search(cr, user, args, context=context, limit=limit)
+       return self.name_get(cr, user, ids, context=context)
 tpt_notification()
 
 class tpt_schedule(osv.osv):
@@ -278,6 +337,52 @@ tpt_schedule()
 
 class tpt_maintenance_oder(osv.osv):
     _name = "tpt.maintenance.oder"
+    
+    def check_approve_uid(self, cr, uid, ids, field_name, args, context=None):
+        res = {}
+        for line in self.browse(cr,uid,ids,context=context):
+            depart_pri = line.department_id and line.department_id.primary_auditor_id and line.department_id.primary_auditor_id.id or False
+            if uid == depart_pri:
+                res[line.id] = True
+            else:
+                res[line.id] = False
+            if uid == 1:
+                res[line.id] = True
+        return res
+    
+    def get_net_value(self, cr, uid, ids, field_name, args, context=None):
+        res = {}
+        entry_obj = self.pool.get('tpt.service.entry')
+        third_obj = self.pool.get('tpt.third.service.entry')
+        mater_obj = self.pool.get('tpt.material.request')
+        for line in self.browse(cr,uid,ids,context=context):
+            res[line.id] = {
+                'net_value': 0.0,
+            }
+            net_value = 0.0
+            
+            entry_ids = entry_obj.search(cr, uid,[('maintenance_id','=',line.id)])
+            for entry in entry_ids:
+                entry_id = entry_obj.browse(cr,uid,entry)
+                net_value += entry_id.grand_total or 0
+                
+            third_ids = third_obj.search(cr, uid,[('maintenance_id','=',line.id)])
+            for third in third_ids:
+                third_id = third_obj.browse(cr,uid,third)
+                net_value += third_id.grand_total or 0
+            
+            mater_ids = mater_obj.search(cr, uid,[('maintenance_id','=',line.id)])
+            for mater in mater_ids:
+                mater_id = mater_obj.browse(cr,uid,mater)
+                net_value += mater_id.total or 0
+                
+            chargeable_ids = mater_obj.search(cr, uid,[('chargeable_maintenance_id','=',line.id)])
+            for chargeable in chargeable_ids:
+                chargeable_id = mater_obj.browse(cr,uid,chargeable)
+                net_value += chargeable_id.total or 0
+            res[line.id]['net_value'] = net_value
+        return res
+    
     _columns = {
         'name':fields.char('Order No', size = 1024,readonly=True),
         'issue_type':fields.selection([('major', 'Major'),('minor', 'Minor'),('critical', 'Critical')],'Issue Type',states={'close': [('readonly', True)]}),
@@ -306,11 +411,15 @@ class tpt_maintenance_oder(osv.osv):
         'third_service_line':fields.one2many('tpt.third.service.entry','maintenance_id','Third Party Service Entry',states={'close': [('readonly', True)]}),
         'consumption_line':fields.one2many('tpt.material.request','maintenance_id','Material Consumption',states={'close': [('readonly', True)]}),
         'chargeable_line':fields.one2many('tpt.material.request','chargeable_maintenance_id','Chargeable MRS',states={'close': [('readonly', True)]}),
+        'check_approve': fields.function(check_approve_uid, string='Approve?', type='boolean'),
+        'net_value': fields.function(get_net_value, multi='sums',string='Net Value',digits=(16,2)),
         'state':fields.selection([('draft', 'Drafted'),
+                                  ('confirm', 'Confirmed'),
                                   ('in', 'In Progress'),
                                   ('completed', 'Completed'),
                                   ('put', 'Put On Hold'),
-                                  ('close','Closed')],'Status', readonly=True),
+                                  ('close','Closed'),
+                                  ('cancel','Cancelled')],'Status', readonly=True),
     }
     _defaults = {
         'state':'draft',
@@ -366,11 +475,48 @@ class tpt_maintenance_oder(osv.osv):
                     res['value'].update({'employee_id':False})
         return res
     
-    def bt_process(self, cr, uid, ids, context=None):
-        return self.write(cr, uid, ids,{'state':'completed'})
+    def onchange_start_date(self, cr, uid, ids, no_id=False,sys_date=False, context=None):
+        vals = {}
+        warning = {}
+        if no_id:
+            noti_id = self.pool.get('tpt.notification').browse(cr,uid,no_id)
+            no_date = noti_id.create_date
+            if sys_date and sys_date < no_date[:10]:
+                vals = {'start_date':False}
+                warning = {
+                    'title': _('Warning!'),
+                    'message': _('Do not accept back date before the notification date!')
+                }
+        return {'value':vals,'warning':warning}
+    
+    def onchange_completion_date(self, cr, uid, ids, no_id=False,sys_date=False, context=None):
+        vals = {}
+        warning = {}
+        if no_id:
+            noti_id = self.pool.get('tpt.notification').browse(cr,uid,no_id)
+            no_date = noti_id.create_date
+            if sys_date and sys_date < no_date[:10] :
+                vals = {'completion_date':False}
+                warning = {
+                    'title': _('Warning!'),
+                    'message': _('Do not accept back date before the notification date!')
+                }
+        return {'value':vals,'warning':warning}
+    
+    def bt_create_order(self, cr, uid, ids, context=None):
+        return self.write(cr, uid, ids,{'state':'confirm'})
+    
+    def bt_approve_order(self, cr, uid, ids, context=None):
+        return self.write(cr, uid, ids,{'state':'in'})
     
     def bt_close(self, cr, uid, ids, context=None):
         return self.write(cr, uid, ids,{'state':'close'})
+    
+    def bt_cancel(self, cr, uid, ids, context=None):
+        return self.write(cr, uid, ids,{'state':'cancel'})
+    
+    def bt_set_to(self, cr, uid, ids, context=None):
+        return self.write(cr, uid, ids,{'state':'draft'})
     
     def bt_return_rq(self, cr, uid, ids, context=None):
         return True
@@ -806,8 +952,8 @@ class tpt_material_issue(osv.osv):
         journal_line = []
         dest_id = False
         move_obj = self.pool.get('stock.move')
-                
-        
+                 
+         
         for line in self.browse(cr, uid, ids):
             if line.request_type == 'production':
                 dest_id = line.dest_warehouse_id and line.dest_warehouse_id.id or False
@@ -815,7 +961,7 @@ class tpt_material_issue(osv.osv):
                 location_ids=self.pool.get('stock.location').search(cr, uid,[('name','=','Scrapped')])
                 if location_ids:
                     dest_id = location_ids[0]
-            
+             
             for p in line.material_issue_line:
                 onhand_qty = 0.0
                 location_id = False
@@ -876,14 +1022,14 @@ class tpt_material_issue(osv.osv):
                             from stock_move st
                             where st.state='done' and st.location_id=%s and st.product_id=%s and to_char(date, 'YYYY-MM-DD')<'%s'
                             and issue_id is not null
-                            
+                             
                     '''%(location_id,p.product_id.id,line.date_expec)
                     cr.execute(sql)
                     for issue in cr.dictfetchall():
                         hand_quantity_issue = issue['ton_sl'] or 0
                         total_cost_issue = issue['total_cost'] or 0
                     opening_stock_value = (total_cost-total_cost_issue)/(hand_quantity-hand_quantity_issue)
-                    
+                     
                 rs = {
                       'name': '/',
                       'product_id':p.product_id and p.product_id.id or False,
@@ -895,7 +1041,7 @@ class tpt_material_issue(osv.osv):
                       'date':line.date_expec or False,
                       'price_unit': opening_stock_value or 0,
                       }
-                
+                 
                 move_id = move_obj.create(cr,uid,rs)
                 # boi vi field price unit tu dong lam tron 2 so thap phan nen phai dung sql de update lai
                 sql = '''
@@ -915,10 +1061,10 @@ class tpt_material_issue(osv.osv):
             '''%(date_period)
             cr.execute(sql)
             period_ids = [r[0] for r in cr.fetchall()]
-             
+              
             if not period_ids:
                 raise osv.except_osv(_('Warning!'),_('Period is not null, please configure it in Period master !'))
-                
+                 
             for mater in line.material_issue_line:
 #                 price += mater.product_id.standard_price * mater.product_isu_qty
                 acc_expense = mater.product_id and mater.product_id.property_account_expense and mater.product_id.property_account_expense.id or False
@@ -950,7 +1096,7 @@ class tpt_material_issue(osv.osv):
                                         'debit':0,
                                         'credit':product_price,
                                         'product_id':mater.product_id.id,
-                                         
+                                          
                                        }))
                 journal_line.append((0,0,{
                             'name':line.doc_no + ' - ' + mater.product_id.name, 
