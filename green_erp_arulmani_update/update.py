@@ -3805,9 +3805,9 @@ class tpt_update_stock_move_report(osv.osv):
                     locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw Material','Raw Materials','Raw material']),('location_id','=',parent_ids[0])])
                     if mat.product_id.default_code != 'M0501060001':
                         sql='''
-                            select price_unit from stock_move where date='%s' and product_id=%s 
+                            select price_unit from stock_move where date<='%s' and product_id=%s 
                                 and issue_id in (select id from tpt_material_issue where request_type='production')
-                                order by id
+                                order by date desc
                         '''%(line.date_planned,mat.product_id.id)
                         cr.execute(sql)
                         move_ids = cr.fetchone()
