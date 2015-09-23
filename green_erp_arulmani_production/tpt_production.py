@@ -1838,9 +1838,24 @@ class tpt_quality_verification(osv.osv):
     def create(self, cr, uid, vals, context=None):
         #TPT-Added by BalamuruganPurushothaman ON 21/09/2015 - To Avoid saving Blank Lines
         new_id = super(tpt_quality_verification, self).create(cr, uid, vals, context=context)
-        batch = self.browse(cr, uid, new_id)
-        if not batch.batch_quality_line:
-            raise osv.except_osv(_('Warning!'),_('You can not create a Quality Verification without Lines!'))
+        #batch = self.browse(cr, uid, new_id)
+        #=======================================================================
+        # if not batch.batch_quality_line:
+        #     res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
+        #                                     'green_erp_arulmani_hrm', 'alert_permission_form_view')
+        #                 #raise osv.except_osv(_('Warning!'),_('Insufficient Hours, Please Create any one of the following type: Permission/OnDuty/Leave')) 
+        #     return {
+        #                             'name': 'Alert Permission',
+        #                             'view_type': 'form',
+        #                             'view_mode': 'form',
+        #                             'view_id': res[1],
+        #                             'res_model': 'alert.form',
+        #                             'domain': [],
+        #                             'context': {'default_message':'You can not create a Quality Verification without Lines!'},
+        #                             'type': 'ir.actions.act_window',
+        #                             'target': 'new',
+        #                         }
+        #=======================================================================
         return new_id#super(tpt_quality_verification, self).create(cr,1, vals, context)
     
     def write(self, cr, uid,ids, vals, context=None):
