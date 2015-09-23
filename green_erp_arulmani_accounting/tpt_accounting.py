@@ -3227,7 +3227,7 @@ class account_voucher(osv.osv):
             for l in voucher.line_cr_ids:
                 credit += l.amount
             currency = voucher.currency_id or voucher.company_id.currency_id
-            res[voucher.id] =  credit#currency_obj.round(cr, uid, currency, voucher.amount - sign * (credit))
+            res[voucher.id] =  credit
         return res
     ###
     _columns = {
