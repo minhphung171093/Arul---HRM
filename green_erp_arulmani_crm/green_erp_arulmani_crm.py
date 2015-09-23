@@ -91,7 +91,7 @@ class crm_lead(osv.osv):
         'basic_price': fields.float('Basic Price of Competitor',degits=(16,2)),
         'landed_price': fields.float('Landed Price of Competitor',degits=(16,2)),
         'employee_id': fields.many2one('hr.employee', 'Salesperson', select=True, track_visibility='onchange'),
-        'lead_group': fields.selection([ ('domestic','Domestic'), ('export','Export'), ],'Lead Group'),
+        'lead_group': fields.selection([ ('domestic','Domestic'), ('export','Export'), ('indirect_export','Indirect Export') ],'Lead Group'),
         'currency_id': fields.many2one('res.currency','Currency',required=True),
         'constitution': fields.selection([ ('company','Company'), ('individual','Individual'),('partnership_firm','Partnership Firm'), ('private_ltd','Private Ltd') ],'Constitution'),
         'contact_last_name': fields.char('Last Name', size=64),
@@ -105,10 +105,17 @@ class crm_lead(osv.osv):
         'quotation_status':fields.function(get_quotation_status, string='Quotation Status', type='boolean',ondelete="cascade"),
     
         'street3': fields.char('Street3',size=128), #TPT
+
     }
     
     def _lead_create_contact(self, cr, uid, lead, name, is_company, parent_id=False, context=None):
         partner = self.pool.get('res.partner')
+        ### TPT - By BalamuruganPurushothaman on 23/09/2015  
+        #   3010    Customer Code Auto Generation & Accounting receivable GL automation from Lead Master
+        group_obj = self.pool.get('customer.account.group')
+        group_obj_id = group_obj.search(cr, uid, [('name','=','VVTI Sold to Party')])
+        group_name = group_obj.browse(cr,uid,group_obj_id[0])
+        ### TPT
         vals = {'name': name,
                 'last_name':lead.contact_last_name or False,
                 'user_id': lead.user_id.id,
@@ -130,7 +137,10 @@ class crm_lead(osv.osv):
                 'is_company': False,
                 'type': 'contact',
                 'zone_id': lead.lead_zone,
-                'customer_code':lead.customer_code
+                'customer_code':lead.customer_code, 
+                'customer':True, #TPT - By BM on 23/09/2015
+                'customer_account_group_id':group_obj_id[0], #TPT - By BM on 23/09/2015
+                'arulmani_type':lead.lead_group  or False #TPT - By BM on 23/09/2015
         }
         partner = partner.create(cr, uid, vals, context=context)
         return partner
