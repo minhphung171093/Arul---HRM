@@ -789,7 +789,7 @@ class tpt_third_service_entry(osv.osv):
         'name':fields.char('Document No', size = 1024,readonly=True),
         'create_date': fields.datetime('Created on',readonly = True),
         'maintenance_id':fields.many2one('tpt.maintenance.oder','Maintenance Order No',readonly = True),
-        'service_type':fields.selection([('internal','Third Party Internal'),('employee', 'Employee'),('external','Third Party External')],'Service Type'),
+        'service_type':fields.selection([('internal','Third Party Internal'),('external','Third Party External')],'Service Type'),
         'work_taken': fields.date('Work Taken on',required=True),
 #         'department_id': fields.many2one('hr.department', 'Department',required=True),
 #         'section_id': fields.many2one('arul.hr.section', 'Section',required=True),

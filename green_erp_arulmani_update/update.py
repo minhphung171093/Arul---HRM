@@ -3834,7 +3834,7 @@ class tpt_update_stock_move_report(osv.osv):
                     price_ids = cr.fetchone()
                     produce_price = (price_ids and price_ids[0] or 0) * (produce.product_qty or 0)
                     debit -= produce_price
-            for act in line.bom_id.activities_line:
+            for act in line.activities_line:
                 debit += act.product_cost or 0
             if debit:
                 unit_produce = debit/line.product_qty
@@ -3868,7 +3868,7 @@ class tpt_update_stock_move_report(osv.osv):
             journal_line = []
             line = production_obj.browse(cr, uid, line_ids)
             sql = '''
-                    select id from account_journal
+                    select id from account_journal where name = 'Stock Journal'
             '''
             cr.execute(sql)
             journal_ids = [r[0] for r in cr.fetchall()]
@@ -4059,7 +4059,7 @@ class tpt_update_stock_move_report(osv.osv):
                                                }))
                     else:
                         raise osv.except_osv(_('Warning!'),_("Product Asset Account is not configured for Product '%s'! Please configured it!")%(produce.product_id.default_code))
-            for act in line.bom_id.activities_line:
+            for act in line.activities_line:
                 if line.product_id.product_credit_id:
 #                         credit += act.product_cost
                     debit += act.product_cost and round(act.product_cost,2) or 0

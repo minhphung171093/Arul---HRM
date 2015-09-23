@@ -497,8 +497,8 @@
 	            		<button name="bt_return_rq" states='in' string="Return Request" type="object" class="oe_highlight"/>
 	            		<button name="bt_create_mrs" states='in' string="Create MRS" type="object" class="oe_highlight"/>
 	            		<button name="bt_chargeable_mrs" states='in' string="Chargeable MRS" type="object" class="oe_highlight"/>
-	            		<button name="bt_close" string="Close Order" type="object" class="oe_highlight" attrs="{'invisible': [('state', '=', 'close')]}"/>
-	            		<button name="bt_cancel" string="Cancel Order" type="object" class="oe_highlight"/>
+	            		<button name="bt_close" states='confirm,completed,put,in' string="Close Order" type="object" class="oe_highlight"/>
+	            		<button name="bt_cancel" states='draft,confirm,completed,put,close,in' string="Cancel Order" type="object" class="oe_highlight"/>
 	            		<button name="bt_set_to" states='cancel' string="Set to draft" type="object" class="oe_highlight"/>
 	                    <field name ="state" widget="statusbar" statusbar_visible="draft,in,completed,put,close" statusbar_colors='{"draft":"blue","in":"red","close":"grey"}'/>
 	                </header>
