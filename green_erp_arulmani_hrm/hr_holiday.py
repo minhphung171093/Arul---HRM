@@ -10408,23 +10408,25 @@ class tpt_hr_attendance(osv.osv):
                                   })
             if punch_type=='OUT':
                 out_time = float(hour)+float(min)/60+float(sec)/3600
-                attend_temp_obj_ids = attend_temp_obj.search(cr, uid, [('employee_id','=',emp_root.id), ('work_date','=',work_date_format)]) 
-                if attend_temp_obj_ids:
-                    exist_emp_obj = attend_temp_obj.browse(cr,uid,attend_temp_obj_ids[0])
-                    exist_in_time = exist_emp_obj.in_time
-                    punch_in_date = exist_emp_obj.work_date
-                    attend_temp_obj.write(cr, uid, [exist_emp_obj.id], {
-                                 'employee_id': emp_root.id,
-                                 'work_date': work_date_format,
-                                 'in_time': exist_in_time,
-                                 'out_time': out_time,
-                                  })
-                    #self.auto_approve_to_attendance(cr, uid, emp_root, work_date_format, exist_in_time, out_time, shift_id, 
-                    #                                      punch_in_date)
-                    attend_temp_obj.write(cr, uid, [exist_emp_obj.id], {
-                                 'is_auto_approved': True,
-                                  })    
-                    attend_obj.write(cr, uid, time_entry.id, {'is_processed':'t'})
+                #===============================================================
+                # attend_temp_obj_ids = attend_temp_obj.search(cr, uid, [('employee_id','=',emp_root.id), ('work_date','=',work_date_format)]) 
+                # if attend_temp_obj_ids:
+                #     exist_emp_obj = attend_temp_obj.browse(cr,uid,attend_temp_obj_ids[0])
+                #     exist_in_time = exist_emp_obj.in_time
+                #     punch_in_date = exist_emp_obj.work_date
+                #     attend_temp_obj.write(cr, uid, [exist_emp_obj.id], {
+                #                  'employee_id': emp_root.id,
+                #                  'work_date': work_date_format,
+                #                  'in_time': exist_in_time,
+                #                  'out_time': out_time,
+                #                   })
+                #     #self.auto_approve_to_attendance(cr, uid, emp_root, work_date_format, exist_in_time, out_time, shift_id, 
+                #     #                                      punch_in_date)
+                #     attend_temp_obj.write(cr, uid, [exist_emp_obj.id], {
+                #                  'is_auto_approved': True,
+                #                   })    
+                #     attend_obj.write(cr, uid, time_entry.id, {'is_processed':'t'})
+                #===============================================================
                 ### AST UPDATE
                 perv_work_date_format = datetime.datetime.strptime(work_date_format,'%Y-%m-%d')
                 perv_work_date_format -= datetime.timedelta(days=1)
@@ -10447,9 +10449,11 @@ class tpt_hr_attendance(osv.osv):
                     self.auto_approve_to_attendance(cr, uid, emp_root, work_date_format, exist_in_time, out_time, shift_id, 
                                                           punch_in_date, ast_id)
                    
-                    attend_temp_obj.write(cr, uid, [exist_emp_obj.id], {
-                                 'is_auto_approved': True,
-                                  })    
+                    #===========================================================
+                    # attend_temp_obj.write(cr, uid, [exist_emp_obj.id], {
+                    #              'is_auto_approved': True,
+                    #               })    
+                    #===========================================================
                     attend_obj.write(cr, uid, time_entry.id, {'is_processed':'t'})
                                            
                 elif prev_day_ast_ids:
@@ -10468,9 +10472,11 @@ class tpt_hr_attendance(osv.osv):
                     self.auto_approve_to_attendance(cr, uid, emp_root, perv_work_date, exist_in_time, out_time, shift_id, 
                                                           punch_in_date, ast_id)
                    
-                    attend_temp_obj.write(cr, uid, [exist_emp_obj.id], {
-                                 'is_auto_approved': True,
-                                  })    
+                    #===========================================================
+                    # attend_temp_obj.write(cr, uid, [exist_emp_obj.id], {
+                    #              'is_auto_approved': True,
+                    #               })    
+                    #===========================================================
                     attend_obj.write(cr, uid, time_entry.id, {'is_processed':'t'})
                     
                 else:    
