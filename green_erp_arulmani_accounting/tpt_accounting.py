@@ -5469,7 +5469,7 @@ class mrp_production(osv.osv):
         debit = 0
         for line in self.browse(cr,uid,ids):
             sql = '''
-                    select id from account_journal
+                    select id from account_journal where name = 'Stock Journal'
             '''
             cr.execute(sql)
             journal_ids = [r[0] for r in cr.fetchall()]
@@ -5657,9 +5657,9 @@ class mrp_production(osv.osv):
                         else:
 #                             stock_move_obj.search(cr, uid, [('date','=',line.date_planned),('product_id','=',mat.product_id.id),('issue_id','!=',False)])
                             sql='''
-                                select price_unit from stock_move where date='%s' and product_id=%s 
+                                select price_unit from stock_move where date<='%s' and product_id=%s 
                                     and issue_id in (select id from tpt_material_issue where request_type='production')
-                                    order by id
+                                    order by date desc
                             '''%(line.date_planned,mat.product_id.id)
                             cr.execute(sql)
                             move_ids = cr.fetchone()
@@ -5697,7 +5697,8 @@ class mrp_production(osv.osv):
                                                    }))
                         else:
                             raise osv.except_osv(_('Warning!'),_("Product Asset Account is not configured for Product '%s'! Please configured it!")%(produce.product_id.default_code))
-                for act in line.bom_id.activities_line:
+#                 for act in line.bom_id.activities_line:
+                for act in line.activities_line:
                     if line.product_id.product_credit_id:
 #                         credit += act.product_cost
                         debit += act.product_cost and round(act.product_cost,2) or 0
