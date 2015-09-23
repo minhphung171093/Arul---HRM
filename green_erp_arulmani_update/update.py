@@ -3743,7 +3743,7 @@ class tpt_update_stock_move_report(osv.osv):
             journal_line = []
             line = production_obj.browse(cr, uid, line_ids)
             sql = '''
-                    select id from account_journal
+                    select id from account_journal where name = 'Stock Journal'
             '''
             cr.execute(sql)
             journal_ids = [r[0] for r in cr.fetchall()]
