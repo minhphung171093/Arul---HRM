@@ -8,12 +8,22 @@
 	            <form string="Stock Movement Analysis Report" version="7.0">
 	            	<group>
 	                <field name="categ_id" options="{'create': false, 'create_edit': false}" domain="[('cate_name','in',['raw','spares'])]" on_change = "onchange_categ_id(categ_id)"/>
-	                <field name="product_ids" widget = 'many2many_tags' options="{'create': false, 'create_edit': false}" context="{'search_product_id':True, 'categ_id':categ_id}"/>
+	               <!--  <field name="product_ids" widget = 'many2many_tags' 
+	                options="{'create': false, 'create_edit': false}" 
+	                context="{'search_product_id':True, 'categ_id':categ_id}"/>  -->
 	               	</group>
 	               	<group col="4" colspan="2">
 	               	<field name="date_from" />
 	               	<field name="date_to" />
+	               	
 	                </group>
+	                <!--  -->
+	                <separator colspan="4" string="Products"/>
+                    <group colspan="4" col="4" >
+	                    <field name="product_ids" nolabel='1' colspan='4'
+	                		context="{'search_product_id':True, 'categ_id':categ_id}"/>
+	                 </group>
+                    <!--  -->
 	                <footer>
 	                    <button name="print_report" type='object' string="OK" class="oe_highlight"/>
 	                    or
