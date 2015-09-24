@@ -16,6 +16,8 @@
     "description": """
     """,
     'update_xml': [
+        'security/green_erp_arulmani_maintenance_security.xml',
+        'security/ir.model.access.csv',
         'mainten_seq.xml',
         'tpt_maintenance_view.xml',
     ],
