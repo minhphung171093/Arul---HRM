@@ -67,6 +67,28 @@ class stock_partial_picking(osv.osv_memory):
                     ### TPT START- By BalamuruganPurushothaman on 23/09/2015 
                     ### To fix instant ID: 3192 - Issue in Return GRN, while receive materials which are having tolerance limit
                     sql = '''
+                    select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty from stock_move 
+                    where product_id=%s and state='done' and action_taken='need'
+                    and picking_id in (select id from stock_picking where state='done' and type='in' and purchase_id=%s)
+   
+                    '''%(wizard_line.product_id.id, wizard_line.move_id.picking_id.purchase_id.id)
+                    cr.execute(sql)
+                    grn_need_qty = cr.fetchone()[0]
+                   
+                    # To get Rejected Qty                   
+                    sql = '''
+                    select case when sum(qty_approve+remaining_qty)!=0 then sum(qty_approve+remaining_qty) else 0 end total_qty from tpt_quanlity_inspection 
+                    where need_inspec_id in (select id from stock_move where product_id=%s
+                    and picking_id in (select id from stock_picking where state='done' 
+                    and type='in' and purchase_id=%s)) and state in ('done','remaining') and product_id=%s
+                    '''%(wizard_line.product_id.id, wizard_line.move_id.picking_id.purchase_id.id, wizard_line.product_id.id)
+                    cr.execute(sql)
+                    ins_total_qty = cr.fetchone()[0]
+                    
+                    rejected_qty = grn_need_qty - ins_total_qty
+                    
+                    # To get Approved Qty
+                    sql = '''
                     select case when sum(qty_approve)!=0 then sum(qty_approve) else 0 end qty_approve from tpt_quanlity_inspection 
                     where need_inspec_id in (select id from stock_move where product_id=%s
                     and picking_id in (select id from stock_picking where state='done' 
@@ -74,7 +96,8 @@ class stock_partial_picking(osv.osv_memory):
                     '''%(wizard_line.product_id.id, wizard_line.move_id.picking_id.purchase_id.id, wizard_line.product_id.id)
                     cr.execute(sql)
                     ins_approved_qty = cr.fetchone()[0]
-                    received_qty = received_qty - ins_approved_qty
+                    
+                    received_qty = received_qty - ins_approved_qty - rejected_qty
                     ### TPT END
                     if (received_qty+wizard_line.quantity)>po_qty+tolerance_qty:
                         raise osv.except_osv(_('Warning!'),_('Tolerance Limit reached for the product %s!'%(wizard_line.product_id.name)))

@@ -51,6 +51,9 @@ class Parser(report_sxw.rml_parse):
             'get_cheque_date': self.get_cheque_date,
             'get_so_no': self.get_so_no,
             'get_so_date': self.get_so_date,
+            'get_opening_balance':self.get_opening_balance,
+            'get_total_debit':self.get_total_debit, #TPT-Y on 23/09/2015
+            'get_total_balance':self.get_total_balance, #TPT-Y on 23/09/2015
         })
         
     def get_cus(self):
@@ -93,6 +96,113 @@ class Parser(report_sxw.rml_parse):
             return "CUSTOMER INVOICE"
         if doc_type == 'cus_pay':
             return "CUSTOMER PAYMENT"
+    
+    #TPT-Y on 23/09/2015
+    def get_total(self,cash):
+        sum = 0.0
+        for line in cash:
+            sum += line.credit
+        return sum
+        
+    #TPT-Y on 23/09/2015
+    def get_total_debit(self,get_move_ids, get_opening_balance):
+        debit = 0.0
+        for move in get_move_ids:
+            debit += move['debit']    
+        return debit+get_opening_balance
+    
+    #TPT-Y on 23/09/2015
+    def get_total_balance(self,get_move_ids, get_opening_balance):
+        debit = 0.0
+        credit = 0.0
+        balance = 0.0
+        for move in get_move_ids:
+            debit += move['debit']
+            credit += move['credit']      
+        balance = (debit+get_opening_balance) - credit
+        return balance
+        
+    #TPT-Y on 23/09/2015   
+    def get_opening_balance(self):
+            wizard_data = self.localcontext['data']['form']
+            date_from = wizard_data['date_from']            
+            cus = wizard_data['customer_id']
+            is_posted = wizard_data['is_posted']           
+            balance = 0.0  
+            credit = 0.0
+            debit = 0.0
+            if is_posted is True:
+                sql = '''
+                    select case when coalesce(sum(aml.credit),0)=0 then 0 else sum(aml.credit) end as credit 
+                    from account_move_line aml 
+                    inner join account_move am on (aml.move_id = am.id)
+                    left join res_partner p on (p.id=am.partner_id)
+                    inner join account_account aa on (aa.id=aml.account_id)
+                    where am.date < '%s' and am.state='posted' 
+                    and aml.account_id = (
+                    select id from account_account where id in (
+                    select btrim(value_reference,'account.account,')::Integer
+                    from ir_property where res_id in ('res.partner,'|| %s) and name='property_account_receivable'
+                    ))  
+                    '''%(date_from,cus[0])
+                self.cr.execute(sql)
+                for move in self.cr.dictfetchall():
+                    credit += move['credit']
+                    
+                sql = '''
+                    select case when coalesce(sum(aml.debit),0)=0 then 0 else sum(aml.debit) end as debit 
+                    from account_move_line aml 
+                    inner join account_move am on (aml.move_id = am.id)
+                    left join res_partner p on (p.id=am.partner_id)
+                    inner join account_account aa on (aa.id=aml.account_id)
+                    where am.date < '%s' and am.state='posted' 
+                    and aml.account_id = (
+                    select id from account_account where id in (
+                    select btrim(value_reference,'account.account,')::Integer
+                    from ir_property where res_id in ('res.partner,'|| %s) and name='property_account_receivable'
+                    )) 
+                '''%(date_from,cus[0])
+                
+                self.cr.execute(sql)
+                for move in self.cr.dictfetchall():
+                    debit += move['debit']    
+                balance = debit - credit
+            else:
+                sql = '''
+                    select case when coalesce(sum(aml.credit),0)=0 then 0 else sum(aml.credit) end as credit 
+                    from account_move_line aml 
+                    inner join account_move am on (aml.move_id = am.id)
+                    left join res_partner p on (p.id=am.partner_id)
+                    inner join account_account aa on (aa.id=aml.account_id)
+                    where am.date < '%s' and am.state in ('draft','posted') 
+                    and aml.account_id = (
+                    select id from account_account where id in (
+                    select btrim(value_reference,'account.account,')::Integer
+                    from ir_property where res_id in ('res.partner,'|| %s) and name='property_account_receivable'
+                    ))
+                '''%(date_from,cus[0])                
+                self.cr.execute(sql)
+                for move in self.cr.dictfetchall():  
+                    credit += move['credit']
+                    
+                sql = '''
+                    select case when coalesce(sum(aml.debit),0)=0 then 0 else sum(aml.debit) end as debit 
+                    from account_move_line aml 
+                    inner join account_move am on (aml.move_id = am.id)
+                    left join res_partner p on (p.id=am.partner_id)
+                    inner join account_account aa on (aa.id=aml.account_id)
+                    where am.date < '%s' and am.state in ('draft','posted') 
+                    and aml.account_id = (
+                    select id from account_account where id in (
+                    select btrim(value_reference,'account.account,')::Integer
+                    from ir_property where res_id in ('res.partner,'|| %s) and name='property_account_receivable'
+                    )) 
+                '''%(date_from,cus[0])
+                self.cr.execute(sql)
+                for move in self.cr.dictfetchall():
+                    debit += move['debit']    
+                balance = debit - credit
+            return balance or 0.00
         
     def get_invoice(self):
         res = {}
@@ -178,14 +288,16 @@ class Parser(report_sxw.rml_parse):
         date = self.cr.fetchone()
         return date and date[0] or ''
     
-    def get_total(self, cash,type):
-        sum = 0.0
-        for line in cash:
-            if type == 'credit':
-                sum += line.credit
-            if type == 'debit':
-                sum += line.debit
-        return sum
+    #===========================================================================
+    # def get_total(self, cash,type):
+    #     sum = 0.0
+    #     for line in cash:
+    #         if type == 'credit':
+    #             sum += line.credit
+    #         if type == 'debit':
+    #             sum += line.debit
+    #     return sum
+    #===========================================================================
     def get_balance(self, get_invoice):
         credit = 0.0
         debit = 0.0
