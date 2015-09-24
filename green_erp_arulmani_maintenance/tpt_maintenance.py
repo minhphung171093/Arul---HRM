@@ -307,7 +307,7 @@ class tpt_notification(osv.osv):
             '''%(uid)
             cr.execute(sql)
             notif = cr.fetchone()
-            if notif[0] != False:
+            if notif and notif[0] != False:
                 sql = '''
                 select id from tpt_notification
                 where state = 'in'
