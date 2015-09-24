@@ -532,7 +532,7 @@
 								<field name="service_entry_line" nolabel='1'/>
 							</page> 
 							<page string = "Material Consumption">
-								<field name="consumption_line" nolabel='1' domain="[('mrs_type','=','normal')]">
+								<field name="consumption_line" nolabel='1' domain="[('mrs_type','=','normal')]" context="{'form_view_ref':'green_erp_arulmani_maintenance.view_tpt_material_request_form_for_mainten'}">
 									<tree create="false">
 										<field name="name"/>
 										<field name="date_request"/>
@@ -552,7 +552,7 @@
 								<field name="third_service_line" nolabel='1'/>
 							</page>
 							<page string = "Chargeable MRS">
-								<field name="chargeable_line" nolabel='1' domain="[('mrs_type','=','chargeable')]">
+								<field name="chargeable_line" nolabel='1' domain="[('mrs_type','=','chargeable')]" context="{'form_view_ref':'green_erp_arulmani_maintenance.view_tpt_material_request_form_for_mainten'}">
 									<tree create="false">
 										<field name="name"/>
 										<field name="date_request"/>

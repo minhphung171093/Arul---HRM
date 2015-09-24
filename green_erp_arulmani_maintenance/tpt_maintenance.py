@@ -307,7 +307,7 @@ class tpt_notification(osv.osv):
             '''%(uid)
             cr.execute(sql)
             notif = cr.fetchone()
-            if notif:
+            if notif[0] != False:
                 sql = '''
                 select id from tpt_notification
                 where state = 'in'
@@ -910,8 +910,8 @@ class tpt_material_request(osv.osv):
                             and issue_id in (select id from tpt_material_issue where state = 'done')
                     '''%(price.material_issue_id.id,price.product_id.id)
                     cr.execute(sql)
-                    if cr.fetchone():
-                        price_unit = cr.fetchone() and cr.fetchone()[0] or 0
+                    price_sql = cr.fetchone()
+                    price_unit = price_sql and price_sql[0] or 0
                     amount += price_unit*price.product_isu_qty
                         
             res[line.id]['total'] = amount
