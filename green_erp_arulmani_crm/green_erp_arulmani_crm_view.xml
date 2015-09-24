@@ -175,7 +175,7 @@
                     	<field name="probability"/>
                         <field name="rating"/>
                         <field name="lead_type"/>
-                        <field name="lead_group"/>
+                        <field name="lead_group" required='1'/>
                         <field name="currency_id" widget="selection"/>
                     </xpath>
                     
