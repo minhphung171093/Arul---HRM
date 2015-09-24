@@ -2519,7 +2519,7 @@
             <field name="arch" type="xml">
                 <data>
                 	<xpath expr="//page[@string='Consignee']" position="attributes">
-						<attribute name='groups'>green_erp_arulmani_accounting.group_vvti_accounting_user</attribute>
+						<attribute name='groups'>green_erp_arulmani_accounting.group_vvti_accounting_user,green_erp_arulmani_sale.group_vvti_sale_user</attribute>
 					</xpath>
 					
 					<xpath expr="//button[@name='approve_customer']" position="attributes">
@@ -3005,5 +3005,17 @@
         <menuitem action="action_tpt_cform_invoice" id="menu_action_cform_invoice" parent="account.menu_finance_receivables"
         	groups="green_erp_arulmani_sale.group_vvti_unit_account,account.group_account_manager"/>
 	  <!-- TPT-END -->
+	  
+	  <record id="inher_view_arul_hr_payroll_employee_structure_form_vew" model="ir.ui.view">
+            <field name="name">inher.arul.hr.payroll.employee.structure.form</field>
+            <field name="model">arul.hr.payroll.employee.structure</field>
+            <field name="inherit_id" ref="green_erp_arulmani_hrm.view_arul_hr_payroll_employee_structure_form_vew"/>
+            <field name="arch" type="xml">
+				<xpath expr="//button[@name='bt_approve']" position="attributes">
+					<attribute name='groups'>green_erp_arulmani_accounting.group_vvti_accounting_user,green_erp_arulmani_hrm.group_vvti_hrm_payroll_controller</attribute>
+				</xpath>
+            </field>
+        </record>
+	  
     </data>
 </openerp>
