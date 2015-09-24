@@ -1235,13 +1235,14 @@ class stock_movement_analysis(osv.osv_memory):
                 inner join product_template pt on  pp.product_tmpl_id=pt.id
                 inner join product_uom pu on pt.uom_id=pu.id
                 where pp.cate_name='spares'
-                and pp.id=%(product_id)s
+                and pp.id in (%(product_id)s)
                 order by pp.default_code
                 '''%{'date_from':stock.date_from,
                     'date_to':stock.date_to,
                     'location_spare_id':14,
-                    'product_id':product_ids#stock.product_id.id
+                    'product_id':product_ids#stock.product_id.id prev sql - and pp.id = %(product_id)s
                     }
+                print sql
                 cr.execute(sql)   
             else:
                 sql = '''
