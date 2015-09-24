@@ -51,7 +51,11 @@ class Parser(report_sxw.rml_parse):
             'get_cost_center':self.get_cost_center,
             'get_partner':self.get_partner,
             'get_employee_id':self.get_employee_id,
-            'get_line_employee_id':self.get_line_employee_id,
+            'get_line_employee_id':self.get_line_employee_id,            
+            'get_total_debit':self.get_total_debit,
+            'get_opening_balance':self.get_opening_balance,
+            'get_total_balance':self.get_total_balance,
+            
         })
         
     def get_emp(self):
@@ -248,14 +252,72 @@ class Parser(report_sxw.rml_parse):
             return "Journal Voucher"
         
     
-    def get_total(self, cash,type):
+    #TPT-Y on 22/09/2015
+    def get_total_balance(self,get_move_ids,get_opening_balance):
+        debit = 0.0
+        credit = 0.0
+        balance = 0.0
+        for move in get_move_ids:
+            debit += move['debit']
+            credit += move['credit']      
+        balance = (debit+get_opening_balance) - credit
+        return balance
+        
+    #TPT-Y on 22/09/2015
+    def get_total(self,cash):
         sum = 0.0
         for line in cash:
-            if type == 'credit':
-                sum += line.credit
-            if type == 'debit':
-                sum += line.debit
-        return sum
+            sum += line.credit
+        return sum 
+    
+    #TPT-Y on 22/09/2015
+    def get_total_debit(self,get_move_ids,get_opening_balance):
+        debit = 0.0
+        for move in get_move_ids:
+            debit += move['debit']    
+        return debit+get_opening_balance
+        
+    #TPT-Y on 22/09/2015   
+    def get_opening_balance(self):
+            wizard_data = self.localcontext['data']['form']
+            date_from = wizard_data['date_from']            
+            gl_account = wizard_data['account_id']
+            is_posted = wizard_data['is_posted']            
+            balance = 0.0  
+            credit = 0.0
+            debit = 0.0
+            
+            sql = '''
+                    select case when coalesce(sum(aml.credit),0)=0 then 0 else sum(aml.credit) end as credit 
+                    from account_move_line aml
+                    inner join account_move am on (am.id=aml.move_id)
+                    left join account_voucher av on (av.move_id = aml.move_id)
+                    left join tpt_cost_center cc on (cc.id = av.cost_center_id)                  
+                    where am.date < '%s' and aml.account_id = %s
+                 '''%(date_from,gl_account[0])            
+            if is_posted:
+                str = " and am.state in ('posted')"
+                sql = sql+str            
+            self.cr.execute(sql)
+            for move in self.cr.dictfetchall():
+                credit += move['credit']               
+                    
+            sql = '''
+                    select case when coalesce(sum(aml.debit),0)=0 then 0 else sum(aml.debit) end as debit 
+                    from account_move_line aml
+                    inner join account_move am on (am.id=aml.move_id)
+                    left join account_voucher av on (av.move_id = aml.move_id)
+                    left join tpt_cost_center cc on (cc.id = av.cost_center_id)                   
+                    where am.date < '%s' and aml.account_id = %s
+                '''%(date_from,gl_account[0])
+            if is_posted:
+                str = " and am.state in ('posted')"
+                sql = sql+str                  
+            self.cr.execute(sql)
+            for move in self.cr.dictfetchall():
+                debit += move['debit']                  
+            balance = debit - credit            
+            return balance
     
     #TPT-Y
     def get_balance(self, get_invoice):

@@ -29,6 +29,89 @@ class supplier_ledger_statement(osv.osv_memory):
     
     def print_report(self, cr, uid, ids, context=None):
         
+        #TPT-Y on 23/09/2015
+        def get_opening_balance(sls):  
+            date_from = sls.date_from
+            #date_to = sls.date_to
+            sup = sls.supplier_id.id
+            is_posted = sls.is_posted
+            
+            balance = 0.0  
+            credit = 0.0
+            debit = 0.0
+            if is_posted is True:
+                sql = '''
+                    select case when coalesce(sum(aml.credit),0)=0 then 0 else sum(aml.credit) end as credit 
+                    from account_move_line aml 
+                    inner join account_move am on (aml.move_id = am.id)
+                    left join res_partner p on (p.id=am.partner_id)
+                    inner join account_account aa on (aa.id=aml.account_id)
+                    where am.date < '%s' and am.state='posted'                    
+                    and aml.account_id =(
+                    select id from account_account where id in (
+                    select btrim(value_reference,'account.account,')::Integer
+                    from ir_property where res_id in ('res.partner,'|| %s ) 
+                    ))
+                    '''%(date_from,sup)
+                cr.execute(sql)
+                for move in cr.dictfetchall():
+                    credit += move['credit']
+                    
+                sql = '''
+                    select case when coalesce(sum(aml.debit),0)=0 then 0 else sum(aml.debit) end as debit 
+                    from account_move_line aml 
+                    inner join account_move am on (aml.move_id = am.id)
+                    left join res_partner p on (p.id=am.partner_id)
+                    inner join account_account aa on (aa.id=aml.account_id)
+                    where am.date < '%s' and am.state='posted'                    
+                    and aml.account_id =(
+                    select id from account_account where id in (
+                    select btrim(value_reference,'account.account,')::Integer
+                    from ir_property where res_id in ('res.partner,'|| %s ) 
+                    ))
+                '''%(date_from,sup)
+                
+                cr.execute(sql)
+                for move in cr.dictfetchall():
+                    debit += move['debit']    
+                balance = debit - credit
+            else:
+                sql = '''
+                    select case when coalesce(sum(aml.credit),0)=0 then 0 else sum(aml.credit) end as credit 
+                    from account_move_line aml 
+                    inner join account_move am on (aml.move_id = am.id)
+                    left join res_partner p on (p.id=am.partner_id)
+                    inner join account_account aa on (aa.id=aml.account_id)
+                    where am.date < '%s' and am.state in ('draft','posted')                   
+                    and aml.account_id =(
+                    select id from account_account where id in (
+                    select btrim(value_reference,'account.account,')::Integer
+                    from ir_property where res_id in ('res.partner,'|| %s ) 
+                    ))
+                '''%(date_from,sup)                
+                cr.execute(sql)
+                for move in cr.dictfetchall(): 
+                    credit += move['credit']
+                    
+                sql = '''
+                    select case when coalesce(sum(aml.debit),0)=0 then 0 else sum(aml.debit) end as debit 
+                    from account_move_line aml 
+                    inner join account_move am on (aml.move_id = am.id)
+                    left join res_partner p on (p.id=am.partner_id)
+                    inner join account_account aa on (aa.id=aml.account_id)
+                    where am.date < '%s' and am.state in ('draft','posted')                   
+                    and aml.account_id =(
+                    select id from account_account where id in (
+                    select btrim(value_reference,'account.account,')::Integer
+                    from ir_property where res_id in ('res.partner,'|| %s ) 
+                    )) 
+                '''%(date_from,sup)
+                cr.execute(sql)
+                for move in cr.dictfetchall():
+                    debit += move['debit']    
+                balance = debit - credit
+            return balance or 0.00
+        
         def convert_date_cash(date):
             if date:
                 date = datetime.strptime(date, DATE_FORMAT)
@@ -125,13 +208,29 @@ class supplier_ledger_statement(osv.osv_memory):
             p = cr.fetchone()
             return p and p[0] or False
          
-        def get_total(cash,type):
+        #TPT-Y on 23/09/2015
+        def get_total_debit(get_move_ids, get_opening_balance):
+            debit = 0.0
+            for move in get_move_ids:
+                debit += move['debit']    
+            return debit+get_opening_balance
+        
+        #TPT-Y on 23/09/2015
+        def get_total_balance(get_move_ids, get_opening_balance):
+            debit = 0.0
+            credit = 0.0
+            balance = 0.0
+            for move in get_move_ids:
+                debit += move['debit']
+                credit += move['credit']      
+            balance = (debit+get_opening_balance) - credit
+            return balance
+        
+        #TPT-Y on 23/09/2015
+        def get_total(cash):
             sum = 0.0
             for line in cash:
-                if type == 'credit':
-                    sum += line.credit
-                if type == 'debit':
-                    sum += line.debit
+                sum += line.credit
             return sum
          
         def get_balance(get_invoice):
@@ -160,6 +259,11 @@ class supplier_ledger_statement(osv.osv_memory):
         sls_obj = self.pool.get('tpt.supplier.ledger')
         sls = self.browse(cr, uid, ids[0])
         sls_line = []
+        sls_line.append((0,0,{
+                'cheque_no': 'Opening Balance:', #TPT-Y on 23/09/2015
+                'debit': get_opening_balance(sls), #TPT-Y on 23/09/2015,
+                
+            }))
         for line in get_invoice(sls):
             sls_line.append((0,0,{
                 'date': line.move_id and line.move_id.date or '',
@@ -177,12 +281,12 @@ class supplier_ledger_statement(osv.osv_memory):
             }))
         sls_line.append((0,0,{
                 'cheque_no': 'Total',
-                'debit': get_total(get_invoice(sls),'debit'),
-                'credit': get_total(get_invoice(sls),'credit'),
+                'debit': get_total_debit(get_invoice(sls), get_opening_balance(sls)), #TPT-Y on 23/09/2015
+                'credit': get_total(get_invoice(sls)), #TPT-Y on 23/09/2015
             }))
         sls_line.append((0,0,{
                 'cheque_no': 'Balance',
-                'credit': get_balance(get_invoice(sls)),
+                'credit': get_total_balance(get_invoice(sls), get_opening_balance(sls)), #TPT-Y on 23/09/2015
             }))
         vals = {
                 'name': 'Supplier Ledger Statement',

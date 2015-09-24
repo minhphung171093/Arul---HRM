@@ -37,11 +37,25 @@
 	            	<group>
 		                <field name="date_from" />
 	                	<field name="date_to" />
+	                	<field name="po_no_from" options="{'create': false, 'create_edit': false}"/>
+	                	<field name="po_no_to" options="{'create': false, 'create_edit': false}"/>	                	
+	                	<field name="sup_id" domain="[('supplier','=',True),('is_company','=',True)]" options="{'create': false, 'create_edit': false}"/>
+	                	<field name="prod_id" options="{'create': false, 'create_edit': false}"/>
+	                	<field name="dept_id" options="{'create': false, 'create_edit': false}"/>
+	                	<field name="po_indent_no_from" options="{'create': false, 'create_edit': false}"/>
+	                	<field name="po_indent_no_to" options="{'create': false, 'create_edit': false}"/>
+	                	<field name="ind_date_from" />
+	                	<field name="ind_date_to" />
+	                	<field name="indent_release_date_from" />
+	                	<field name="indent_release_date_to" />
+	                	<field name="type_pend_qty" />
 	                </group>
 	                <footer>
 	                    <button name="view_report" type='object' string="View" class="oe_highlight"/>
 	                    or
 	                    <button string="Cancel" class="oe_highlight" special="cancel" />
+	                    or
+	                    <button name="print_report" type='object' string="Print (.xls)" class="oe_highlight"/>	                    
 	                </footer>
 	            </form>
 	        </field>
@@ -56,7 +70,30 @@
 	        <field name="target">new</field>
 	    </record>
 	    
-	    
+	    <record id="po_list_report" model="ir.actions.report.xml">
+	        <field name="name">po_list_report</field>
+	        <field name="type">ir.actions.report.xml</field>
+	        <field name="model">purchase.order.list.wizard</field>
+	        <field name="report_name">po_list_report</field>
+	        <field name="report_type">aeroo</field>
+	        <field name="in_format">oo-ods</field>
+	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-xls'),('compatible_types','=','oo-ods')]"/>
+	        <field name="parser_loc">green_erp_arulmani_accounting/report/purchase_order_list.py</field>
+	        <field name="report_rml">green_erp_arulmani_accounting/report/purchase_order_list.ods</field>
+	        <field name="parser_state">loc</field>
+	        <field name="tml_source">file</field>
+	        <field name="attachment_use" eval="0"/>
+    	</record>		    
+		
+		<report 
+			auto="True" 
+			menu="False"
+			id="po_list_report" 
+			model="purchase.order.list.wizard" 
+			name="po_list_report"
+	        string="PO List Report"
+	        rml="green_erp_arulmani_accounting/report/purchase_order_list.ods"/>
+	        
         <menuitem action="action_purchase_order_list_wizard_view"
             id="menu_action_purchase_order_list_wizard_view"
             parent="stock.menu_stock_warehouse_mgmt" sequence="105"/>

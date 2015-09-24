@@ -144,6 +144,72 @@ class general_ledger_statement(osv.osv_memory):
     
     def print_report(self, cr, uid, ids, context=None):
         
+        #TPT-Y on 22/09/2015
+        def get_total(cash):
+            sum = 0.0
+            for line in cash:
+                sum += line.credit
+            return sum 
+        
+        #TPT-Y on 22/09/2015
+        def get_total_debit(get_move_ids, get_opening_balance):
+            debit = 0.0
+            for move in get_move_ids:
+                debit += move['debit']    
+            return debit+get_opening_balance
+        
+        #TPT-Y on 22/09/2015
+        def get_total_balance(get_move_ids, get_opening_balance):
+            debit = 0.0
+            credit = 0.0
+            balance = 0.0
+            for move in get_move_ids:
+                debit += move['debit']
+                credit += move['credit']      
+            balance = (debit+get_opening_balance) - credit
+            return balance
+        
+        #TPT-Y on 22/09/2015
+        def get_opening_balance(o):  
+            date_from = o.date_from            
+            gl_account = o.account_id.id
+            is_posted = o.is_posted            
+            balance = 0.0  
+            credit = 0.0
+            debit = 0.0
+            
+            sql = '''
+                    select case when coalesce(sum(aml.credit),0)=0 then 0 else sum(aml.credit) end as credit 
+                    from account_move_line aml
+                    inner join account_move am on (am.id=aml.move_id)
+                    left join account_voucher av on (av.move_id = aml.move_id)
+                    left join tpt_cost_center cc on (cc.id = av.cost_center_id)                  
+                    where am.date < '%s' and aml.account_id = %s
+                 '''%(date_from,gl_account)            
+            if is_posted:
+                str = " and am.state in ('posted')"
+                sql = sql+str            
+            cr.execute(sql)
+            for move in cr.dictfetchall():
+                credit += move['credit']               
+                    
+            sql = '''
+                    select case when coalesce(sum(aml.debit),0)=0 then 0 else sum(aml.debit) end as debit 
+                    from account_move_line aml
+                    inner join account_move am on (am.id=aml.move_id)
+                    left join account_voucher av on (av.move_id = aml.move_id)
+                    left join tpt_cost_center cc on (cc.id = av.cost_center_id)                   
+                    where am.date < '%s' and aml.account_id = %s
+                '''%(date_from,gl_account)
+            if is_posted:
+                str = " and am.state in ('posted')"
+                sql = sql+str                  
+            cr.execute(sql)
+            for move in cr.dictfetchall():
+                debit += move['debit']                  
+            balance = debit - credit            
+            return balance
+        
         def get_emp(move_id):
             acc_obj = self.pool.get('res.partner')
             acc = acc_obj.browse(cr,uid,move_id)
@@ -470,14 +536,16 @@ class general_ledger_statement(osv.osv_memory):
         #     return cost_center
         #=======================================================================
         
-        def get_total(cash,type):
-            sum = 0.0
-            for line in cash:
-                if type == 'credit':
-                    sum += line.credit
-                if type == 'debit':
-                    sum += line.debit
-            return sum 
+        #=======================================================================
+        # def get_total(cash,type):
+        #     sum = 0.0
+        #     for line in cash:
+        #         if type == 'credit':
+        #             sum += line.credit
+        #         if type == 'debit':
+        #             sum += line.debit
+        #     return sum 
+        #=======================================================================
         
          #TPT-Y
         def get_balance(get_invoice):
@@ -524,6 +592,12 @@ class general_ledger_statement(osv.osv_memory):
         cb_obj = self.pool.get('tpt.general.ledger.from')
         cb = self.browse(cr, uid, ids[0])
         cb_line = []
+        cb_line.append((0,0,{
+            'doc_no_line': False, #TPT-Y on 22/09/2015
+            'employee_id': 'Opening Balance:', #TPT-Y on 22/09/2015
+            'debit': get_opening_balance(cb), #TPT-Y on 22/09/2015
+
+        }))
         for line in get_invoice(cb):
             cb_line.append((0,0,{
                     'doc_no_line': line.move_id and line.move_id.name, #TPT-Y             
@@ -541,12 +615,14 @@ class general_ledger_statement(osv.osv_memory):
             }))
         cb_line.append((0,0,{
             'narration': 'Total',
-            'debit': get_total(get_invoice(cb),'debit'),
-            'credit': get_total(get_invoice(cb),'credit'),
+            #'debit': get_total(get_invoice(cb),'debit'),
+            'debit': get_total_debit(get_invoice(cb), get_opening_balance(cb)), #TPT-Y on 22/09/2015
+            'credit': get_total(get_invoice(cb)), #TPT-Y on 22/09/2015
         }))
         cb_line.append((0,0,{   
             'narration': 'Balance', 
-            'credit': get_balance(get_invoice(cb)),  #TPT-Y 
+            #'credit': get_balance(get_invoice(cb)),  #TPT-Y
+            'credit': get_total_balance(get_invoice(cb), get_opening_balance(cb)), #TPT-Y on 22/09/2015 
         }))
         vals = {
             'name': 'General Ledger Statement',
