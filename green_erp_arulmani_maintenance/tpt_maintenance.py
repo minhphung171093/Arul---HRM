@@ -310,7 +310,7 @@ class tpt_notification(osv.osv):
             if notif and notif[0] != False:
                 sql = '''
                 select id from tpt_notification
-                where state = 'in'
+                where state in ('in','close')
                 '''
                 cr.execute(sql)
                 notif_ids = [row[0] for row in cr.fetchall()]
@@ -912,7 +912,7 @@ class tpt_material_request(osv.osv):
                     cr.execute(sql)
                     price_sql = cr.fetchone()
                     price_unit = price_sql and price_sql[0] or 0
-                    amount += price_unit*price.product_isu_qty
+                    amount += round(price_unit,2)*price.product_isu_qty
                         
             res[line.id]['total'] = amount
         return res
@@ -931,10 +931,23 @@ tpt_material_request()
 
 class tpt_material_request_line(osv.osv):
     _inherit = "tpt.material.request.line"
+    
+    def line_net_line(self, cr, uid, ids, field_name, args, context=None):
+        res = {}
+        for line in self.browse(cr,uid,ids,context=context):
+            total_value = 0.0
+            res[line.id] = {
+                    'total_value': 0.0,
+                }  
+            total_value = line.issue_qty *( line.price_unit and round(line.price_unit,2) or 0)
+            res[line.id]['total_value'] = total_value
+        return res
+    
     _columns = {
                 'issue_qty': fields.float('Issued Qty',digits=(16,3),readonly=True),  
                 'price_unit': fields.float('Unit Value', readonly=True ),  
-                'total_value': fields.float('Total Value',readonly=True ), 
+#                 'total_value': fields.float('Total Value',readonly=True ), 
+                'total_value': fields.function(line_net_line, multi='deltas' ,digits=(16,2),string='Total Value'),
                 }
 tpt_material_request_line()
 
@@ -1088,7 +1101,8 @@ class tpt_material_issue(osv.osv):
                 price += unit * mater.product_isu_qty
                 product_price = unit * mater.product_isu_qty
                 ### update request
-                cr.execute(''' update tpt_material_request_line set issue_qty = %s, price_unit = %s, total_value = %s where id = %s ''',(mater.product_isu_qty,unit,product_price,mater.request_line_id.id,))
+#                 cr.execute(''' update tpt_material_request_line set issue_qty = %s, price_unit = %s, total_value = %s where id = %s ''',(mater.product_isu_qty,unit,product_price,mater.request_line_id.id,))
+                cr.execute(''' update tpt_material_request_line set issue_qty = %s, price_unit = %s where id = %s ''',(mater.product_isu_qty,unit,mater.request_line_id.id,))
                 ###
                 journal_line.append((0,0,{
                                         'name':line.doc_no + ' - ' + mater.product_id.name, 
