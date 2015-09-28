@@ -10,7 +10,9 @@
 	                <field name="date_from" />
 	                <field name="date_to" />
 	                <field name="employee_id" options="{'create': false, 'create_edit': false}"/>
+	                <!-- 
 	                <field name="employee_categ_id" options="{'create': false, 'create_edit': false}"/>
+	                 -->
 	                </group>
 	                <footer>
 	                    <button name="print_report" type='object' string="OK" class="oe_highlight"/>
