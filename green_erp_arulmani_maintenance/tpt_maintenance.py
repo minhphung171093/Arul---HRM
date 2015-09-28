@@ -261,6 +261,15 @@ class tpt_notification(osv.osv):
         return self.write(cr, uid, ids,{'state':'waiting'})
     
     def bt_approve(self, cr, uid, ids, context=None):
+        for line in self.browse(cr,uid,ids,context=context):
+            sql = '''
+                select %s in (select primary_auditor_id from hr_department
+                where id =%s)
+            '''%(uid,line.department_id.id)
+            cr.execute(sql)
+            notif = cr.fetchone()
+            if not notif[0]:
+                raise osv.except_osv(_('Warning!'),_('HOD of The Department can only approve!'))
         return self.write(cr, uid, ids,{'state':'in'})
     
     def bt_close(self, cr, uid, ids, context=None):
@@ -290,39 +299,38 @@ class tpt_notification(osv.osv):
                     raise osv.except_osv(_('Warning!'),_('Do not have permission to cancel this notification!'))
         return self.write(cr, uid, ids,{'state':'cancel'})
     
-    def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
-        if context is None:
-            context = {}
-        if context.get('search_tpt_notification'):
-            sql = '''
-                select id from tpt_notification
-                where department_id in (select id from hr_department where primary_auditor_id =%s)
-            '''%(uid)
-            cr.execute(sql)
-            notification_ids = [row[0] for row in cr.fetchall()]
-            sql='''
-                select %s in (select uid from res_groups_users_rel where gid in (select id from res_groups 
-                    where name in ('Purchase Store Mgr','Production GM','Production Admin')
-                    and category_id in (select id from ir_module_category where name='VVTI - PRODUCTION')))
-            '''%(uid)
-            cr.execute(sql)
-            notif = cr.fetchone()
-            if notif and notif[0] != False:
-                sql = '''
-                select id from tpt_notification
-                where state in ('in','close')
-                '''
-                cr.execute(sql)
-                notif_ids = [row[0] for row in cr.fetchall()]
-                for noti in notif_ids:
-                    notification_ids.append(noti)
-            args = [('id','in',notification_ids)]
-            
-        return super(tpt_notification, self).search(cr, uid, args, offset=offset, limit=limit, order=order, context=context, count=count)
-    
-    def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
-       ids = self.search(cr, user, args, context=context, limit=limit)
-       return self.name_get(cr, user, ids, context=context)
+#     def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
+#         if context is None:
+#             context = {}
+#         if context.get('search_tpt_notification'):
+#             sql = '''
+#                 select id from tpt_notification
+#                 where department_id in (select id from hr_department where primary_auditor_id =%s)
+#             '''%(uid)
+#             cr.execute(sql)
+#             notification_ids = [row[0] for row in cr.fetchall()]
+#             sql='''
+#                 select %s in (select uid from res_groups_users_rel where gid in (select id from res_groups 
+#                     where name in ('Purchase Store Mgr','Production GM','Production Admin')
+#                     and category_id in (select id from ir_module_category where name='VVTI - PRODUCTION')))
+#             '''%(uid)
+#             cr.execute(sql)
+#             notif = cr.fetchone()
+#             if notif and notif[0] != False:
+#                 sql = '''
+#                 select id from tpt_notification
+#                 '''
+#                 cr.execute(sql)
+#                 notif_ids = [row[0] for row in cr.fetchall()]
+#                 for noti in notif_ids:
+#                     notification_ids.append(noti)
+#             args = [('id','in',notification_ids)]
+#             
+#         return super(tpt_notification, self).search(cr, uid, args, offset=offset, limit=limit, order=order, context=context, count=count)
+#     
+#     def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
+#        ids = self.search(cr, user, args, context=context, limit=limit)
+#        return self.name_get(cr, user, ids, context=context)
 tpt_notification()
 
 class tpt_schedule(osv.osv):
