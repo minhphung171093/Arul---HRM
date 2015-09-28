@@ -261,6 +261,15 @@ class tpt_notification(osv.osv):
         return self.write(cr, uid, ids,{'state':'waiting'})
     
     def bt_approve(self, cr, uid, ids, context=None):
+        for line in self.browse(cr,uid,ids,context=context):
+            sql = '''
+                select %s in (select primary_auditor_id from hr_department
+                where id =%s)
+            '''%(uid,line.department_id.id)
+            cr.execute(sql)
+            notif = cr.fetchone()
+            if not notif[0]:
+                raise osv.except_osv(_('Warning!'),_('HOD of The Department can only approve!'))
         return self.write(cr, uid, ids,{'state':'in'})
     
     def bt_close(self, cr, uid, ids, context=None):
@@ -290,39 +299,38 @@ class tpt_notification(osv.osv):
                     raise osv.except_osv(_('Warning!'),_('Do not have permission to cancel this notification!'))
         return self.write(cr, uid, ids,{'state':'cancel'})
     
-    def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
-        if context is None:
-            context = {}
-        if context.get('search_tpt_notification'):
-            sql = '''
-                select id from tpt_notification
-                where department_id in (select id from hr_department where primary_auditor_id =%s)
-            '''%(uid)
-            cr.execute(sql)
-            notification_ids = [row[0] for row in cr.fetchall()]
-            sql='''
-                select %s in (select uid from res_groups_users_rel where gid in (select id from res_groups 
-                    where name in ('Purchase Store Mgr','Production GM','Production Admin')
-                    and category_id in (select id from ir_module_category where name='VVTI - PRODUCTION')))
-            '''%(uid)
-            cr.execute(sql)
-            notif = cr.fetchone()
-            if notif and notif[0] != False:
-                sql = '''
-                select id from tpt_notification
-                where state = 'in'
-                '''
-                cr.execute(sql)
-                notif_ids = [row[0] for row in cr.fetchall()]
-                for noti in notif_ids:
-                    notification_ids.append(noti)
-            args = [('id','in',notification_ids)]
-            
-        return super(tpt_notification, self).search(cr, uid, args, offset=offset, limit=limit, order=order, context=context, count=count)
-    
-    def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
-       ids = self.search(cr, user, args, context=context, limit=limit)
-       return self.name_get(cr, user, ids, context=context)
+#     def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
+#         if context is None:
+#             context = {}
+#         if context.get('search_tpt_notification'):
+#             sql = '''
+#                 select id from tpt_notification
+#                 where department_id in (select id from hr_department where primary_auditor_id =%s)
+#             '''%(uid)
+#             cr.execute(sql)
+#             notification_ids = [row[0] for row in cr.fetchall()]
+#             sql='''
+#                 select %s in (select uid from res_groups_users_rel where gid in (select id from res_groups 
+#                     where name in ('Purchase Store Mgr','Production GM','Production Admin')
+#                     and category_id in (select id from ir_module_category where name='VVTI - PRODUCTION')))
+#             '''%(uid)
+#             cr.execute(sql)
+#             notif = cr.fetchone()
+#             if notif and notif[0] != False:
+#                 sql = '''
+#                 select id from tpt_notification
+#                 '''
+#                 cr.execute(sql)
+#                 notif_ids = [row[0] for row in cr.fetchall()]
+#                 for noti in notif_ids:
+#                     notification_ids.append(noti)
+#             args = [('id','in',notification_ids)]
+#             
+#         return super(tpt_notification, self).search(cr, uid, args, offset=offset, limit=limit, order=order, context=context, count=count)
+#     
+#     def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
+#        ids = self.search(cr, user, args, context=context, limit=limit)
+#        return self.name_get(cr, user, ids, context=context)
 tpt_notification()
 
 class tpt_schedule(osv.osv):
@@ -912,7 +920,7 @@ class tpt_material_request(osv.osv):
                     cr.execute(sql)
                     price_sql = cr.fetchone()
                     price_unit = price_sql and price_sql[0] or 0
-                    amount += price_unit*price.product_isu_qty
+                    amount += round(price_unit,2)*price.product_isu_qty
                         
             res[line.id]['total'] = amount
         return res
@@ -931,10 +939,23 @@ tpt_material_request()
 
 class tpt_material_request_line(osv.osv):
     _inherit = "tpt.material.request.line"
+    
+    def line_net_line(self, cr, uid, ids, field_name, args, context=None):
+        res = {}
+        for line in self.browse(cr,uid,ids,context=context):
+            total_value = 0.0
+            res[line.id] = {
+                    'total_value': 0.0,
+                }  
+            total_value = line.issue_qty *( line.price_unit and round(line.price_unit,2) or 0)
+            res[line.id]['total_value'] = total_value
+        return res
+    
     _columns = {
                 'issue_qty': fields.float('Issued Qty',digits=(16,3),readonly=True),  
                 'price_unit': fields.float('Unit Value', readonly=True ),  
-                'total_value': fields.float('Total Value',readonly=True ), 
+#                 'total_value': fields.float('Total Value',readonly=True ), 
+                'total_value': fields.function(line_net_line, multi='deltas' ,digits=(16,2),string='Total Value'),
                 }
 tpt_material_request_line()
 
@@ -1088,7 +1109,8 @@ class tpt_material_issue(osv.osv):
                 price += unit * mater.product_isu_qty
                 product_price = unit * mater.product_isu_qty
                 ### update request
-                cr.execute(''' update tpt_material_request_line set issue_qty = %s, price_unit = %s, total_value = %s where id = %s ''',(mater.product_isu_qty,unit,product_price,mater.request_line_id.id,))
+#                 cr.execute(''' update tpt_material_request_line set issue_qty = %s, price_unit = %s, total_value = %s where id = %s ''',(mater.product_isu_qty,unit,product_price,mater.request_line_id.id,))
+                cr.execute(''' update tpt_material_request_line set issue_qty = %s, price_unit = %s where id = %s ''',(mater.product_isu_qty,unit,mater.request_line_id.id,))
                 ###
                 journal_line.append((0,0,{
                                         'name':line.doc_no + ' - ' + mater.product_id.name, 
