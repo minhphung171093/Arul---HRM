@@ -45,7 +45,7 @@ class tpt_bank_book_line(osv.osv):
     _name = "tpt.bank.book.line"
     _columns = {
         'cb_id': fields.many2one('tpt.bank.book', 'Bank Book', ondelete='cascade'),
-        'voucher_id': fields.char('Transaction No.', size = 1024),
+        'voucher_id': fields.char('GL Doc No', size = 1024),
         'opening_balance': fields.char('', size = 1024),
         'debit': fields.float('Debit (Rs.)'),
         'crebit': fields.float('Credit (Rs.)'),
@@ -54,7 +54,7 @@ class tpt_bank_book_line(osv.osv):
         'desc': fields.char('GL Name', size = 1024),
         'gl_code': fields.char('GL Code', size = 1024),
         'ref': fields.char('Reference', size = 1024),
-        'gl_doc_no': fields.char('GL Doc No', size = 1024),
+        'gl_doc_no': fields.char('Transaction No.', size = 1024),
         'voucher_desc': fields.char('Description', size = 1024),
         'cheque_no': fields.char('Cheque No.', size = 1024),
         'cheque_date': fields.char('Cheque Date', size = 1024),
