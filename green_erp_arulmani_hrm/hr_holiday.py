@@ -8307,8 +8307,117 @@ class tpt_time_leave_evaluation(osv.osv):
                 year_now = int(time.strftime('%Y'))
                 if year_now == sub.year and month_now == int(sub.month):
                     day_now = int(time.strftime('%d'))
-                if year_now >= sub.year:                   
-                    if shift.day_1 and shift.day_1.code != 'W' and day_now>=1 and 1.0 not in holiday_days:
+                if year_now >= sub.year:       
+                    ###TPT-By BalamuruganPurushothaman  on 29/09/2015 - to handle DOJ in Time Leave Evaluation
+                    time_var1 = True
+                    time_var2 = True
+                    time_var3 = True
+                    time_var4 = True
+                    time_var5 = True
+                    time_var6 = True
+                    time_var7 = True
+                    time_var8 = True
+                    time_var9 = True
+                    time_var10 = True
+                    time_var11 = True
+                    time_var12 = True
+                    time_var13 = True
+                    time_var14 = True
+                    time_var15 = True
+                    time_var16 = True
+                    time_var17 = True
+                    time_var18 = True
+                    time_var19 = True
+                    time_var20 = True
+                    time_var21 = True
+                    time_var22 = True
+                    time_var23 = True
+                    time_var24 = True
+                    time_var25 = True
+                    time_var26 = True
+                    time_var27 = True
+                    time_var28 = True
+                    time_var29 = True
+                    time_var30 = True
+                    time_var31 = True
+                    ###  
+                    ### New Joinee Employee
+                    sql = '''
+                    select extract(day from date_of_joining) doj from hr_employee where extract(year from date_of_joining)= %s and 
+                      extract(month from date_of_joining)= %s and id=%s
+                    '''%(sub.year,sub.month,emp_id)
+                    cr.execute(sql)
+                    new_doj = cr.fetchone()
+                    if new_doj:
+                        day = new_doj[0]
+                        day -=  1
+                        day = int(day)
+                        for i in range(day):
+                            day = i
+                            if day==0:
+                                time_var1 = False
+                            if day==1:
+                                time_var2 = False
+                            if day==2:
+                                time_var3 = False
+                            if day==3:
+                                time_var4 = False
+                            if day==4:
+                                time_var5 = False
+                            if day==5:
+                                time_var6 = False
+                            if day==6:
+                                time_var7 = False
+                            if day==7:
+                                time_var8 = False
+                            if day==8:
+                                time_var9 = False
+                            if day==9:
+                                time_var10 = False
+                            if day==10:
+                                time_var11 = False
+                            if day==11:
+                                time_var12 = False
+                            if day==12:
+                                time_var13 = False
+                            if day==13:
+                                time_var14 = False
+                            if day==14:
+                                time_var15 = False
+                            if day==15:
+                                time_var16 = False
+                            if day==16:
+                                time_var17 = False
+                            if day==17:
+                                time_var18 = False
+                            if day==18:
+                                time_var19 = False
+                            if day==19:
+                                time_var20 = False
+                            if day==20:
+                                time_var21 = False
+                            if day==21:
+                                time_var22 = False
+                            if day==22:
+                                time_var23 = False
+                            if day==23:
+                                time_var24 = False
+                            if day==24:
+                                time_var25 = False
+                            if day==25:
+                                time_var26 = False
+                            if day==26:
+                                time_var27 = False
+                            if day==27:
+                                time_var28 = False
+                            if day==28:
+                                time_var29 = False
+                            if day==29:
+                                time_var30 = False
+                            if day==30:
+                                time_var31 = False
+                    ###              
+                    if shift.day_1 and shift.day_1.code != 'W' and day_now>=1 and 1.0 not in holiday_days and time_var1 is True:
                         sql = '''
                             select id from arul_hr_employee_leave_details
                                 where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
@@ -8319,7 +8428,7 @@ class tpt_time_leave_evaluation(osv.osv):
                         if 1.0 not in audit_days and 1.0 not in punch_days and not leave_days:
                             date = datetime.datetime(sub.year,int(sub.month),1)
                             non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
-                    if shift.day_2 and shift.day_2.code != 'W' and day_now>=2 and 2.0 not in holiday_days:
+                    if shift.day_2 and shift.day_2.code != 'W' and day_now>=2 and 2.0 not in holiday_days and time_var2 is True:
                         sql = '''
                             select id from arul_hr_employee_leave_details
                                 where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
@@ -8330,7 +8439,7 @@ class tpt_time_leave_evaluation(osv.osv):
                         if 2.0 not in audit_days and 2.0 not in punch_days and not leave_days:
                             date = datetime.datetime(sub.year,int(sub.month),2)
                             non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
-                    if shift.day_3 and shift.day_3.code != 'W' and day_now>=3 and 3.0 not in holiday_days:
+                    if shift.day_3 and shift.day_3.code != 'W' and day_now>=3 and 3.0 not in holiday_days and time_var3 is True:
                         sql = '''
                             select id from arul_hr_employee_leave_details
                                 where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
@@ -8341,7 +8450,7 @@ class tpt_time_leave_evaluation(osv.osv):
                         if 3.0 not in audit_days and 3.0 not in punch_days and not leave_days:
                             date = datetime.datetime(sub.year,int(sub.month),3)
                             non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
-                    if shift.day_4 and shift.day_4.code != 'W' and day_now>=4 and 4.0 not in holiday_days:
+                    if shift.day_4 and shift.day_4.code != 'W' and day_now>=4 and 4.0 not in holiday_days and time_var4 is True:
                         sql = '''
                             select id from arul_hr_employee_leave_details
                                 where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
@@ -8352,7 +8461,7 @@ class tpt_time_leave_evaluation(osv.osv):
                         if 4.0 not in audit_days and 4.0 not in punch_days and not leave_days:
                             date = datetime.datetime(sub.year,int(sub.month),4)
                             non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
-                    if shift.day_5 and shift.day_5.code != 'W' and day_now>=5 and 5.0 not in holiday_days:
+                    if shift.day_5 and shift.day_5.code != 'W' and day_now>=5 and 5.0 not in holiday_days and time_var5 is True:
                         sql = '''
                             select id from arul_hr_employee_leave_details
                                 where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
@@ -8363,7 +8472,7 @@ class tpt_time_leave_evaluation(osv.osv):
                         if 5.0 not in audit_days and 5.0 not in punch_days and not leave_days:
                             date = datetime.datetime(sub.year,int(sub.month),5)
                             non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
-                    if shift.day_6 and shift.day_6.code != 'W' and day_now>=6 and 6.0 not in holiday_days:
+                    if shift.day_6 and shift.day_6.code != 'W' and day_now>=6 and 6.0 not in holiday_days and time_var6 is True:
                         sql = '''
                             select id from arul_hr_employee_leave_details
                                 where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
@@ -8374,7 +8483,7 @@ class tpt_time_leave_evaluation(osv.osv):
                         if 6.0 not in audit_days and 6.0 not in punch_days and not leave_days:
                             date = datetime.datetime(sub.year,int(sub.month),6)
                             non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
-                    if shift.day_7 and shift.day_7.code != 'W' and day_now>=7 and 7.0 not in holiday_days:
+                    if shift.day_7 and shift.day_7.code != 'W' and day_now>=7 and 7.0 not in holiday_days and time_var7 is True:
                         sql = '''
                             select id from arul_hr_employee_leave_details
                                 where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
@@ -8385,7 +8494,7 @@ class tpt_time_leave_evaluation(osv.osv):
                         if 7.0 not in audit_days and 7.0 not in punch_days and not leave_days:
                             date = datetime.datetime(sub.year,int(sub.month),7)
                             non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
-                    if shift.day_8 and shift.day_8.code != 'W' and day_now>=8 and 8.0 not in holiday_days:
+                    if shift.day_8 and shift.day_8.code != 'W' and day_now>=8 and 8.0 not in holiday_days and time_var8 is True:
                         sql = '''
                             select id from arul_hr_employee_leave_details
                                 where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
@@ -8396,7 +8505,7 @@ class tpt_time_leave_evaluation(osv.osv):
                         if 8.0 not in audit_days and 8.0 not in punch_days and not leave_days:
                             date = datetime.datetime(sub.year,int(sub.month),8)
                             non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
-                    if shift.day_9 and shift.day_9.code != 'W' and day_now>=9 and 9.0 not in holiday_days:
+                    if shift.day_9 and shift.day_9.code != 'W' and day_now>=9 and 9.0 not in holiday_days and time_var9 is True:
                         sql = '''
                             select id from arul_hr_employee_leave_details
                                 where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
@@ -8407,7 +8516,7 @@ class tpt_time_leave_evaluation(osv.osv):
                         if 9.0 not in audit_days and 9.0 not in punch_days and not leave_days:
                             date = datetime.datetime(sub.year,int(sub.month),9)
                             non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
-                    if shift.day_10 and shift.day_10.code != 'W' and day_now>=10 and 10.0 not in holiday_days:
+                    if shift.day_10 and shift.day_10.code != 'W' and day_now>=10 and 10.0 not in holiday_days and time_var10 is True:
                         sql = '''
                             select id from arul_hr_employee_leave_details
                                 where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
@@ -8418,7 +8527,7 @@ class tpt_time_leave_evaluation(osv.osv):
                         if 10.0 not in audit_days and 10.0 not in punch_days and not leave_days:
                             date = datetime.datetime(sub.year,int(sub.month),10)
                             non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
-                    if shift.day_11 and shift.day_11.code != 'W' and day_now>=11 and 11.0 not in holiday_days:
+                    if shift.day_11 and shift.day_11.code != 'W' and day_now>=11 and 11.0 not in holiday_days and time_var11 is True:
                         sql = '''
                             select id from arul_hr_employee_leave_details
                                 where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
@@ -8429,7 +8538,7 @@ class tpt_time_leave_evaluation(osv.osv):
                         if 11.0 not in audit_days and 11.0 not in punch_days and not leave_days:
                             date = datetime.datetime(sub.year,int(sub.month),11)
                             non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
-                    if shift.day_12 and shift.day_12.code != 'W' and day_now>=12 and 12.0 not in holiday_days:
+                    if shift.day_12 and shift.day_12.code != 'W' and day_now>=12 and 12.0 not in holiday_days and time_var12 is True:
                         sql = '''
                             select id from arul_hr_employee_leave_details
                                 where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
@@ -8440,7 +8549,7 @@ class tpt_time_leave_evaluation(osv.osv):
                         if 12.0 not in audit_days and 12.0 not in punch_days and not leave_days:
                             date = datetime.datetime(sub.year,int(sub.month),12)
                             non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
-                    if shift.day_13 and shift.day_13.code != 'W' and day_now>=13 and 13.0 not in holiday_days:
+                    if shift.day_13 and shift.day_13.code != 'W' and day_now>=13 and 13.0 not in holiday_days and time_var13 is True:
                         sql = '''
                             select id from arul_hr_employee_leave_details
                                 where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
@@ -8451,7 +8560,7 @@ class tpt_time_leave_evaluation(osv.osv):
                         if 13.0 not in audit_days and 13.0 not in punch_days and not leave_days:
                             date = datetime.datetime(sub.year,int(sub.month),13)
                             non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
-                    if shift.day_14 and shift.day_14.code != 'W' and day_now>=14 and 14.0 not in holiday_days:
+                    if shift.day_14 and shift.day_14.code != 'W' and day_now>=14 and 14.0 not in holiday_days and time_var14 is True:
                         sql = '''
                             select id from arul_hr_employee_leave_details
                                 where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
@@ -8462,7 +8571,7 @@ class tpt_time_leave_evaluation(osv.osv):
                         if 14.0 not in audit_days and 14.0 not in punch_days and not leave_days:
                             date = datetime.datetime(sub.year,int(sub.month),14)
                             non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
-                    if shift.day_15 and shift.day_15.code != 'W' and day_now>=15 and 15.0 not in holiday_days:
+                    if shift.day_15 and shift.day_15.code != 'W' and day_now>=15 and 15.0 not in holiday_days and time_var15 is True:
                         sql = '''
                             select id from arul_hr_employee_leave_details
                                 where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
@@ -8473,7 +8582,7 @@ class tpt_time_leave_evaluation(osv.osv):
                         if 15.0 not in audit_days and 15.0 not in punch_days and not leave_days:
                             date = datetime.datetime(sub.year,int(sub.month),15)
                             non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
-                    if shift.day_16 and shift.day_16.code != 'W' and day_now>=16 and 16.0 not in holiday_days:
+                    if shift.day_16 and shift.day_16.code != 'W' and day_now>=16 and 16.0 not in holiday_days and time_var16 is True:
                         sql = '''
                             select id from arul_hr_employee_leave_details
                                 where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
@@ -8484,7 +8593,7 @@ class tpt_time_leave_evaluation(osv.osv):
                         if 16.0 not in audit_days and 16.0 not in punch_days and not leave_days:
                             date = datetime.datetime(sub.year,int(sub.month),16)
                             non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
-                    if shift.day_17 and shift.day_17.code != 'W' and day_now>=17 and 17.0 not in holiday_days:
+                    if shift.day_17 and shift.day_17.code != 'W' and day_now>=17 and 17.0 not in holiday_days and time_var17 is True:
                         sql = '''
                             select id from arul_hr_employee_leave_details
                                 where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
@@ -8495,7 +8604,7 @@ class tpt_time_leave_evaluation(osv.osv):
                         if 17.0 not in audit_days and 17.0 not in punch_days and not leave_days:
                             date = datetime.datetime(sub.year,int(sub.month),17)
                             non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
-                    if shift.day_18 and shift.day_18.code != 'W' and day_now>=18 and 18.0 not in holiday_days:
+                    if shift.day_18 and shift.day_18.code != 'W' and day_now>=18 and 18.0 not in holiday_days and time_var18 is True:
                         sql = '''
                             select id from arul_hr_employee_leave_details
                                 where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
@@ -8506,7 +8615,7 @@ class tpt_time_leave_evaluation(osv.osv):
                         if 18.0 not in audit_days and 18.0 not in punch_days and not leave_days:
                             date = datetime.datetime(sub.year,int(sub.month),18)
                             non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
-                    if shift.day_19 and shift.day_19.code != 'W' and day_now>=19 and 19.0 not in holiday_days:
+                    if shift.day_19 and shift.day_19.code != 'W' and day_now>=19 and 19.0 not in holiday_days and time_var19 is True:
                         sql = '''
                             select id from arul_hr_employee_leave_details
                                 where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
@@ -8517,7 +8626,7 @@ class tpt_time_leave_evaluation(osv.osv):
                         if 19.0 not in audit_days and 19.0 not in punch_days and not leave_days:
                             date = datetime.datetime(sub.year,int(sub.month),19)
                             non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
-                    if shift.day_20 and shift.day_20.code != 'W' and day_now>=20 and 20.0 not in holiday_days:
+                    if shift.day_20 and shift.day_20.code != 'W' and day_now>=20 and 20.0 not in holiday_days and time_var20 is True:
                         sql = '''
                             select id from arul_hr_employee_leave_details
                                 where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
@@ -8528,7 +8637,7 @@ class tpt_time_leave_evaluation(osv.osv):
                         if 20.0 not in audit_days and 20.0 not in punch_days and not leave_days:
                             date = datetime.datetime(sub.year,int(sub.month),20)
                             non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
-                    if shift.day_21 and shift.day_21.code != 'W' and day_now>=21 and 21.0 not in holiday_days:
+                    if shift.day_21 and shift.day_21.code != 'W' and day_now>=21 and 21.0 not in holiday_days and time_var21 is True:
                         sql = '''
                             select id from arul_hr_employee_leave_details
                                 where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
@@ -8539,7 +8648,7 @@ class tpt_time_leave_evaluation(osv.osv):
                         if 21.0 not in audit_days and 21.0 not in punch_days and not leave_days:
                             date = datetime.datetime(sub.year,int(sub.month),21)
                             non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
-                    if shift.day_22 and shift.day_22.code != 'W' and day_now>=22 and 22.0 not in holiday_days:
+                    if shift.day_22 and shift.day_22.code != 'W' and day_now>=22 and 22.0 not in holiday_days and time_var22 is True:
                         sql = '''
                             select id from arul_hr_employee_leave_details
                                 where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
@@ -8550,7 +8659,7 @@ class tpt_time_leave_evaluation(osv.osv):
                         if 22.0 not in audit_days and 22.0 not in punch_days and not leave_days:
                             date = datetime.datetime(sub.year,int(sub.month),22)
                             non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
-                    if shift.day_23 and shift.day_23.code != 'W' and day_now>=23 and 23.0 not in holiday_days:
+                    if shift.day_23 and shift.day_23.code != 'W' and day_now>=23 and 23.0 not in holiday_days and time_var23 is True:
                         sql = '''
                             select id from arul_hr_employee_leave_details
                                 where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
@@ -8561,7 +8670,7 @@ class tpt_time_leave_evaluation(osv.osv):
                         if 23.0 not in audit_days and 23.0 not in punch_days and not leave_days:
                             date = datetime.datetime(sub.year,int(sub.month),23)
                             non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
-                    if shift.day_24 and shift.day_24.code != 'W' and day_now>=24 and 24.0 not in holiday_days:
+                    if shift.day_24 and shift.day_24.code != 'W' and day_now>=24 and 24.0 not in holiday_days and time_var24 is True:
                         sql = '''
                             select id from arul_hr_employee_leave_details
                                 where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
@@ -8572,7 +8681,7 @@ class tpt_time_leave_evaluation(osv.osv):
                         if 24.0 not in audit_days and 24.0 not in punch_days and not leave_days:
                             date = datetime.datetime(sub.year,int(sub.month),24)
                             non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
-                    if shift.day_25 and shift.day_25.code != 'W' and day_now>=25 and 25.0 not in holiday_days:
+                    if shift.day_25 and shift.day_25.code != 'W' and day_now>=25 and 25.0 not in holiday_days and time_var25 is True:
                         sql = '''
                             select id from arul_hr_employee_leave_details
                                 where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
@@ -8583,7 +8692,7 @@ class tpt_time_leave_evaluation(osv.osv):
                         if 25.0 not in audit_days and 25.0 not in punch_days and not leave_days:
                             date = datetime.datetime(sub.year,int(sub.month),25)
                             non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
-                    if shift.day_26 and shift.day_26.code != 'W' and day_now>=26 and 26.0 not in holiday_days:
+                    if shift.day_26 and shift.day_26.code != 'W' and day_now>=26 and 26.0 not in holiday_days and time_var26 is True:
                         sql = '''
                             select id from arul_hr_employee_leave_details
                                 where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
@@ -8594,7 +8703,7 @@ class tpt_time_leave_evaluation(osv.osv):
                         if 26.0 not in audit_days and 26.0 not in punch_days and not leave_days:
                             date = datetime.datetime(sub.year,int(sub.month),26)
                             non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
-                    if shift.day_27 and shift.day_27.code != 'W' and day_now>=27 and 27.0 not in holiday_days:
+                    if shift.day_27 and shift.day_27.code != 'W' and day_now>=27 and 27.0 not in holiday_days and time_var27 is True:
                         sql = '''
                             select id from arul_hr_employee_leave_details
                                 where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
@@ -8605,7 +8714,7 @@ class tpt_time_leave_evaluation(osv.osv):
                         if 27.0 not in audit_days and 27.0 not in punch_days and not leave_days:
                             date = datetime.datetime(sub.year,int(sub.month),27)
                             non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
-                    if shift.day_28 and shift.day_28.code != 'W' and day_now>=28 and 28.0 not in holiday_days:
+                    if shift.day_28 and shift.day_28.code != 'W' and day_now>=28 and 28.0 not in holiday_days and time_var28 is True:
                         sql = '''
                             select id from arul_hr_employee_leave_details
                                 where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
@@ -8616,7 +8725,7 @@ class tpt_time_leave_evaluation(osv.osv):
                         if 28.0 not in audit_days and 28.0 not in punch_days and not leave_days:
                             date = datetime.datetime(sub.year,int(sub.month),28)
                             non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
-                    if shift.day_29 and shift.day_29.code != 'W' and shift.num_of_month>=29 and day_now>=29 and 29.0 not in holiday_days:
+                    if shift.day_29 and shift.day_29.code != 'W' and shift.num_of_month>=29 and day_now>=29 and 29.0 not in holiday_days and time_var29 is True:
                         sql = '''
                             select id from arul_hr_employee_leave_details
                                 where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
@@ -8627,7 +8736,7 @@ class tpt_time_leave_evaluation(osv.osv):
                         if 29.0 not in audit_days and 29.0 not in punch_days and not leave_days:
                             date = datetime.datetime(sub.year,int(sub.month),29)
                             non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
-                    if shift.day_30 and shift.day_30.code != 'W' and shift.num_of_month>=30 and day_now>=30 and 30.0 not in holiday_days:
+                    if shift.day_30 and shift.day_30.code != 'W' and shift.num_of_month>=30 and day_now>=30 and 30.0 not in holiday_days and time_var30 is True:
                         sql = '''
                             select id from arul_hr_employee_leave_details
                                 where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
@@ -8638,7 +8747,7 @@ class tpt_time_leave_evaluation(osv.osv):
                         if 30.0 not in audit_days and 30.0 not in punch_days and not leave_days:
                             date = datetime.datetime(sub.year,int(sub.month),30)
                             non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
-                    if shift.day_31 and shift.day_31.code != 'W' and shift.num_of_month>=31 and day_now>=31 and 31.0 not in holiday_days:
+                    if shift.day_31 and shift.day_31.code != 'W' and shift.num_of_month>=31 and day_now>=31 and 31.0 not in holiday_days and time_var31 is True:
                         sql = '''
                             select id from arul_hr_employee_leave_details
                                 where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
@@ -10840,14 +10949,14 @@ class tpt_time_data_move(osv.osv):
             for emp in emp_obj.browse(cr, uid, emp_ids):
                 #Get Employee ID
                 sql = '''
-                select id from hr_employee where employee_id='%s'
-                '''%emp.employee_id
+                select id from hr_employee where id='%s'
+                '''%emp.id
                 from_cursor.execute(sql)
                 ntm_emp_id = from_cursor.fetchone()
                 #Get Resource ID
                 sql = '''
-                select id from resource_resource where name='%s'
-                '''%emp.name_related
+                select id from resource_resource where id='%s'
+                '''%emp.id
                 from_cursor.execute(sql)
                 ntm_resource_id = from_cursor.fetchone()
                 
