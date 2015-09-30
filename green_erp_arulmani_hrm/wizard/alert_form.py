@@ -847,7 +847,8 @@ class time_leave_evalv(osv.osv_memory):
                         if day==31:
                             time_var31 = True
                     ###     
-                    ### ###TPT-By BalamuruganPurushothaman  on 29/09/2015 - to handle DOJ in Time Leave Evaluation
+                    ### ###TPT-By BalamuruganPurushothaman  on 29/09/2015 
+                    #- to handle DOJ-Date of Joining in middle of a month in Time Leave Evaluation
                     sql = '''
                     select extract(day from date_of_joining) doj from hr_employee where extract(year from date_of_joining)= %s and 
                       extract(month from date_of_joining)= %s and id=%s
