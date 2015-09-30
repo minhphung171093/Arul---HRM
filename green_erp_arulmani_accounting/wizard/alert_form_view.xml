@@ -3,8 +3,8 @@
     <data>
 		   
 	    <record id="alert_bank_form_view" model="ir.ui.view">
-	        <field name="name">alert.form</field>
-	        <field name="model">alert.form</field>
+	        <field name="name">alert.form.accounting</field>
+	        <field name="model">alert.form.accounting</field>
 	        <field eval="20" name="priority"/>
 	        <field name="arch" type="xml">
 	            <form string="Alert" version="7.0">
