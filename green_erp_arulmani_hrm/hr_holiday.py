@@ -10999,10 +10999,10 @@ class tpt_time_data_move(osv.osv):
                     sql = '''
                     INSERT INTO hr_employee(
                      create_uid, create_date, write_date, write_uid, employee_id,
-                      name_related, rfid, resource_id, id)
+                      name_related, resource_id, id)
                     VALUES ( 1, current_date,  current_date, 1, '%s',
                      '%s', '%s', %s, %s)
-                    '''%(emp.employee_id, emp.name_related, rfid, resource_id, emp.id)
+                    '''%(emp.employee_id, emp.name_related,  resource_id, emp.id)
                     from_cursor.execute(sql)
                     from_conn.commit()
                     
