@@ -2520,6 +2520,9 @@
 					<xpath expr="//button[@name='approve_customer']" position="attributes">
 						<attribute name='groups'>green_erp_arulmani_accounting.group_vvti_accounting_mgr,green_erp_arulmani_purchase.group_vvti_purchase_user,green_erp_arulmani_sale.group_vvti_sale_manager</attribute>
 					</xpath>
+					<xpath expr="//field[@name='credit']" position="after">
+						<field name='tpt_credit'/>
+					</xpath>
                 </data>
             </field>
         </record>
