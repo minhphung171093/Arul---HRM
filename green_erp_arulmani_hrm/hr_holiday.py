@@ -10949,14 +10949,14 @@ class tpt_time_data_move(osv.osv):
             for emp in emp_obj.browse(cr, uid, emp_ids):
                 #Get Employee ID
                 sql = '''
-                select id from hr_employee where employee_id='%s'
-                '''%emp.employee_id
+                select id from hr_employee where id='%s'
+                '''%emp.id
                 from_cursor.execute(sql)
                 ntm_emp_id = from_cursor.fetchone()
                 #Get Resource ID
                 sql = '''
-                select id from resource_resource where name='%s'
-                '''%emp.name_related
+                select id from resource_resource where id='%s'
+                '''%emp.id
                 from_cursor.execute(sql)
                 ntm_resource_id = from_cursor.fetchone()
                 
