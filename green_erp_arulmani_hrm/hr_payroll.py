@@ -1172,15 +1172,15 @@ class arul_hr_payroll_executions(osv.osv):
                 if k:
                     new_emp_day = k[0]    
                     if p.employee_category_id and p.employee_category_id.code == 'S1':           
-                        after_dol = calendar_days - new_emp_day + 1
+                        after_dol = calendar_days - new_emp_day
                         #after_dol =  new_emp_day - 1
                         total_no_of_leave = total_no_of_leave + after_dol
                     if p.employee_category_id and p.employee_category_id.code == 'S2':           
-                        after_dol = calendar_days - new_emp_day + 1
+                        after_dol = calendar_days - new_emp_day
                         #after_dol =  new_emp_day - 1
                         total_no_of_leave = total_no_of_leave + after_dol
                     if p.employee_category_id and p.employee_category_id.code == 'S3':
-                        after_dol = calendar_days - new_emp_day + 1
+                        after_dol = calendar_days - new_emp_day
                         #after_dol =  new_emp_day - 1
                         total_no_of_leave = total_no_of_leave + after_dol
                     
