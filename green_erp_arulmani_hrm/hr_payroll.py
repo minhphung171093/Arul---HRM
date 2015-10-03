@@ -726,6 +726,8 @@ class arul_hr_payroll_executions(osv.osv):
          'month': fields.selection([('1', 'January'),('2', 'February'), ('3', 'March'), ('4','April'), ('5','May'), ('6','June'), ('7','July'), ('8','August'), ('9','September'), ('10','October'), ('11','November'), ('12','December')], 'Month',required = True, states={'confirm': [('readonly', True)], 'approve': [('readonly', True)]}),
          'create_date': fields.datetime('Created Date',readonly = True),
          'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
+         'write_date': fields.datetime('Updated Date',readonly = True),
+         'write_uid': fields.many2one('res.users','Updated By',ondelete='restrict',readonly = True),
          'payroll_executions_details_line': fields.one2many('arul.hr.payroll.executions.details','payroll_executions_id','Details Line', states={'confirm': [('readonly', True)], 'approve': [('readonly', True)]}),
     }
     _defaults = {

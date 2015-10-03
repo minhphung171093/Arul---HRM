@@ -1479,6 +1479,8 @@
 					<field name="state" />
 					<field name="create_date"/>
 					<field name="create_uid"/>
+					<field name="write_date"/>
+					<field name="write_uid"/>
 				</tree>
 			</field>
 	   </record>
@@ -1499,6 +1501,7 @@
 						<field name="payroll_area_id" options="{'create': false, 'create_edit': false}"/>
 						<field name="month"/>
 						<field name="year"/>
+						<newline></newline>
 						<field name="create_date"/>
 						<field name="create_uid"/>
 						<field name="write_date"/>
