@@ -1501,6 +1501,8 @@
 						<field name="year"/>
 						<field name="create_date"/>
 						<field name="create_uid"/>
+						<field name="write_date"/>
+						<field name="write_uid"/>
 						<field name="state"/>
 		           </group> 
 		           <group col = '4' colspan = '2' string="Time Evaluation Report">    
