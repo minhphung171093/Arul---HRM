@@ -51,6 +51,37 @@ tpt_equip_category()
 
 class tpt_equipment(osv.osv):
     _name = "tpt.equipment"
+    def _data_get(self, cr, uid, ids, name, arg, context=None):
+        if context is None:
+            context = {}
+        result = {}
+        location = self.pool.get('ir.config_parameter').get_param(cr, uid, 'hr_identities_attachment.location')
+        bin_size = context.get('bin_size')
+        for attach in self.browse(cr, uid, ids, context=context):
+            if location and attach.store_fname:
+                result[attach.id] = self._file_read(cr, uid, location, attach.store_fname, bin_size)
+            else:
+                result[attach.id] = attach.db_datas
+        return result
+
+    def _data_set(self, cr, uid, id, name, value, arg, context=None):
+        # We dont handle setting data to null
+        if not value:
+            return True
+        if context is None:
+            context = {}
+        location = self.pool.get('ir.config_parameter').get_param(cr, uid, 'hr_identities_attachment.location')
+        file_size = len(value.decode('base64'))
+        if location:
+            attach = self.browse(cr, uid, id, context=context)
+            if attach.store_fname:
+                self._file_delete(cr, uid, location, attach.store_fname)
+            fname = self._file_write(cr, uid, location, value)
+            # SUPERUSER_ID as probably don't have write access, trigger during create
+            super(tpt_equipment, self).write(cr, SUPERUSER_ID, [id], {'store_fname': fname, 'file_size': file_size}, context=context)
+        else:
+            super(tpt_equipment, self).write(cr, SUPERUSER_ID, [id], {'db_datas': value, 'file_size': file_size}, context=context)
+        return True
     _columns = {
         'name':fields.char('Name', size = 1024,required=True),
         'code':fields.char('Code', size = 1024,required=True),
@@ -63,6 +94,13 @@ class tpt_equipment(osv.osv):
         'men_power_line':fields.one2many('tpt.men.power','equipment_id','Men Power Consumption'),
         'document_attach_line':fields.one2many('tpt.document.attach','equipment_id','Document Attachments'),
         'maintenance_oder_line':fields.one2many('tpt.maintenance.oder','equipment_id','Equipment Master History',readonly=True),
+        'status':fields.selection([('active', 'Active'),('idle', 'Idle'),('scrap', 'Scrap')],'Status',required = True),
+        'justification':fields.text('Justification'),
+        'datas_fname': fields.char('File Name',size=256),
+        'datas': fields.function(_data_get, fnct_inv=_data_set, string='File', type="binary", nodrop=True),
+        'store_fname': fields.char('Stored Filename', size=256),
+        'db_datas': fields.binary('Database Data'),
+        'file_size': fields.integer('File Size'),
     }
     def _check_name_code(self, cr, uid, ids, context=None):
         for equip in self.browse(cr, uid, ids, context=context):
@@ -114,10 +152,47 @@ tpt_men_power()
 
 class tpt_document_attach(osv.osv):
     _name = "tpt.document.attach"
+    def _data_get(self, cr, uid, ids, name, arg, context=None):
+        if context is None:
+            context = {}
+        result = {}
+        location = self.pool.get('ir.config_parameter').get_param(cr, uid, 'hr_identities_attachment.location')
+        bin_size = context.get('bin_size')
+        for attach in self.browse(cr, uid, ids, context=context):
+            if location and attach.store_fname:
+                result[attach.id] = self._file_read(cr, uid, location, attach.store_fname, bin_size)
+            else:
+                result[attach.id] = attach.db_datas
+        return result
+
+    def _data_set(self, cr, uid, id, name, value, arg, context=None):
+        # We dont handle setting data to null
+        if not value:
+            return True
+        if context is None:
+            context = {}
+        location = self.pool.get('ir.config_parameter').get_param(cr, uid, 'hr_identities_attachment.location')
+        file_size = len(value.decode('base64'))
+        if location:
+            attach = self.browse(cr, uid, id, context=context)
+            if attach.store_fname:
+                self._file_delete(cr, uid, location, attach.store_fname)
+            fname = self._file_write(cr, uid, location, value)
+            # SUPERUSER_ID as probably don't have write access, trigger during create
+            super(tpt_document_attach, self).write(cr, SUPERUSER_ID, [id], {'store_fname': fname, 'file_size': file_size}, context=context)
+        else:
+            super(tpt_document_attach, self).write(cr, SUPERUSER_ID, [id], {'db_datas': value, 'file_size': file_size}, context=context)
+        return True
+
     _columns = {
         'equipment_id': fields.many2one('tpt.equipment', 'Equipment',ondelete='cascade'),
         'machineries_id': fields.many2one('tpt.machineries', 'Machineries',ondelete='cascade'),
         'description':fields.char('Attachment Description', size = 1024),
+        'datas_fname': fields.char('File Name',size=256),
+        'datas': fields.function(_data_get, fnct_inv=_data_set, string='File', type="binary", nodrop=True),
+        'store_fname': fields.char('Stored Filename', size=256),
+        'db_datas': fields.binary('Database Data'),
+        'file_size': fields.integer('File Size'),
     }
     
 tpt_document_attach()
@@ -196,7 +271,7 @@ class tpt_notification(osv.osv):
 #         'section_id': fields.related('equip_id','section_id',type='many2one', relation='arul.hr.section',string='Section', readonly = True),
         'equip_id': fields.many2one('tpt.equipment', 'Equipment',required = True,readonly = True,states={'draft': [('readonly', False)]}),
         'machine_id': fields.many2one('tpt.machineries', 'Machineries',required = True,readonly = True,states={'draft': [('readonly', False)]}),
-        'issue_date': fields.date('Issue Dated on',required=True,readonly = True,states={'draft': [('readonly', False)]}),
+        'issue_date': fields.date('Notification Date',required=True,readonly = True,states={'draft': [('readonly', False)]}),
         'issue_type':fields.selection([('major', 'Major'),('minor', 'Minor'),('critical', 'Critical')],'Complexity',required = True,readonly = True,states={'draft': [('readonly', False)]}),
         'priority':fields.selection([('high', 'High'),('medium', 'Medium'),('low', 'Low')],'Priority',required = True,readonly = True,states={'draft': [('readonly', False)]}),
         'issue_reported':fields.text('Issue Reported',required = True,readonly = True,states={'draft': [('readonly', False)]}),
@@ -710,24 +785,30 @@ class tpt_service_entry_line(osv.osv):
 #         'po_id':fields.many2one('purchase.order','Purchase Order', ondelete = 'restrict'),
         'employee_ids':fields.many2many('hr.employee','service_entry_employee_ref','service_entry_id','employee_id','Employee'),
         'work_day': fields.date('Work Day',required=True),
+        'parti':fields.char('Particulars', size = 1024),
         'po_line_id':fields.many2one('purchase.order.line','Particulars', ondelete = 'restrict'),
         'uom_id': fields.many2one('product.uom', 'UOM'),
         'product_uom_qty': fields.float('Quantity',digits=(16,3)),   
-#         'price_unit': fields.float('Unit Price',digits=(16,3)),
-        'price_unit': fields.related('po_line_id','price_unit',type='float', relation='purchase.order.line',string='Unit Price', readonly = True),
+        'price_unit': fields.float('Unit Price',digits=(16,3)),
+#         'price_unit': fields.related('po_line_id','price_unit',type='float', relation='purchase.order.line',string='Unit Price', readonly = True),
         'line_net': fields.function(line_net_line, multi='deltas' ,digits=(16,2),string='Line Net'),
+        'work_hour': fields.float('Working hours (Hrs)'),
+    }
+    _defaults = {
+        'price_unit':0.0,
+        'product_uom_qty':1,
     }
     
-    def _check_qty_line(self, cr, uid, ids, context=None):
-        for line in self.browse(cr,uid,ids,context=context):
-            qty = line.product_uom_qty or 0
-            po_qty = line.po_line_id and line.po_line_id.product_qty or 0
-            if qty > po_qty:
-                raise osv.except_osv(_('Warning!'),_('Quantity can not be greater than PO Quantity!'))
-        return True
-    _constraints = [
-        (_check_qty_line, 'Identical Data', ['product_uom_qty']),
-    ]
+#     def _check_qty_line(self, cr, uid, ids, context=None):
+#         for line in self.browse(cr,uid,ids,context=context):
+#             qty = line.product_uom_qty or 0
+#             po_qty = line.po_line_id and line.po_line_id.product_qty or 0
+#             if qty > po_qty:
+#                 raise osv.except_osv(_('Warning!'),_('Quantity can not be greater than PO Quantity!'))
+#         return True
+#     _constraints = [
+#         (_check_qty_line, 'Identical Data', ['product_uom_qty']),
+#     ]
     
     def unlink(self, cr, uid, ids, context=None):
         for line in self.browse(cr, uid, ids):
@@ -741,21 +822,21 @@ class tpt_service_entry_line(osv.osv):
             vals['line_no'] = len(self.search(cr, uid,[('service_entry_id', '=', vals['service_entry_id'])])) + 1
         return super(tpt_service_entry_line, self).create(cr, uid, vals, context)
     
-    def onchange_po_line_id(self, cr, uid, ids,po_line_id=False):
-        res = {'value':{
-                        'uom_id':False,
-                        'product_uom_qty':False,
-                        'price_unit':False,
-                      }
-               }
-        if po_line_id:
-            no_id = self.pool.get('purchase.order.line').browse(cr,uid,po_line_id)
-            res['value'].update({
-                        'uom_id':no_id.product_uom and no_id.product_uom.id or False,
-                        'product_uom_qty':no_id.product_qty or False,
-                        'price_unit':no_id.price_unit or False,
-            })
-        return res
+#     def onchange_po_line_id(self, cr, uid, ids,po_line_id=False):
+#         res = {'value':{
+#                         'uom_id':False,
+#                         'product_uom_qty':False,
+#                         'price_unit':False,
+#                       }
+#                }
+#         if po_line_id:
+#             no_id = self.pool.get('purchase.order.line').browse(cr,uid,po_line_id)
+#             res['value'].update({
+#                         'uom_id':no_id.product_uom and no_id.product_uom.id or False,
+#                         'product_uom_qty':no_id.product_qty or False,
+#                         'price_unit':no_id.price_unit or False,
+#             })
+#         return res
     
 #     def onchange_po_id(self, cr, uid, ids,po_id=False,po_line_id=False):
 #         res = {'value':{}}
@@ -929,7 +1010,8 @@ class tpt_material_request(osv.osv):
                 'maintenance_id':fields.many2one('tpt.maintenance.oder','Maintenance Order No',readonly = True),
                 'chargeable_maintenance_id':fields.many2one('tpt.maintenance.oder','Maintenance Order No',readonly = True),
                 'mrs_type':fields.selection([('normal','Normal MRS'),('chargeable', 'Chargeable MRS')],'MRS Type',readonly = True),
-                'total': fields.function(amount_issue_line, multi='sums',string='Total',digits=(16,2))
+                'total': fields.function(amount_issue_line, multi='sums',string='Total',digits=(16,2)),
+                'vendor_id':fields.many2one('res.partner', 'Vendor'), 
                 }
     def bt_main_save(self, cr, uid, ids,vals,context=None):
         return True
