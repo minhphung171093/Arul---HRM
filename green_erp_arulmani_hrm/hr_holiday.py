@@ -10974,7 +10974,7 @@ class tpt_time_data_move(osv.osv):
                     #Update Exsinting Resources                
                     sql = '''
                     update resource_resource set rfid='%s' where id=%s
-                    '''%(emp.rfid, ntm_resource_id[0])
+                    '''%(emp.rfid, emp.id)
                     from_cursor.execute(sql)
                     from_conn.commit()
                 else:
