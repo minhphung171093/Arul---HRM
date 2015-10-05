@@ -98,11 +98,6 @@
 							<field name="start_date"/>
 							<field name="end_date"/>
 							<field name="status"/>
-							<label for="datas" string="Attachments"/>
-							<div>
-								<field name="datas" filename="datas_fname"/>
-	                        	<field name="datas_fname" invisible="1" class="oe_inline oe_right"/>
-	                        </div>
 						</group>
 						<group>
 							<field name="justification" attrs="{'invisible': [('status', '!=', 'scrap')],'required': [('status', '=', 'scrap')]}"/>

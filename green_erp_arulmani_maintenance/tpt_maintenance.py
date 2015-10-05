@@ -51,37 +51,6 @@ tpt_equip_category()
 
 class tpt_equipment(osv.osv):
     _name = "tpt.equipment"
-    def _data_get(self, cr, uid, ids, name, arg, context=None):
-        if context is None:
-            context = {}
-        result = {}
-        location = self.pool.get('ir.config_parameter').get_param(cr, uid, 'hr_identities_attachment.location')
-        bin_size = context.get('bin_size')
-        for attach in self.browse(cr, uid, ids, context=context):
-            if location and attach.store_fname:
-                result[attach.id] = self._file_read(cr, uid, location, attach.store_fname, bin_size)
-            else:
-                result[attach.id] = attach.db_datas
-        return result
-
-    def _data_set(self, cr, uid, id, name, value, arg, context=None):
-        # We dont handle setting data to null
-        if not value:
-            return True
-        if context is None:
-            context = {}
-        location = self.pool.get('ir.config_parameter').get_param(cr, uid, 'hr_identities_attachment.location')
-        file_size = len(value.decode('base64'))
-        if location:
-            attach = self.browse(cr, uid, id, context=context)
-            if attach.store_fname:
-                self._file_delete(cr, uid, location, attach.store_fname)
-            fname = self._file_write(cr, uid, location, value)
-            # SUPERUSER_ID as probably don't have write access, trigger during create
-            super(tpt_equipment, self).write(cr, SUPERUSER_ID, [id], {'store_fname': fname, 'file_size': file_size}, context=context)
-        else:
-            super(tpt_equipment, self).write(cr, SUPERUSER_ID, [id], {'db_datas': value, 'file_size': file_size}, context=context)
-        return True
     _columns = {
         'name':fields.char('Name', size = 1024,required=True),
         'code':fields.char('Code', size = 1024,required=True),
@@ -96,11 +65,6 @@ class tpt_equipment(osv.osv):
         'maintenance_oder_line':fields.one2many('tpt.maintenance.oder','equipment_id','Equipment Master History',readonly=True),
         'status':fields.selection([('active', 'Active'),('idle', 'Idle'),('scrap', 'Scrap')],'Status',required = True),
         'justification':fields.text('Justification'),
-        'datas_fname': fields.char('File Name',size=256),
-        'datas': fields.function(_data_get, fnct_inv=_data_set, string='File', type="binary", nodrop=True),
-        'store_fname': fields.char('Stored Filename', size=256),
-        'db_datas': fields.binary('Database Data'),
-        'file_size': fields.integer('File Size'),
     }
     def _check_name_code(self, cr, uid, ids, context=None):
         for equip in self.browse(cr, uid, ids, context=context):
