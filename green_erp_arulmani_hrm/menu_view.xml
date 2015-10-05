@@ -183,7 +183,9 @@
             id="menu_action_time_data_upload"
             parent="menu_hr_leave_management" sequence="38"/>   
              -->
-        
+        <menuitem action="action_daily_inout_report"
+        	id="menu_action_daily_inout_report"
+        	parent="menu_hr_leave_management" sequence="39"/>
             
     </data>
 </openerp>

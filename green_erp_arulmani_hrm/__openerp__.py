@@ -60,6 +60,8 @@
         'report/leave_balance_for_view.xml', ## 
         'report/emp_attendance_details.xml',
         'report/daily_filo_time_for_view.xml',
+        'report/DailyInOut_report_view.xml', ##  
+        'wizard/DailyInOut_view.xml', ##
 #         'data_category.xml', 
         'import_view.xml',
         'green_erp_arulmani_sequence.xml',

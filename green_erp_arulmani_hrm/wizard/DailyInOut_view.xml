@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>   
+        <record id="view_daily_inout_report" model="ir.ui.view">
+            <field name="name">daily.inout.report</field>
+            <field name="model">daily.inout</field>
+            <field name="arch" type="xml">
+                <form string="Daily InOut Report" version="7.0">
+                	<group>
+	                    <field name='workdate'/>  
+	                                                  
+                 	</group>
+                    <footer>
+                        <button name="print_report" string="Print" type="object" class="oe_highlight" />
+                        <button string="Cancel" class="oe_link" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>        
+        <record id="action_daily_inout_report" model="ir.actions.act_window">
+            <field name="name">Daily Punch In/Out Report</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">daily.inout</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+        </record>
+        
+        
+    </data>
+</openerp>
+
