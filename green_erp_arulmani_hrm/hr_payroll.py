@@ -726,6 +726,8 @@ class arul_hr_payroll_executions(osv.osv):
          'month': fields.selection([('1', 'January'),('2', 'February'), ('3', 'March'), ('4','April'), ('5','May'), ('6','June'), ('7','July'), ('8','August'), ('9','September'), ('10','October'), ('11','November'), ('12','December')], 'Month',required = True, states={'confirm': [('readonly', True)], 'approve': [('readonly', True)]}),
          'create_date': fields.datetime('Created Date',readonly = True),
          'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
+         'write_date': fields.datetime('Updated Date',readonly = True),
+         'write_uid': fields.many2one('res.users','Updated By',ondelete='restrict',readonly = True),
          'payroll_executions_details_line': fields.one2many('arul.hr.payroll.executions.details','payroll_executions_id','Details Line', states={'confirm': [('readonly', True)], 'approve': [('readonly', True)]}),
     }
     _defaults = {
@@ -1172,16 +1174,13 @@ class arul_hr_payroll_executions(osv.osv):
                 if k:
                     new_emp_day = k[0]    
                     if p.employee_category_id and p.employee_category_id.code == 'S1':           
-                        after_dol = calendar_days - new_emp_day + 1
-                        #after_dol =  new_emp_day - 1
+                        after_dol = calendar_days - new_emp_day                        
                         total_no_of_leave = total_no_of_leave + after_dol
                     if p.employee_category_id and p.employee_category_id.code == 'S2':           
-                        after_dol = calendar_days - new_emp_day + 1
-                        #after_dol =  new_emp_day - 1
+                        after_dol = calendar_days - new_emp_day                        
                         total_no_of_leave = total_no_of_leave + after_dol
                     if p.employee_category_id and p.employee_category_id.code == 'S3':
-                        after_dol = calendar_days - new_emp_day + 1
-                        #after_dol =  new_emp_day - 1
+                        after_dol = 26 - new_emp_day                      
                         total_no_of_leave = total_no_of_leave + after_dol
                     
                 ##TPT END
@@ -2480,6 +2479,8 @@ class arul_hr_payroll_executions(osv.osv):
                             ma = (total_shift_worked * ( lunch_allowance + washing_allowane )) + total_all_shift_allowance
                             ma = round(ma,0) 
 			            
+                        if p.id==322:
+                            print "EMP"
                         net_basic = round(basic - (basic / s3_working_days) * total_no_of_leave, 0)
                         net_da = round(da - (da / s3_working_days) * total_no_of_leave, 0)
                         net_c = round(c - (c / s3_working_days) * total_no_of_leave, 0)

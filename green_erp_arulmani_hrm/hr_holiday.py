@@ -8200,6 +8200,8 @@ class tpt_time_leave_evaluation(osv.osv):
          'state':fields.selection([('draft','Draft'),('done','Done')],'State',readonly=True),
          'create_date': fields.datetime('Created Date',readonly = True),
          'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
+         'write_date': fields.datetime('Updated Date',readonly = True),
+         'write_uid': fields.many2one('res.users','Updated By',ondelete='restrict',readonly = True),
     }
     _defaults = {
        'year':int(time.strftime('%Y')),
@@ -10961,12 +10963,14 @@ class tpt_time_data_move(osv.osv):
                 ntm_resource_id = from_cursor.fetchone()
                 
                 if ntm_emp_id and ntm_resource_id:
-                    #Update Exsting Employees
-                    sql = '''
-                    update hr_employee set rfid='%s' where id=%s
-                    '''%(emp.rfid, ntm_emp_id[0])
-                    from_cursor.execute(sql)
-                    from_conn.commit()
+                    #===========================================================
+                    # #Update Exsting Employees
+                    # sql = '''
+                    # update hr_employee set rfid='%s' where id=%s
+                    # '''%(emp.rfid, ntm_emp_id[0])
+                    # from_cursor.execute(sql)
+                    # from_conn.commit()
+                    #===========================================================
                     #Update Exsinting Resources                
                     sql = '''
                     update resource_resource set rfid='%s' where id=%s
