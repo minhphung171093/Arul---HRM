@@ -41,8 +41,15 @@ class Parser(report_sxw.rml_parse):
             'get_InOut':self.get_InOut,
             'get_workdate':self.get_workdate,
             'float_time_convert':self.float_time_convert,
+            'get_date':self.get_date,
         })
-         
+        
+    def get_date(self, date=False):
+        if not date:
+            date = time.strftime(DATE_FORMAT)
+        date = datetime.strptime(date, DATE_FORMAT)
+        return date.strftime('%d/%m/%Y')     
+    
     def float_time_convert(self, float_val):
         if float_val:
             float_val = float(float_val)
