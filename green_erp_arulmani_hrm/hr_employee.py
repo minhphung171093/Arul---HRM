@@ -415,8 +415,8 @@ class arul_hr_employee_action_history(osv.osv):
             action_history = self.browse(cr, uid, new_id)
             self.pool.get('hr.employee').write(cr, uid, [action_history.employee_id.id], {#'employee_category_id': action_history.employee_category_id and action_history.employee_category_id.id or False,
                                                                                           #'employee_sub_category_id': action_history.sub_category_id and action_history.sub_category_id.id or False,
-                                               'employee_category_id': action_history.employee_category_to_id and action_history.employee_category_to_id.id or False,
-                                               'employee_sub_category_id': action_history.sub_category_to_id and action_history.sub_category_to_id.id or False,
+                                               'employee_category_id': action_history.employee_category_to_id and action_history.employee_category_to_id.id or action_history.employee_category_id.id,
+                                               'employee_sub_category_id': action_history.sub_category_to_id and action_history.sub_category_to_id.id or action_history.sub_category_id.id,
                                                                                          
                                                                                           
                                                'job_id': action_history.designation_to_id.id and action_history.designation_to_id.id or action_history.designation_from_id.id,
@@ -426,27 +426,39 @@ class arul_hr_employee_action_history(osv.osv):
             emp_attendence_obj = self.pool.get('arul.hr.employee.attendence.details')
             employee_ids = emp_attendence_obj.search(cr, uid, [('employee_id','=',action_history.employee_id.id)])
             emp_attendence_obj.write(cr,uid,employee_ids, {
-                                                          'employee_category_id':action_history.employee_category_to_id and action_history.employee_category_to_id.id or False,
-                                                          'sub_category_id':action_history.sub_category_to_id and action_history.sub_category_to_id.id or False,
-                                                          'department_id':action_history.department_to_id.id and action_history.department_to_id.id or action_history.department_from_id.id,
-                                                          'designation_id':action_history.designation_to_id.id and action_history.designation_to_id.id or action_history.designation_from_id.id,
+                            'employee_category_id':action_history.employee_category_to_id and action_history.employee_category_to_id.id or action_history.employee_category_id.id,
+                            'sub_category_id':action_history.sub_category_to_id and action_history.sub_category_to_id.id or action_history.sub_category_id.id,
+                            'department_id':action_history.department_to_id.id and action_history.department_to_id.id or action_history.department_from_id.id,
+                            'designation_id':action_history.designation_to_id.id and action_history.designation_to_id.id or action_history.designation_from_id.id,
                                                           }) 
             emp_paystruct_obj = self.pool.get('arul.hr.payroll.employee.structure')
             employee_ids = emp_paystruct_obj.search(cr, uid, [('employee_id','=',action_history.employee_id.id)])
             emp_paystruct_obj.write(cr,uid,employee_ids, {
-                                                          'employee_category_id':action_history.employee_category_to_id and action_history.employee_category_to_id.id or False,
-                                                          'sub_category_id':action_history.sub_category_to_id and action_history.sub_category_to_id.id or False,
-                                                          
+                            'employee_category_id':action_history.employee_category_to_id and action_history.employee_category_to_id.id or action_history.employee_category_from_id.id,
+                            'sub_category_id':action_history.sub_category_to_id and action_history.sub_category_to_id.id or action_history.sub_category_to_id.id,  
                                                           }) 
             
         if context.get('create_transfer_employee'):
             action_history = self.browse(cr, uid, new_id)
             self.pool.get('hr.employee').write(cr, uid, [action_history.employee_id.id], {'employee_category_id': action_history.employee_category_id and action_history.employee_category_id.id or False,
-                                                                                          'employee_sub_category_id': action_history.sub_category_id and action_history.sub_category_id.id or False,
-                                                                                          'job_id': action_history.designation_to_id.id and action_history.designation_to_id.id or action_history.designation_from_id.id,
-                                                                                          'payroll_area_id':action_history.payroll_area_id and action_history.payroll_area_id.id or False,
-#                                                                                           'payroll_sub_area_id':action_history.payroll_sub_area_id and action_history.payroll_sub_area_id.id or False,
-                                                                                          'department_id': action_history.department_to_id.id and action_history.department_to_id.id or action_history.department_from_id.id})
+                            'employee_sub_category_id': action_history.sub_category_id and action_history.sub_category_id.id or False,
+                            'job_id': action_history.designation_to_id.id and action_history.designation_to_id.id or action_history.designation_from_id.id,
+                            'payroll_area_id':action_history.payroll_area_id and action_history.payroll_area_id.id or False,
+#                           'payroll_sub_area_id':action_history.payroll_sub_area_id and action_history.payroll_sub_area_id.id or False,
+                            'department_id': action_history.department_to_id.id and action_history.department_to_id.id or action_history.department_from_id.id})
+            
+            emp_attendence_obj = self.pool.get('arul.hr.employee.attendence.details')
+            employee_ids = emp_attendence_obj.search(cr, uid, [('employee_id','=',action_history.employee_id.id)])
+            emp_attendence_obj.write(cr,uid,employee_ids, {      
+                            'sub_category_id':action_history.sub_category_to_id and action_history.sub_category_to_id.id or action_history.sub_category_id.id,
+                            'department_id':action_history.department_to_id.id and action_history.department_to_id.id or action_history.department_from_id.id,
+                            'designation_id':action_history.designation_to_id.id and action_history.designation_to_id.id or action_history.designation_from_id.id,
+                                                          }) 
+            emp_paystruct_obj = self.pool.get('arul.hr.payroll.employee.structure')
+            employee_ids = emp_paystruct_obj.search(cr, uid, [('employee_id','=',action_history.employee_id.id)])
+            emp_paystruct_obj.write(cr,uid,employee_ids, {
+                            'sub_category_id':action_history.sub_category_to_id and action_history.sub_category_to_id.id or action_history.sub_category_to_id.id,  
+                                                          }) 
         if context.get('create_section_transfer_employee'):
             action_history = self.browse(cr, uid, new_id)
             self.pool.get('hr.employee').write(cr, uid, [action_history.employee_id.id], {'section_id': action_history.section_to_id.id and action_history.section_to_id.id or action_history.section_from_id.id, 

@@ -5856,7 +5856,82 @@ product_category()
 class res_partner(osv.osv):
     _inherit = 'res.partner'
     _description = 'Partner'
+    
+    def _tpt_credit_debit_get(self, cr, uid, ids, field_names, arg, context=None):
+        #ctx = context.copy()
+        res = {}
+        for partner in self.browse(cr, uid, ids, context=context):
+            res[partner.id] = {
+                'tpt_credit': 0.0,
+            }
+            credit = 0
+            other = 0
+            sql  = '''
+                SELECT SUM(l.debit-l.credit)
+                      FROM account_move_line l
+                      LEFT JOIN account_account a ON (l.account_id=a.id)
+                      WHERE a.type IN ('receivable','payable')
+                      AND l.partner_id = %s
+                      AND l.reconcile_id IS NULL
+                      GROUP BY l.partner_id, a.type
+            '''%(partner.id)
+            cr.execute(sql)
+            credit = cr.fetchone()
+            if credit:
+                credit = credit[0]
+            ###
+            sql  = '''
+                SELECT SUM(l.debit-l.credit)
+                      FROM account_move_line l
+                      LEFT JOIN account_account a ON (l.account_id=a.id)
+                      WHERE a.type IN ('other')
+                      AND l.partner_id = %s
+                      AND l.reconcile_id IS NULL
+                      GROUP BY l.partner_id, a.type
+            '''%(partner.id)
+            cr.execute(sql)
+            other = cr.fetchone()
+            if other:
+                other = other[0]
+                credit += other
+            ###
+            #-val
+            ###
+        
+            ###
+            res[partner.id]['tpt_credit'] = credit    
+        return res
+    def _asset_difference_search(self, cr, uid, obj, name, type, args, context=None):
+        if not args:
+            return []
+        having_values = tuple(map(itemgetter(2), args))
+        where = ' AND '.join(
+            map(lambda x: '(SUM(bal2) %(operator)s %%s)' % {
+                                'operator':x[1]},args))
+        query = self.pool.get('account.move.line')._query_get(cr, uid, context=context)
+        cr.execute(('SELECT pid AS partner_id, SUM(bal2) FROM ' \
+                    '(SELECT CASE WHEN bal IS NOT NULL THEN bal ' \
+                    'ELSE 0.0 END AS bal2, p.id as pid FROM ' \
+                    '(SELECT (debit-credit) AS bal, partner_id ' \
+                    'FROM account_move_line l ' \
+                    'WHERE account_id IN ' \
+                            '(SELECT id FROM account_account '\
+                            'WHERE type=%s AND active) ' \
+                    'AND reconcile_id IS NULL ' \
+                    'AND '+query+') AS l ' \
+                    'RIGHT JOIN res_partner p ' \
+                    'ON p.id = partner_id ) AS pl ' \
+                    'GROUP BY pid HAVING ' + where), 
+                    (type,) + having_values)
+        res = cr.fetchall()
+        if not res:
+            return [('id','=','0')]
+        return [('id','in',map(itemgetter(0), res))]
+    def _tpt_credit_search(self, cr, uid, obj, name, args, context=None):
+        return self._asset_difference_search(cr, uid, obj, name, 'receivable', args, context=context)
     _columns = {
+        'tpt_credit': fields.function(_tpt_credit_debit_get,
+            string='Total Receivable', multi='sums'),
         'property_account_payable': fields.property(
             'account.account',
             type='many2one',
@@ -6711,7 +6786,7 @@ class tpt_bank_reconciliation(osv.osv):
                                         'view_type': 'form',
                                         'view_mode': 'form',
                                         'view_id': res[1],
-                                        'res_model': 'alert.form',
+                                        'res_model': 'alert.form.accounting',
                                         'domain': [],
                                         'context': {'default_message':'Updated Successfully!','audit_id':ids[0]},
                                         'type': 'ir.actions.act_window',

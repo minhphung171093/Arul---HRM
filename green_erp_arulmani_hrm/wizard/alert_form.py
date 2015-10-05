@@ -846,7 +846,84 @@ class time_leave_evalv(osv.osv_memory):
                             time_var30 = True
                         if day==31:
                             time_var31 = True
-                    ###         
+                    ###     
+                    ### ###TPT-By BalamuruganPurushothaman  on 29/09/2015 
+                    #- to handle DOJ-Date of Joining in middle of a month in Time Leave Evaluation
+                    sql = '''
+                    select extract(day from date_of_joining) doj from hr_employee where extract(year from date_of_joining)= %s and 
+                      extract(month from date_of_joining)= %s and id=%s
+                    '''%(sub.year,sub.month,emp_id)
+                    cr.execute(sql)
+                    new_doj = cr.fetchone()
+                    if new_doj:
+                        day = new_doj[0]
+                        day -=  1
+                        day = int(day)
+                        for i in range(day):
+                            day = i
+                            if day==0:
+                                time_var1 = False
+                            if day==1:
+                                time_var2 = False
+                            if day==2:
+                                time_var3 = False
+                            if day==3:
+                                time_var4 = False
+                            if day==4:
+                                time_var5 = False
+                            if day==5:
+                                time_var6 = False
+                            if day==6:
+                                time_var7 = False
+                            if day==7:
+                                time_var8 = False
+                            if day==8:
+                                time_var9 = False
+                            if day==9:
+                                time_var10 = False
+                            if day==10:
+                                time_var11 = False
+                            if day==11:
+                                time_var12 = False
+                            if day==12:
+                                time_var13 = False
+                            if day==13:
+                                time_var14 = False
+                            if day==14:
+                                time_var15 = False
+                            if day==15:
+                                time_var16 = False
+                            if day==16:
+                                time_var17 = False
+                            if day==17:
+                                time_var18 = False
+                            if day==18:
+                                time_var19 = False
+                            if day==19:
+                                time_var20 = False
+                            if day==20:
+                                time_var21 = False
+                            if day==21:
+                                time_var22 = False
+                            if day==22:
+                                time_var23 = False
+                            if day==23:
+                                time_var24 = False
+                            if day==24:
+                                time_var25 = False
+                            if day==25:
+                                time_var26 = False
+                            if day==26:
+                                time_var27 = False
+                            if day==27:
+                                time_var28 = False
+                            if day==28:
+                                time_var29 = False
+                            if day==29:
+                                time_var30 = False
+                            if day==30:
+                                time_var31 = False
+                    ###    
                     if shift.day_1 and shift.day_1.code != 'W' and day_now>=1 and 1.0 not in holiday_days and time_var1 is True:
                         sql = '''
                             select id from arul_hr_employee_leave_details

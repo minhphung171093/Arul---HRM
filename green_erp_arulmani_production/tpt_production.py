@@ -731,7 +731,8 @@ class mrp_bom(osv.osv):
         'product_name': fields.related('product_id', 'default_code',type='char',string='Product name',store=True,readonly=True),
         'product_id': fields.many2one('product.product', 'Product', required=True, states={'product_manager': [('readonly', True)], 'finance_manager':[('readonly', True)]}),
         'date_start': fields.date('Valid From', help="Validity of this BoM or component. Keep empty if it's always valid.", states={'product_manager': [('readonly', True)], 'finance_manager':[('readonly', True)]}),
-        'date_stop': fields.date('Valid Until', help="Validity of this BoM or component. Keep empty if it's always valid.", states={'product_manager': [('readonly', True)], 'finance_manager':[('readonly', True)]}),
+        #'date_stop': fields.date('Valid Until', help="Validity of this BoM or component. Keep empty if it's always valid.", states={'product_manager': [('readonly', True)], 'finance_manager':[('readonly', True)]}),
+        'date_stop': fields.date('Valid Until', help="Validity of this BoM or component. Keep empty if it's always valid."),
         'product_qty': fields.float('Product Quantity', required=True, digits_compute=dp.get_precision('Product Unit of Measure'), states={'product_manager': [('readonly', True)], 'finance_manager':[('readonly', True)]}),
         'active': fields.boolean('Active', help="If the active field is set to False, it will allow you to hide the bills of material without removing it."),
         'name': fields.text('Name', states={'product_manager': [('readonly', True)], 'finance_manager':[('readonly', True)]}),
@@ -1832,9 +1833,13 @@ class tpt_quality_verification(osv.osv):
     def bt_update(self, cr, uid, ids, context=None):
         for quality in self.browse(cr,uid,ids):
             ###TPT
-            for line in quality.batch_quality_line:
-                if line.exp_value is False:
-                    raise osv.except_osv(_('Warning!'),_('You can not Update Batch without Experiment Value!'))
+            #TPT-BalamuruganPurushothamn Rollback this change as per customer req on 30/09/2015
+            #===================================================================
+            # for line in quality.batch_quality_line:
+            #     if line.exp_value is False:
+            #         raise osv.except_osv(_('Warning!'),_('You can not Update Batch without Experiment Value!'))
+            #        
+            #===================================================================
             ###
             sql='''
                 update stock_production_lot set phy_batch_no='%s',application_id=%s where id =%s

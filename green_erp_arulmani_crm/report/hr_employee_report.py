@@ -65,6 +65,7 @@ class Parser(report_sxw.rml_parse):
             #emp_ids = resource_obj.search(self.cr, self.uid, [('active','=', True)])
             sql = '''
             select id from hr_employee where resource_id in (select id from resource_resource where active in ('t'))
+            order by employee_id
             '''
             self.cr.execute(sql)
             #emp_ids = self.cr.fetchall()
@@ -73,6 +74,7 @@ class Parser(report_sxw.rml_parse):
             #emp_ids = resource_obj.search(self.cr, self.uid, [('active','=',False)])
             sql = '''
             select id from hr_employee where resource_id in (select id from resource_resource where active in ('f'))
+            order by employee_id
             '''
             self.cr.execute(sql)
             #emp_ids = self.cr.fetchall()
@@ -81,6 +83,7 @@ class Parser(report_sxw.rml_parse):
             #emp_ids = resource_obj.search(self.cr, self.uid, [])
             sql = '''
             select id from hr_employee where resource_id in (select id from resource_resource where active in ('t','f'))
+            order by employee_id
             '''
             self.cr.execute(sql)
             

@@ -9,8 +9,8 @@ from openerp.tools.translate import _
 import openerp.tools
 from openerp.tools import DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_DATETIME_FORMAT, float_compare
 WARNING_TYPES = [('warning','Warning'),('info','Information'),('error','Error')]
-class alert_form(osv.osv_memory):
-    _name = "alert.form"
+class alert_form_accounting(osv.osv_memory):
+    _name = "alert.form.accounting"
     _columns = {    
                 'type': fields.selection(WARNING_TYPES, string='Type', readonly=True),
                 'title': fields.char(string="Title", size=100, readonly=True),
@@ -35,7 +35,7 @@ class alert_form(osv.osv_memory):
             'view_type': 'form',
             'view_mode': 'form',
             'view_id': self._get_view_id(cr, uid),
-            'res_model': 'alert.form',
+            'res_model': 'alert.form.accounting',
             'domain': [],
             'context': context,
             'type': 'ir.actions.act_window',
@@ -62,5 +62,5 @@ class alert_form(osv.osv_memory):
     def bank_alert(self, cr, uid, ids, context=None): 
         return {'type': 'ir.actions.act_window_close'}    
     
-alert_form()
+alert_form_accounting()
 
