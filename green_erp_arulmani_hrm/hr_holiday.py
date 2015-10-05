@@ -10963,12 +10963,14 @@ class tpt_time_data_move(osv.osv):
                 ntm_resource_id = from_cursor.fetchone()
                 
                 if ntm_emp_id and ntm_resource_id:
-                    #Update Exsting Employees
-                    sql = '''
-                    update hr_employee set rfid='%s' where id=%s
-                    '''%(emp.rfid, ntm_emp_id[0])
-                    from_cursor.execute(sql)
-                    from_conn.commit()
+                    #===========================================================
+                    # #Update Exsting Employees
+                    # sql = '''
+                    # update hr_employee set rfid='%s' where id=%s
+                    # '''%(emp.rfid, ntm_emp_id[0])
+                    # from_cursor.execute(sql)
+                    # from_conn.commit()
+                    #===========================================================
                     #Update Exsinting Resources                
                     sql = '''
                     update resource_resource set rfid='%s' where id=%s
