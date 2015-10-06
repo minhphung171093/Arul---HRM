@@ -7,8 +7,7 @@
             <field name="arch" type="xml">
                 <form string="Daily InOut Report" version="7.0">
                 	<group>
-	                    <field name='workdate'/>  
-	                                                  
+	                    <field name='workdate'/>                              
                  	</group>
                     <footer>
                         <button name="print_report" string="Print" type="object" class="oe_highlight" />
