@@ -45,6 +45,25 @@
             id="menu_action_tpt_equip_category_form_view"
             parent="menu_tpt_maint_mg" sequence="0"/>
             
+        <record id="view_tpt_document_attach_form" model="ir.ui.view">
+            <field name="name">tpt.document.attach.form</field>
+            <field name="model">tpt.document.attach</field>
+            <field name="arch" type="xml">
+	            <form string="Document Attach" version="7.0">   
+	            	<sheet>
+	            		<group>
+	            			<field name="description"/>
+							<label for="datas" string="Attachments"/>
+							<div>
+								<field name="datas" filename="datas_fname"/>
+	                        	<field name="datas_fname" invisible="1" class="oe_inline oe_right"/>
+	                        </div>
+                		</group>
+		         	</sheet>
+		         </form>
+			</field>
+		</record>
+            
         <record id="view_tpt_equipment_tree" model="ir.ui.view">
 			<field name="name">tpt.equipment.tree</field>
 			<field name="model">tpt.equipment</field>
@@ -58,6 +77,7 @@
 					<field name="section_id"/>
 					<field name="start_date"/>
 					<field name="end_date"/>
+					<field name="status"/>
 				</tree>
 			</field>
 	  </record>
@@ -77,6 +97,10 @@
 							<field name="section_id" domain="[('department_id','=',department_id)]" options="{'create': false, 'create_edit': false}"/>
 							<field name="start_date"/>
 							<field name="end_date"/>
+							<field name="status"/>
+						</group>
+						<group>
+							<field name="justification" attrs="{'invisible': [('status', '!=', 'scrap')],'required': [('status', '=', 'scrap')]}"/>
 						</group>
 						<notebook>
 							<page string = "Men Power Consumption">
@@ -89,7 +113,7 @@
 							</page>
 							<page string = "Document Attachments">
 								<field name="document_attach_line" nolabel='1'>
-									<tree editable='top'>
+									<tree>
 										<field name="description"/>
 									</tree>
 								</field>
@@ -164,7 +188,7 @@
 							</page>
 							<page string = "Document Attachments">
 								<field name="document_attach_line" nolabel='1'>
-									<tree editable='top'>
+									<tree>
 										<field name="description"/>
 									</tree>
 								</field>
@@ -225,7 +249,7 @@
 							<field name="notif_type" on_change="onchange_notif_type(notif_type, context)"/>
 							<field name="department_id" on_change="onchange_department_id(department_id)" options="{'create': false, 'create_edit': false}"/>
 							<field name="section_id" domain="[('department_id','=',department_id)]" options="{'create': false, 'create_edit': false}"/>
-							<field name="equip_id" on_change="onchange_equip_id(equip_id)" options="{'create': false, 'create_edit': false}"/>
+							<field name="equip_id" domain="[('status','!=','scrap')]" on_change="onchange_equip_id(equip_id)" options="{'create': false, 'create_edit': false}"/>
 							<field name="machine_id" domain="[('equip_id','=',equip_id)]" options="{'create': false, 'create_edit': false}"/>
 							<field name="issue_date"/>
 							<field name="issue_type"/>
@@ -309,10 +333,12 @@
 										<!--<field name="po_id" domain="[('po_document_type','=','service'),('state','=','done')]" on_change="onchange_po_id(po_id,po_line_id)" options="{'create': false, 'create_edit': false}"/>-->
 										<field name="employee_ids" widget="many2many_tags"/>
 										<field name="work_day"/>
-										<field name="po_line_id" domain="[('order_id.po_document_type','=','service'),('order_id.state','=','done')]" on_change="onchange_po_line_id(po_line_id)" context="{'name_maintance_service_entry':True}" options="{'no_open': true,'create': false, 'create_edit': false}"/>
+										<!--<field name="po_line_id" domain="[('order_id.po_document_type','=','service'),('order_id.state','=','done')]" on_change="onchange_po_line_id(po_line_id)" context="{'name_maintance_service_entry':True}" options="{'no_open': true,'create': false, 'create_edit': false}"/>-->
+										<field name="parti"/>
 										<field name="uom_id" options="{'create': false, 'create_edit': false}"/>
 										<field name="product_uom_qty"/>
 										<field name="price_unit"/>
+										<field name="work_hour" widget="float_time"/>
 										<field name="line_net"/>
 									</tree>
 								</field>
@@ -456,6 +482,7 @@
 							<field name="cost_center_id" required='1' options="{'create': false, 'create_edit': false}" />
 							<field name="maintenance_id"/>
 							<field name="mrs_type"/>
+							<field name="vendor_id" domain="[('supplier','=',1)]" options="{'create': false, 'create_edit': false}" attrs="{'invisible': [('mrs_type','!=','chargeable')]}"/>
 							<field name="total"/>
 						</group>
 						<notebook>
@@ -563,6 +590,7 @@
 										<field name="project_id"  />
 										<field name="project_section_id"  />
 										<field name="create_uid" options="{'create': false, 'create_edit': false}" />
+										<field name="vendor_id" domain="[('supplier','=',1)]" options="{'create': false, 'create_edit': false}"/>
 										<field name="total"/>
 										<field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue"}'/>
 									</tree>
@@ -597,6 +625,7 @@
             	<xpath expr="//field[@name='cost_center_id']" position="after">
 					<field name="maintenance_id"/>
 					<field name="mrs_type"/>
+					<field name="vendor_id" domain="[('supplier','=',1)]" options="{'create': false, 'create_edit': false}" attrs="{'invisible': [('mrs_type','!=','chargeable')]}"/>
 					<field name="total"/>
 				</xpath> 
             </field>
