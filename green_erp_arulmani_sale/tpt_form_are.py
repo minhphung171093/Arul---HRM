@@ -13,7 +13,7 @@ from openerp import netsvc
 
 class tpt_form_are_1(osv.osv):
     _name = "tpt.form.are.1"
-      
+    _order = "name desc"  
     _columns = {
         'name': fields.char('Form No', size = 1024, readonly = True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'date': fields.date('Date',  states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
@@ -67,6 +67,12 @@ class tpt_form_are_1(osv.osv):
         '''
         assert len(ids) == 1, 'This option should only be used for a single id at a time.'
         self.write(cr, uid, ids, {'sent': True}, context=context)
+        
+        are1_ids = self.browse(cr, uid, ids[0])
+        if are1_ids.is_original is False and are1_ids.is_duplicate is False and are1_ids.is_triplicate is False and are1_ids.is_quadruplicate is False and are1_ids.is_extra is False:
+            raise osv.except_osv(_('Warning!'),
+                _('Please Select any one of the following: -Original Copy\n -Duplicate Copy\n -Triplicate Copy\n -Quadruplicate Copy\n -Extra Copy'))
+        
         datas = {
              'ids': ids,
              'model': 'tpt.form.are.1',
@@ -113,7 +119,7 @@ tpt_form_are_1_duty_rate()
 
 class tpt_form_are_3(osv.osv):
     _name = "tpt.form.are.3"
-      
+    _order = "name desc"   
     _columns = {
         'name': fields.char('SI.No',size = 32, required = True, readonly =True),
         'range_from': fields.char('From Range',size =1024),
@@ -175,7 +181,10 @@ class tpt_form_are_3(osv.osv):
              'model': 'tpt.form.are.3',
              'form': self.read(cr, uid, ids[0], context=context)
         }
-        are3_ids = self.browse(cr, uid, ids[0])
+        are3_ids = self.browse(cr, uid, ids[0])  
+        if are3_ids.is_original is False and are3_ids.is_duplicate is False and are3_ids.is_triplicate is False and are3_ids.is_quadruplicate is False:
+            raise osv.except_osv(_('Warning!'),
+                _('Please Select any one of the following: -Original Copy\n -Duplicate Copy\n -Triplicate Copy\n -Quadruplicate Copy'))
         if are3_ids.is_original is True:
             return {
                     'type': 'ir.actions.report.xml',
