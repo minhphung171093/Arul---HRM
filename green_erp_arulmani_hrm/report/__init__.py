@@ -9,3 +9,5 @@ import esi_statement_report
 import leave_balance_report
 import emp_attendance_details
 import daily_filo_time_report
+import DailyInOut_report
+

@@ -10574,13 +10574,14 @@ class tpt_hr_attendance(osv.osv):
                     ast_id = exist_ast_obj.id
                     ast_obj.write(cr, uid, [exist_ast_obj.id], {
                                  #'employee_id': emp_root.id,
-                                 'punch_out_date':perv_work_date,
+                                 #'punch_out_date':perv_work_date,
+                                 'punch_out_date':work_date_format,
                                  'ref_out_time': out_time,
                                  'out_time': out_time,
                                   }) 
                     ### 
                         
-                    self.auto_approve_to_attendance(cr, uid, emp_root, perv_work_date, exist_in_time, out_time, shift_id, 
+                    self.auto_approve_to_attendance(cr, uid, emp_root, work_date_format, exist_in_time, out_time, shift_id, 
                                                           punch_in_date, ast_id)
                    
                     #===========================================================
@@ -10843,14 +10844,16 @@ class tpt_hr_attendance(osv.osv):
                         'punch_in_date':punch_in_date,'punch_out_date':work_date_format,'in_time':in_time,'out_time':out_time,
                         'ref_in_time':in_time,'ref_out_time':out_time,'type':'punch','employee_category_id':emp_root.employee_category_id.id
                         }
-            ast_obj.create(cr,uid,ast_values)
+            #ast_obj.create(cr,uid,ast_values)
+            ast_obj.write(cr, uid, [ast_id], ast_values, context)
+            #new_write = super(arul_hr_audit_shift_time, self).write(cr, uid, ids, vals, context)
         elif shift_count==1  and not shift_id:
             ast_values={'employee_id':emp_root.id,'planned_work_shift_id':shift_id,'actual_work_shift_id':work_shift_id,'work_date':work_date_format,
                         'punch_in_date':punch_in_date,'punch_out_date':work_date_format,'in_time':in_time,'out_time':out_time,
                         'ref_in_time':in_time,'ref_out_time':out_time,'type':'punch','employee_category_id':emp_root.employee_category_id.id
                         }
-            ast_obj.create(cr,uid,ast_values)
-            
+            #ast_obj.create(cr,uid,ast_values)
+            ast_obj.write(cr, uid, [ast_id], ast_values, context)
             
         
         return True
