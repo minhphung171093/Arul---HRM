@@ -10574,13 +10574,14 @@ class tpt_hr_attendance(osv.osv):
                     ast_id = exist_ast_obj.id
                     ast_obj.write(cr, uid, [exist_ast_obj.id], {
                                  #'employee_id': emp_root.id,
-                                 'punch_out_date':perv_work_date,
+                                 #'punch_out_date':perv_work_date,
+                                 'punch_out_date':work_date_format,
                                  'ref_out_time': out_time,
                                  'out_time': out_time,
                                   }) 
                     ### 
                         
-                    self.auto_approve_to_attendance(cr, uid, emp_root, perv_work_date, exist_in_time, out_time, shift_id, 
+                    self.auto_approve_to_attendance(cr, uid, emp_root, work_date_format, exist_in_time, out_time, shift_id, 
                                                           punch_in_date, ast_id)
                    
                     #===========================================================
