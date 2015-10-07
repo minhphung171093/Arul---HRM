@@ -6,10 +6,11 @@
 			<field name="model">tpt.form.are.1</field>
 			<field name="arch" type="xml">
 				<tree string="Form A.R.E - 1">
-						<field name="name"/>
-						<field name="date"/>
+						<field name="name"/>						
 						<field name="invoice_no_id"/>
+						
 						<field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
+						 
 				</tree>
 			</field>
 		</record>      
@@ -21,9 +22,11 @@
 	            <form string="Form A.R.E - 1" version="7.0">  
 	            <header>
 	            	<button name='print_are1' string="Print ARE-1" type="object" class="oe_highlight" />
+	            	
 	            	<button name="bt_approve" states='draft' string="Approve" type="object" class="oe_highlight" groups="green_erp_arulmani_sale.group_vvti_sale_user"/>
                     <button name="bt_cancel" states='draft' string="Cancel" type="object" class="oe_highlight" groups="green_erp_arulmani_sale.group_vvti_sale_user"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
+	            
 	            </header> 
 	            	<sheet>
 	            		<group col="4" colspan="2">
@@ -36,58 +39,10 @@
 							<field name="is_extra"/>
 							<newline/>
 							<field name="invoice_no_id"  domain="[('sale_id','!=',False)]" options="{'create': false, 'create_edit': false}" />
-							<field name="excise_duty_id" />
+							<field name="excise_duty_id" options="{'create': false, 'create_edit': false}" required='1'/>
 							<field name="description_goods" />
-							<field name="remarks" />
-							<!-- <field name="consignment_to" options="{'create': false, 'create_edit': false}"/> 
-							<field name="commisionarate_id" options="{'create': false, 'create_edit': false}"/>-->
-							
-	            		</group>
-	            		<!-- 
-	            		<notebook>
-							<page string = "Export Details">
-								<group col="4" colspan="2"> -->
-									<!-- <field name="manufacturer_id" />  -->
-		            				<!--<field name="ce_reg_no" />
-		            				<field name="package_description" />
-		            				<field name="marks_package" />
-		            				<label for="gross_weight"/>
-		            				<div>
-		            				<field name="gross_weight" class="oe_inline"/> KGS
-		            				</div>
-		            				<label for="net_weight"/>
-		            				<div>
-		            				<field name="net_weight" class="oe_inline"/> KGS
-		            				</div>
-		            				<label for="quantity"/>
-		            				<div>
-		            				<field name="quantity" class="oe_inline"/> KGS
-		            				</div>
-		            				<field name="description_goods" />
-		            				<label for="value"/>
-		            				<div>
-		            				<field name="value" class="oe_inline"/> INR
-		            				</div>
-		            				<field name="invoiced_date" />
-		            				<field name="rebate_claimed_amt" />
-		            				
-		            				
-		            				<field name="ed_amount" />
-		            				<field name="amount_usd" />
-		            				<field name="amount_inr" />
-		            				
-								</group>
-							</page>
-							<page string = "Duty Rate">
-								<field name="duty_rate_line" nolabel='1'>
-									<tree editable='bottom'>
-										<field name="duty_rate" />
-										<field name="amount_usd" />
-										<field name="amount_inr" />
-									</tree>
-								</field>
-							</page>
-						</notebook>-->
+							<field name="remarks" />								
+	            		</group>	            		
 	            	</sheet>
 		         </form>
 			</field>
@@ -161,7 +116,6 @@
 			<field name="arch" type="xml">
 				<tree string="Form A.R.E - 3">
 						<field name="name"/>
-						<field name="date"/>
 						<field name="invoice_no_id"/>
 						
 				</tree>

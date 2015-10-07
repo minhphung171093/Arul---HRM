@@ -13,7 +13,7 @@ from openerp import netsvc
 
 class tpt_form_are_1(osv.osv):
     _name = "tpt.form.are.1"
-      
+    _order = "name desc"  
     _columns = {
         'name': fields.char('Form No', size = 1024, readonly = True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'date': fields.date('Date',  states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
@@ -113,7 +113,7 @@ tpt_form_are_1_duty_rate()
 
 class tpt_form_are_3(osv.osv):
     _name = "tpt.form.are.3"
-      
+    _order = "name desc"   
     _columns = {
         'name': fields.char('SI.No',size = 32, required = True, readonly =True),
         'range_from': fields.char('From Range',size =1024),
