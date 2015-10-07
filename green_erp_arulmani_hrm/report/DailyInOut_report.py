@@ -82,7 +82,7 @@ class Parser(report_sxw.rml_parse):
         # '''%(workdate, shift_type)     
         #=======================================================================
         sql = '''
-          select emp.employee_id, emp.name_related, ast.ref_in_time, ast.ref_out_time from arul_hr_audit_shift_time ast
+          select emp.employee_id, emp.name_related employeename, ast.ref_in_time, ast.ref_out_time from arul_hr_audit_shift_time ast
          inner join hr_employee emp on ast.employee_id=emp.id
          where ref_in_time between (select min_start_time from tpt_work_shift where 
          code='%s') and (select max_start_time from tpt_work_shift where
