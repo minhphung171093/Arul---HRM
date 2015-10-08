@@ -24,5 +24,30 @@
 			name="daily_inout_report"
 	        string="Daily InOut Report"
 	        rml="green_erp_arulmani_hrm/report/DailyInOut_report.ods"/>
+	      
+	      <!-- For Punch IN Report -->
+	      <record id="daily_in_report" model="ir.actions.report.xml">
+	        <field name="name">daily_in_report</field>
+	        <field name="type">ir.actions.report.xml</field>
+	        <field name="model">daily.inout</field>
+	        <field name="report_name">daily_in_report</field>
+	        <field name="report_type">aeroo</field>
+	        <field name="in_format">oo-ods</field>
+	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-xls'),('compatible_types','=','oo-ods')]"/>
+	        <field name="parser_loc">green_erp_arulmani_hrm/report/DailyInOut_report.py</field>
+	        <field name="report_rml">green_erp_arulmani_hrm/report/DailyIn_report.ods</field>
+	        <field name="parser_state">loc</field>
+	        <field name="tml_source">file</field>
+	        <field name="attachment_use" eval="0"/>
+    	</record>		    
+		
+		<report 
+			auto="True" 
+			menu="False"
+			id="DailyInOut" 
+			model="daily.inout" 
+			name="daily_in_report"
+	        string="Daily In Report"
+	        rml="green_erp_arulmani_hrm/report/DailyIn_report.ods"/>
     </data>
 </openerp>
