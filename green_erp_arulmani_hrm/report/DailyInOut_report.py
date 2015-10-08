@@ -102,7 +102,7 @@ class Parser(report_sxw.rml_parse):
             shift_continue = ''
             if line['ref_in_time']>0 and line['ref_out_time']>0:
                 sql = '''
-                     select description from tpt_work_shift where 
+                     select name from tpt_work_shift where 
                      (%s between min_start_time and max_start_time)
                      and
                      (%s between min_end_time and max_end_time)
