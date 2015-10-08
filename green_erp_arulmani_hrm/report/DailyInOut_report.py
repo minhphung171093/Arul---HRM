@@ -87,6 +87,7 @@ class Parser(report_sxw.rml_parse):
          where ref_in_time between (select min_start_time from tpt_work_shift where 
          code='%s') and (select max_start_time from tpt_work_shift where
          code='%s') and work_date='%s'
+         order by emp.employee_id
         '''%(shift_type, shift_type, workdate)               
         self.cr.execute(sql)
         res = []
