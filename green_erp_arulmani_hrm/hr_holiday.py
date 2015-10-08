@@ -6458,6 +6458,8 @@ arul_hr_punch_in_out()
 class arul_hr_monthly_work_schedule(osv.osv):
     _name='arul.hr.monthly.work.schedule'
     
+    _order='create_date desc'
+    
     _columns={
               'department_id':fields.many2one('hr.department','Department', required = True, states={'done': [('readonly', True)]}),
               'section_id': fields.many2one('arul.hr.section','Section', required = True, states={'done': [('readonly', True)]}),
@@ -10346,7 +10348,9 @@ class tpt_work_shift(osv.osv):
               'c_shift': fields.float('C'),
               'shift_count': fields.float('Total Shift Worked'), 
               'time_total': fields.function(_time_total, store=True, string='Recording Hrs', multi='sums', help="The total amount."),                                 
-    
+              #FOR DAILY PUNCH IN/OUT REPORT
+              'in_time': fields.float('Punch In Time'),
+              'out_time': fields.float('Punch Out Time'),
               }
 
     
