@@ -1780,6 +1780,11 @@
 							
 							<newline/>
 							<field name="shift_count" />
+		                	</group>	
+		                	
+		                	<group col='4' colspan='2' string="For Daily Punch In/Out Report Purpose Only">							
+								<field name="in_time" widget="float_time"/>
+								<field name="out_time" widget="float_time"/>							
 		                	</group>						
 		            	
 		         	</sheet>
