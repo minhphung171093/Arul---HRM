@@ -10851,12 +10851,13 @@ class tpt_hr_attendance(osv.osv):
         elif shift_count==1  and not shift_id:
             ast_values={'employee_id':emp_root.id,'planned_work_shift_id':shift_id,'actual_work_shift_id':work_shift_id,
                         'punch_in_date':punch_in_date,'punch_out_date':work_date_format,'in_time':in_time,'out_time':out_time,
-                        'ref_in_time':in_time,'ref_out_time':out_time,'type':'punch','employee_category_id':emp_root.employee_category_id.id
+                        'ref_in_time':in_time,'ref_out_time':out_time,'type':'punch','employee_category_id':emp_root.employee_category_id.id,
+                         'total_shift_worked':shift_count       
                         }
             #ast_obj.create(cr,uid,ast_values)
             ast_obj.write(cr, uid, [ast_id], ast_values, context)
         elif shift_count > 1 :
-            ast_values={'actual_work_shift_id':work_shift_id                        
+            ast_values={'actual_work_shift_id':work_shift_id, 'total_shift_worked':shift_count                      
                         }        
             ast_obj.write(cr, uid, [ast_id], ast_values, context)
             
