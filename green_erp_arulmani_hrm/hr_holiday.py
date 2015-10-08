@@ -10855,6 +10855,10 @@ class tpt_hr_attendance(osv.osv):
                         }
             #ast_obj.create(cr,uid,ast_values)
             ast_obj.write(cr, uid, [ast_id], ast_values, context)
+        elif shift_count > 1 :
+            ast_values={'actual_work_shift_id':work_shift_id                        
+                        }        
+            ast_obj.write(cr, uid, [ast_id], ast_values, context)
             
         
         return True
