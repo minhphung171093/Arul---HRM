@@ -102,17 +102,23 @@ class Parser(report_sxw.rml_parse):
             shift_continue = ''
             if line['ref_in_time']>0 and line['ref_out_time']>0:
                 sql = '''
-                     select name from tpt_work_shift where 
+                     select name,shift_count from tpt_work_shift where 
                      (%s between min_start_time and max_start_time)
                      and
                      (%s between min_end_time and max_end_time)
                 '''%(line['ref_in_time'],line['ref_out_time'])
                 self.cr.execute(sql)
-                desc = self.cr.fetchone()
-                
-                if desc:
-                    desc = desc[0]
-                    #if len(str(desc))>0:
+                #desc = self.cr.fetchone()
+                for k in self.cr.fetchall():
+                    desc=k[0]
+                    shift_count=k[1]
+                #===============================================================
+                # if desc:
+                #     desc = desc[0]
+                #     #if len(str(desc))>0:
+                #     shift_continue = desc
+                #===============================================================
+                if shift_count>1:
                     shift_continue = desc
                 
             ###
@@ -122,7 +128,7 @@ class Parser(report_sxw.rml_parse):
                         'employeename': line['employeename'] or '',
                         'ref_in_time': line['ref_in_time'] or '',
                         'ref_out_time': line['ref_out_time'] or '',
-                        'shift_continue': shift_continue or '',
+                        'shift_continue': shift_continue ,
                         })
             s_no += 1
         return res     
