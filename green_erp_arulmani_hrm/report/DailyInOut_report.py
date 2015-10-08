@@ -81,6 +81,16 @@ class Parser(report_sxw.rml_parse):
         # and cws.name='%s' order by cws.name,he.employee_id
         # '''%(workdate, shift_type)     
         #=======================================================================
+        
+        #=======================================================================
+        # product_obj = self.pool.get('product.product')
+        # product_ids = product_obj.search(self.cr, self.uid, [('id','=',13346)])
+        # prd = product_obj.browse(self.cr,self.uid,product_ids[0])
+        # for a in prd.inventory_line: 
+        #     print a.id
+        #=======================================================================
+
+        
         sql = '''
           select emp.employee_id, emp.name_related employeename, ast.ref_in_time, ast.ref_out_time from arul_hr_audit_shift_time ast
          inner join hr_employee emp on ast.employee_id=emp.id
