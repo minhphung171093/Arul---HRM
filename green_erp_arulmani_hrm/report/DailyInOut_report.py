@@ -112,8 +112,8 @@ class Parser(report_sxw.rml_parse):
                 
                 if desc:
                     desc = desc[0]
-                    if len(str(desc))>0:
-                        shift_continue = desc
+                    #if len(str(desc))>0:
+                    shift_continue = desc
                 
             ###
             res.append({
