@@ -83,7 +83,9 @@ class Parser(report_sxw.rml_parse):
         #=======================================================================
             
         sql = '''
-          select emp.employee_id, emp.name_related employeename, ast.ref_in_time, ast.ref_out_time from arul_hr_audit_shift_time ast
+          select emp.employee_id, emp.name_related employeename, COALESCE(ast.ref_in_time,0.0) as ref_in_time, 
+          COALESCE(ast.ref_out_time,0.0) as ref_out_time
+            from arul_hr_audit_shift_time ast
          inner join hr_employee emp on ast.employee_id=emp.id
          where ref_in_time between (select in_time from tpt_work_shift where 
          code='%s') and (select out_time from tpt_work_shift where
@@ -97,19 +99,20 @@ class Parser(report_sxw.rml_parse):
         s_no = 1
         for line in self.cr.dictfetchall():
              ###
-            sql = '''
-                 select description from tpt_work_shift where 
-                 (%s between min_start_time and max_start_time)
-                 and
-                 (%s between min_end_time and max_end_time)
-            '''%(line['ref_in_time'],line['ref_out_time'])
-            self.cr.execute(sql)
-            desc = cr.fetchone()
-            shift_continue = ''
-            if desc:
-                desc = desc[0]
-                if len(desc)>0:
-                    shift_continue = desc
+            if line['ref_in_time']>0 and line['ref_out_time']>0:
+                sql = '''
+                     select description from tpt_work_shift where 
+                     (%s between min_start_time and max_start_time)
+                     and
+                     (%s between min_end_time and max_end_time)
+                '''%(line['ref_in_time'],line['ref_out_time'])
+                self.cr.execute(sql)
+                desc = cr.fetchone()
+                shift_continue = ''
+                if desc:
+                    desc = desc[0]
+                    if len(desc)>0:
+                        shift_continue = desc
                 
             ###
             res.append({
