@@ -131,7 +131,7 @@ class Parser(report_sxw.rml_parse):
                         'shift_continue': shift_continue ,
                         })
             s_no += 1
-            shift_continue = ''
+            #shift_continue = ''
         return res     
     
     def get_workdate(self):
