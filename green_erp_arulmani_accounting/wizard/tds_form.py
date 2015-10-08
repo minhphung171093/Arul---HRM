@@ -146,7 +146,7 @@ class tds_form_report(osv.osv_memory):
             if invoicetype == 'ser_inv':
               if vendor and tds and gl_accnt:
                     sql = '''
-                        Select distinct a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                        Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
                         a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
                         COALESCE(a.tdsamount,0.00) as tdsamount,a.ven_ref,a.gl_doc,a.sec
                         from(
@@ -219,7 +219,7 @@ class tds_form_report(osv.osv_memory):
             
               elif vendor and tds:
                     sql = '''
-                        Select distinct a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                        Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
                         a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
                         COALESCE(a.tdsamount,0.00) as tdsamount,a.ven_ref,a.gl_doc,a.sec
                         from(
@@ -292,7 +292,7 @@ class tds_form_report(osv.osv_memory):
        
               elif vendor and gl_accnt:
                     sql = '''
-                        Select distinct a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                        Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
                         a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
                         COALESCE(a.tdsamount,0.00) as tdsamount,a.ven_ref,a.gl_doc,a.sec
                         from(
@@ -365,7 +365,7 @@ class tds_form_report(osv.osv_memory):
           
               elif tds and gl_accnt:
                     sql = '''
-                        Select distinct a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                        Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
                         a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
                         COALESCE(a.tdsamount,0.00) as tdsamount,a.ven_ref,a.gl_doc,a.sec
                         from(
@@ -438,7 +438,7 @@ class tds_form_report(osv.osv_memory):
                      
               elif vendor:
                 sql = '''
-                        Select distinct a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                        Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
                         a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
                         COALESCE(a.tdsamount,0.00) as tdsamount,a.ven_ref,a.gl_doc,a.sec
                         from(
@@ -511,7 +511,7 @@ class tds_form_report(osv.osv_memory):
             
               elif tds:
                 sql = '''
-                        Select distinct a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                        Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
                         a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
                         COALESCE(a.tdsamount,0.00) as tdsamount,a.ven_ref,a.gl_doc,a.sec
                         from(
@@ -584,7 +584,7 @@ class tds_form_report(osv.osv_memory):
             
               elif gl_accnt:
                 sql = '''
-                        Select distinct a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                        Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
                         a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
                         COALESCE(a.tdsamount,0.00) as tdsamount,a.ven_ref,a.gl_doc,a.sec
                         from(
@@ -657,7 +657,7 @@ class tds_form_report(osv.osv_memory):
             
               else:
                 sql = '''
-                        Select distinct a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                        Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
                         a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
                         COALESCE(a.tdsamount,0.00) as tdsamount,a.ven_ref,a.gl_doc,a.sec
                         from(
@@ -731,7 +731,7 @@ class tds_form_report(osv.osv_memory):
             elif invoicetype == 'sup_inv':
                 if vendor and tds and gl_accnt:
                     sql = '''
-                        Select distinct a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                        Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
                         a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
                         COALESCE(a.tdsamount,0.00) as tdsamount,a.ven_ref,a.gl_doc,a.sec
                         from(
@@ -804,7 +804,7 @@ class tds_form_report(osv.osv_memory):
                 
                 elif vendor and tds:
                     sql = '''
-                        Select distinct a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                        Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
                         a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
                         COALESCE(a.tdsamount,0.00) as tdsamount,a.ven_ref,a.gl_doc,a.sec
                         from(
@@ -877,7 +877,7 @@ class tds_form_report(osv.osv_memory):
                 
                 elif vendor and gl_accnt:
                     sql = '''
-                        Select distinct a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                        Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
                         a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
                         COALESCE(a.tdsamount,0.00) as tdsamount,a.ven_ref,a.gl_doc,a.sec
                         from(
@@ -950,7 +950,7 @@ class tds_form_report(osv.osv_memory):
                 
                 elif tds and gl_accnt:
                     sql = '''
-                        Select distinct a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                        Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
                         a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
                         COALESCE(a.tdsamount,0.00) as tdsamount,a.ven_ref,a.gl_doc,a.sec
                         from(
@@ -1023,7 +1023,7 @@ class tds_form_report(osv.osv_memory):
                 
                 elif vendor:
                     sql = '''
-                        Select distinct a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                        Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
                         a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
                         COALESCE(a.tdsamount,0.00) as tdsamount,a.ven_ref,a.gl_doc,a.sec
                         from(
@@ -1096,7 +1096,7 @@ class tds_form_report(osv.osv_memory):
                 
                 elif tds:
                     sql = '''
-                        Select distinct a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                        Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
                         a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
                         COALESCE(a.tdsamount,0.00) as tdsamount,a.ven_ref,a.gl_doc,a.sec
                         from(
@@ -1169,7 +1169,7 @@ class tds_form_report(osv.osv_memory):
                 
                 elif gl_accnt:
                     sql = '''
-                        Select distinct a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                        Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
                         a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
                         COALESCE(a.tdsamount,0.00) as tdsamount,a.ven_ref,a.gl_doc,a.sec
                         from(
@@ -1242,7 +1242,7 @@ class tds_form_report(osv.osv_memory):
                 
                 else:
                     sql = '''
-                        Select distinct a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                        Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
                         a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
                         COALESCE(a.tdsamount,0.00) as tdsamount,a.ven_ref,a.gl_doc,a.sec
                         from(
@@ -1319,7 +1319,7 @@ class tds_form_report(osv.osv_memory):
             elif invoicetype == 'freight':
                   if vendor and tds and gl_accnt:
                     sql = '''
-                        Select distinct a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                        Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
                         a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
                         COALESCE(a.tdsamount,0.00) as tdsamount,a.ven_ref,a.gl_doc,a.sec
                         from(
@@ -1393,7 +1393,7 @@ class tds_form_report(osv.osv_memory):
                 
                   elif vendor and tds:
                     sql = '''
-                        Select distinct a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                        Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
                         a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
                         COALESCE(a.tdsamount,0.00) as tdsamount,a.ven_ref,a.gl_doc,a.sec
                         from(
@@ -1468,7 +1468,7 @@ class tds_form_report(osv.osv_memory):
            
                   elif vendor and gl_accnt:
                     sql = '''
-                        Select distinct a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                        Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
                         a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
                         COALESCE(a.tdsamount,0.00) as tdsamount,a.ven_ref,a.gl_doc,a.sec
                         from(
@@ -1542,7 +1542,7 @@ class tds_form_report(osv.osv_memory):
               
                   elif tds and gl_accnt:
                     sql = '''
-                        Select distinct a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                        Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
                         a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
                         COALESCE(a.tdsamount,0.00) as tdsamount,a.ven_ref,a.gl_doc,a.sec
                         from(
@@ -1616,7 +1616,7 @@ class tds_form_report(osv.osv_memory):
                          
                   elif vendor:
                     sql = '''
-                        Select distinct a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                        Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
                         a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
                         COALESCE(a.tdsamount,0.00) as tdsamount,a.ven_ref,a.gl_doc,a.sec
                         from(
@@ -1690,7 +1690,7 @@ class tds_form_report(osv.osv_memory):
                 
                   elif tds:
                     sql = '''
-                        Select distinct a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                        Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
                         a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
                         COALESCE(a.tdsamount,0.00) as tdsamount,a.ven_ref,a.gl_doc,a.sec
                         from(
@@ -1764,7 +1764,7 @@ class tds_form_report(osv.osv_memory):
                 
                   elif gl_accnt:
                     sql = '''
-                        Select distinct a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                        Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
                         a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
                         COALESCE(a.tdsamount,0.00) as tdsamount,a.ven_ref,a.gl_doc,a.sec
                         from(
@@ -1838,7 +1838,7 @@ class tds_form_report(osv.osv_memory):
                   
                   else:
                     sql = '''
-                        Select distinct a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                        Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
                         a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
                         COALESCE(a.tdsamount,0.00) as tdsamount,a.ven_ref,a.gl_doc,a.sec
                         from(
@@ -1913,7 +1913,7 @@ class tds_form_report(osv.osv_memory):
             
             elif vendor and tds and gl_accnt:            
                 sql = '''
-                        Select distinct a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                        Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
                         a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
                         COALESCE(a.tdsamount,0.00) as tdsamount,a.ven_ref,a.gl_doc,a.sec
                         from(
@@ -1987,7 +1987,7 @@ class tds_form_report(osv.osv_memory):
             
             elif vendor and gl_accnt:            
                 sql = '''
-                        Select distinct a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                        Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
                         a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
                         COALESCE(a.tdsamount,0.00) as tdsamount,a.ven_ref,a.gl_doc,a.sec
                         from(
@@ -2061,7 +2061,7 @@ class tds_form_report(osv.osv_memory):
             
             elif vendor and tds:            
                 sql = '''
-                        Select distinct a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                        Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
                         a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
                         COALESCE(a.tdsamount,0.00) as tdsamount,a.ven_ref,a.gl_doc,a.sec
                         from(
@@ -2135,7 +2135,7 @@ class tds_form_report(osv.osv_memory):
             
             elif tds and gl_accnt:            
                 sql = '''
-                        Select distinct a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                        Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
                         a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
                         COALESCE(a.tdsamount,0.00) as tdsamount,a.ven_ref,a.gl_doc,a.sec
                         from(
@@ -2209,7 +2209,7 @@ class tds_form_report(osv.osv_memory):
             
             elif vendor:            
                 sql = '''
-                        Select distinct a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                        Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
                         a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
                         COALESCE(a.tdsamount,0.00) as tdsamount,a.ven_ref,a.gl_doc,a.sec
                         from(
@@ -2283,7 +2283,7 @@ class tds_form_report(osv.osv_memory):
             
             elif tds:            
                 sql = '''
-                        Select distinct a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                        Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
                         a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
                         COALESCE(a.tdsamount,0.00) as tdsamount,a.ven_ref,a.gl_doc,a.sec
                         from(
@@ -2357,7 +2357,7 @@ class tds_form_report(osv.osv_memory):
             
             elif gl_accnt:            
                 sql = '''
-                        Select distinct a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                        Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
                         a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
                         COALESCE(a.tdsamount,0.00) as tdsamount,a.ven_ref,a.gl_doc,a.sec
                         from(
@@ -2432,7 +2432,7 @@ class tds_form_report(osv.osv_memory):
             
             else:            
                 sql = '''
-                        Select distinct a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                        Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
                         a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
                         COALESCE(a.tdsamount,0.00) as tdsamount,a.ven_ref,a.gl_doc,a.sec
                         from(

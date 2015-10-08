@@ -141,7 +141,7 @@ class Parser(report_sxw.rml_parse):
         if invoicetype == 'ser_inv':
               if vendor and tds and gl_accnt:
                     sql = '''
-                        Select distinct a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                        Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
                         a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
                         COALESCE(a.tdsamount,0.00) as tdsamount,a.ven_ref,a.gl_doc,a.sec
                         from(
@@ -214,7 +214,7 @@ class Parser(report_sxw.rml_parse):
             
               elif vendor and tds:
                     sql = '''
-                        Select distinct a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                        Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
                         a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
                         COALESCE(a.tdsamount,0.00) as tdsamount,a.ven_ref,a.gl_doc,a.sec
                         from(
@@ -287,7 +287,7 @@ class Parser(report_sxw.rml_parse):
        
               elif vendor and gl_accnt:
                     sql = '''
-                        Select distinct a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                        Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
                         a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
                         COALESCE(a.tdsamount,0.00) as tdsamount,a.ven_ref,a.gl_doc,a.sec
                         from(
@@ -360,7 +360,7 @@ class Parser(report_sxw.rml_parse):
           
               elif tds and gl_accnt:
                     sql = '''
-                        Select distinct a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                        Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
                         a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
                         COALESCE(a.tdsamount,0.00) as tdsamount,a.ven_ref,a.gl_doc,a.sec
                         from(
@@ -433,7 +433,7 @@ class Parser(report_sxw.rml_parse):
                      
               elif vendor:
                 sql = '''
-                        Select distinct a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                        Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
                         a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
                         COALESCE(a.tdsamount,0.00) as tdsamount,a.ven_ref,a.gl_doc,a.sec
                         from(
@@ -506,7 +506,7 @@ class Parser(report_sxw.rml_parse):
             
               elif tds:
                 sql = '''
-                        Select distinct a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                        Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
                         a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
                         COALESCE(a.tdsamount,0.00) as tdsamount,a.ven_ref,a.gl_doc,a.sec
                         from(
@@ -579,7 +579,7 @@ class Parser(report_sxw.rml_parse):
             
               elif gl_accnt:
                 sql = '''
-                        Select distinct a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                        Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
                         a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
                         COALESCE(a.tdsamount,0.00) as tdsamount,a.ven_ref,a.gl_doc,a.sec
                         from(
@@ -652,7 +652,7 @@ class Parser(report_sxw.rml_parse):
             
               else:
                 sql = '''
-                        Select distinct a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                        Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
                         a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
                         COALESCE(a.tdsamount,0.00) as tdsamount,a.ven_ref,a.gl_doc,a.sec
                         from(
@@ -728,7 +728,7 @@ class Parser(report_sxw.rml_parse):
         elif invoicetype == 'sup_inv':
               if vendor and tds and gl_accnt:
                     sql = '''
-                        Select distinct a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                        Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
                         a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
                         COALESCE(a.tdsamount,0.00) as tdsamount,a.ven_ref,a.gl_doc,a.sec
                         from(
@@ -801,7 +801,7 @@ class Parser(report_sxw.rml_parse):
                 
               elif vendor and tds:
                     sql = '''
-                        Select distinct a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                        Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
                         a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
                         COALESCE(a.tdsamount,0.00) as tdsamount,a.ven_ref,a.gl_doc,a.sec
                         from(
@@ -874,7 +874,7 @@ class Parser(report_sxw.rml_parse):
                 
               elif vendor and gl_accnt:
                     sql = '''
-                        Select distinct a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                        Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
                         a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
                         COALESCE(a.tdsamount,0.00) as tdsamount,a.ven_ref,a.gl_doc,a.sec
                         from(
@@ -947,7 +947,7 @@ class Parser(report_sxw.rml_parse):
                 
               elif tds and gl_accnt:
                     sql = '''
-                        Select distinct a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                        Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
                         a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
                         COALESCE(a.tdsamount,0.00) as tdsamount,a.ven_ref,a.gl_doc,a.sec
                         from(
@@ -1020,7 +1020,7 @@ class Parser(report_sxw.rml_parse):
                 
               elif vendor:
                     sql = '''
-                        Select distinct a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                        Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
                         a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
                         COALESCE(a.tdsamount,0.00) as tdsamount,a.ven_ref,a.gl_doc,a.sec
                         from(
@@ -1093,7 +1093,7 @@ class Parser(report_sxw.rml_parse):
                 
               elif tds:
                     sql = '''
-                        Select distinct a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                        Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
                         a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
                         COALESCE(a.tdsamount,0.00) as tdsamount,a.ven_ref,a.gl_doc,a.sec
                         from(
@@ -1166,7 +1166,7 @@ class Parser(report_sxw.rml_parse):
                 
               elif gl_accnt:
                     sql = '''
-                        Select distinct a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                        Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
                         a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
                         COALESCE(a.tdsamount,0.00) as tdsamount,a.ven_ref,a.gl_doc,a.sec
                         from(
@@ -1239,7 +1239,7 @@ class Parser(report_sxw.rml_parse):
                 
               else:
                     sql = '''
-                        Select distinct a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                        Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
                         a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
                         COALESCE(a.tdsamount,0.00) as tdsamount,a.ven_ref,a.gl_doc,a.sec
                         from(
@@ -1316,7 +1316,7 @@ class Parser(report_sxw.rml_parse):
         elif invoicetype == 'freight':
               if vendor and tds and gl_accnt:
                     sql = '''
-                        Select distinct a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                        Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
                         a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
                         COALESCE(a.tdsamount,0.00) as tdsamount,a.ven_ref,a.gl_doc,a.sec
                         from(
@@ -1390,7 +1390,7 @@ class Parser(report_sxw.rml_parse):
                 
               elif vendor and tds:
                     sql = '''
-                        Select distinct a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                        Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
                         a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
                         COALESCE(a.tdsamount,0.00) as tdsamount,a.ven_ref,a.gl_doc,a.sec
                         from(
@@ -1465,7 +1465,7 @@ class Parser(report_sxw.rml_parse):
            
               elif vendor and gl_accnt:
                     sql = '''
-                        Select distinct a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                        Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
                         a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
                         COALESCE(a.tdsamount,0.00) as tdsamount,a.ven_ref,a.gl_doc,a.sec
                         from(
@@ -1539,7 +1539,7 @@ class Parser(report_sxw.rml_parse):
               
               elif tds and gl_accnt:
                     sql = '''
-                        Select distinct a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                        Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
                         a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
                         COALESCE(a.tdsamount,0.00) as tdsamount,a.ven_ref,a.gl_doc,a.sec
                         from(
@@ -1613,7 +1613,7 @@ class Parser(report_sxw.rml_parse):
                          
               elif vendor:
                     sql = '''
-                        Select distinct a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                        Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
                         a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
                         COALESCE(a.tdsamount,0.00) as tdsamount,a.ven_ref,a.gl_doc,a.sec
                         from(
@@ -1687,7 +1687,7 @@ class Parser(report_sxw.rml_parse):
                 
               elif tds:
                     sql = '''
-                        Select distinct a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                        Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
                         a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
                         COALESCE(a.tdsamount,0.00) as tdsamount,a.ven_ref,a.gl_doc,a.sec
                         from(
@@ -1761,7 +1761,7 @@ class Parser(report_sxw.rml_parse):
                 
               elif gl_accnt:
                     sql = '''
-                        Select distinct a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                        Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
                         a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
                         COALESCE(a.tdsamount,0.00) as tdsamount,a.ven_ref,a.gl_doc,a.sec
                         from(
@@ -1835,7 +1835,7 @@ class Parser(report_sxw.rml_parse):
                   
               else:
                     sql = '''
-                        Select distinct a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                        Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
                         a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
                         COALESCE(a.tdsamount,0.00) as tdsamount,a.ven_ref,a.gl_doc,a.sec
                         from(
@@ -1910,7 +1910,7 @@ class Parser(report_sxw.rml_parse):
         
         elif vendor and tds and gl_accnt:            
                 sql = '''
-                        Select distinct a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                        Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
                         a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
                         COALESCE(a.tdsamount,0.00) as tdsamount,a.ven_ref,a.gl_doc,a.sec
                         from(
@@ -1984,7 +1984,7 @@ class Parser(report_sxw.rml_parse):
         
         elif vendor and gl_accnt:            
                 sql = '''
-                        Select distinct a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                        Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
                         a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
                         COALESCE(a.tdsamount,0.00) as tdsamount,a.ven_ref,a.gl_doc,a.sec
                         from(
@@ -2058,7 +2058,7 @@ class Parser(report_sxw.rml_parse):
         
         elif vendor and tds:            
             sql = '''
-                        Select distinct a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                        Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
                         a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
                         COALESCE(a.tdsamount,0.00) as tdsamount,a.ven_ref,a.gl_doc,a.sec
                         from(
@@ -2132,7 +2132,7 @@ class Parser(report_sxw.rml_parse):
         
         elif tds and gl_accnt:            
             sql = '''
-                        Select distinct a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                        Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
                         a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
                         COALESCE(a.tdsamount,0.00) as tdsamount,a.ven_ref,a.gl_doc,a.sec
                         from(
@@ -2206,7 +2206,7 @@ class Parser(report_sxw.rml_parse):
         
         elif vendor:            
             sql = '''
-                        Select distinct a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                        Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
                         a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
                         COALESCE(a.tdsamount,0.00) as tdsamount,a.ven_ref,a.gl_doc,a.sec
                         from(
@@ -2280,7 +2280,7 @@ class Parser(report_sxw.rml_parse):
         
         elif tds:            
             sql = '''
-                        Select distinct a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                        Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
                         a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
                         COALESCE(a.tdsamount,0.00) as tdsamount,a.ven_ref,a.gl_doc,a.sec
                         from(
@@ -2354,7 +2354,7 @@ class Parser(report_sxw.rml_parse):
         
         elif gl_accnt:            
             sql = '''
-                        Select distinct a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                        Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
                         a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
                         COALESCE(a.tdsamount,0.00) as tdsamount,a.ven_ref,a.gl_doc,a.sec
                         from(
@@ -2428,7 +2428,7 @@ class Parser(report_sxw.rml_parse):
         
         else:            
             sql = '''
-                        Select distinct a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
+                        Select a.ven_code,a.ven_name,a.vendor_pan_no,a.officialwitholdingtax,
                         a.tds_id,a.invoicedocno,a.postingdate,a.bill_no,a.bill_date,a.base_amnt,a.tax_deduction,
                         COALESCE(a.tdsamount,0.00) as tdsamount,a.ven_ref,a.gl_doc,a.sec
                         from(
