@@ -10841,7 +10841,7 @@ class tpt_hr_attendance(osv.osv):
             #ast_obj.write(cr, uid, ast_id, {'state':'done', 'approval':True})
         
         elif a_shift==0 and g1_shift==0 and g2_shift==0 and b_shift==0 and c_shift==0 and shift_count==0:
-            ast_values={'employee_id':emp_root.id,'planned_work_shift_id':shift_id,'actual_work_shift_id':work_shift_id,'work_date':work_date_format,
+            ast_values={'employee_id':emp_root.id,'planned_work_shift_id':shift_id,'actual_work_shift_id':work_shift_id,
                         'punch_in_date':punch_in_date,'punch_out_date':work_date_format,'in_time':in_time,'out_time':out_time,
                         'ref_in_time':in_time,'ref_out_time':out_time,'type':'punch','employee_category_id':emp_root.employee_category_id.id
                         }
@@ -10849,7 +10849,7 @@ class tpt_hr_attendance(osv.osv):
             ast_obj.write(cr, uid, [ast_id], ast_values, context)
             #new_write = super(arul_hr_audit_shift_time, self).write(cr, uid, ids, vals, context)
         elif shift_count==1  and not shift_id:
-            ast_values={'employee_id':emp_root.id,'planned_work_shift_id':shift_id,'actual_work_shift_id':work_shift_id,'work_date':work_date_format,
+            ast_values={'employee_id':emp_root.id,'planned_work_shift_id':shift_id,'actual_work_shift_id':work_shift_id,
                         'punch_in_date':punch_in_date,'punch_out_date':work_date_format,'in_time':in_time,'out_time':out_time,
                         'ref_in_time':in_time,'ref_out_time':out_time,'type':'punch','employee_category_id':emp_root.employee_category_id.id
                         }
