@@ -99,7 +99,7 @@ class Parser(report_sxw.rml_parse):
         s_no = 1
         for line in self.cr.dictfetchall():
              ###
-            ssshift_continue = ''
+            shift_continue = ''
             if line['ref_in_time']>0 and line['ref_out_time']>0:
                 sql = '''
                      select description from tpt_work_shift where 
