@@ -1311,7 +1311,7 @@
                 		<notebook>
                 			<page string="Meals Deduction">
                 				<field name ="meals_details_emp_ids" nolabel="1" attrs="{'invisible':[('meals_for','!=','employees')]}">
-                					<tree editable="top">
+                					<tree editable="bottom">
                 						<field name ="emp_id" invisible="0" readonly="0" options="{'create': false, 'create_edit': false}" />
                 						<field name ="break_fast"/>
                 						<field name ="lunch"/>
