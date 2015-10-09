@@ -3846,13 +3846,14 @@ class arul_hr_audit_shift_time(osv.osv):
                 #C.OFF ENTRY CREATION
                 if flag==1 or line.additional_shifts or (line.employee_id.employee_category_id and line.employee_id.employee_category_id.code!='S1'):
                     coff_obj = self.pool.get('tpt.coff.register')
-                    coff_obj.create(cr, uid, {
-                                              'employee_id': line.employee_id.id,
-                                               'work_date': line.work_date,
-                                               'total_shift_worked': shift_count,
-                                           'coff_count': c_off_day#(shift_count-1) if shift_count>1 else 0 ,
-                                                              
-                                                                       })
+                    if c_off_day > 0:
+                        coff_obj.create(cr, uid, {
+                                    'employee_id': line.employee_id.id,
+                                    'work_date': line.work_date,
+                                    'total_shift_worked': shift_count,
+                                    'coff_count': c_off_day#(shift_count-1) if shift_count>1 else 0 ,
+                                                                  
+                                                                           })
                  ##
                 ##
             #ELSE PERMISSION
@@ -6456,6 +6457,8 @@ arul_hr_punch_in_out()
 
 class arul_hr_monthly_work_schedule(osv.osv):
     _name='arul.hr.monthly.work.schedule'
+    
+    _order='create_date desc'
     
     _columns={
               'department_id':fields.many2one('hr.department','Department', required = True, states={'done': [('readonly', True)]}),
@@ -10345,7 +10348,9 @@ class tpt_work_shift(osv.osv):
               'c_shift': fields.float('C'),
               'shift_count': fields.float('Total Shift Worked'), 
               'time_total': fields.function(_time_total, store=True, string='Recording Hrs', multi='sums', help="The total amount."),                                 
-    
+              #FOR DAILY PUNCH IN/OUT REPORT
+              'in_time': fields.float('Punch In Time'),
+              'out_time': fields.float('Punch Out Time'),
               }
 
     
@@ -10840,7 +10845,7 @@ class tpt_hr_attendance(osv.osv):
             #ast_obj.write(cr, uid, ast_id, {'state':'done', 'approval':True})
         
         elif a_shift==0 and g1_shift==0 and g2_shift==0 and b_shift==0 and c_shift==0 and shift_count==0:
-            ast_values={'employee_id':emp_root.id,'planned_work_shift_id':shift_id,'actual_work_shift_id':work_shift_id,'work_date':work_date_format,
+            ast_values={'employee_id':emp_root.id,'planned_work_shift_id':shift_id,'actual_work_shift_id':work_shift_id,
                         'punch_in_date':punch_in_date,'punch_out_date':work_date_format,'in_time':in_time,'out_time':out_time,
                         'ref_in_time':in_time,'ref_out_time':out_time,'type':'punch','employee_category_id':emp_root.employee_category_id.id
                         }
@@ -10848,11 +10853,16 @@ class tpt_hr_attendance(osv.osv):
             ast_obj.write(cr, uid, [ast_id], ast_values, context)
             #new_write = super(arul_hr_audit_shift_time, self).write(cr, uid, ids, vals, context)
         elif shift_count==1  and not shift_id:
-            ast_values={'employee_id':emp_root.id,'planned_work_shift_id':shift_id,'actual_work_shift_id':work_shift_id,'work_date':work_date_format,
+            ast_values={'employee_id':emp_root.id,'planned_work_shift_id':shift_id,'actual_work_shift_id':work_shift_id,
                         'punch_in_date':punch_in_date,'punch_out_date':work_date_format,'in_time':in_time,'out_time':out_time,
-                        'ref_in_time':in_time,'ref_out_time':out_time,'type':'punch','employee_category_id':emp_root.employee_category_id.id
+                        'ref_in_time':in_time,'ref_out_time':out_time,'type':'punch','employee_category_id':emp_root.employee_category_id.id,
+                         'total_shift_worked':shift_count       
                         }
             #ast_obj.create(cr,uid,ast_values)
+            ast_obj.write(cr, uid, [ast_id], ast_values, context)
+        elif shift_count > 1 :
+            ast_values={'actual_work_shift_id':work_shift_id, 'total_shift_worked':shift_count                      
+                        }        
             ast_obj.write(cr, uid, [ast_id], ast_values, context)
             
         

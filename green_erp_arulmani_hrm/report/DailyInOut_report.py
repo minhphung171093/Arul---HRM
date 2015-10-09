@@ -72,25 +72,66 @@ class Parser(report_sxw.rml_parse):
         wizard_data = self.localcontext['data']['form']
         workdate=wizard_data['workdate']
                 
-        sql = ''' select cws.name as workshift, he.employee_id as employee_id, he.name_related as employeename,
-        COALESCE(ref_in_time,0.0) as ref_in_time, COALESCE(ref_out_time,0.0) as ref_out_time, 
-        null as shiftcondition, null as remarks  from arul_hr_audit_shift_time ast
-        inner join arul_hr_capture_work_shift cws on (cws.id=actual_work_shift_id)
-        inner join hr_employee he on (he.id=ast.employee_id) where ast.work_date='%s' 
-        and cws.name='%s' order by cws.name,he.employee_id
-        '''%(workdate, shift_type)               
+        #=======================================================================
+        # sql = ''' select cws.name as workshift, he.employee_id as employee_id, he.name_related as employeename,
+        # COALESCE(ref_in_time,0.0) as ref_in_time, COALESCE(ref_out_time,0.0) as ref_out_time, 
+        # null as shiftcondition, null as remarks  from arul_hr_audit_shift_time ast
+        # inner join arul_hr_capture_work_shift cws on (cws.id=actual_work_shift_id)
+        # inner join hr_employee he on (he.id=ast.employee_id) where ast.work_date='%s' 
+        # and cws.name='%s' order by cws.name,he.employee_id
+        # '''%(workdate, shift_type)     
+        #=======================================================================
+            
+        sql = '''
+          select emp.employee_id, emp.name_related employeename, COALESCE(ast.ref_in_time,0.0) as ref_in_time, 
+          COALESCE(ast.ref_out_time,0.0) as ref_out_time
+            from arul_hr_audit_shift_time ast
+         inner join hr_employee emp on ast.employee_id=emp.id
+         where ref_in_time between (select in_time from tpt_work_shift where 
+         code='%s') and (select out_time from tpt_work_shift where
+         code='%s') and work_date='%s'
+         order by emp.employee_id
+        '''%(shift_type, shift_type, workdate)               
         self.cr.execute(sql)
+        
+       
         res = []
         s_no = 1
         for line in self.cr.dictfetchall():
+             ###
+            shift_continue = ''
+            if line['ref_in_time']>0 and line['ref_out_time']>0:
+                sql = '''
+                     select name,shift_count from tpt_work_shift where 
+                     (%s between min_start_time and max_start_time)
+                     and
+                     (%s between min_end_time and max_end_time)
+                '''%(line['ref_in_time'],line['ref_out_time'])
+                self.cr.execute(sql)
+                #desc = self.cr.fetchone()
+                for k in self.cr.fetchall():
+                    desc=k[0]
+                    shift_count=k[1]
+                #===============================================================
+                # if desc:
+                #     desc = desc[0]
+                #     #if len(str(desc))>0:
+                #     shift_continue = desc
+                #===============================================================
+                if shift_count>1:
+                    shift_continue = desc
+                
+            ###
             res.append({
                         's_no':s_no,
                         'employee_id': line['employee_id'] or '',
                         'employeename': line['employeename'] or '',
                         'ref_in_time': line['ref_in_time'] or '',
                         'ref_out_time': line['ref_out_time'] or '',
+                        'shift_continue': shift_continue ,
                         })
             s_no += 1
+            #shift_continue = ''
         return res     
     
     def get_workdate(self):
