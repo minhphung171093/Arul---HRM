@@ -1304,7 +1304,7 @@
                 			<field name ="meals_for" style="width:40%%" on_change="onchange_date(meals_date,meals_for)"/>
                 			-->
                 			<field name ="meals_date" />
-                			<field name ="meals_for" style="width:40%%" />
+                			<field name ="meals_for" style="width:40%%" on_change="onchange_meals_for(meals_for)"/>
                 			<field name ="create_date"/>
                 			<field name ="create_uid"/>
                 		</group>
@@ -1321,17 +1321,19 @@
                 						<field name ="employee_amt"/>
                 						<field name ="free_cost_1"  options="{'create': false, 'create_edit': false}" domain="[('history_id','=',False),('id','!=',free_cost_2)]"/>
                 						<field name ="free_cost_2"  options="{'create': false, 'create_edit': false}" domain="[('history_id','=',False),('id','!=',free_cost_1)]"/>
+                						<field name ="meals_rel" invisible='1'/>
                 					</tree>
                 				</field>
                 				<field name ="meals_details_order_ids" nolabel="1" attrs="{'invisible':[('meals_for','!=','others')]}">
                 					<tree editable="top">
-                						<field name ="emp_name" options="{'create': false, 'create_edit': false}" readonly="0" required = "1"/>
+                						<field name ="emp_name" options="{'create': false, 'create_edit': false}" readonly="0" attrs="{'required':[('meals_rel','=','others')]}"/>
                 						<field name ="break_fast_num"/>
                 						<field name ="lunch_num"/>
                 						<field name ="dinner_num"/>
                 						<field name ="midnight_tiffin_num"/>
                 						<field name ="employer_amt"/>
                 						<field name ="employee_amt"/>
+                						<field name ="meals_rel" invisible='1'/>
                 					</tree>
                 				</field>
                 				
