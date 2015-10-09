@@ -20,6 +20,7 @@ class daily_in(osv.osv_memory):
             'shift_type':fields.selection([('a_shift', 'A'),('g1_shift', 'G1'),
                                       ('g2_shift', 'G2'),('b_shift', 'B'),
                                       ('c_shift', 'C')],'Shift Type'),
+            'blank_space':fields.char('')
             
     }
     

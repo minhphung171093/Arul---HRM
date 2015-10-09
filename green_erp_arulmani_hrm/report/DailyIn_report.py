@@ -98,7 +98,6 @@ class Parser(report_sxw.rml_parse):
         self.cr.execute(sql)
         shifts_ids = self.cr.dictfetchall()
         
-        
         res = []
         s_no = 1
         for line in shifts_ids: #self.cr.dictfetchall():

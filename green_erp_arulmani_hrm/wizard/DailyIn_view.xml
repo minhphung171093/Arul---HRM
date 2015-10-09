@@ -14,7 +14,8 @@
 	                    <field name='b_shift'/>     
 	                    <field name='c_shift'/>    -->  
 	                    <newline/>  
-	                    <field name='shift_type' required='1'/>                           
+	                    <field name='shift_type' required='1'/>      
+	                    <field name='blank_space' readonly='1'/>                     
                  	</group>
                     <footer>
                         <button name="print_report" string="Print" type="object" class="oe_highlight" />                    
