@@ -10349,8 +10349,8 @@ class tpt_work_shift(osv.osv):
               'shift_count': fields.float('Total Shift Worked'), 
               'time_total': fields.function(_time_total, store=True, string='Recording Hrs', multi='sums', help="The total amount."),                                 
               #FOR DAILY PUNCH IN/OUT REPORT
-              'in_time': fields.float('Punch In Time'),
-              'out_time': fields.float('Punch Out Time'),
+              'min_in_time': fields.float('Min Punch In Time'),
+              'max_in_time': fields.float('Max Punch In Time'),
               }
 
     

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>   
+        <record id="view_daily_in_report" model="ir.ui.view">
+            <field name="name">daily.in.report</field>
+            <field name="model">daily.in</field>
+            <field name="arch" type="xml">
+                <form string="Daily In Report" version="7.0">
+                	<group col='4' colspan='2'>
+	                    <field name='workdate'/>     
+	                    <!-- <field name='a_shift'/>      
+	                    <field name='g1_shift'/>     
+	                    <field name='g2_shift'/>     
+	                    <field name='b_shift'/>     
+	                    <field name='c_shift'/>    -->  
+	                    <newline/>  
+	                    <field name='shift_type' required='1'/>                           
+                 	</group>
+                    <footer>
+                        <button name="print_report" string="Print" type="object" class="oe_highlight" />                    
+                        <button string="Cancel" class="oe_link" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>        
+        <record id="action_daily_in_report" model="ir.actions.act_window">
+            <field name="name">Daily Punch IN Report</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">daily.in</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+        </record>
+        
+        
+    </data>
+</openerp>
+
