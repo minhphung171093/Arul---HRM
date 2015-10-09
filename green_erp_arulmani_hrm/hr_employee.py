@@ -1086,6 +1086,18 @@ class meals_deduction(osv.osv):
         vals = {'meals_details_emp_ids':emp_vals,'meals_details_order_ids':[]}
         return {'value': vals}
     
+    def onchange_meals_for(self, cr, uid, ids, meals_for, context=None):
+        vals = {}
+        rs = {}
+        meals_details_order_ids=[]
+        if meals_for:
+            for master in self.browse(cr, uid, ids):
+                for line in master.meals_details_order_ids:
+                    rs = {'meals_rel':meals_for}
+                    meals_details_order_ids.append((1,line.id,rs))
+                    vals = {'meals_details_order_ids':meals_details_order_ids}
+        return {'value': vals}
+    
     def button_dummy(self, cr, uid, ids, context=None):
         return True
     _columns = {
@@ -1244,6 +1256,8 @@ class meals_details(osv.osv):
         'free_cost_1' : fields.many2one('food.subsidy', 'Free Cost 1',ondelete='restrict'),
         'free_cost_2' : fields.many2one('food.subsidy', 'Free Cost 2',ondelete='restrict'),
         'meals_id': fields.many2one('meals.deduction','Meal Deduction',ondelete='cascade'),
+        'meals_rel': fields.related('meals_id', 'meals_for', type="selection",
+                selection=[('employees', 'Employees'),('others', 'Others')], string="Meals Arrangement For"),
     }
     
 meals_details()
