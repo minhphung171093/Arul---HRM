@@ -10,8 +10,8 @@
 	                    <field name='workdate'/>                              
                  	</group>
                     <footer>
-                        <button name="print_report" string="Print - Punch IN/OUT" type="object" class="oe_highlight" />
-                        <button name="print_report_in" string="Print - Punch IN" type="object" class="oe_highlight" />
+                        <button name="print_report" string="Print" type="object" class="oe_highlight" />
+                        
                         <button string="Cancel" class="oe_link" special="cancel"/>
                     </footer>
                 </form>
