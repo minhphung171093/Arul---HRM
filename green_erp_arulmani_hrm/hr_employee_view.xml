@@ -1325,7 +1325,7 @@
                 					</tree>
                 				</field>
                 				<field name ="meals_details_order_ids" nolabel="1" attrs="{'invisible':[('meals_for','!=','others')]}">
-                					<tree editable="top">
+                					<tree editable="bottom">
                 						<field name ="emp_name" options="{'create': false, 'create_edit': false}" readonly="0" attrs="{'required':[('meals_rel','=','others')]}"/>
                 						<field name ="break_fast_num"/>
                 						<field name ="lunch_num"/>

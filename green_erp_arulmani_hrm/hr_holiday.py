@@ -211,7 +211,7 @@ arul_hr_capture_work_shift()
 
 class arul_hr_audit_shift_time(osv.osv):
     _name='arul.hr.audit.shift.time'
-    
+    _order='work_date desc'
     def _time_total(self, cr, uid, ids, field_name, arg, context=None):
         res = {}
         for time in self.browse(cr, uid, ids, context=context):
