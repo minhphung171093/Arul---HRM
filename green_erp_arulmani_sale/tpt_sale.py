@@ -74,8 +74,7 @@ class product_product(osv.osv):
 product_product()
 
 class sale_order(osv.osv):
-    _inherit = "sale.order"
-    
+    _inherit = "sale.order"    
     _order = "name desc" #"blanket_id"
     
     def init(self, cr):
@@ -1100,6 +1099,7 @@ sale_order_line()
 
 class tpt_blanket_order(osv.osv):
     _name = "tpt.blanket.order"
+    _order = 'name desc'
     
     def amount_all_blanket_orderline(self, cr, uid, ids, field_name, args, context=None):
         res = {}
@@ -1693,6 +1693,7 @@ tpt_test_report_line()
 
 class tpt_batch_request(osv.osv):
     _name = "tpt.batch.request"
+    _order = 'name desc'
     
     _columns = {
         'name': fields.char('Request No', size = 1024,readonly=True, required = True , states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
@@ -1874,7 +1875,7 @@ tpt_batch_number()
 
 class tpt_batch_allotment(osv.osv):
     _name = "tpt.batch.allotment"
-     
+    _order = 'batch_request_id desc' 
      
     def init(self, cr):
         batch_line_obj = self.pool.get('tpt.batch.allotment.line')

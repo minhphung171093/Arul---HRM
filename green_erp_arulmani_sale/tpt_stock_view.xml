@@ -168,10 +168,13 @@
 	                    <field name="origin" invisible="1"/>
 	                    <field name="currency_id" invisible="1" groups="base.group_multi_currency"/>
 	                    <field name="residual" invisible="1" sum="Residual Amount"/>
+	                    <field name="delivery_order_id" />
+	                    <field name="sale_id" />
 	                    <field name="amount_untaxed" sum="Untaxed Amount"/>
 	                    <field name="amount_total" sum="Total Amount"/>
-	                    <field name="form_type" />
-	                    <field name="form_number" />
+	                    
+	                    <!-- <field name="form_type" />
+	                    <field name="form_number" />  -->
 	                    <field name="state" invisible="1"/>
 	                </tree>
 	           	</tree>

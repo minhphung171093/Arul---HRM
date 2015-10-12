@@ -4284,6 +4284,7 @@ arul_hr_audit_shift_time()
 
 class arul_hr_employee_leave_details(osv.osv):
     _name='arul.hr.employee.leave.details'
+    _order = 'create_date desc'
 
     def days_total(self, cr, uid, ids, field_name, arg, context=None):
         res = {}
@@ -4928,6 +4929,7 @@ arul_hr_employee_leave_details()
 
 class arul_hr_permission_onduty(osv.osv):
     _name='arul.hr.permission.onduty'
+    _order = 'create_date desc'
     
     def create(self, cr, uid, vals, context=None):
         new_id = super(arul_hr_permission_onduty, self).create(cr, uid, vals, context)
@@ -5952,6 +5954,7 @@ arul_hr_employee_attendence_details()
 
 class arul_hr_punch_in_out(osv.osv):
     _name = 'arul.hr.punch.in.out'
+    _order = 'name desc'
     def _data_get(self, cr, uid, ids, name, arg, context=None):
         if context is None:
             context = {}
@@ -8193,6 +8196,7 @@ tpt_non_availability()
 
 class tpt_time_leave_evaluation(osv.osv):
     _name = 'tpt.time.leave.evaluation'
+    _order = 'create_date desc'
     _columns = {
          'payroll_area_id':fields.many2one('arul.hr.payroll.area','Payroll Area',required = True),
          'year': fields.selection([(num, str(num)) for num in range(1951, 2026)], 'Year',required = True),
@@ -10013,7 +10017,7 @@ shift_change()
 #===============================================================================
 class shift_adjustment(osv.osv):
     _name='shift.adjustment'
-    
+    _order='create_date desc'
     def shift_adj(self, cr, uid, ids, context=None):
         emp_attendence_obj = self.pool.get('arul.hr.employee.attendence.details')
         punch_obj = self.pool.get('arul.hr.punch.in.out.time')
@@ -10230,7 +10234,7 @@ shift_adjustment()
 #===============================================================================
 class leave_adjustment(osv.osv):
     _name='leave.adjustment'
-    
+    _order='create_date desc'
     def leave_adj(self, cr, uid, ids, context=None):
         employee_leave_obj = self.pool.get('employee.leave')
         employee_leave_detail_obj = self.pool.get('employee.leave.detail')

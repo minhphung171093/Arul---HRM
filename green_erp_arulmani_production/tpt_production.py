@@ -13,14 +13,16 @@ from openerp import netsvc
 
 class tpt_tio2_batch_split(osv.osv):
     _name = 'tpt.tio2.batch.split'
+    _order = 'mrp_id desc'
+    
     _columns = {
         'product_id': fields.many2one('product.product', 'Product', required=True, states={'generate': [('readonly', True)], 'confirm':[('readonly', True)]}),
         'name': fields.date('Created Date', states={'generate': [('readonly', True)], 'confirm':[('readonly', True)]}),
         'mrp_id': fields.many2one('mrp.production', 'Production Decl. No', required=True, states={'generate': [('readonly', True)], 'confirm':[('readonly', True)]}),
         'location_id': fields.many2one('stock.location', 'Warehouse Location', required=True, states={'generate': [('readonly', True)], 'confirm':[('readonly', True)]}),
 #         'available': fields.related('mrp_id', 'product_qty',string='Available Stock',store=True,readonly=True,digits=(16,3)),
-        'available': fields.float('Batchable',digits=(16,3),readonly=True),
-        'batchable': fields.float('Batchable',digits=(16,3)),
+        'available': fields.float('Available Stock',digits=(16,3),readonly=True),
+        'batchable': fields.float('Batchable Quantity',digits=(16,3)),
         'stating_batch_no': fields.char('Stating Batch No', size=100,readonly=True, states={'generate': [('readonly', True)], 'confirm':[('readonly', True)]}),
         'batch_split_line': fields.one2many('tpt.batch.split.line', 'tio2_id', 'Batch Split Line', states={'generate': [('readonly', True)], 'confirm':[('readonly', True)]}),
         'state':fields.selection([('draft', 'Draft'),('generate', 'Generated'),('confirm', 'Confirm')],'Status', readonly=True),
@@ -269,6 +271,7 @@ tpt_batch_split_line()
 
 class tpt_fsh_batch_split(osv.osv):
     _name = 'tpt.fsh.batch.split'
+    _order = 'mrp_id desc'
     
 #     def _get_available(self, cr, uid, ids, name, arg, context=None):
 #         res = {}
@@ -948,6 +951,7 @@ tpt_activities_line()
 
 class mrp_production(osv.osv):
     _inherit = 'mrp.production'
+    _order = 'name desc'
     _columns = {
             
             'move_lines': fields.many2many('stock.move', 'mrp_production_move_ids', 'production_id', 'move_id', 'Products to Consume',

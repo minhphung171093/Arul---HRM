@@ -13,6 +13,7 @@ from openerp import netsvc
 
 class tpt_purchase_indent(osv.osv):
     _name = 'tpt.purchase.indent'
+    _order = 'name desc'
     _columns = {
         'name': fields.char('Indent No.', size=1024, readonly=True ),
         'date_indent':fields.date('Indent Date',required = True, states={'cancel': [('readonly', True)]}),
@@ -1185,7 +1186,7 @@ tpt_product_inventory()
 
 class tpt_gate_in_pass(osv.osv):
     _name = "tpt.gate.in.pass"
-      
+    _order = 'name desc'  
     _columns = {
         'name': fields.char('Gate In Pass No', size = 1024, readonly=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'po_id': fields.many2one('purchase.order', 'PO Number', required = True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
@@ -1246,7 +1247,7 @@ tpt_gate_in_pass()
 
 class tpt_purchase_quotation(osv.osv):
     _name = "tpt.purchase.quotation"
-    
+    _order = 'name desc'
     def amount_all_quotation_line(self, cr, uid, ids, field_name, args, context=None):
         res = {}
         for line in self.browse(cr,uid,ids,context=context):
@@ -1912,7 +1913,7 @@ tpt_purchase_quotation_line()
 
 class tpt_comparison_chart(osv.osv):
     _name = "tpt.comparison.chart"
-      
+    _order = 'name desc'  
     _columns = {
         'name':fields.many2one('tpt.request.for.quotation','RFQ No', required = True),
         'date':fields.date('Create Date', size = 1024,required=True),
@@ -3373,7 +3374,7 @@ stock_picking_in()
     
 class tpt_good_return_request(osv.osv):
     _name = "tpt.good.return.request"
-    
+    _order = 'name desc'
     _columns = {
         'name': fields.char('Return Request Number', size = 1024, readonly = True),
         'grn_no_id' : fields.many2one('stock.picking.in', 'GRN No', required = True, states={'cancel': [('readonly', True)],'done':[('readonly', True)]}), 
@@ -4574,6 +4575,7 @@ res_partner()
 
 class tpt_material_request(osv.osv):
     _name = "tpt.material.request"
+    _order = 'name desc'
     def _get_department_id(self,cr,uid,context=None):
         user = self.pool.get('res.users').browse(cr,uid,uid)
         return user.employee_id and user.employee_id.department_id and user.employee_id.department_id.id or False
@@ -5118,6 +5120,7 @@ tpt_material_request_line()
 
 class tpt_material_issue(osv.osv):
     _name = "tpt.material.issue"
+    _order = 'doc_no desc'
     _columns = {
         'name': fields.many2one('tpt.material.request','Material Request No',required = True,states={'done':[('readonly', True)]}),
         'date_request':fields.date('Material Request Date',states={'done':[('readonly', True)]}),
