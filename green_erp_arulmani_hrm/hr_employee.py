@@ -70,6 +70,7 @@ arul_reason()
 
 class arul_hr_employee_action_history(osv.osv):
     _name = 'arul.hr.employee.action.history'
+    _order = 'create_date desc'
     
     def default_get(self, cr, uid, fields, context=None):
         if context is None:

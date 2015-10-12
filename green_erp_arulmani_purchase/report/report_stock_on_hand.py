@@ -226,16 +226,16 @@ class Parser(report_sxw.rml_parse):
             str = " pp.mrp_control = 't'"
             sql = sql+str 
         if categ_id and product_id and is_mrp is True:
-            str = "  pt.categ_id=%s and pp.id = %s and pp.mrp_control = 't'" % (categ_id,product_id)
+            str = "  pt.categ_id=%s and pp.id = %s and pp.mrp_control = 't'" % (categ_id,product_id[0])
             sql = sql+str
         if categ_id and product_id and is_mrp is False:
-            str = "  pt.categ_id=%s and pp.id = %s" % (categ_id,product_id)
+            str = "  pt.categ_id=%s and pp.id = %s" % (categ_id,product_id[0])
             sql = sql+str
         if categ_id and not product_id and is_mrp is True :
             str = "  pt.categ_id=%s and pp.mrp_control = 't'" % (categ_id)
             sql = sql+str
         if not categ_id and product_id and is_mrp is True:
-            str = " pp.id = %s and pp.mrp_control = 't'" % (product_id)
+            str = " pp.id = %s and pp.mrp_control = 't'" % (product_id[0])
             sql = sql+str
         str = " order by pp.default_code asc"
         sql = sql+str

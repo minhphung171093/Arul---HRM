@@ -498,9 +498,7 @@
 							<field name="approval"/>
 							<field name="create_date"/>
 							<field name="create_uid"/>
-							<field name="reason_for_edit" attrs="{'invisible':[('time_change_flag','=',False)],'required':[('time_change_flag','=',True)]}" />
-							<field name="diff_day" invisible='1'/>
-							
+							<field name="reason_for_edit" attrs="{'invisible':[('time_change_flag','=',False)],'required':[('time_change_flag','=',True)]}" />				
 							<field name="time_change_flag" invisible='1'/>
 						</group>    	
 		         	</sheet>
@@ -806,7 +804,7 @@
 			                    			</group>
 			                    			<group colspan='2'>
 			                    				<field name="shift_day_to" class="oe_green_erp_scroll_y" domain="[('name','&lt;=',num_of_month)]" options="{'limit':31,'create': false, 'create_edit': false}" on_change="onchange_monthly(num_of_month, shift_day_from, shift_day_to, work_shift_id,shift_group_id,month,year)"/>
-			                    				<field name="shift_group_id" options="{'create': false, 'create_edit': false}" on_change="onchange_monthly(num_of_month, shift_day_from, shift_day_to, work_shift_id,shift_group_id,month,year)"/>
+			                    				<field name="shift_group_id" widget="selection"  on_change="onchange_monthly(num_of_month, shift_day_from, shift_day_to, work_shift_id,shift_group_id,month,year)"/>
 		                    				</group>
 		                    			</group>
 		                    			<group col='6' colspan='6'>
@@ -1102,7 +1100,7 @@
                 			</group>
                 			<group colspan='2'>
                 				<field name="shift_day_to" class="oe_green_erp_scroll_y" domain="[('name','&lt;=',num_of_month)]" options="{'limit':31,'create': false, 'create_edit': false}" on_change="onchange_monthly(num_of_month, shift_day_from, shift_day_to, work_shift_id,shift_group_id,month,year)"/>
-                				<field name="shift_group_id" options="{'create': false, 'create_edit': false}" on_change="onchange_monthly(num_of_month, shift_day_from, shift_day_to, work_shift_id,shift_group_id,month,year)"/>
+                				<field name="shift_group_id" widget="selection" options="{'create': false, 'create_edit': false}" on_change="onchange_monthly(num_of_month, shift_day_from, shift_day_to, work_shift_id,shift_group_id,month,year)"/>
             				</group>
             			</group>
             			<group col='6' colspan='6'>
@@ -1600,6 +1598,7 @@
 				<tree string="Shift Adjustment">
 					<field name ="employee_id"/>
 					<field name ="work_date"/>
+					<field name ="reason_for_adj"/>
 					<field name="state"/>
 					<field name="create_date"/>
 					<field name="create_uid"/>
@@ -1624,8 +1623,8 @@
                 		<field name ="adj_type"/>
                 		<field name ="increase_count" />
                 		<!-- <field name ="decrease_count" attrs="{'invisible':[('adj_type','=','increase')]}"/> -->
-                		<field name ="reason_for_adj" />
-                		<field name ="reason_details" />
+                		<field name ="reason_for_adj" required="1"/>
+                		<field name ="reason_details" required="1"/>
                 		<field name="create_date"/>
 						<field name="create_uid"/>
 						
@@ -1660,6 +1659,7 @@
 				<tree string="Leave Adjustment">
 					<field name ="employee_id"/>
 					<field name ="work_date"/>
+					<field name ="reason_for_adj"/>
 					<field name="state"/>
 					<field name="create_date"/>
 					<field name="create_uid"/>

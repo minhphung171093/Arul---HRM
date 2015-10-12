@@ -155,7 +155,7 @@
                     
                     <xpath expr="//field[@name='user_id']" position="replace">
                     	<field name="lead_zone"/>
-                    	<field name="employee_id" widget="selection" on_change="onchange_employee_id(employee_id, context)" />
+                    	<field name="employee_id" widget="selection" domain="[('department_id','in',('SALES', 'MARKETTING'))]" on_change="onchange_employee_id(employee_id, context)" />
                         <field name="user_id" on_change="on_change_user(user_id, context)" invisible="1"/>
                     </xpath>
                     

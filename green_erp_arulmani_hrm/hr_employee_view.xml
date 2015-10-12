@@ -483,8 +483,8 @@
                 <form string="Employee Section Change Action" version="7.0">    
                 	<sheet>
 		                 <group col='4' colspan='2'>
-							<field name="action_id" on_change="onchange_action_id(action_id)" domain="[('name','=',('Section Change'))]" options="{'create': false, 'create_edit': false}"/>
-							<field name="action_type_id" required='0' domain="[('name','=',('Section Change'))]" options="{'create': false, 'create_edit': false}"/>
+							<field name="action_id" domain="[('name','=',('Section Change'))]" options="{'create': false, 'create_edit': false}"/>
+							<field name="action_type_id" required='1' domain="[('name','=',('Section Change'))]" options="{'create': false, 'create_edit': false}"/>
 							<field name ="employee_id" options="{'create': false, 'create_edit': false}" required = "1" domain="[('active','=',1)]"
 							 on_change="onchange_section_transfer_employee_id(employee_id)"/>
 							<field name ="department_from_id" readonly='0' options="{'create': false, 'create_edit': false}"/>
