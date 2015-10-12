@@ -5041,7 +5041,20 @@ class arul_hr_permission_onduty(osv.osv):
                 cr.execute(sql)
                 p = cr.dictfetchone()        
                 if p and p['num_of_permission']>=11:
-                    raise osv.except_osv(_('Warning!'),_('NO MORE PERMISSION PERMITTED.\n Employee %s have already taken 10 permission for this year!')%(permission.employee_id.name+' '+(permission.employee_id.last_name or '')))
+                    #raise osv.except_osv(_('Warning!'),_('NO MORE PERMISSION PERMITTED.\n Employee %s have already taken 10 permission for this year!')%(permission.employee_id.name+' '+(permission.employee_id.last_name or '')))
+                    res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
+                                            'green_erp_arulmani_hrm', 'alert_third_permission_form_view')
+                    return {
+                                    'name': 'Alert Permission',
+                                    'view_type': 'form',
+                                    'view_mode': 'form',
+                                    'view_id': res[1],
+                                    'res_model': 'alert.form',
+                                    'domain': [],
+                                    'context': {'default_message':'Permission exceeds the Limit (Only 10 Permissions for a Year). Do you want to reduce it from Leave Credits (CL/SL/C.Off/PL/LOP) ?','audit_id':permission.id},
+                                    'type': 'ir.actions.act_window',
+                                    'target': 'new',
+                                }
                 #TPT ENDs
             shift_id = punch_obj.get_work_shift(cr, uid, permission.employee_id.id, int(day), int(month), year)
 #             self.pool.get('arul.hr.audit.shift.time').create(cr, SUPERUSER_ID, {
@@ -5309,7 +5322,20 @@ class arul_hr_permission_onduty(osv.osv):
                 cr.execute(sql)
                 p = cr.dictfetchone()        
                 if p and p['num_of_permission']>=11:
-                    raise osv.except_osv(_('Warning!'),_('NO MORE PERMISSION PERMITTED.\n Employee %s have already taken 10 permission for this year!')%(permission.employee_id.name+' '+(permission.employee_id.last_name or '')))
+                    #raise osv.except_osv(_('Warning!'),_('NO MORE PERMISSION PERMITTED.\n Employee %s have already taken 10 permission for this year!')%(permission.employee_id.name+' '+(permission.employee_id.last_name or '')))
+                    res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
+                                            'green_erp_arulmani_hrm', 'alert_third_permission_form_view')
+                    return {
+                                    'name': 'Alert Permission',
+                                    'view_type': 'form',
+                                    'view_mode': 'form',
+                                    'view_id': res[1],
+                                    'res_model': 'alert.form',
+                                    'domain': [],
+                                    'context': {'default_message':'Permission exceeds the Limit (Only 10 Permissions for a Year). Do you want to reduce it from Leave Credits (CL/SL/C.Off/PL/LOP) ?','audit_id':permission.id},
+                                    'type': 'ir.actions.act_window',
+                                    'target': 'new',
+                                }
                 #TPT ENDs
                 shift_id = punch_obj.get_work_shift(cr, uid, permission.employee_id.id, int(day), int(month), year)
                 audit_id = audit_obj.create(cr, SUPERUSER_ID, {
