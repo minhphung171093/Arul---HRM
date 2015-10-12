@@ -10945,7 +10945,7 @@ class tpt_time_data_move(osv.osv):
             return True
     def upload_employee(self, cr, uid, context=None):
         time_obj = self.pool.get('tpt.time.data.move')
-        time_obj_id = time_obj.search(cr, uid, [('from_db_port','=','5432')])
+        time_obj_id = time_obj.search(cr, uid, [('from_db_port','=','5432')])       
         if time_obj_id:
             line = time_obj.browse(cr, uid, time_obj_id[0])
     #         oorpc = OpenObjectRPC(line.host, line.database, line.username, line.password, line.port)
@@ -10986,8 +10986,8 @@ class tpt_time_data_move(osv.osv):
                     #===========================================================
                     #Update Exsinting Resources                
                     sql = '''
-                    update resource_resource set rfid='%s' where id=%s
-                    '''%(emp.rfid, emp.id)
+                    update resource_resource set rfid='%s', write_date='%s' where id=%s
+                    '''%(emp.rfid, emp.write_date, emp.id)
                     from_cursor.execute(sql)
                     from_conn.commit()
                 else:
