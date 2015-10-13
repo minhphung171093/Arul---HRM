@@ -87,7 +87,9 @@ class tpt_general_ledger_line(osv.osv_memory):
         'total':fields.float('Total',digits=(16,2)),
         'doc_no_line':fields.char('Document No',size=1024), #TPT-Y
         'employee_id': fields.char('Employee', size = 1024), #TPT-Y
-        
+        'order_id':fields.many2one('sale.order','Order/work Order No'),
+        'move_id':fields.many2one('account.move','Document No'),
+        'partner_id':fields.many2one('res.partner','Vendor/Customer'),
                                                         
     }
     
@@ -563,7 +565,13 @@ class general_ledger_statement(osv.osv_memory):
             '''%(move_id)
             cr.execute(sql)
             pur_doc_no = cr.fetchone()
-            return pur_doc_no and pur_doc_no[0] or ''     
+            return pur_doc_no and pur_doc_no[0] or ''   
+        def get_po_id(move_id):
+            sql = '''select id from purchase_order where id in (select purchase_id from account_invoice where move_id = %s)
+            '''%(move_id)
+            cr.execute(sql)
+            po_id = cr.fetchone()
+            return po_id and po_id[0] or ''   
             
         def get_gl_acct(o):            
             gl_account = o.account_id
@@ -612,6 +620,9 @@ class general_ledger_statement(osv.osv_memory):
                     'employee_id': get_line_employee_id(cb, line.move_id.id),
                     'debit': line.debit,
                     'credit': line.credit,
+                    'move_id': line.move_id and line.move_id.id or False,   
+                    'order_id': get_po_id(line.move_id.id) or False,  
+                    'partner_id': line.partner_id and line.partner_id.id or False,  
             }))
         cb_line.append((0,0,{
             'narration': 'Total',

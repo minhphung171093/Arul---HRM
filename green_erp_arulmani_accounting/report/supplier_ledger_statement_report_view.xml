@@ -88,13 +88,24 @@
 		                			<field name="debit"/>
 		                			<field name="credit"/>
 		                		</tree>
-		                	</field>
-		               
-		                	
+		                	</field>  	
 	               	</sheet>
 	           </form>
 	        </field>
 	    </record>
+	    
+	    <record id="view_tpt_supplier_ledger_form_vew" model="ir.ui.view">
+            <field name="name">tpt.supplier.ledger.line.form</field>
+            <field name="model">tpt.supplier.ledger.line</field>
+            <field name="arch" type="xml">
+	            <form string="Supplier Ledger Lines" version="7.0">
+		            <group >
+		            	<field name="move_id"/> 
+			            <field name="order_id"/>  
+				    </group>
+	            </form>
+			</field>
+		</record>
 	    
     </data>
 </openerp>

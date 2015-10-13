@@ -10,7 +10,7 @@ from openerp.tools import DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_DATETIME_FO
 class tpt_service_tax(osv.osv_memory):
     _name = "tpt.service.tax"
     _columns = {
-        
+        'name': fields.char('Service Tax Register Report', size = 1024),  
         'date_from': fields.date('Date From'),
         'date_to': fields.date('Date To'),
         'account_id':fields.many2one('account.account','GL Account'),
@@ -41,11 +41,13 @@ tpt_service_tax()
 class tpt_service_tax_line(osv.osv_memory):
     _name = "tpt.service.tax.line"
     _columns = {
-        'service_id': fields.many2one('tpt.service.tax', 'Service tax'),
+        'service_id': fields.many2one('tpt.service.tax', 'Service tax(Header ID)'),
         'date': fields.date('Date'),
         'bill_no': fields.char('Bill No',size=64),
         'bill_date': fields.date('Bill Date'),
         'number': fields.char('Invoice Number'),
+        'invoice_id':fields.many2one('account.invoice','Invoice No'),
+        'partner_id':fields.many2one('res.partner','Party Name'),
          #'party_name': fields.many2one('res.partner', 'Party Name'),
         'party_name': fields.char('Party Name'),
         'open_bal': fields.float('Open. Balance',size=254),
@@ -133,14 +135,13 @@ class service_tax_register(osv.osv_memory):
             accountid = o.account_id.id       
             moveline_id = moveid
             detail_type = type           
-            
-            
-            
+
             sql = '''
                     select distinct ai.date_invoice as invoice_date,ai.bill_number as bill_no,
                     ai.bill_date as bill_date,ai.name as inv_name,rs.name as partner,
                     ail.line_net as linenet,t.description as desc,ail.id,ai.move_id,
-                    COALESCE(ail.freight,0) as frieght_1,COALESCE(ail.fright,0) as frieght_2,am.doc_type as doc_type
+                    COALESCE(ail.freight,0) as frieght_1,COALESCE(ail.fright,0) as frieght_2,am.doc_type as doc_type,
+                    ai.id as invoice_id, rs.id as partner_id                 
                     from account_invoice_line ail
                     join account_invoice ai on (ai.id = ail.invoice_id)
                     join account_invoice_line_tax ailt on (ailt.invoice_line_id=ail.id)
@@ -176,7 +177,13 @@ class service_tax_register(osv.osv_memory):
                           return net_amnt or 0.00             
                 if type == 'tax':
                     tax_rate = move['desc']
-                    return tax_rate or ''                
+                    return tax_rate or ''   
+                if type == 'invoice_id':
+                    invoice_id = move['invoice_id']
+                    return invoice_id or ''  
+                if type == 'partner_id':
+                    partner_id = move['partner_id']                    
+                    return partner_id or ''
                 
         
         def get_tot_closing_bal(o):
@@ -858,8 +865,10 @@ class service_tax_register(osv.osv_memory):
                     'date': get_invoice_details(sr,line.id,'invdate'), #line.move_id.invoice_id.date_invoice or False,
                     'bill_no': get_invoice_details(sr,line.id,'billno'), #line.invoice_id.bill_number or False,
                     'bill_date': get_invoice_details(sr,line.id,'billdate'), #line.invoice_id.bill_date or False,invname
-                    'number': get_invoice_details(sr,line.id,'invname'), #line.invoice_id.name or False,
+                    'number': get_invoice_details(sr,line.id,'invname'), #line.invoice_id.name or False, 
+                    'invoice_id': get_invoice_details(sr,line.id,'invoice_id') or False, #line.invoice_id.name or False,
                     'party_name': get_invoice_details(sr,line.id,'partner') or False, #line.invoice_id.partner_id and line.invoice_id.partner_id.id or False,
+                    'partner_id': get_invoice_details(sr,line.id,'partner_id') or False,
                     #'open_bal': round(openbalance+temp_taxamt,0) or 0.00,        #netamt
                     'open_bal': openbalance+temp_taxamt or 0.00,        
                     #'taxable_amount': round(get_invoice_details(sr,line.id,'netamt'),0) or 0.00, #line.line_net,
@@ -904,7 +913,7 @@ class service_tax_register(osv.osv_memory):
         }))        
         
         vals = {
-            
+            'name': 'Service Tax Register Report',
             'date_from': sr.date_from,
             'date_to': sr.date_to,
             'account_id': sr.account_id.id,
@@ -914,7 +923,7 @@ class service_tax_register(osv.osv_memory):
         res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
                                         'green_erp_arulmani_accounting', 'view_service_tax_register_form')
         return {
-                    'name': 'service tax Report',
+                    'name': 'Service Tax Register Report',
                     'view_type': 'form',
                     'view_mode': 'form',
                     'res_model': 'tpt.service.tax',
