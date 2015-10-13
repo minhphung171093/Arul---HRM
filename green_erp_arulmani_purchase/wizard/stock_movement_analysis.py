@@ -72,6 +72,7 @@ class tpt_movement_analysis_line(osv.osv):
         'consum_value':fields.float('Stock Value (Consumption)',digits=(16,3)),     
         'close_stock': fields.float('Closing Stock',digits=(16,3)),
         'close_value': fields.float('Closing Stock Value',digits=(16,3)),   
+        'product_id': fields.many2one('product.product', 'Product'),
                 }
     
 
@@ -1141,7 +1142,8 @@ class stock_movement_analysis(osv.osv_memory):
                     'consum_qty':consum_qty,
                     'consum_value': consum_value,    
                     'close_stock':receipt_qty - (consum_qty) + (open_stock) ,
-                    'close_value': open_value + receipt_value - consum_value,   
+                    'close_value': open_value + receipt_value - consum_value,  
+                    'product_id': line.id or False,     
                 
                 }))
         # TPT - ON 07/09/2015 BY BalamuruganPurushothaman - TO FIX PERFORMANCE ISSUE - FOR SPARE MATERIALS
@@ -1152,7 +1154,7 @@ class stock_movement_analysis(osv.osv_memory):
                 product_ids = str(product_ids).replace("[", "")
                 product_ids = product_ids.replace("]", "")
                 sql = '''
-                select pp.default_code, pp.name_template as name, pu.name as uom,
+                select pp.id as product_id, pp.default_code, pp.name_template as name, pu.name as uom,
                 
                 (select case when sum(st.product_qty)!=0 then sum(st.product_qty) else 0 end ton_sl
                             from stock_move st
@@ -1246,7 +1248,7 @@ class stock_movement_analysis(osv.osv_memory):
                 cr.execute(sql)   
             else:
                 sql = '''
-                select pp.default_code, pp.name_template as name, pu.name as uom,
+                select pp.id as product_id, pp.default_code, pp.name_template as name, pu.name as uom,
                 
                 (select case when sum(st.product_qty)!=0 then sum(st.product_qty) else 0 end ton_sl
                             from stock_move st
@@ -1348,7 +1350,8 @@ class stock_movement_analysis(osv.osv_memory):
                     'consum_qty':line['consum_qty'] or 0,
                     'consum_value': line['consum_value'] or 0 , 
                     'close_stock':line['opening_stock']+line['receipt_qty']-line['consum_qty'] or 0,
-                    'close_value':line['opening_stock_value']+line['receipt_value']-line['consum_value'],                               
+                    'close_value':line['opening_stock_value']+line['receipt_value']-line['consum_value'], 
+                    'product_id': line['product_id'] or False,                              
                                                 
                                                 
         }))

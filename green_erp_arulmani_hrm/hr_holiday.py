@@ -10869,20 +10869,16 @@ class tpt_time_data_move(osv.osv):
         
         'result': fields.text('Result', readonly=True ),
     }
+    
     def upload_time_data(self, cr, uid, context=None):
         time_obj = self.pool.get('tpt.time.data.move')
         time_obj_id = time_obj.search(cr, uid, [('from_db_port','=','5432')])
         if time_obj_id:
-            line = time_obj.browse(cr, uid, time_obj_id[0])
-    #         oorpc = OpenObjectRPC(line.host, line.database, line.username, line.password, line.port)
+            line = time_obj.browse(cr, uid, time_obj_id[0])   
             from_db_conn_string = "host='%s' port='%s' dbname='%s' user='%s' password='%s'"%(line.from_host, line.from_db_port, line.from_database, line.from_db_username, line.from_db_password)
             from_conn = psycopg2.connect(from_db_conn_string)
             from_cursor = from_conn.cursor()
-            #===================================================================
-            # sql = '''
-            #     select employee_id, work_date, punch_type from tpt_hr_attendance
-            # '''
-            #===================================================================
+           
             sql = '''
                 select employee_id, name, action, id from hr_attendance where is_moved='f'
             '''
@@ -10914,16 +10910,15 @@ class tpt_time_data_move(osv.osv):
                 print "TIME DATA MOVED"
             return True
     def upload_employee(self, cr, uid, context=None):
+        "This uploads/creates employee in New Time Machine DB from OpenERP Server, when its called based on Auto Synchronization Process"
         time_obj = self.pool.get('tpt.time.data.move')
         time_obj_id = time_obj.search(cr, uid, [('from_db_port','=','5432')])       
         if time_obj_id:
             line = time_obj.browse(cr, uid, time_obj_id[0])
-    #         oorpc = OpenObjectRPC(line.host, line.database, line.username, line.password, line.port)
             from_db_conn_string = "host='%s' port='%s' dbname='%s' user='%s' password='%s'"%(line.from_host, line.from_db_port, line.from_database, line.from_db_username, line.from_db_password)
             from_conn = psycopg2.connect(from_db_conn_string)
             from_cursor = from_conn.cursor()
             
-            ###
             emp_obj = self.pool.get('hr.employee')
             resource_obj = self.pool.get('resource.resource')
             sql = '''
@@ -10974,7 +10969,7 @@ class tpt_time_data_move(osv.osv):
                     '''%(emp.name_related, rfid, emp.id)
                     from_cursor.execute(sql)
                     from_conn.commit()
-                    #
+
                     sql = '''
                     select id from resource_resource where name='%s'
                     '''%emp.name_related
@@ -10992,11 +10987,7 @@ class tpt_time_data_move(osv.osv):
                     '''%(emp.employee_id, emp.name_related,  resource_id, emp.id)
                     from_cursor.execute(sql)
                     from_conn.commit()
-                    
-                    
-            ###
-            
-            
+
             print "EMPLOYEE DATA MOVED"
             return True
 tpt_time_data_move()

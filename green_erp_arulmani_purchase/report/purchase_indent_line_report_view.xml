@@ -141,6 +141,17 @@
 			name="purchase_indent_line_report"
 	        string="Purchase Indent Line Report"
 	        rml="green_erp_arulmani_purchase/report/purchase_indent_line_report.ods"/> -->
-          	
+      <record id="view_pr_line_report_form_vew" model="ir.ui.view">
+            <field name="name">tpt.purchase.indent.line.report.form</field>
+            <field name="model">tpt.purchase.indent.line.report</field>
+            <field name="arch" type="xml">
+	            <form string="GRN Lines" version="7.0">
+		            <group col='4' colspan='2'>
+		            	<field name="ind_no"/>
+		            	<field name="product_id"/> 	 		           			           
+				    </group>
+	            </form>
+			</field>
+		</record>      	
     </data>
 </openerp>

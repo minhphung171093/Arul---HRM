@@ -150,6 +150,17 @@
 			name="material_request_line_report"
 	        string="Goods Request Line Report"
 	        rml="green_erp_arulmani_purchase/report/material_request_consumption_report.ods"/>   -->
-          	
+     <record id="view_tpt_mat_req_line_report_form_vew" model="ir.ui.view">
+            <field name="name">tpt.material.request.line.report.form</field>
+            <field name="model">tpt.material.request.line.report</field>
+            <field name="arch" type="xml">
+	            <form string="Material Request Line" version="7.0">
+		            <group col='4' colspan='2'>
+		            	<field name="mat_req_no"/>
+		            	<field name="product_id"/> 	 		           			          
+				    </group>
+	            </form>
+			</field>
+		</record>        	
     </data>
 </openerp>

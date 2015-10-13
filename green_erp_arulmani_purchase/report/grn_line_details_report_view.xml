@@ -88,7 +88,6 @@
             			<div class="oe_bold oe_text_center">            			
             			<field name="state" class="oe_text_center oe_inline"/>
             			</div>
-            			        			
             			
             			<group>
 		                	<field name="grn_line_id" nolabel='1'>
@@ -118,5 +117,19 @@
 	           </form>
 	        </field>
 	    </record>       	
+	    <record id="view_grn_line_report_form_vew" model="ir.ui.view">
+            <field name="name">grn.line.details.report.form</field>
+            <field name="model">grn.line.details.report</field>
+            <field name="arch" type="xml">
+	            <form string="GRN Lines" version="7.0">
+		            <group col='4' colspan='2'>
+		            	<field name="po_indent_id"/>
+		            	<field name="po_no"/> 	 		           
+			            <field name="grn_no"/>
+			            <field name="prod_id"/>
+				    </group>
+	            </form>
+			</field>
+		</record>   
     </data>
 </openerp>

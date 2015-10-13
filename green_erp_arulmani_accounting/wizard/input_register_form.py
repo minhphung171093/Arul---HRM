@@ -63,7 +63,9 @@ class tpt_input_register_line(osv.osv_memory):
         'billno': fields.char('Bill no',size = 1024),
         'billdate': fields.date('Bill Date'),
         'postdate': fields.date('Posting Date',size = 1024),
-        #'total' : fields.float('Total'),                
+        #'total' : fields.float('Total'),               
+        'invoice_id':fields.many2one('account.invoice', 'Document No'), 
+        'partner_id':fields.many2one('res.partner', 'Partner'), 
          
     }
 
@@ -199,7 +201,9 @@ class input_register_form(osv.osv_memory):
                 'uom': line.uos_id and line.uos_id.name or '',
                 'billno': line.invoice_id.bill_number,
                 'billdate': line.invoice_id.bill_date or False,
-                'postdate': line.invoice_id and line.invoice_id.date_invoice or False,                 
+                'postdate': line.invoice_id and line.invoice_id.date_invoice or False,  
+                'invoice_id': line.invoice_id and line.invoice_id.id or False,  
+                'partner_id': line.invoice_id.partner_id and line.invoice_id.partner_id.id or False,                 
             }))
         sls_line.append((0,0,{
             'sup_ec_no': 'Total',

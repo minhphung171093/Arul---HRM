@@ -78,6 +78,7 @@ class tpt_material_request_line_report(osv.osv_memory):
         'project': fields.char('Project', size = 1024),         
         'project_sec': fields.char('Project Sub Category', size = 1024),
         'state': fields.char('State', size = 1024),
+        'product_id' : fields.many2one('product.product', 'Product'),
                  
             
  }
@@ -280,7 +281,7 @@ class material_request_line_report(osv.osv_memory):
                     s.name as section,p.bin_location as bin_loc,e.name_related as requisitioner,e.employee_id as requisitioner_code,
                     e.last_name as lname,res.login as req_raise_by,p.default_code as mat_code,p.name_template as mat_desc,
                     pr.name as proj_name,cc.name as cost_center,u.name as uom,mrl.product_uom_qty as req_qty,                    
-                    mr.state as state,prs.name as proj_sec_name,mrl.id as lineid
+                    mr.state as state,prs.name as proj_sec_name,mrl.id as lineid, p.id as product_id
                     from tpt_material_request_line mrl
                     join tpt_material_request mr on (mr.id = mrl.material_request_id)
                     join hr_department d on (d.id = mr.department_id)
@@ -425,6 +426,7 @@ class material_request_line_report(osv.osv_memory):
                             'project' : line['proj_name'] or '',
                             'project_sec' : line['proj_sec_name'] or '',
                             'state': get_status(line['state']) or '',
+                            'product_id': line['product_id'] or False,
                                              
                 }))
              

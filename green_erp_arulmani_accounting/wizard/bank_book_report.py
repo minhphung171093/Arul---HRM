@@ -58,6 +58,7 @@ class tpt_bank_book_line(osv.osv_memory):
         'voucher_desc': fields.char('Description', size = 1024),
         'cheque_no': fields.char('Cheque No.', size = 1024),
         'cheque_date': fields.char('Cheque Date', size = 1024),
+        'move_id':fields.many2one('account.move','Document No'),
     }
 
 tpt_bank_book_line()
@@ -200,7 +201,7 @@ class bank_book_report(osv.osv_memory):
                     av.cheque_no cheque_no_1,
                     case when av.cheque_no is null then av.cheque_number
                     else av.cheque_no end as cheque_no,
-                    av.cheque_date cheque_date,av.number as voucher_no,av.narration as desc,av.payee as payee
+                    av.cheque_date cheque_date,av.number as voucher_no,av.narration as desc,av.payee as payee, am.id as move_id
                     from account_move_line aml
                     inner join account_move am on (am.id=aml.move_id)
                     inner join account_account aa on (aa.id=aml.account_id)
@@ -224,7 +225,7 @@ class bank_book_report(osv.osv_memory):
             else:
                 qstr = " and av.state in ('draft','posted')"
                 sql = sql+qstr
-            sql=sql+" group by aa.name,aml.account_id,av.name,av.date,aml.ref,av.payee,aml.name,av.cheque_no, av.cheque_date, av.number,av.narration,av.cheque_number  order by av.date,av.cheque_no,av.cheque_number "
+            sql=sql+" group by aa.name,aml.account_id,av.name,av.date,aml.ref,av.payee,aml.name,av.cheque_no, av.cheque_date, av.number,av.narration,av.cheque_number, am.id  order by av.date,av.cheque_no,av.cheque_number "
             
             cr.execute(sql)
             return cr.dictfetchall()
@@ -436,6 +437,7 @@ class bank_book_report(osv.osv_memory):
                 'voucher_desc': line['desc'],  
                 'cheque_no': line['cheque_no'],
                 'cheque_date': line['cheque_date'],
+                'move_id': line['move_id'] or False,
             }))
         cb_line.append((0,0,{
             'voucher_id': False,

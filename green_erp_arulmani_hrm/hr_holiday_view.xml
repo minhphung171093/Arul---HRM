@@ -429,7 +429,7 @@
             		<filter string="Staff(s2)" name="employee_category_s2" domain="[('employee_category_id.code','=','S2')]"/>
             		<filter string="Workers (S3)" name="employee_category_s3" domain="[('employee_category_id.code','=','S3')]"/>
 					<group expand="0" string="Group By...">
-                        <filter string="Work Group" icon="terp-gtk-select-all" domain="[]" context="{'group_by':'employee_category_id'}"/>
+                        <filter string="Work Group" icon="terp-gtk-select-all" domain="[]" context="{'group_by':'employee_category_id'}"/>                       
                         <filter string="Type" icon="terp-gtk-select-all" domain="[]" context="{'group_by':'type'}"/>
                     </group>
                     <filter string="Approved" name="approved" domain="[('state','=','done')]"/>
@@ -572,15 +572,7 @@
 										<field name="actual_work_shift_id" options="{'create': false, 'create_edit': false}"/>
 										<field name="in_time" string="Punch In Time" widget="float_time"/>
 										<field name="out_time" string="Punch Out Time" widget="float_time"/>																				
-										<field name="total_hours" widget="float_time"/>
-										<!-- 
-										<field name="a_shift_count" />
-										<field name="g1_shift_count" />
-										<field name="g2_shift_count" />
-										<field name="b_shift_count" />
-										<field name="c_shift_count" />
-										<field name="total_shift_worked"/>
-										 -->  
+										<field name="total_hours" widget="float_time"/>										
 										<field name="a_shift_count1" />
 										<field name="g1_shift_count1" />
 										<field name="g2_shift_count1" />
@@ -609,19 +601,9 @@
 										<field name="duty_location"/>
 										<field name="start_time" widget="float_time"/>
 										<field name="end_time" widget="float_time"/>
-										<field name="time_total" widget="float_time"/>
-										<!--  
-										<field name="a_shift_count1" />
-										<field name="g1_shift_count1" />
-										<field name="g2_shift_count1" />
-										<field name="b_shift_count1" />
-										<field name="c_shift_count1" /> 
-										<field name="total_shift_worked1"/> 
-										-->
+										<field name="time_total" widget="float_time"/>										
 										<field name="total_shift_worked"/>  
-										
 										<field name="reason"/>
-										<!-- <field name="approval"/>  -->
 										<field name="state" invisible='1'/>
 									</tree>
 								</field>
@@ -642,7 +624,38 @@
             <field name="view_mode">tree,form</field>
             <field name="view_id" ref="view_arul_hr_employee_attendence_details_tree_vew"/>
         </record>
-        
+        <record id="view_tpt_punch_io_form_vew" model="ir.ui.view">
+            <field name="name">arul.hr.punch.in.out.time.form</field>
+            <field name="model">arul.hr.punch.in.out.time</field>
+            <field name="arch" type="xml">
+	            <form string="Punch IN/OUT Details" version="7.0">	            	
+	                <sheet>
+		            <group col='4' colspan='2'>
+		            	<field name="employee_id"/> 	
+		            	<field name="work_date"/> 
+		            	<field name="planned_work_shift_id" options="{'create': false, 'create_edit': false}"/>
+						<field name="actual_work_shift_id" options="{'create': false, 'create_edit': false}"/>
+						<field name="in_time" string="Punch In Time" widget="float_time"/>
+						<field name="out_time" string="Punch Out Time" widget="float_time"/>																				
+						<field name="total_hours" widget="float_time"/>
+						<newline></newline>
+						<field name="a_shift_count1" />
+						<field name="g1_shift_count1" />
+						<field name="g2_shift_count1" />
+						<field name="b_shift_count1" />
+						<field name="c_shift_count1" /> 
+						<field name="total_shift_worked1"/>  
+						<field name="work_shift_code" /> 
+						<field name="shift_plus"/>
+						<field name="shift_minus"/>
+						<field name="reason_for_adj"/>		
+						<field name="reason_details"/>		 
+						<field name="state"/>		           
+				    </group>
+				    </sheet>
+	            </form>
+			</field>
+		</record>  
         <menuitem action="action_arul_hr_employee_attendence_details_form"
             id="menu_action_arul_hr_employee_attendence_details_form"
             parent="menu_hr_leave_management" sequence="24"/>
