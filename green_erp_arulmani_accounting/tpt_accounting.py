@@ -2992,6 +2992,9 @@ tpt_product_avg_cost()
 class product_product(osv.osv):
     _inherit = "product.product"
     
+    _defaults = {
+         'uom_id':False,          
+                 }
 #     def init(self,cr):
 #         category_obj = self.pool.get('product.category')
 #         category_ids = category_obj.search(cr, 1, [('cate_name','=','spares')])
@@ -3022,7 +3025,44 @@ class product_product(osv.osv):
 #                 'property_account_expense':expense_gl_account_ids[0],
 #                 'product_asset_acc_id':product_asset_account_ids[0],
 #             })
+    ###TPT-START : Auto Product GL Account Creation on 14/10/2015
+    def create(self, cr, uid, vals, context=None):
         
+        if vals['cate_name']=='spares':
+                incomeaccount_id = self.pool.get('account.account').search(cr, uid, [('code','in',['0000119503'])]) #income & purchase account id for spares
+                expenseaccount_id = self.pool.get('account.account').search(cr, uid, [('code','in',['0000404010'])]) # Expense Account for Spares  0000404010
+                assetaccount_ids = self.pool.get('account.account').search(cr, uid, [('code','in',['0000119501'])]) # Asset Account for Spares  0000119501
+                vals.update({'purchase_acc_id':incomeaccount_id[0]})
+                vals.update({'product_asset_acc_id':assetaccount_ids[0]})
+                vals.update({'property_account_income':incomeaccount_id[0]})
+                vals.update({'property_account_expense':expenseaccount_id[0]})
+                
+        return super(product_product, self).create(cr, uid, vals, context)
+    
+    def write(self, cr, uid, ids, vals, context=None):
+        if 'cate_name' in vals and vals['cate_name'] in ('finish', 'raw', 'service', 'assets'):
+            vals.update({'purchase_acc_id':False, 'product_asset_acc_id':False, 
+                     'property_account_income':False, 'property_account_expense':False})
+        if 'cate_name' in vals and vals['cate_name']=='spares':
+                incomeaccount_id = self.pool.get('account.account').search(cr, uid, [('code','in',['0000119503'])]) #income & purchase account id for spares
+                expenseaccount_id = self.pool.get('account.account').search(cr, uid, [('code','in',['0000404010'])]) # Expense Account for Spares  0000404010
+                assetaccount_ids = self.pool.get('account.account').search(cr, uid, [('code','in',['0000119501'])]) # Asset Account for Spares  0000119501
+                vals.update({'purchase_acc_id':incomeaccount_id[0]})
+                vals.update({'product_asset_acc_id':assetaccount_ids[0]})
+                vals.update({'property_account_income':incomeaccount_id[0]})
+                vals.update({'property_account_expense':expenseaccount_id[0]})
+        if 'tpt_description' in vals and vals['tpt_description']:
+                incomeaccount_id = self.pool.get('account.account').search(cr, uid, [('code','in',['0000119503'])]) #income & purchase account id for spares
+                expenseaccount_id = self.pool.get('account.account').search(cr, uid, [('code','in',['0000404010'])]) # Expense Account for Spares  0000404010
+                assetaccount_ids = self.pool.get('account.account').search(cr, uid, [('code','in',['0000119501'])]) # Asset Account for Spares  0000119501
+                vals.update({'purchase_acc_id':incomeaccount_id[0]})
+                vals.update({'product_asset_acc_id':assetaccount_ids[0]})
+                vals.update({'property_account_income':incomeaccount_id[0]})
+                vals.update({'property_account_expense':expenseaccount_id[0]})
+            
+        new_write = super(product_product, self).write(cr, uid,ids, vals, context)
+        return new_write  
+    #TPT-END  
     def _avg_cost(self, cr, uid, ids, field_names=None, arg=None, context=None):
         result = {}
         if not ids: return result
@@ -4423,7 +4463,10 @@ class tpt_material_issue(osv.osv):
                     for issue in cr.dictfetchall():
                         hand_quantity_issue = issue['ton_sl'] or 0
                         total_cost_issue = issue['total_cost'] or 0
-                    opening_stock_value = (total_cost-total_cost_issue)/(hand_quantity-hand_quantity_issue)
+                    #TPT By BalamuruganPurushothaman on 14/10/2015 - To avoid throwing Warning - Physical Inventpries to Material Issue
+                    opening_stock_value = 0
+                    if (hand_quantity-hand_quantity_issue)!=0:
+                        opening_stock_value = (total_cost-total_cost_issue)/(hand_quantity-hand_quantity_issue)
                     
                 rs = {
                       'name': '/',

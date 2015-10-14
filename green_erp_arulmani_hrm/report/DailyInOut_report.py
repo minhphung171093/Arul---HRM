@@ -64,6 +64,11 @@ class Parser(report_sxw.rml_parse):
                 a = '0'+str(factor * int(math.floor(val)) )
             if len(str(int(round((val % 1) * 60))))==1:
                 b = '0'+str(int(round((val % 1) * 60)))
+            if b=='60':
+                a = int(a)
+                a += 1
+                a = str(a)
+                b = '00'
             time =  a+ ':' + b
             return time
         else:
