@@ -5777,49 +5777,22 @@ product_category()
 class res_partner(osv.osv):
     _inherit = 'res.partner'
     _description = 'Partner'
-    
+    #TPT By BalamuruganPurushothaman ON 14/10/2015
     def _tpt_credit_debit_get(self, cr, uid, ids, field_names, arg, context=None):
-        #ctx = context.copy()
         res = {}
         for partner in self.browse(cr, uid, ids, context=context):
             res[partner.id] = {
                 'tpt_credit': 0.0,
             }
             credit = 0
-            other = 0
             sql  = '''
-                SELECT SUM(l.debit-l.credit)
-                      FROM account_move_line l
-                      LEFT JOIN account_account a ON (l.account_id=a.id)
-                      WHERE a.type IN ('receivable','payable')
-                      AND l.partner_id = %s
-                      AND l.reconcile_id IS NULL
-                      GROUP BY l.partner_id, a.type
-            '''%(partner.id)
+                select SUM(debit-credit) from account_move_line where 
+                account_id=(select id from account_account where code = '0000'||'%s')
+            '''%(partner.customer_code)
             cr.execute(sql)
             credit = cr.fetchone()
             if credit:
                 credit = credit[0]
-            ###
-            sql  = '''
-                SELECT SUM(l.debit-l.credit)
-                      FROM account_move_line l
-                      LEFT JOIN account_account a ON (l.account_id=a.id)
-                      WHERE a.type IN ('other')
-                      AND l.partner_id = %s
-                      AND l.reconcile_id IS NULL
-                      GROUP BY l.partner_id, a.type
-            '''%(partner.id)
-            cr.execute(sql)
-            other = cr.fetchone()
-            if other:
-                other = other[0]
-                credit += other
-            ###
-            #-val
-            ###
-        
-            ###
             res[partner.id]['tpt_credit'] = credit    
         return res
     def _asset_difference_search(self, cr, uid, obj, name, type, args, context=None):
