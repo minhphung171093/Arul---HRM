@@ -81,6 +81,7 @@ class grn_line_details_report(osv.osv_memory):
         'bin': fields.char('Bin Location', size = 1024),
         'action_taken':fields.selection([('direct','Direct Stock Update'),('move','Move To Consumption'),('need','Need Inspection')],'Action To Be Taken'),
         'state': fields.char('State', size = 1024),
+        'prod_id': fields.many2one('product.product',string='Product'), 
                  
             
  }
@@ -293,7 +294,7 @@ class grn_detail_line_report(osv.osv_memory):
                 sql = '''
                       select sp.name as grn_no,sp.id as grn_no_1,sp.date as grn_date,sp.purchase_id as po_no,rp.name supplier,
                       pr.name as proj_name,prs.name as proj_sec_name,sp.document_type as doc_type,pi.name as po_indent_no_1,
-                      pi.id as po_indent_no,pp.default_code||'-'||pt.name as product,sm.item_text,sm.description,
+                      pi.id as po_indent_no,pp.default_code||'-'||pt.name as product,pp.id as prod_id, sm.item_text,sm.description,
                       sm.product_qty as prod_qty,pu.name as product_uom,sm.action_taken as act_take,sm.bin_location,                  
                       sp.state as state,emp.name_related as requisitioner,sm.picking_id as pick_id,sm.action_taken as actn_taken
                       from stock_move sm
@@ -390,6 +391,7 @@ class grn_detail_line_report(osv.osv_memory):
                             'blk_list' : get_block_qty(line['actn_taken'],line['grn_no'],line['pick_id']),
                             'bin': line['bin_location'],
                             'state': get_status(line['state']) or '',
+                            'prod_id':line['prod_id'],
                             # 'pend_qty':get_pending_qty(line['po_id'],line['order_line_id']),
                                              
                 }))

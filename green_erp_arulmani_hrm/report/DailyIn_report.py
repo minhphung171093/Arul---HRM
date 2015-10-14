@@ -64,6 +64,11 @@ class Parser(report_sxw.rml_parse):
                 a = '0'+str(factor * int(math.floor(val)) )
             if len(str(int(round((val % 1) * 60))))==1:
                 b = '0'+str(int(round((val % 1) * 60)))
+            if b==60:
+                a = int(a)
+                a += 1
+                a = str(a)
+                b = '00'
             time =  a+ ':' + b
             return time
         else:
@@ -90,8 +95,8 @@ class Parser(report_sxw.rml_parse):
           COALESCE(ast.ref_out_time,0.0) as ref_out_time
             from arul_hr_audit_shift_time ast
          inner join hr_employee emp on ast.employee_id=emp.id
-         where ref_in_time between (select in_time from tpt_work_shift where 
-         code='%s') and (select out_time from tpt_work_shift where
+         where ref_in_time between (select min_in_time from tpt_work_shift where 
+         code='%s') and (select max_in_time from tpt_work_shift where
          code='%s') and work_date='%s'
          order by emp.employee_id
         '''%(shift_type, shift_type, workdate)               

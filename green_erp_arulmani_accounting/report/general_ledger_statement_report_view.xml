@@ -102,9 +102,7 @@
 		                			<field name="cost_center"/>
 		                			<field name="employee_id"/>
 		                			<field name="debit"/>
-		                			<field name="credit"/>
-		                			
-		                			
+		                			<field name="credit"/>		                					                			
 		                		</tree>
 		                	</field>
 	                	</group>
@@ -112,7 +110,20 @@
 	           </form>
 	        </field>
 	    </record>
-	        
+	    
+	    <record id="view_tpt_general_ledger_form_vew" model="ir.ui.view">
+            <field name="name">tpt.general.ledger.line.form</field>
+            <field name="model">tpt.general.ledger.line</field>
+            <field name="arch" type="xml">
+	            <form string="Supplier Ledger Lines" version="7.0">
+		            <group >
+		            	<field name="move_id"/> 
+			            <field name="order_id"/>   
+			            <field name="partner_id"/>
+				    </group>
+	            </form>
+			</field>
+		</record>    
 	        
     </data>
 </openerp>

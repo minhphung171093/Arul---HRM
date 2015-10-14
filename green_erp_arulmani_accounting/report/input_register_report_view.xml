@@ -129,6 +129,17 @@
 	          </form>
 	       </field>
 	    </record>
-	     
+	    <record id="view_tpt_input_register_form_vew" model="ir.ui.view">
+            <field name="name">tpt.input.register.line.form</field>
+            <field name="model">tpt.input.register.line</field>
+            <field name="arch" type="xml">
+	            <form string="Supplier Ledger Lines" version="7.0">
+		            <group >
+		            	<field name="invoice_id"/> 			           
+			            <field name="partner_id"/>
+				    </group>
+	            </form>
+			</field>
+		</record>     
     </data>
 </openerp>

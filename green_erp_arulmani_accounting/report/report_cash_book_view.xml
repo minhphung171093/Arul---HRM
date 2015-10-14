@@ -123,6 +123,16 @@
 	           </form>
 	        </field>
 	    </record>
-	    
+	    <record id="view_tpt_cash_book_form_vew" model="ir.ui.view">
+            <field name="name">tpt.cash.book.line.form</field>
+            <field name="model">tpt.cash.book.line</field>
+            <field name="arch" type="xml">
+	            <form string="Cash Book Lines" version="7.0">
+		            <group >
+		            	<field name="move_id"/> 			            
+				    </group>
+	            </form>
+			</field>
+		</record>   
     </data>
 </openerp>
