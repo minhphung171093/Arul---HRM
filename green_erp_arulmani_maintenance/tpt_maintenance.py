@@ -1095,7 +1095,10 @@ class tpt_material_issue(osv.osv):
                     for issue in cr.dictfetchall():
                         hand_quantity_issue = issue['ton_sl'] or 0
                         total_cost_issue = issue['total_cost'] or 0
-                    opening_stock_value = (total_cost-total_cost_issue)/(hand_quantity-hand_quantity_issue)
+                    #TPT By BalamuruganPurushothaman on 14/10/2015 - To avoid throwing Warning - Physical Inventpries to Material Issue
+                    opening_stock_value = 0
+                    if (hand_quantity-hand_quantity_issue)!=0:
+                        opening_stock_value = (total_cost-total_cost_issue)/(hand_quantity-hand_quantity_issue)
                      
                 rs = {
                       'name': '/',

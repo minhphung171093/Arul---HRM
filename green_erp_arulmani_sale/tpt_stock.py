@@ -790,7 +790,10 @@ class stock_picking(osv.osv):
         for picking in self.browse(cr, uid, ids, context):
             sale = picking.sale_id and picking.sale_id.amount_total or 0
             limit = picking.partner_id and picking.partner_id.credit_limit_used or 0
-            used = picking.partner_id and picking.partner_id.credit or 0
+            used = picking.partner_id and picking.partner_id.credit or 0 #this is commented by TPT
+            
+            #TPT - By BalamuruganPurushothaman on 14/10/2015 - to set credit limit rule as per customer request
+            #used = picking.partner_id and picking.partner_id.tpt_credit or 0
             
             #===================================================================
             # if not picking.flag_confirm and limit == 0 and used == 0 and picking.sale_id:
