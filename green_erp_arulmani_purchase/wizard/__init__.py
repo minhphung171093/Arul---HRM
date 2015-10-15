@@ -13,4 +13,5 @@ import raw_material_stock_statement_report
 import material_request_line_form
 import grn_line_form
 import purchase_indent_line_form
+import mateiral_purchase_value_month
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

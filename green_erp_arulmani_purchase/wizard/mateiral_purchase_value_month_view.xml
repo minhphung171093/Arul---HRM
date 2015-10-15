@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>   
+<!-- Material Purchase value - Month wise -->
+        <record id="mateiral_purchase_value_month_form" model="ir.ui.view">
+            <field name="name">mateiral.purchase.value.month.form</field>
+            <field name="model">mateiral.purchase.value.month</field>
+            <field name="arch" type="xml">
+                <form string="Material Purchase Value - Month Wise Report" version="7.0">
+                	<group>
+		                <field name="year" options="{'create': false, 'create_edit': false}"/>
+		                <field name="material_cate" options="{'create': false, 'create_edit': false}"/>
+		                <field name="material_ids" widget="many2many_tags" domain="[('categ_id','=',material_cate)]" options="{'create': false, 'create_edit': false}"/> 
+		                <field name="avg_value"/>
+                 	</group>
+                    <footer>
+                        <button name="print_report_xls" string="Print" type="object" class="oe_highlight"/>
+                        <button string="Cancel" class="oe_link" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>        
+        <record id="action_mateiral_purchase_value_month_form" model="ir.actions.act_window">            
+            <field name="name">Material Purchase Value - Month Wise Report</field>         
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">mateiral.purchase.value.month</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="mateiral_purchase_value_month_form" />
+            <field name="target">new</field>
+        </record>
+        
+        <menuitem action="action_mateiral_purchase_value_month_form" 
+        id="menu_action_mateiral_purchase_value_month_form" 
+        parent="stock.menu_stock_warehouse_mgmt" sequence="21"/>
+        
+<!-- Material Purchase value - Day wise -->
+		<record id="mateiral_purchase_value_day_form" model="ir.ui.view">
+            <field name="name">mateiral.purchase.value.day.form</field>
+            <field name="model">mateiral.purchase.value.day</field>
+            <field name="arch" type="xml">
+                <form string="Material Purchase Value - Day Wise Report" version="7.0">
+                	<group>
+		                <field name="month_year" domain="[('state','=','draft')]" options="{'create': false, 'create_edit': false}"/>
+		                <field name="material_cate" options="{'create': false, 'create_edit': false}"/>
+		                <field name="material_ids" widget="many2many_tags" domain="[('categ_id','=',material_cate)]" options="{'create': false, 'create_edit': false}"/> 
+		                <field name="avg_value"/>
+                 	</group>
+                    <footer>
+                        <button name="print_report_xls" string="Print" type="object" class="oe_highlight"/>
+                        <button string="Cancel" class="oe_link" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>        
+        <record id="action_mateiral_purchase_value_day_form" model="ir.actions.act_window">            
+            <field name="name">Material Purchase Value - Day Wise Report</field>         
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">mateiral.purchase.value.day</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="mateiral_purchase_value_day_form"/>
+            <field name="target">new</field>
+        </record>
+        
+        <menuitem action="action_mateiral_purchase_value_day_form" 
+        id="menu_action_mateiral_purchase_value_day_form" 
+        parent="stock.menu_stock_warehouse_mgmt" sequence="22"/>
+    
+    </data>
+</openerp>
