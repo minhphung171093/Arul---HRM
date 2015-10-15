@@ -89,7 +89,21 @@ class Parser(report_sxw.rml_parse):
         if shift_type=='c_shift':
             shift_type='C'
        
-            
+        shifts_ids = []
+        c_earlier_entries_ids = []  
+        if shift_type=='C': # to fetch C Shift earlier entries
+            sql = '''
+              select emp.employee_id, emp.name_related employeename, COALESCE(ast.ref_in_time,0.0) as ref_in_time, 
+              COALESCE(ast.ref_out_time,0.0) as ref_out_time
+                from arul_hr_audit_shift_time ast
+             inner join hr_employee emp on ast.employee_id=emp.id
+             where ref_in_time between (select min_in_time from tpt_work_shift where 
+             code='B+C HALF') and (select max_in_time from tpt_work_shift where
+             code='B+C HALF') and ast.work_date='%s'
+             order by emp.employee_id
+            '''%(workdate)               
+            self.cr.execute(sql)
+            c_earlier_entries_ids = self.cr.dictfetchall()  
         sql = '''
           select emp.employee_id, emp.name_related employeename, COALESCE(ast.ref_in_time,0.0) as ref_in_time, 
           COALESCE(ast.ref_out_time,0.0) as ref_out_time
@@ -97,11 +111,15 @@ class Parser(report_sxw.rml_parse):
          inner join hr_employee emp on ast.employee_id=emp.id
          where ref_in_time between (select min_in_time from tpt_work_shift where 
          code='%s') and (select max_in_time from tpt_work_shift where
-         code='%s') and work_date='%s'
+         code='%s') and ast.work_date='%s'
          order by emp.employee_id
         '''%(shift_type, shift_type, workdate)               
         self.cr.execute(sql)
         shifts_ids = self.cr.dictfetchall()
+        
+        if shift_type=='C':
+            c_earlier_entries_ids += shifts_ids   
+            shifts_ids = c_earlier_entries_ids     
         
         res = []
         s_no = 1
