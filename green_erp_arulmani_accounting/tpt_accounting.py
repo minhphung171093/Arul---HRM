@@ -848,7 +848,7 @@ class account_invoice(osv.osv):
                 '''%(line.id)
                 cr.execute(sql)
         service_line = []
-        invoice = self.pool.get('account.invoice').browse(cr, uid, ids[0])
+        purchase = self.pool.get('purchase.order').browse(cr, uid, purchase_id)
         vendor = purchase.partner_id.tds_id.id
         for line in purchase.order_line:
             taxes_ids = [t.id for t in line.taxes_id]
@@ -858,6 +858,8 @@ class account_invoice(osv.osv):
                 '''%(purchase_id, line.id)
                 cr.execute(sql)
                 quantity = cr.dictfetchone()['quantity']
+                print [(6,0,taxes_ids)]
+                print taxes_ids[0]
                 if line.product_qty > quantity:
                     rs = {
                           'product_id': line.product_id and line.product_id.id or False,
@@ -871,6 +873,7 @@ class account_invoice(osv.osv):
                           'ed':line.ed or False,
                           'ed_type':line.ed_type or False,
         #                   'taxes_id': [(6,0,[line.tax_id and line.tax_id.id])],
+                          'taxe_id': taxes_ids[0],
                           'invoice_line_tax_id': [(6,0,taxes_ids)],
                           'fright':line.fright or False,
                           'fright_type':line.fright_type or False,
@@ -893,6 +896,7 @@ class account_invoice(osv.osv):
                       'ed':line.ed or False,
                       'ed_type':line.ed_type or False,
     #                   'taxes_id': [(6,0,[line.tax_id and line.tax_id.id])],
+                      'taxe_id': taxes_ids[0],
                       'invoice_line_tax_id': [(6,0,taxes_ids)],
                       'fright':line.fright or False,
                       'fright_type':line.fright_type or False,
@@ -910,7 +914,13 @@ class account_invoice(osv.osv):
         return {'value': vals}
     
     def onchange_service_tds(self, cr, uid, ids, is_tds_applicable, purchase_id, context=None):
-        vals = {}        
+        vals = {}     
+        if purchase_id:
+            for line in self.browse(cr, uid, ids):
+                sql = '''
+                    delete from account_invoice_line where invoice_id = %s
+                '''%(line.id)
+                cr.execute(sql)   
         service_line = []
         purchase = self.pool.get('purchase.order').browse(cr, uid, purchase_id)
         vendor = purchase.partner_id.tds_id.id
@@ -1002,6 +1012,12 @@ class account_invoice(osv.osv):
         return {'value': vals}
     def onchange_without_po_tds(self, cr, uid, ids, is_tds_applicable, context=None):
         vals = {}        
+        if purchase_id:
+            for line in self.browse(cr, uid, ids):
+                sql = '''
+                    delete from account_invoice_line where invoice_id = %s
+                '''%(line.id)
+                cr.execute(sql) 
         service_line = []
         purchase = self.pool.get('purchase.order').browse(cr, uid, purchase_id)
         vendor = purchase.partner_id.tds_id.id
@@ -1110,6 +1126,15 @@ class account_invoice(osv.osv):
         new_id = super(account_invoice, self).create(cr, uid, vals, context=context)
         new = self.browse(cr,uid,new_id)
         if new.purchase_id.po_document_type == 'service':
+            ##TPT START BY BALAMURUGAN PURUSHOTHMAN ON 15/10/2015 - TO LOAD VENDOR TDS IN SERVICE INVOICE LINE
+            #===================================================================
+            # for invoice_line in new.invoice_line:
+            #     sql = '''
+            #     update account_invoice_line set tds_id=%s where id=%s
+            #     '''%(new.partner_id.tds_id.id, invoice_line.id)
+            #     cr.execute(sql)
+            #===================================================================
+            #TPT END    
             for purchase_line in new.purchase_id.order_line:
                 sql = '''
                         select case when sum(quantity)!=0 then sum(quantity) else 0 end quantity from account_invoice_line where invoice_id in (select id from account_invoice where purchase_id = %s and state!='cancel') and po_line_id = %s
@@ -1194,6 +1219,21 @@ class account_invoice(osv.osv):
 #                         '''%(invoice_line.invoice_id.id)
 #                         cr.execute(sql)
             if new.purchase_id.po_document_type == 'service':
+                ##TPT START BY BALAMURUGAN PURUSHOTHMAN ON 15/10/2015 - TO LOAD VENDOR TDS IN SERVICE INVOICE LINE               
+                #===============================================================
+                # for invoice_line in new.invoice_line:
+                #     if 'is_tds_applicable' in vals and vals['is_tds_applicable'] is False:
+                #         sql = '''
+                #         update account_invoice_line set tds_id=NULL where id=%s
+                #         '''%(invoice_line.id)
+                #         cr.execute(sql)
+                #     if 'is_tds_applicable' in vals and vals['is_tds_applicable'] is True:
+                #         sql = '''
+                #         update account_invoice_line set tds_id=%s where id=%s
+                #         '''%(new.partner_id.tds_id.id, invoice_line.id)
+                #         cr.execute(sql)
+                #===============================================================
+                #TPT END    
                 for purchase_line in new.purchase_id.order_line:
                     sql = '''
                             select case when sum(quantity)!=0 then sum(quantity) else 0 end quantity from account_invoice_line where invoice_id in (select id from account_invoice where purchase_id = %s and state!='cancel') and po_line_id = %s
@@ -6131,7 +6171,7 @@ class res_partner(osv.osv):
         return self._asset_difference_search(cr, uid, obj, name, 'receivable', args, context=context)
     _columns = {
         'tpt_credit': fields.function(_tpt_credit_debit_get,
-            string='Credit Used (TPT)', multi='sums'),
+            string='Credit Used.', multi='sums'),
         'property_account_payable': fields.property(
             'account.account',
             type='many2one',

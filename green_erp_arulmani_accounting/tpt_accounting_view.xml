@@ -456,7 +456,7 @@
                               context="{'default_customer': 0, 'search_default_supplier': 1, 'default_supplier': 1}"
                               domain="[('supplier', '=', True)]" options="{'create': false, 'create_edit': false}"/>
                             <field name="vendor_ref" required='1'/>
-                            <field name="is_tds_applicable" />
+                            <field name="is_tds_applicable" on_change="onchange_without_po_tds(is_tds_applicable)" invisible = '1'/>
                             <field name="tds_id" attrs="{'invisible': [('is_tds_applicable','=',False)]}" options="{'create': false, 'create_edit': false}" invisible = '1'/>
                             <field name="create_uid" options="{'create': false, 'create_edit': false}"/>
                             <field name="cost_center_id" required='1' options="{'create': false, 'create_edit': false}"/>
@@ -507,8 +507,11 @@
                                     <field name="p_f_type" invisible = '1'/>
                                     <field name="ed"/>
                                     <field name="ed_type"/>
+                                    <field name="tax_id"/>
+                                    <!--  
                                     <field name="tax_id" on_change = "onchange_tax_id(tax_id)" context="{'type':parent.type}"
                                         domain="[('parent_id','=',False),('company_id', '=', parent.company_id)]" options="{'create': false, 'create_edit': false}"/>
+                                    -->
                                     <field name="invoice_line_tax_id" string = 'tax many2many' widget="many2many_tags" context="{'type':parent.type}"
                                         domain="[('parent_id','=',False),('company_id', '=', parent.company_id)]" invisible = '1'/>
                                     <field name="fright"/>
@@ -679,7 +682,7 @@
                               context="{'default_customer': 0, 'search_default_supplier': 1, 'default_supplier': 1}"
                               domain="[('supplier', '=', True)]" options="{'create': false, 'create_edit': false}"/>
                             <field name="vendor_ref" required='1'/>
-                            <field name="is_tds_applicable" on_change="onchange_service_tds(is_tds_applicable, purchase_id)"/>
+                            <field name="is_tds_applicable" on_change="onchange_service_tds(is_tds_applicable, purchase_id)" invisible = '1'/>
                             <field name="tds_id" attrs="{'invisible': [('is_tds_applicable','=',False)]}" options="{'create': false, 'create_edit': false}" invisible = '1'/>
                             <field name="create_uid" options="{'create': false, 'create_edit': false}"/>
                             <field name="cost_center_id" required='1' options="{'create': false, 'create_edit': false}"/>
@@ -2522,6 +2525,9 @@
 					</xpath>
 					<xpath expr="//field[@name='credit']" position="after">
 						<field name='tpt_credit'/>
+					</xpath>
+					<xpath expr="//field[@name='credit']" position="attributes">
+						<attribute name='invisible'>1</attribute>
 					</xpath>
                 </data>
             </field>
