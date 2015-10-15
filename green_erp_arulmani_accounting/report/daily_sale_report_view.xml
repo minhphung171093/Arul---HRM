@@ -134,5 +134,24 @@
 	           </form>
 	        </field>
 	    </record>
+	    
+	    <record id="view_tpt_daily_sale_form_vew" model="ir.ui.view">
+            <field name="name">tpt.daily.sale.line.form</field>
+            <field name="model">tpt.daily.sale.line</field>
+            <field name="arch" type="xml">
+	            <form string="Daily Sales Report Lines" version="7.0">
+		            <group >
+		            	<field name="sale_id"/> 
+		            	<field name="do_id"/> 
+		            	<field name="invoice_id"/> 
+		            	<newline/>
+			            <field name="customer_id"/>  
+			            <field name="name_consignee_id"/> 
+			            <field name="product_id"/>  
+				    </group>
+	            </form>
+			</field>
+		</record>
+		
 	    </data>
 </openerp>

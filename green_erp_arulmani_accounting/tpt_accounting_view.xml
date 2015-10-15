@@ -679,7 +679,7 @@
                               context="{'default_customer': 0, 'search_default_supplier': 1, 'default_supplier': 1}"
                               domain="[('supplier', '=', True)]" options="{'create': false, 'create_edit': false}"/>
                             <field name="vendor_ref" required='1'/>
-                            <field name="is_tds_applicable" invisible = '1'/>
+                            <field name="is_tds_applicable" on_change="onchange_tds(is_tds_applicable, purchase_id)"/>
                             <field name="tds_id" attrs="{'invisible': [('is_tds_applicable','=',False)]}" options="{'create': false, 'create_edit': false}" invisible = '1'/>
                             <field name="create_uid" options="{'create': false, 'create_edit': false}"/>
                             <field name="cost_center_id" required='1' options="{'create': false, 'create_edit': false}"/>

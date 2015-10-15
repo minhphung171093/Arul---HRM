@@ -96,7 +96,14 @@ class tpt_daily_sale_line(osv.osv_memory):
         'other_charges': fields.float('Others',digits=(16,2)),
         'currency': fields.char('Curr(DOC)', size = 1024),
         'total_amt': fields.float('Value(INR)',digits=(16,2)),
-        'other_reasons': fields.char('Order Reason', size = 1024),        
+        'other_reasons': fields.char('Order Reason', size = 1024),   
+                    
+        'sale_id':fields.many2one("sale.order", 'Sales Order'),   
+        'do_id':fields.many2one("stock.picking", 'Delivery Order'),  
+        'invoice_id': fields.many2one('account.invoice', 'Invoice No'),    
+        'customer_id':fields.many2one("res.partner", 'Customer'),
+        'name_consignee_id':fields.many2one("res.partner", 'Consignee'), 
+        'product_id': fields.many2one('product.product', 'Material'),   
  }
 tpt_daily_sale_line()
 
@@ -278,6 +285,13 @@ class daily_sale_form(osv.osv_memory):
                     'currency':line.invoice_id.currency_id and line.invoice_id.currency_id.name or '',
                     'total_amt':line.invoice_id.amount_total_inr or 0.00,
                     'other_reasons':line.invoice_id.other_info or '',
+                    
+                    'sale_id':line.invoice_id.sale_id and line.invoice_id.sale_id.id or False,
+                    'do_id':line.invoice_id.delivery_order_id and line.invoice_id.delivery_order_id.id or False,
+                    'invoice_id':line.invoice_id.id or False,
+                    'product_id':line.product_id and line.product_id.id or False,
+                    'customer_id':line.invoice_id.partner_id and line.invoice_id.partner_id.id or False,
+                    'name_consignee_id':line.invoice_id.cons_loca and line.invoice_id.cons_loca.id or False,
             }))
             
         cb_line.append((0,0,{

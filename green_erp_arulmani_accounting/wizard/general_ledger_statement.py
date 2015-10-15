@@ -87,7 +87,7 @@ class tpt_general_ledger_line(osv.osv):
         'total':fields.float('Total',digits=(16,2)),
         'doc_no_line':fields.char('Document No',size=1024), #TPT-Y
         'employee_id': fields.char('Employee', size = 1024), #TPT-Y
-        'order_id':fields.many2one('sale.order','Order/work Order No'),
+        'order_id':fields.many2one('purchase.order','Order/work Order No'),
         'move_id':fields.many2one('account.move','Document No'),
         'partner_id':fields.many2one('res.partner','Vendor/Customer'),
                                                         
