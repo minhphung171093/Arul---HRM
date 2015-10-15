@@ -6131,7 +6131,7 @@ class res_partner(osv.osv):
         return self._asset_difference_search(cr, uid, obj, name, 'receivable', args, context=context)
     _columns = {
         'tpt_credit': fields.function(_tpt_credit_debit_get,
-            string='Credit Limit (TPT)', multi='sums'),
+            string='Credit Used (TPT)', multi='sums'),
         'property_account_payable': fields.property(
             'account.account',
             type='many2one',
