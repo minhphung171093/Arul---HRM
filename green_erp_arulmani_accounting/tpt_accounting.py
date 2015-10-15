@@ -848,7 +848,7 @@ class account_invoice(osv.osv):
                 '''%(line.id)
                 cr.execute(sql)
         service_line = []
-        purchase = self.pool.get('purchase.order').browse(cr, uid, purchase_id)
+        invoice = self.pool.get('account.invoice').browse(cr, uid, ids[0])
         vendor = purchase.partner_id.tds_id.id
         for line in purchase.order_line:
             taxes_ids = [t.id for t in line.taxes_id]
@@ -909,7 +909,7 @@ class account_invoice(osv.osv):
                 }
         return {'value': vals}
     
-    def onchange_tds(self, cr, uid, ids, is_tds_applicable, purchase_id, context=None):
+    def onchange_service_tds(self, cr, uid, ids, is_tds_applicable, purchase_id, context=None):
         vals = {}        
         service_line = []
         purchase = self.pool.get('purchase.order').browse(cr, uid, purchase_id)
@@ -1000,7 +1000,97 @@ class account_invoice(osv.osv):
                 'invoice_line': service_line,
                 }
         return {'value': vals}
-    
+    def onchange_without_po_tds(self, cr, uid, ids, is_tds_applicable, context=None):
+        vals = {}        
+        service_line = []
+        purchase = self.pool.get('purchase.order').browse(cr, uid, purchase_id)
+        vendor = purchase.partner_id.tds_id.id
+        
+        for line in purchase.order_line: 
+            taxes_ids = [t.id for t in line.taxes_id]
+            sql = '''
+                    select case when sum(quantity)!=0 then sum(quantity) else 0 end quantity from account_invoice_line where invoice_id in (select id from account_invoice where purchase_id = %s and state!='cancel') and po_line_id = %s
+                '''%(purchase_id, line.id)
+            cr.execute(sql)
+            quantity = cr.dictfetchone()['quantity']
+            if is_tds_applicable is False:                  
+                if line.product_qty > quantity:                         
+                    rs={'product_id': line.product_id and line.product_id.id or False,
+                          'name': line.description,
+                          'quantity': line.product_qty - quantity or False,
+                          'uos_id': line.product_uom and line.product_uom.id or False,
+                          'price_unit': line.price_unit or False,
+                          'disc': line.discount or False,
+                          'p_f': line.p_f or False,
+                          'p_f_type':line.p_f_type or False,
+                          'ed':line.ed or False,
+                          'ed_type':line.ed_type or False,   
+                          'invoice_line_tax_id': [(6,0,taxes_ids)],
+                          'fright':line.fright or False,
+                          'fright_type':line.fright_type or False,
+                          'line_net': line.line_net or False,
+                          'account_id':line.product_id and line.product_id.purchase_acc_id and line.product_id.purchase_acc_id.id or False,
+                          'tds_id': False,}
+                else:
+                    rs={'product_id': line.product_id and line.product_id.id or False,
+                          'name': line.description,
+                          'quantity': line.product_qty or False,
+                          'uos_id': line.product_uom and line.product_uom.id or False,
+                          'price_unit': line.price_unit or False,
+                          'disc': line.discount or False,
+                          'p_f': line.p_f or False,
+                          'p_f_type':line.p_f_type or False,
+                          'ed':line.ed or False,
+                          'ed_type':line.ed_type or False,   
+                          'invoice_line_tax_id': [(6,0,taxes_ids)],
+                          'fright':line.fright or False,
+                          'fright_type':line.fright_type or False,
+                          'line_net': line.line_net or False,
+                          'account_id':line.product_id and line.product_id.purchase_acc_id and line.product_id.purchase_acc_id.id or False,
+                          'tds_id': False,}
+            elif is_tds_applicable is True:               
+                if line.product_qty > quantity:                         
+                    rs={'product_id': line.product_id and line.product_id.id or False,
+                          'name': line.description,
+                          'quantity': line.product_qty - quantity or False,
+                          'uos_id': line.product_uom and line.product_uom.id or False,
+                          'price_unit': line.price_unit or False,
+                          'disc': line.discount or False,
+                          'p_f': line.p_f or False,
+                          'p_f_type':line.p_f_type or False,
+                          'ed':line.ed or False,
+                          'ed_type':line.ed_type or False,   
+                          'invoice_line_tax_id': [(6,0,taxes_ids)],
+                          'fright':line.fright or False,
+                          'fright_type':line.fright_type or False,
+                          'line_net': line.line_net or False,
+                          'account_id':line.product_id and line.product_id.purchase_acc_id and line.product_id.purchase_acc_id.id or False,
+                          'tds_id': vendor or False,}
+                else:
+                    rs={'product_id': line.product_id and line.product_id.id or False,
+                          'name': line.description,
+                          'quantity': line.product_qty or False,
+                          'uos_id': line.product_uom and line.product_uom.id or False,
+                          'price_unit': line.price_unit or False,
+                          'disc': line.discount or False,
+                          'p_f': line.p_f or False,
+                          'p_f_type':line.p_f_type or False,
+                          'ed':line.ed or False,
+                          'ed_type':line.ed_type or False,   
+                          'invoice_line_tax_id': [(6,0,taxes_ids)],
+                          'fright':line.fright or False,
+                          'fright_type':line.fright_type or False,
+                          'line_net': line.line_net or False,
+                          'account_id':line.product_id and line.product_id.purchase_acc_id and line.product_id.purchase_acc_id.id or False,
+                          'tds_id': vendor or False,}
+            #set line here    
+            service_line.append((0,0,rs))   
+            #
+        ##END FOR                                    
+        vals = {   
+                'invoice_line': service_line,
+                }
+        return {'value': vals}
     def create(self, cr, uid, vals, context=None):
         if vals.get('type','')=='in_invoice' and 'purchase_id' in vals and 'sup_inv_id' not in vals:
             vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.supplier.invoice.sequence') or '/'
@@ -6041,7 +6131,7 @@ class res_partner(osv.osv):
         return self._asset_difference_search(cr, uid, obj, name, 'receivable', args, context=context)
     _columns = {
         'tpt_credit': fields.function(_tpt_credit_debit_get,
-            string='Total Receivable', multi='sums'),
+            string='Credit Limit (TPT)', multi='sums'),
         'property_account_payable': fields.property(
             'account.account',
             type='many2one',

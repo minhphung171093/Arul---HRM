@@ -99,7 +99,7 @@ class tpt_daily_sale_line(osv.osv_memory):
         'other_reasons': fields.char('Order Reason', size = 1024),   
                     
         'sale_id':fields.many2one("sale.order", 'Sales Order'),   
-        'do_id':fields.many2one("stock.picking", 'Delivery Order'),  
+        'do_id':fields.many2one("stock.picking.out", 'Delivery Order'),  
         'invoice_id': fields.many2one('account.invoice', 'Invoice No'),    
         'customer_id':fields.many2one("res.partner", 'Customer'),
         'name_consignee_id':fields.many2one("res.partner", 'Consignee'), 
