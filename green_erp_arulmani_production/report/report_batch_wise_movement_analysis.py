@@ -42,6 +42,7 @@ class Parser(report_sxw.rml_parse):
         
     def get_master(self):
         res = {}
+        do_name = ''
         wizard_data = self.localcontext['data']['form']
         production_date_from = wizard_data['production_date_from'] or ''
         production_date_to = wizard_data['production_date_to'] or ''
@@ -52,13 +53,15 @@ class Parser(report_sxw.rml_parse):
         do_id = wizard_data['do_id'] and wizard_data['do_id'][0] or ''
         storage_from = wizard_data['storage_from'] or 0
         storage_to = wizard_data['storage_to'] or 0
+        if do_id:
+            do_name = self.pool.get('stock.picking').browse(self.cr,self.uid,do_id).name
         res.update({'production_date_from': production_date_from and self.get_date(production_date_from) or '',
                     'production_date_to': production_date_to and self.get_date(production_date_to) or '',
                     'batch_date_from': batch_date_from and self.get_date(batch_date_from) or '',
                     'batch_date_to': batch_date_to and self.get_date(batch_date_to) or '',
                     'deliver_date_from': deliver_date_from and self.get_date(deliver_date_from) or '',
                     'deliver_date_to': deliver_date_to and self.get_date(deliver_date_to) or '',
-                    'do_id': do_id,
+                    'do_id': do_name,
                     'storage_from': storage_from,
                     'storage_to': storage_to,
                     })
