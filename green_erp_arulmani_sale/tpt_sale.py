@@ -1230,8 +1230,25 @@ class tpt_blanket_order(osv.osv):
             cr.execute(sql)
             count = cr.fetchone()
             count = count[0]
-            if sale_order_ids:
-                raise osv.except_osv(_('Warning!'),_('Blanket Order has already existed on Sale Order'))
+            if count>1:
+                raise osv.except_osv(_('Warning!'),_('Blanket Order has already existed in more than one Sale Order'))
+            
+            cl_sale_order_ids = self.pool.get('sale.order').search(cr,uid,[('blanket_id', '=',line.id ), ('state', '=','cancel')])
+            if cl_sale_order_ids:
+                so_line_ids = self.pool.get('sale.order.line').search(cr,uid,[ ('order_id', '=',cl_sale_order_ids[0])])               
+                so_line = self.pool.get('sale.order.line').browse(cr,uid,so_line_ids[0])
+                bo_line_ids = self.pool.get('tpt.blank.order.line').search(cr,uid,[ ('blanket_order_id', '=',line.id)]) 
+                bo_line = self.pool.get('tpt.blank.order.line').browse(cr,uid,bo_line_ids[0])
+                if so_line.product_uom_qty!=bo_line.product_uom_qty:
+                    raise osv.except_osv(_('Warning!'),_('Blanket Order has already existed on Sale Order'))
+            confirm_sale_order_ids = self.pool.get('sale.order').search(cr,uid,[('blanket_id', '=',line.id ), ('state', 'in',('draft', 'progress','done'))])
+            if confirm_sale_order_ids:
+                so_line_ids = self.pool.get('sale.order.line').search(cr,uid,[ ('order_id', '=',confirm_sale_order_ids[0])])               
+                so_line = self.pool.get('sale.order.line').browse(cr,uid,so_line_ids[0])
+                bo_line_ids = self.pool.get('tpt.blank.order.line').search(cr,uid,[ ('blanket_order_id', '=',line.id)]) 
+                bo_line = self.pool.get('tpt.blank.order.line').browse(cr,uid,bo_line_ids[0])
+                if so_line.product_uom_qty!=bo_line.product_uom_qty:
+                    raise osv.except_osv(_('Warning!'),_('Blanket Order has already existed on Sale Order'))
             self.write(cr, uid, ids,{'state':'cancel'})
         return True  
     ###
