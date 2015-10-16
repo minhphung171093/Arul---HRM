@@ -6208,6 +6208,7 @@ class account_tax(osv.osv):
     _columns = {
         'gl_account_id': fields.many2one('account.account', 'GL Account'),
         'section': fields.char('Section', size = 20),
+        'is_stax_report':fields.boolean('Is STax Report Applicable') #TPT-Y on 16/10/2015
         }
     
 account_tax()
