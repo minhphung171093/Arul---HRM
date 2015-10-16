@@ -237,7 +237,7 @@ class stock_picking(osv.osv):
     #                 'invoice_line_tax_id': [(6, 0, [tax_id])],
                 'invoice_line_tax_id': [(6, 0, self._get_taxes_invoice(cr, uid, move_line, invoice_vals['type']))],
                 'account_analytic_id': self._get_account_analytic_invoice(cr, uid, picking, move_line),
-                'name': move_line.description or '' # TPT - BY BalamuruganPurshothaman on 16/10/2015 
+                'name': move_line.description or '' # TPT - BY BalamuruganPurushothaman on 16/10/2015 
     #                 'product_type':move_line.product_type or False,
     #                 'application_id':move_line.application_id or False,
         #                 'freight':move_line.freight or False,
