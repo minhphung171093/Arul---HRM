@@ -2659,9 +2659,15 @@ class purchase_order(osv.osv):
         for new in self.browse(cr, uid, ids):
             for line in new.order_line:
                 if 'state' in vals and vals['state']=='approved':
+                    # TPT - By BalamuruganPurushothaman on 16/10/2015 - SQL CHANGED TO UPDATE PR STATE TO CLOSE W.R.T PRODUCT DESCRIPTION
+                    #===========================================================
+                    # sql = '''
+                    #     update tpt_purchase_product set state='close' where pur_product_id=%s and product_id=%s
+                    # '''%(line.po_indent_no.id,line.product_id.id)
+                    #===========================================================
                     sql = '''
-                        update tpt_purchase_product set state='close' where pur_product_id=%s and product_id=%s
-                    '''%(line.po_indent_no.id,line.product_id.id)
+                        update tpt_purchase_product set state='close' where pur_product_id=%s and product_id=%s and description='%s'
+                    '''%(line.po_indent_no.id,line.product_id.id,line.description)
                     cr.execute(sql)
                 if 'state' in vals and vals['state']=='cancel':
                     sql = '''
