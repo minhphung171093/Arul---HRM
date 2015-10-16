@@ -34,11 +34,6 @@ class Parser(report_sxw.rml_parse):
             'get_year':self.get_year,
             'get_material':self.get_material,  
             'get_line':self.get_line, 
-            'get_value':self.get_value, 
-            'length_month':self.length_month, 
-            'get_day_column':self.get_day_column,  
-            'get_avg':self.get_avg,
-                                  
         })
         
     def get_category(self):
@@ -98,20 +93,6 @@ class Parser(report_sxw.rml_parse):
                 pro_name = pro_name[:-1]
         return pro_name
     
-    def length_month(self,year, month):
-        if month == 2 and (year % 4 == 0) and (year % 100 != 0) or (year % 400 == 0):
-            return 29 
-        return [0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][month]
-    
-    def get_day_column(self):
-        day_ids = []
-        days = self.length_month(self.year,self.month) or False
-        if days:
-            for line in range(1,days+1):
-                day_ids.append({'day':line})
-                line+=1
-        return day_ids
-    
     def get_line(self):
         wizard_data = self.localcontext['data']['form']
         cat = wizard_data['material_cate']
@@ -127,66 +108,4 @@ class Parser(report_sxw.rml_parse):
         else:
             avg_value=''
         return self.pool.get('sql.mateiral.purchase.value.day').get_line(self.cr, int(self.year), int(self.month), cat[0], product_ids,avg_value)
-#     def get_line(self):
-#         product_obj = self.pool.get('product.product')
-#         wizard_data = self.localcontext['data']['form']
-#         product_ids = wizard_data['material_ids']
-#         cat = wizard_data['material_cate']
-#         product_report_ids = []
-#         if product_ids:
-#             product_report_ids = product_ids
-#         else :
-#             self.cr.execute('''select product_product.id 
-#                         from product_product,product_template 
-#                         where product_template.categ_id in(select product_category.id from product_category where product_category.id = %s) 
-#                         and product_product.product_tmpl_id = product_template.id''',(cat[0],))
-#             product_report_ids += [r[0] for r in self.cr.fetchall()]
-#          
-#         return product_obj.browse(self.cr,self.uid,product_report_ids)
-#     
-    def get_value(self,line,day):
-        value_day = 0
-        sql = '''
-            select case when sum(product_qty * price_unit)!=0 then sum(product_qty * price_unit) else 0 end value1 
-            from purchase_order_line 
-            where product_id = %s and order_id in (select id from purchase_order where EXTRACT(year from date_order) = %s
-            and EXTRACT(month from date_order) = %s and EXTRACT(day from date_order) = %s and state in ('md','approved','done','except_picking','except_invoice'))
-        '''%(line,self.year,self.month,day)
-        self.cr.execute(sql)
-        value_day = self.cr.fetchone()[0]
-        value_day = round(value_day,2)
-        if value_day:
-            self.day_value.append(value_day)
-            self.num += 1
-        return value_day
     
-#     def get_value(self,line,day):
-#         value_day = 0
-#         sql = '''
-#             select case when sum(product_qty * price_unit)!=0 then sum(product_qty * price_unit) else 0 end value1 
-#             from purchase_order_line 
-#             where product_id = %s and order_id in (select id from purchase_order where EXTRACT(year from date_order) = %s
-#             and EXTRACT(month from date_order) = %s and EXTRACT(day from date_order) = %s and state in ('md','approved','done','except_picking','except_invoice'))
-#         '''%(line,self.year,self.month,day)
-#         self.cr.execute(sql)
-#         value_day = self.cr.fetchone()[0]
-#         value_day = round(value_day,2)
-#         if value_day:
-#             self.day_value.append(value_day)
-#             self.num += 1
-#         return value_day
-    
-    def get_avg(self):
-        value_day = 0
-        value_day = round(value_day,2)
-        total = 0
-        avg = 0
-        for line in self.day_value:
-            total += line
-        if self.num:
-            avg = total/self.num
-        return round(avg,2)
-    
-
-
-

@@ -32,8 +32,6 @@ class Parser(report_sxw.rml_parse):
             'get_year':self.get_year,
             'get_material':self.get_material,  
             'get_line':self.get_line, 
-            'get_value':self.get_value, 
-                                  
         })
         
     def get_category(self):
@@ -107,74 +105,3 @@ class Parser(report_sxw.rml_parse):
         else:
             avg_value=''
         return self.pool.get('sql.mateiral.purchase.value.month').get_line(self.cr, int(self.start), int(self.stop), cat[0], product_ids,avg_value)
-#     def get_line(self):
-#         product_obj = self.pool.get('product.product')
-#         wizard_data = self.localcontext['data']['form']
-#         product_ids = wizard_data['material_ids']
-#         cat = wizard_data['material_cate']
-#         product_report_ids = []
-#         if product_ids:
-#             product_report_ids = product_ids
-#         else :
-#             self.cr.execute('''select product_product.id 
-#                         from product_product,product_template 
-#                         where product_template.categ_id in(select product_category.id from product_category where product_category.id = %s) 
-#                         and product_product.product_tmpl_id = product_template.id''',(cat[0],))
-#             product_report_ids += [r[0] for r in self.cr.fetchall()]
-#         
-#         return product_obj.browse(self.cr,self.uid,product_report_ids)
-    
-    def get_value(self,line):
-        res ={}
-        year = False
-        total = 0.0
-        n = 0
-        avg_value = 0
-        for month in [4,5,6,7,8,9,10,11,12,1,2,3]:
-            if month not in [1,2,3]:
-                year = self.start
-            else :
-                year = self.stop
-            sql = '''
-                select case when sum(product_qty * price_unit)!=0 then sum(product_qty * price_unit) else 0 end value1 
-                from purchase_order_line 
-                where product_id = %s and order_id in (select id from purchase_order where EXTRACT(year from date_order) = %s
-                and EXTRACT(month from date_order) = %s and state in ('md','approved','done','except_picking','except_invoice'))
-            '''%(line,year,month)
-            self.cr.execute(sql)
-            value_month = self.cr.fetchone()[0]
-            value_month = round(value_month,2)
-            if month == 4:
-                res.update({'4':value_month})
-            if month == 5:
-                res.update({'5':value_month})
-            if month == 6:
-                res.update({'6':value_month})
-            if month == 7:
-                res.update({'7':value_month})
-            if month == 8:
-                res.update({'8':value_month})
-            if month == 9:
-                res.update({'9':value_month})
-            if month == 10:
-                res.update({'10':value_month})
-            if month == 11:
-                res.update({'11':value_month})
-            if month == 12:
-                res.update({'12':value_month})
-            if month == 1:
-                res.update({'1':value_month})
-            if month == 2:
-                res.update({'2':value_month})
-            if month == 3:
-                res.update({'3':value_month})
-            total += value_month
-            if value_month > 0:
-                n += 1
-        if n:
-            avg_value = total/n
-        res.update({'avg':round(avg_value,2)})
-        return res
-
-
-
