@@ -9,7 +9,7 @@
 	        <field name="report_name">sample_invoice_report</field>
 	        <field name="report_type">aeroo</field>
 	        <field name="in_format">oo-odt</field>
-	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-odt'),('compatible_types','=','oo-odt')]"/>
+	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-pdf'),('compatible_types','=','oo-odt')]"/>
 	        <field name="parser_loc">green_erp_arulmani_crm/report/sample_invoice_report.py</field>
 	        <field name="report_rml">green_erp_arulmani_crm/report/sample_invoice_report.odt</field>
 	        <field name="parser_state">loc</field>

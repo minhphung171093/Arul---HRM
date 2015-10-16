@@ -70,6 +70,7 @@ arul_reason()
 
 class arul_hr_employee_action_history(osv.osv):
     _name = 'arul.hr.employee.action.history'
+    _order = 'create_date desc'
     
     def default_get(self, cr, uid, fields, context=None):
         if context is None:
@@ -990,7 +991,7 @@ food_subsidy()
 
 class meals_deduction(osv.osv):
     _name = "meals.deduction"
-    
+    _order="create_date desc"
     def _no_of_meals(self, cr, uid, ids, field_name, args, context=None):
         res = {}
         for line in self.browse(cr,uid,ids,context=context):

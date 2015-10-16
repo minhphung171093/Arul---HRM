@@ -39,10 +39,10 @@ class Parser(report_sxw.rml_parse):
         pool = pooler.get_pool(self.cr.dbname)
         self.localcontext.update({
             'get_InOut':self.get_InOut,
-            'get_Out':self.get_Out,
             'get_workdate':self.get_workdate,
             'float_time_convert':self.float_time_convert,
             'get_date':self.get_date,
+            'get_shift_type':self.get_shift_type,
         })
         
     def get_date(self, date=False):
@@ -64,7 +64,7 @@ class Parser(report_sxw.rml_parse):
                 a = '0'+str(factor * int(math.floor(val)) )
             if len(str(int(round((val % 1) * 60))))==1:
                 b = '0'+str(int(round((val % 1) * 60)))
-            if b=='60':
+            if b==60:
                 a = int(a)
                 a += 1
                 a = str(a)
@@ -74,9 +74,36 @@ class Parser(report_sxw.rml_parse):
         else:
             return ''
     
-    def get_InOut(self, shift_type):
+    def get_InOut(self):
         wizard_data = self.localcontext['data']['form']
-        workdate=wizard_data['workdate']    
+        workdate=wizard_data['workdate']
+        shift_type=wizard_data['shift_type']
+        if shift_type=='a_shift':
+            shift_type='A'
+        if shift_type=='g1_shift':
+            shift_type='G1'
+        if shift_type=='g2_shift':
+            shift_type='G2'
+        if shift_type=='b_shift':
+            shift_type='B'
+        if shift_type=='c_shift':
+            shift_type='C'
+       
+        shifts_ids = []
+        c_earlier_entries_ids = []  
+        if shift_type=='C': # to fetch C Shift earlier entries
+            sql = '''
+              select emp.employee_id, emp.name_related employeename, COALESCE(ast.ref_in_time,0.0) as ref_in_time, 
+              COALESCE(ast.ref_out_time,0.0) as ref_out_time
+                from arul_hr_audit_shift_time ast
+             inner join hr_employee emp on ast.employee_id=emp.id
+             where ref_in_time between (select min_in_time from tpt_work_shift where 
+             code='B+C HALF') and (select max_in_time from tpt_work_shift where
+             code='B+C HALF') and ast.work_date='%s'
+             order by emp.employee_id
+            '''%(workdate)               
+            self.cr.execute(sql)
+            c_earlier_entries_ids = self.cr.dictfetchall()  
         sql = '''
           select emp.employee_id, emp.name_related employeename, COALESCE(ast.ref_in_time,0.0) as ref_in_time, 
           COALESCE(ast.ref_out_time,0.0) as ref_out_time
@@ -84,86 +111,46 @@ class Parser(report_sxw.rml_parse):
          inner join hr_employee emp on ast.employee_id=emp.id
          where ref_in_time between (select min_in_time from tpt_work_shift where 
          code='%s') and (select max_in_time from tpt_work_shift where
-         code='%s') and work_date='%s'
+         code='%s') and ast.work_date='%s'
          order by emp.employee_id
         '''%(shift_type, shift_type, workdate)               
         self.cr.execute(sql)
         shifts_ids = self.cr.dictfetchall()
-        #=======================================================================
-        # if shift_type=='C':
-        #     c_shift_ids = []
-        #     sql = '''
-        #     select emp.employee_id, emp.name_related employeename, COALESCE(ast.ref_in_time,0.0) as ref_in_time          
-        #     from arul_hr_audit_shift_time ast
-        #      inner join hr_employee emp on ast.employee_id=emp.id
-        #      where ref_in_time between (select in_time from tpt_work_shift where 
-        #      code='%s') and (select out_time from tpt_work_shift where
-        #      code='%s') and work_date='%s'
-        #      order by emp.employee_id
-        #     '''%(shift_type, shift_type, workdate)               
-        #     self.cr.execute(sql)
-        #     c_shift_ids = self.cr.dictfetchall()
-        #     shifts_ids = shifts_ids + c_shift_ids
-        #=======================================================================
+        
+        if shift_type=='C':
+            c_earlier_entries_ids += shifts_ids   
+            shifts_ids = c_earlier_entries_ids     
+        
         res = []
         s_no = 1
-        for line in shifts_ids:#self.cr.dictfetchall():
-             ###
-            shift_continue = ''
-            if line['ref_in_time']>0 and line['ref_out_time']>0:
-                sql = '''
-                     select name,shift_count from tpt_work_shift where 
-                     (%s between min_start_time and max_start_time)
-                     and
-                     (%s between min_end_time and max_end_time)
-                '''%(line['ref_in_time'],line['ref_out_time'])
-                self.cr.execute(sql)
-                for k in self.cr.fetchall():
-                    desc=k[0]
-                    shift_count=k[1]
-                if shift_count>1:
-                    shift_continue = desc
-            ###
+        for line in shifts_ids: #self.cr.dictfetchall():
             res.append({
                         's_no':s_no,
                         'employee_id': line['employee_id'] or '',
                         'employeename': line['employeename'] or '',
-                        'ref_in_time': line['ref_in_time'] or '',
-                        'ref_out_time': line['ref_out_time'] or '',
-                        'shift_continue': shift_continue ,
+                        'ref_in_time': line['ref_in_time'] or '',                  
                         })
             s_no += 1
-            #shift_continue = ''
         return res     
     
-    def get_Out(self):
-        wizard_data = self.localcontext['data']['form']
-        workdate=wizard_data['workdate']    
-        sql = '''
-          select emp.employee_id, emp.name_related employeename, COALESCE(ast.ref_in_time,0.0) as ref_in_time, 
-          COALESCE(ast.ref_out_time,0.0) as ref_out_time
-            from arul_hr_audit_shift_time ast
-         inner join hr_employee emp on ast.employee_id=emp.id
-         where ref_in_time = 0 and ref_out_time > 0 and work_date='%s'
-         order by emp.employee_id
-        '''%(workdate)               
-        self.cr.execute(sql)
-        res = []
-        s_no = 1
-        for line in self.cr.dictfetchall():            
-            res.append({
-                        's_no':s_no,
-                        'employee_id': line['employee_id'] or '',
-                        'employeename': line['employeename'] or '',
-                        'ref_in_time': line['ref_in_time'] or '',
-                        'ref_out_time': line['ref_out_time'] or '',                        
-                        })
-            s_no += 1
-        return res     
     def get_workdate(self):
         wizard_data = self.localcontext['data']['form']
         workdate=wizard_data['workdate']
-        return   workdate       
+        return   workdate   
+    def get_shift_type(self):
+        wizard_data = self.localcontext['data']['form']
+        shift_type=wizard_data['shift_type']
+        if shift_type=='a_shift':
+            shift_type='A'
+        if shift_type=='g1_shift':
+            shift_type='G1'
+        if shift_type=='g2_shift':
+            shift_type='G2'
+        if shift_type=='b_shift':
+            shift_type='B'
+        if shift_type=='c_shift':
+            shift_type='C'
+        return   shift_type   
          
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
 

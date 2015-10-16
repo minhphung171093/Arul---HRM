@@ -483,8 +483,8 @@
                 <form string="Employee Section Change Action" version="7.0">    
                 	<sheet>
 		                 <group col='4' colspan='2'>
-							<field name="action_id" on_change="onchange_action_id(action_id)" domain="[('name','=',('Section Change'))]" options="{'create': false, 'create_edit': false}"/>
-							<field name="action_type_id" required='0' domain="[('name','=',('Section Change'))]" options="{'create': false, 'create_edit': false}"/>
+							<field name="action_id" domain="[('name','=',('Section Change'))]" options="{'create': false, 'create_edit': false}"/>
+							<field name="action_type_id" required='1' domain="[('name','=',('Section Change'))]" options="{'create': false, 'create_edit': false}"/>
 							<field name ="employee_id" options="{'create': false, 'create_edit': false}" required = "1" domain="[('active','=',1)]"
 							 on_change="onchange_section_transfer_employee_id(employee_id)"/>
 							<field name ="department_from_id" readonly='0' options="{'create': false, 'create_edit': false}"/>
@@ -1311,7 +1311,7 @@
                 		<notebook>
                 			<page string="Meals Deduction">
                 				<field name ="meals_details_emp_ids" nolabel="1" attrs="{'invisible':[('meals_for','!=','employees')]}">
-                					<tree editable="top">
+                					<tree editable="bottom">
                 						<field name ="emp_id" invisible="0" readonly="0" options="{'create': false, 'create_edit': false}" />
                 						<field name ="break_fast"/>
                 						<field name ="lunch"/>
@@ -1325,7 +1325,7 @@
                 					</tree>
                 				</field>
                 				<field name ="meals_details_order_ids" nolabel="1" attrs="{'invisible':[('meals_for','!=','others')]}">
-                					<tree editable="top">
+                					<tree editable="bottom">
                 						<field name ="emp_name" options="{'create': false, 'create_edit': false}" readonly="0" attrs="{'required':[('meals_rel','=','others')]}"/>
                 						<field name ="break_fast_num"/>
                 						<field name ="lunch_num"/>

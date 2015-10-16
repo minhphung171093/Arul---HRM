@@ -22,7 +22,7 @@
 			id="service_tax_report" 
 			model="service.tax.register" 
 			name="service_tax_report"
-	        string="Service tax Report"
+	        string="Service Tax Register Report"
 	        rml="green_erp_arulmani_accounting/report/service_tax_report.ods"/>
 	        
 	   <record id="service_tax_report_pdf" model="ir.actions.report.xml">
@@ -46,10 +46,22 @@
 			id="service_tax_report_pdf" 
 			model="service.tax.register" 
 			name="service_tax_report_pdf"
-	        string="Service tax Report"
+	        string="Service Tax Register Report"
 	        rml="green_erp_arulmani_accounting/report/service_tax_report.ods"/>	
 	        
-	    
+	    <record id="view_tpt_service_tax_form_vew" model="ir.ui.view">
+            <field name="name">tpt.service.tax.line.form</field>
+            <field name="model">tpt.service.tax.line</field>
+            <field name="arch" type="xml">
+	            <form string="Service Tax Lines" version="7.0">
+		            <group >
+			            <field name="invoice_id"/> 
+				        <field name="partner_id"/> 
+				    </group>
+	            </form>
+			</field>
+		</record>
+		
 	    <record id="view_service_tax_register_form" model="ir.ui.view">
 	        <field name="name">tpt.service.tax.form</field>
 	        <field name="model">tpt.service.tax</field>
@@ -61,14 +73,14 @@
 	            	</header>
 	            	<sheet>
 	            		<div class="oe_text_center">
-            				<b>NAME OF THE ASSESSEE : V.V.TITANIUM PIGMENTS PRIVATE LTD</b>
+            				<b>NAME OF THE ASSESSEE            : V.V.TITANIUM PIGMENTS PRIVATE LTD</b>
             			</div>
             			<div class="oe_text_center">
-            				SERVICE TAX REGISTRATION NUMBER : AADCV7723PSD001
+            				<b>SERVICE TAX REGISTRATION NUMBER : AADCV7723PSD001</b>
             			</div>
             			
             			<div class="oe_text_center oe_bold">
-            				Service Tax Report for the Period :<field name="date_from" nolabel="1" class = "oe_inline"/> - <field name="date_to" nolabel="1" class = "oe_inline"/>
+            				Service Tax Report for the Period  : <field name="date_from" nolabel="1" class = "oe_inline"/> - <field name="date_to" nolabel="1" class = "oe_inline"/>
             			</div>
             			<div class="oe_text_center">
             				<field name="account_id" nolabel="1" class = "oe_inline"/>
@@ -80,8 +92,10 @@
 		                			<field name="date"/>
 		                			<field name="bill_no"/>                			
 		                			<field name="bill_date"/>
-		                			<field name="number"/>
-		                			<field name="party_name"/>
+		                			<!-- <field name="number"/>   -->
+		                			<field name="invoice_id"/> 
+		                			<field name="partner_id"/> 
+		                			<!-- <field name="party_name"/>  -->
 		                			<field name="open_bal"/>
 		                			<field name="taxable_amount"/>
 		                			<field name="service_tax_rate"/>

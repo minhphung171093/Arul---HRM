@@ -65,6 +65,7 @@ class tpt_stock_on_hand_line(osv.osv):
         'onhand_qty_st_spare': fields.float('Store / Spare',digits=(16,3)),
         'onhand_qty_st_tio2': fields.float('Store / TIO2',digits=(16,3)),
         'onhand_qty_pl_rm': fields.float('Production Line / Raw Material',digits=(16,3)),  
+        'product_id': fields.many2one('product.product', 'Product'),
     }
 
 tpt_stock_on_hand_line()
@@ -483,7 +484,7 @@ class stock_on_hand_report(osv.osv_memory):
         ##TPT-START - TO ADDRESS PERFORMANCE ISSUE - BY BalamuruganPurushothaman  on 02/09/2015
         def get_prod(o):
             sql = '''
-                        select pp.default_code, pt.name, pt.standard_price, pu.name as uom, pp.bin_location,
+                        select pp.id as product_id, pp.default_code, pt.name, pt.standard_price, pu.name as uom, pp.bin_location,
               pp.min_stock,  pp.max_stock,  pp.re_stock,
              (select case when sum(onhand_qty)>0 then sum(onhand_qty) else 0 end ton
                         From
@@ -681,6 +682,7 @@ class stock_on_hand_report(osv.osv_memory):
                  'onhand_qty_st_fsh': line['store_fsh'] or '',
                  'onhand_qty_st_tio2': line['store_tio2'] or '', 
                  'onhand_qty_pl_rm': line['pl_rm'] or '',   
+                 'product_id': line['product_id'] or False,  
             }))
         ## TPT-FOLLOWING SNIPPET IS COMMENTED - BY BalamuruganPurushothaman
         #=======================================================================

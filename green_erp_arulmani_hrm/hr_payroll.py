@@ -719,6 +719,7 @@ tpt_hr_payroll_approve_reject()
 
 class arul_hr_payroll_executions(osv.osv):
     _name = 'arul.hr.payroll.executions'
+    _order = 'create_date desc'
     _columns = {
          'payroll_area_id': fields.many2one('arul.hr.payroll.area','Payroll Area',required = True, states={'confirm': [('readonly', True)], 'approve': [('readonly', True)]}),
          'state': fields.selection([('draft', 'New'),('confirm', 'Confirmed'),('approve', 'Approved')],'Status'),

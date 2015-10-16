@@ -186,6 +186,9 @@
         <menuitem action="action_daily_inout_report"
         	id="menu_action_daily_inout_report"
         	parent="menu_hr_leave_management" sequence="39"/>
+        <menuitem action="action_daily_in_report"
+        	id="menu_action_daily_in_report"
+        	parent="menu_hr_leave_management" sequence="40"/>
             
     </data>
 </openerp>

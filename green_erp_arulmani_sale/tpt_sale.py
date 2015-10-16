@@ -74,8 +74,7 @@ class product_product(osv.osv):
 product_product()
 
 class sale_order(osv.osv):
-    _inherit = "sale.order"
-    
+    _inherit = "sale.order"    
     _order = "name desc" #"blanket_id"
     
     def init(self, cr):
@@ -1151,6 +1150,7 @@ sale_order_line()
 
 class tpt_blanket_order(osv.osv):
     _name = "tpt.blanket.order"
+    _order = 'name desc'
     
     def amount_all_blanket_orderline(self, cr, uid, ids, field_name, args, context=None):
         res = {}
@@ -1223,7 +1223,7 @@ class tpt_blanket_order(osv.osv):
              states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}),
         
         'blank_consignee_line': fields.one2many('tpt.consignee', 'blanket_consignee_id', 'Consignee', states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}), 
-        'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancel'),('done', 'Closed'), ('approve', 'Approved')],'Status', readonly=True),
+        'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancel'),('done', 'Done'), ('approve', 'Confirmed'), ('close', 'Closed')],'Status', readonly=True),
         'flag2':fields.boolean(''),
     }
     
@@ -1264,9 +1264,7 @@ class tpt_blanket_order(osv.osv):
     #TPT- By BalamuruganPurushothaman on 01_03-2015 - To have Total(update) option
     def button_dummy(self, cr, uid, ids, context=None):
         return True
-    
-#     def _check_bo_date(self, cr, uid, ids, context=None):
-        
+            
     def bt_approve(self, cr, uid, ids, context=None):
         for line in self.browse(cr, uid, ids):
             if not line.blank_order_line:
@@ -1274,12 +1272,28 @@ class tpt_blanket_order(osv.osv):
             self.write(cr, uid, ids,{'state':'approve'})
         return True   
     
+    ###TPT- By BalamuruganPurushothaman on 16/10/2015 - TO CLOSE THE BO, IF CUSTOMER STOP RECEIVEING SERVICE EVENTHOUGHT IT HAS PARTIAL QTY SHIPPED
     def bt_cancel(self, cr, uid, ids, context=None):
         for line in self.browse(cr, uid, ids):
             sale_order_ids = self.pool.get('sale.order').search(cr,uid,[('blanket_id', '=',line.id )])
+            sql = ''' select count(id) from sale_order where blanket_id=%s
+            '''%line.id
+            cr.execute(sql)
+            count = cr.fetchone()
+            count = count[0]
             if sale_order_ids:
                 raise osv.except_osv(_('Warning!'),_('Blanket Order has already existed on Sale Order'))
             self.write(cr, uid, ids,{'state':'cancel'})
+        return True  
+    ###
+    def bt_close(self, cr, uid, ids, context=None):
+        for line in self.browse(cr, uid, ids):
+            sale_order_ids = self.pool.get('sale.order').search(cr,uid,[('blanket_id', '=',line.id )])
+            #===================================================================
+            # if sale_order_ids:
+            #     raise osv.except_osv(_('Warning!'),_('Blanket Order has already existed on Sale Order'))
+            #===================================================================
+            self.write(cr, uid, ids,{'state':'close'})
         return True   
     
     def create(self, cr, uid, vals, context=None):
@@ -1744,6 +1758,7 @@ tpt_test_report_line()
 
 class tpt_batch_request(osv.osv):
     _name = "tpt.batch.request"
+    _order = 'name desc'
     
     _columns = {
         'name': fields.char('Request No', size = 1024,readonly=True, required = True , states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
@@ -1925,7 +1940,7 @@ tpt_batch_number()
 
 class tpt_batch_allotment(osv.osv):
     _name = "tpt.batch.allotment"
-     
+    _order = 'batch_request_id desc' 
      
     def init(self, cr):
         batch_line_obj = self.pool.get('tpt.batch.allotment.line')

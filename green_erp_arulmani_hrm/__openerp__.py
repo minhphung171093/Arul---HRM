@@ -62,6 +62,8 @@
         'report/daily_filo_time_for_view.xml',
         'report/DailyInOut_report_view.xml', ##  
         'wizard/DailyInOut_view.xml', ##
+        'report/DailyIn_report_view.xml', ##  
+        'wizard/DailyIn_view.xml', ##
 #         'data_category.xml', 
         'import_view.xml',
         'green_erp_arulmani_sequence.xml',

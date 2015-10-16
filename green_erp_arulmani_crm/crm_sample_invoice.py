@@ -41,6 +41,9 @@ class crm_sample_invoice(osv.osv):
             vals['name'] = self.pool.get('ir.sequence').get(cr, user, seq_obj_name)
             sample_sending_id = self.pool.get('crm.sample.sending').browse(cr, user, vals['sample_sending_id'])
             vals['invoice_type'] = sample_sending_id.lead_id.lead_group
+            #vals['tpt_currency_id'] = sample_sending_id.lead_id.currency_id
+            print sample_sending_id.lead_id.currency_id
+            vals.update({'tpt_currency_id': sample_sending_id.lead_id.currency_id.id or False})
         new_id = super(crm_sample_invoice, self).create(cr, user, vals, context)
         sample_invoice_id = self.browse(cr, user, new_id)
         self.pool.get('crm.lead').write(cr, user, [sample_invoice_id.lead_id.id], {'status':sample_invoice_id.acceptance_status}, context=context)
@@ -170,8 +173,27 @@ class crm_sample_invoice(osv.osv):
             multi='sums', help="The total amount."),
 
         'sample_invoice_line': fields.one2many('crm.sample.invoice.line','sample_invoice_id','Product Line'),
+        'tpt_currency_id': fields.many2one('res.currency', 'Currency',),
     }
     
+    def print_sample_invoice(self, cr, uid, ids, context=None):
+        '''
+        This function prints the invoice and mark it as sent, so that we can see more easily the next step of the workflow
+        '''
+        assert len(ids) == 1, 'This option should only be used for a single id at a time.'
+        self.write(cr, uid, ids, {'sent': True}, context=context)
+        
+        
+        datas = {
+             'ids': ids,
+             'model': 'crm.sample.invoice',
+             'form': self.read(cr, uid, ids[0], context=context)
+        }
+        
+        return {
+                'type': 'ir.actions.report.xml',
+                'report_name': 'sample_invoice_report',
+            } 
 
     _defaults = {
         'name': lambda self, cr, uid, context: '/',

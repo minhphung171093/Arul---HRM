@@ -170,7 +170,7 @@ class hr_employee(osv.osv):
                                              ('widow', 'Widow'),
                                              ('divorced', 'Divorced')
                                               ], 'Marital Status'),
-                
+                'write_date': fields.datetime('Updated Date',readonly = True),
                 }
     _defaults = {
                  'active': True,

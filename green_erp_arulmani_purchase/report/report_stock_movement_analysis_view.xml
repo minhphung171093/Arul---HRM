@@ -103,6 +103,16 @@
 	           </form>
 	        </field>
 	    </record>
-	        
+	    <record id="view_tpt_mvmnt_analysis_form_vew" model="ir.ui.view">
+            <field name="name">tpt.movement.analysis.line</field>
+            <field name="model">tpt.movement.analysis.line</field>
+            <field name="arch" type="xml">
+	            <form string="Stock Movement Analysis Report" version="7.0">
+		            <group >
+		            	<field name="product_id"/> 			            
+				    </group>
+	            </form>
+			</field>
+		</record>      
     </data>
 </openerp>

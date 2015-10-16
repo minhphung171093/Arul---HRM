@@ -74,6 +74,7 @@ class tpt_purchase_indent_line_report(osv.osv_memory):
         'proj_sec': fields.char('Project Section', size = 1024),
         'tot': fields.char('Total Value', size = 1024),
         'state': fields.char('State', size = 1024),
+        'product_id' : fields.many2one('product.product','Product'),
                   
              
  }
@@ -304,7 +305,7 @@ class purchase_indent_line_report(osv.osv_memory):
             status = cb.state            
             
             sql = '''
-                select pi.name as indent_no_1,pi.id as indent_no,pp.pur_product_id,pp.date_indent_relate as ind_date,pp.doc_type_relate as doc_type,
+                select pr.id as product_id, pi.name as indent_no_1,pi.id as indent_no,pp.pur_product_id,pp.date_indent_relate as ind_date,pp.doc_type_relate as doc_type,
                 pp.department_id_relate,d.name as dept,pp.section_id_relate,s.name as sec,(pp.product_uom_qty*pp.price_unit) as total_val,
                 pp.requisitioner_relate,pp.product_id,pp.description as mat_desc,pr.default_code as mat_code,pp.price_unit as unit_price,
                 pp.description,pp.uom_po_id,u.name as uom,pp.id as line_id,pp.mrs_qty as res_qty,pp.state as status,
@@ -407,6 +408,7 @@ class purchase_indent_line_report(osv.osv_memory):
                         'pend_qty':get_pending_qty(get_issue_qty_count(line['line_id'],line['prod_id'],line['item_text'],line['desc']),line['line_id'],line['prod_id'],line['ind_qty'],line['item_text'],line['desc']),
                         'tot':line['total_val'] or 0.000,
                         'state':get_status(line['status']) or '',
+                        'product_id':line['product_id'] or False,
                                               
                 }))
               

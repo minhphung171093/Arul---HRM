@@ -6,6 +6,9 @@
             <field name="model">crm.sample.invoice</field>
             <field name="arch" type="xml">
                 <form string="Sample Invoice" version="7.0">
+                <header>
+	            		<button name='print_sample_invoice' string="Print Sample Invoice" type="object" class="oe_highlight" />
+	               </header> 
                    <sheet>
                    		<group>
 	                   		<group>

@@ -108,5 +108,17 @@
 	           </form>
 	        </field>
 	    </record>
+	    
+	    <record id="view_tpt_stock_onhand_form_vew" model="ir.ui.view">
+            <field name="name">tpt.stock.on.hand.line.form</field>
+            <field name="model">tpt.stock.on.hand.line</field>
+            <field name="arch" type="xml">
+	            <form string="Stock On-Hand Report" version="7.0">
+		            <group >
+		            	<field name="product_id"/> 			            
+				    </group>
+	            </form>
+			</field>
+		</record>  
     </data>
 </openerp>

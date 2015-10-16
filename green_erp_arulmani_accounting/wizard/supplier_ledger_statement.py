@@ -248,6 +248,11 @@ class supplier_ledger_statement(osv.osv_memory):
                 cr.execute('''select name from purchase_order where id in (select purchase_id from account_invoice where move_id =%s)''', (move_id,))
             number = cr.fetchone()
             return number and number[0] or ''
+        def get_po_id(move_id, doc_type):
+            if doc_type == 'sup_inv_po':
+                cr.execute('''select id from purchase_order where id in (select purchase_id from account_invoice where move_id =%s)''', (move_id,))
+            number = cr.fetchone()
+            return number and number[0] or ''
      
         def get_so_date(move_id, doc_type):
             if doc_type == 'sup_inv_po':
@@ -278,6 +283,8 @@ class supplier_ledger_statement(osv.osv_memory):
                 'cheque_date': get_cheque_date(line.move_id.id),
                 'debit': line.debit and line.debit or '',
                 'credit': line.credit and line.credit or '',
+                'order_id': get_po_id(line.move_id.id, line.move_id.doc_type) or False, 
+                'move_id':line.move_id and line.move_id.id or False,
             }))
         sls_line.append((0,0,{
                 'cheque_no': 'Total',
@@ -372,6 +379,8 @@ class tpt_supplier_ledger_line(osv.osv):
         'cheque_date': fields.date('Cheque Date'),
         'debit': fields.float('Debit'),
         'credit': fields.float('Credit'),
+        'order_id':fields.many2one('purchase.order','Purchase Order'),
+        'move_id':fields.many2one('account.move','Document Number'),
     }
 
 tpt_supplier_ledger_line()      
