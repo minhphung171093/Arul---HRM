@@ -6,10 +6,10 @@
     	<record id="report_batch_wise_movement_analysis" model="ir.actions.report.xml">
 	        <field name="name">report_batch_wise_movement_analysis</field>
 	        <field name="type">ir.actions.report.xml</field>
-	        <field name="model">batch.wise.movement.analysis</field>
-	        <field name="report_name">report_mateiral_purchase_value_month</field>
+	        <field name="model">review.batch.wise.movement.analysis</field>
+	        <field name="report_name">report_batch_wise_movement_analysis</field>
 	        <field name="report_type">aeroo</field>
-	        <field name="in_format">oo-odt</field>
+	        <field name="in_format">oo-ods</field>
 	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-xls'),('compatible_types','=','oo-ods')]"/>
 	        <field name="parser_loc">green_erp_arulmani_production/report/report_batch_wise_movement_analysis.py</field>
 	        <field name="report_rml">green_erp_arulmani_production/report/report_batch_wise_movement_analysis.ods</field>
@@ -22,8 +22,32 @@
 			auto="False" 
 			menu="False"
 			id="report_batch_wise_movement_analysis" 
-			model="batch.wise.movement.analysis" 
+			model="review.batch.wise.movement.analysis" 
 			name="report_batch_wise_movement_analysis"
+	        string="Batch Wise Movement Analysis Report"
+	        rml="green_erp_arulmani_production/report/report_batch_wise_movement_analysis.ods"/>
+	        
+	    <record id="report_batch_wise_movement_analysis_pdf" model="ir.actions.report.xml">
+	        <field name="name">report_batch_wise_movement_analysis_pdf</field>
+	        <field name="type">ir.actions.report.xml</field>
+	        <field name="model">review.batch.wise.movement.analysis</field>
+	        <field name="report_name">report_batch_wise_movement_analysis</field>
+	        <field name="report_type">aeroo</field>
+	        <field name="in_format">oo-ods</field>
+	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-pdf'),('compatible_types','=','oo-ods')]"/>
+	        <field name="parser_loc">green_erp_arulmani_production/report/report_batch_wise_movement_analysis.py</field>
+	        <field name="report_rml">green_erp_arulmani_production/report/report_batch_wise_movement_analysis.ods</field>
+	        <field name="parser_state">loc</field>
+	        <field name="tml_source">file</field>
+	        <field name="attachment_use" eval="0"/>
+    	</record> 
+    	   
+    	<report 
+			auto="False" 
+			menu="False"
+			id="report_batch_wise_movement_analysis_pdf" 
+			model="review.batch.wise.movement.analysis" 
+			name="report_batch_wise_movement_analysis_pdf"
 	        string="Batch Wise Movement Analysis Report"
 	        rml="green_erp_arulmani_production/report/report_batch_wise_movement_analysis.ods"/>
 	        

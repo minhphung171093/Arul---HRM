@@ -14,7 +14,7 @@
 		                <field name="avg_value"/>
                  	</group>
                     <footer>
-                        <button name="print_report_xls" string="Print" type="object" class="oe_highlight"/>
+                        <button name="print_report_xls" string="OK" type="object" class="oe_highlight"/>
                         <button string="Cancel" class="oe_link" special="cancel"/>
                     </footer>
                 </form>
@@ -47,7 +47,7 @@
 		                <field name="avg_value"/>
                  	</group>
                     <footer>
-                        <button name="print_report_xls" string="Print" type="object" class="oe_highlight"/>
+                        <button name="print_report_xls" string="OK" type="object" class="oe_highlight"/>
                         <button string="Cancel" class="oe_link" special="cancel"/>
                     </footer>
                 </form>
@@ -66,6 +66,128 @@
         <menuitem action="action_mateiral_purchase_value_day_form" 
         id="menu_action_mateiral_purchase_value_day_form" 
         parent="stock.menu_stock_warehouse_mgmt" sequence="22"/>
+        
+        
+<!-- Review Material Purchase value - Month wise -->
+        <record id="review_mateiral_purchase_value_month_form" model="ir.ui.view">
+            <field name="name">review.mateiral.purchase.value.month.form</field>
+            <field name="model">review.mateiral.purchase.value.month</field>
+            <field name="arch" type="xml">
+                <form string="Material Purchase Value - Month Wise Report" version="7.0" create="false" edit="false" delete="false">
+                	<header>
+                        <button name="print_report_xls" string="Print (.xls)" type="object" class="oe_highlight"/>
+                        <button name="print_report_pdf" string="Print (.pdf)" type="object" class="oe_highlight"/>
+                    </header>
+		            <div class="oe_text_center">
+		            	<group>
+			                <field name="year"/>
+			                <field name="material_cate"/>
+			                <field name="material_ids"/> 
+			                <field name="avg_value"/>
+			            </group>
+			        </div>
+                 	<field name="report_line" nolabel='1'>
+                    	<tree editable="top">
+                    		<field name="product_name"/>
+	                		<field name="product_code"/>
+	                		<field name="m_4"/>
+	                		<field name="m_5"/>
+	                		<field name="m_6"/>
+	                		<field name="m_7"/>
+	                		<field name="m_8"/>
+	                		<field name="m_9"/>
+	                		<field name="m_10"/>
+	                		<field name="m_11"/>
+	                		<field name="m_12"/>
+	                		<field name="m_1"/>
+	                		<field name="m_2"/>
+	                		<field name="m_3"/>
+	                		<field name="avg"/>
+                    	</tree>
+                    </field>
+                    
+                </form>
+            </field>
+        </record>        
+        <record id="action_review_mateiral_purchase_value_month_form" model="ir.actions.act_window">            
+            <field name="name">Material Purchase Value - Month Wise Report</field>         
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">review.mateiral.purchase.value.month</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="review_mateiral_purchase_value_month_form" />
+            <field name="target">new</field>
+        </record>
+        
+<!-- Review Material Purchase value - Day wise -->
+        <record id="review_mateiral_purchase_value_day_form" model="ir.ui.view">
+            <field name="name">review.mateiral.purchase.value.day.form</field>
+            <field name="model">review.mateiral.purchase.value.day</field>
+            <field name="arch" type="xml">
+                <form string="Material Purchase Value - Day Wise Report" version="7.0" create="false" edit="false" delete="false">
+                	<header>
+                        <button name="print_report_xls" string="Print (.xls)" type="object" class="oe_highlight"/>
+                        <button name="print_report_pdf" string="Print (.pdf)" type="object" class="oe_highlight"/>
+                    </header>
+		            <div class="oe_text_center">
+		            	<group>
+			                <field name="month_year"/>
+			                <field name="material_cate"/>
+			                <field name="material_ids"/> 
+			                <field name="avg_value"/>
+			            </group>
+			        </div>
+                 	<field name="report_line" nolabel='1'>
+                    	<tree editable="top">
+                    		<field name="product_name"/>
+	                		<field name="product_code"/>
+	                		<field name="m_1"/>
+	                		<field name="m_2"/>
+	                		<field name="m_3"/>
+	                		<field name="m_4"/>
+	                		<field name="m_5"/>
+	                		<field name="m_6"/>
+	                		<field name="m_7"/>
+	                		<field name="m_8"/>
+	                		<field name="m_9"/>
+	                		<field name="m_10"/>
+	                		<field name="m_11"/>
+	                		<field name="m_12"/>
+	                		<field name="m_13"/>
+	                		<field name="m_14"/>
+	                		<field name="m_15"/>
+	                		<field name="m_16"/>
+	                		<field name="m_17"/>
+	                		<field name="m_18"/>
+	                		<field name="m_19"/>
+	                		<field name="m_20"/>
+	                		<field name="m_21"/>
+	                		<field name="m_22"/>
+	                		<field name="m_23"/>
+	                		<field name="m_24"/>
+	                		<field name="m_25"/>
+	                		<field name="m_26"/>
+	                		<field name="m_27"/>
+	                		<field name="m_28"/>
+	                		<field name="m_29"/>
+	                		<field name="m_30"/>
+	                		<field name="m_31"/>
+	                		<field name="avg"/>
+                    	</tree>
+                    </field>
+                    
+                </form>
+            </field>
+        </record>        
+        <record id="action_review_mateiral_purchase_value_day_form" model="ir.actions.act_window">            
+            <field name="name">Material Purchase Value - Day Wise Report</field>         
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">review.mateiral.purchase.value.day</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="review_mateiral_purchase_value_day_form" />
+            <field name="target">new</field>
+        </record>
     
     </data>
 </openerp>

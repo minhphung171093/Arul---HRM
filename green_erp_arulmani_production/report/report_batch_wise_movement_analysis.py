@@ -26,8 +26,6 @@ class Parser(report_sxw.rml_parse):
     def __init__(self, cr, uid, name, context):
         super(Parser, self).__init__(cr, uid, name, context=context)
         pool = pooler.get_pool(self.cr.dbname)
-        self.start = False
-        self.stop = False
         self.localcontext.update({
             'get_line':self.get_line, 
             'get_date':self.get_date, 

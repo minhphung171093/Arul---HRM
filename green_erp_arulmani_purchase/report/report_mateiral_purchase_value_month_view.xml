@@ -6,10 +6,10 @@
     	<record id="report_mateiral_purchase_value_month" model="ir.actions.report.xml">
 	        <field name="name">report_mateiral_purchase_value_month</field>
 	        <field name="type">ir.actions.report.xml</field>
-	        <field name="model">mateiral.purchase.value.month</field>
+	        <field name="model">review.mateiral.purchase.value.month</field>
 	        <field name="report_name">report_mateiral_purchase_value_month</field>
 	        <field name="report_type">aeroo</field>
-	        <field name="in_format">oo-odt</field>
+	        <field name="in_format">oo-ods</field>
 	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-xls'),('compatible_types','=','oo-ods')]"/>
 	        <field name="parser_loc">green_erp_arulmani_purchase/report/report_mateiral_purchase_value_month.py</field>
 	        <field name="report_rml">green_erp_arulmani_purchase/report/report_mateiral_purchase_value_month.ods</field>
@@ -22,8 +22,32 @@
 			auto="False" 
 			menu="False"
 			id="report_mateiral_purchase_value_month" 
-			model="mateiral.purchase.value.month" 
+			model="review.mateiral.purchase.value.month" 
 			name="report_mateiral_purchase_value_month"
+	        string="Material Purchase Value - Month Wise Report"
+	        rml="green_erp_arulmani_purchase/report/report_mateiral_purchase_value_month.ods"/>
+	        
+	    <record id="report_mateiral_purchase_value_month_pdf" model="ir.actions.report.xml">
+	        <field name="name">report_mateiral_purchase_value_month_pdf</field>
+	        <field name="type">ir.actions.report.xml</field>
+	        <field name="model">review.mateiral.purchase.value.month</field>
+	        <field name="report_name">report_mateiral_purchase_value_month</field>
+	        <field name="report_type">aeroo</field>
+	        <field name="in_format">oo-ods</field>
+	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-pdf'),('compatible_types','=','oo-ods')]"/>
+	        <field name="parser_loc">green_erp_arulmani_purchase/report/report_mateiral_purchase_value_month.py</field>
+	        <field name="report_rml">green_erp_arulmani_purchase/report/report_mateiral_purchase_value_month.ods</field>
+	        <field name="parser_state">loc</field>
+	        <field name="tml_source">file</field>
+	        <field name="attachment_use" eval="0"/>
+    	</record> 
+    	   
+    	<report 
+			auto="False" 
+			menu="False"
+			id="report_mateiral_purchase_value_month_pdf" 
+			model="review.mateiral.purchase.value.month" 
+			name="report_mateiral_purchase_value_month_pdf"
 	        string="Material Purchase Value - Month Wise Report"
 	        rml="green_erp_arulmani_purchase/report/report_mateiral_purchase_value_month.ods"/>
 	        
@@ -31,10 +55,10 @@
     	<record id="day_wise_report_material_purchase_value" model="ir.actions.report.xml">
 	        <field name="name">day_wise_report_material_purchase_value</field>
 	        <field name="type">ir.actions.report.xml</field>
-	        <field name="model">mateiral.purchase.value.day</field>
+	        <field name="model">review.mateiral.purchase.value.day</field>
 	        <field name="report_name">day_wise_report_material_purchase_value</field>
 	        <field name="report_type">aeroo</field>
-	        <field name="in_format">oo-odt</field>
+	        <field name="in_format">oo-ods</field>
 	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-xls'),('compatible_types','=','oo-ods')]"/>
 	        <field name="parser_loc">green_erp_arulmani_purchase/report/day_wise_report_material_purchase_value.py</field>
 	        <field name="report_rml">green_erp_arulmani_purchase/report/day_wise_report_material_purchase_value.ods</field>
@@ -47,9 +71,33 @@
 			auto="False" 
 			menu="False"
 			id="day_wise_report_material_purchase_value" 
-			model="mateiral.purchase.value.day" 
+			model="review.mateiral.purchase.value.day" 
 			name="day_wise_report_material_purchase_value"
 	        string="Material Purchase Value - Day Wise Report"
-	        rml="green_erp_arulmani_purchase/report/day_wise_report_material_purchase_value.ods"/>	        
+	        rml="green_erp_arulmani_purchase/report/day_wise_report_material_purchase_value.ods"/>	 
+	        
+	    <record id="day_wise_report_material_purchase_value_pdf" model="ir.actions.report.xml">
+	        <field name="name">day_wise_report_material_purchase_value_pdf</field>
+	        <field name="type">ir.actions.report.xml</field>
+	        <field name="model">review.mateiral.purchase.value.day</field>
+	        <field name="report_name">day_wise_report_material_purchase_value</field>
+	        <field name="report_type">aeroo</field>
+	        <field name="in_format">oo-ods</field>
+	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-pdf'),('compatible_types','=','oo-ods')]"/>
+	        <field name="parser_loc">green_erp_arulmani_purchase/report/day_wise_report_material_purchase_value.py</field>
+	        <field name="report_rml">green_erp_arulmani_purchase/report/day_wise_report_material_purchase_value.ods</field>
+	        <field name="parser_state">loc</field>
+	        <field name="tml_source">file</field>
+	        <field name="attachment_use" eval="0"/>
+    	</record> 
+    	   
+    	<report 
+			auto="False" 
+			menu="False"
+			id="day_wise_report_material_purchase_value_pdf" 
+			model="review.mateiral.purchase.value.day" 
+			name="day_wise_report_material_purchase_value_pdf"
+	        string="Material Purchase Value - Day Wise Report"
+	        rml="green_erp_arulmani_purchase/report/day_wise_report_material_purchase_value.ods"/>       
 	</data>
 </openerp>

@@ -10,16 +10,16 @@
                 <form string="Batch Wise Movement Analysis Report" version="7.0">
                 	<group>
                 		<group>
-                			<field name="production_date_from" class="oe_inline"/>
-                			<field name="production_date_to" class="oe_inline"/>
+                			<field name="production_date_from" attrs="{'required':[('production_date_to','!=',False)]}" class="oe_inline"/>
+                			<field name="production_date_to" attrs="{'required':[('production_date_from','!=',False)]}" class="oe_inline"/>
                 		</group>
                 		<group>
-                			<field name="batch_date_from" class="oe_inline"/>
-                			<field name="batch_date_to" class="oe_inline"/>
+                			<field name="batch_date_from" attrs="{'required':[('batch_date_to','!=',False)]}" class="oe_inline"/>
+                			<field name="batch_date_to" attrs="{'required':[('batch_date_from','!=',False)]}" class="oe_inline"/>
                 		</group>
                 		<group>
-                			<field name="deliver_date_from" class="oe_inline"/>
-                			<field name="deliver_date_to" class="oe_inline"/>
+                			<field name="deliver_date_from" attrs="{'required':[('deliver_date_to','!=',False)]}" class="oe_inline"/>
+                			<field name="deliver_date_to" attrs="{'required':[('deliver_date_from','!=',False)]}" class="oe_inline"/>
                 		</group>
                 		<group>
                 			<field name="do_id" domain="[('type','=','out'),('state','=','done')]" options="{'create': false, 'create_edit': false}"/>
@@ -49,6 +49,65 @@
         <menuitem action="action_batch_wise_movement_analysis_form" 
         id="menu_action_batch_wise_movement_analysis_form" 
         parent="mrp.menu_mrp_manufacturing" sequence="1000"/>
+        
+<!-- Review Batch Wise Movement Analysis Report-->
+        <record id="review_batch_wise_movement_analysis_form" model="ir.ui.view">
+            <field name="name">review.batch.wise.movement.analysis.form</field>
+            <field name="model">review.batch.wise.movement.analysis</field>
+            <field name="arch" type="xml">
+                <form string="Batch Wise Movement Analysis Report" version="7.0" create="false" edit="false" delete="false">
+                	<header>
+                        <button name="print_report_xls" string="Print (.xls)" type="object" class="oe_highlight"/>
+                        <button name="print_report_pdf" string="Print (.pdf)" type="object" class="oe_highlight"/>
+                    </header>
+	            	<group>
+		                <group>
+            			<field name="production_date_from"/>
+            			<field name="production_date_to"/>
+                		</group>
+                		<group>
+                			<field name="batch_date_from"/>
+                			<field name="batch_date_to"/>
+                		</group>
+                		<group>
+                			<field name="deliver_date_from"/>
+                			<field name="deliver_date_to"/>
+                		</group>
+                		<group>
+                			<field name="do_id"/>
+                		</group>
+                		<group>
+                			<field name="storage_from"/>
+                			<field name="storage_to"/>
+                		</group>
+			        </group>
+                 	<field name="report_line" nolabel='1'>
+                    	<tree editable="top">
+                    		<field name="production_date"/>
+	                		<field name="production_dec"/>
+	                		<field name="batch_date"/>
+	                		<field name="batch_no"/>
+	                		<field name="delivery_date"/>
+	                		<field name="do_number"/>
+	                		<field name="deliver_qty"/>
+	                		<field name="non_deliver_qty"/>
+	                		<field name="inv_num"/>
+	                		<field name="store_days"/>
+                    	</tree>
+                    </field>
+                    
+                </form>
+            </field>
+        </record>        
+        <record id="action_review_batch_wise_movement_analysis_form" model="ir.actions.act_window">            
+            <field name="name">Batch Wise Movement Analysis Report</field>         
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">review.batch.wise.movement.analysis</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="review_batch_wise_movement_analysis_form" />
+            <field name="target">new</field>
+        </record>
         
     </data>
 </openerp>
