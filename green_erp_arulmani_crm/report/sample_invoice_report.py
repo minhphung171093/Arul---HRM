@@ -29,8 +29,13 @@ from datetime import datetime
 from dateutil.relativedelta import relativedelta
 import amount_to_text_vn
 import amount_to_text_en
+#from green_erp_arulmani_crm.report import amount_to_text_en
+from green_erp_arulmani_crm.report import amount_to_text_en
+from green_erp_arulmani_crm.report import amount_to_text_indian
+from amount_to_text_indian import Number2Words
 DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
 DATE_FORMAT = "%Y-%m-%d"
+
 class Parser(report_sxw.rml_parse):
     def __init__(self, cr, uid, name, context):
         super(Parser, self).__init__(cr, uid, name, context=context)
@@ -54,11 +59,22 @@ class Parser(report_sxw.rml_parse):
         for line in sample_invoice_line:
             sum += line.quantity*line.rate_per_kg
         return sum
-    def amount_to_text(self, nbr, lang='vn', currency=False):
-        if lang == 'vn':
-            return  amount_to_text_vn.amount_to_text(nbr, lang)
-        else:
-            a= currency
-            return amount_to_text_en.amount_to_text(nbr, 'en', lang)
+    #===========================================================================
+    # def amount_to_text(self, nbr, lang='vn', currency=False):
+    #     if lang == 'vn':
+    #         return  amount_to_text_vn.amount_to_text(nbr, lang)
+    #     else:
+    #         a= currency
+    #         return amount_to_text_en.amount_to_text(nbr, 'en', lang)
+    #===========================================================================
+    def amount_to_text(self, nbr, currency):
+        lang='en'
+        if currency.name!='INR':
+            return amount_to_text_en.amount_to_text(nbr, lang, currency.name).upper() 
+        if currency.name=='INR':
+            text = Number2Words().convertNumberToWords(nbr).upper()
+            if text and len(text)>3 and text[:3]==' ':
+                text = text[3:]
+            return text  
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
 

@@ -73,18 +73,40 @@ def english_number(val):
                 ret = ret + ' ' + english_number(r)
             return ret
 
+#===============================================================================
+# def amount_to_text(number, currency):
+#     number = '%.2f' % number
+#     units_name = currency
+#     list = str(number).split('.')
+#     start_word = english_number(int(list[0]))
+#     end_word = english_number(int(list[1]))
+#     cents_number = int(list[1])
+#     cents_name = (cents_number > 1) and 'Cents' or 'Cent'
+#     final_result = start_word.title() +' '+units_name+' and ' + str.lower(end_word) +' '+str.lower(cents_name)
+#     return final_result
+#===============================================================================
+
 def amount_to_text(number, currency):
     number = '%.2f' % number
-    units_name = currency
+    #===========================================================================
+    # if currency=='inr':
+    #     units_name = 'RUPEES'
+    # else:
+    #     units_name = 'USD'
+    #===========================================================================
+    if currency !='INR':
+        units_name = currency
+        
     list = str(number).split('.')
     start_word = english_number(int(list[0]))
     end_word = english_number(int(list[1]))
     cents_number = int(list[1])
     cents_name = (cents_number > 1) and 'Cents' or 'Cent'
-    final_result = start_word.title() +' '+units_name+' and ' + str.lower(end_word) +' '+str.lower(cents_name)
+    if currency !='INR':
+        final_result =units_name +' '+ start_word.title() +' and ' + str.lower(end_word) +' ONLY'     
+        if currency =='USD': 
+            final_result =units_name +' '+ start_word.title() +' and ' + str.lower(end_word) +' '+ str.lower(cents_name)
     return final_result
-
-
 #-------------------------------------------------------------
 # Generic functions
 #-------------------------------------------------------------
