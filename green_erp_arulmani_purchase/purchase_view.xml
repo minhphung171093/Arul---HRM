@@ -1945,7 +1945,7 @@
             <field name="arch" type="xml">
             	<field name="name" position="before">
             		
-            		<field name="vendor_code" string="Code"/>     
+            		<field name="vendor_code" string="Code" readonly="1"/>     
                     
                                  	
                 </field>
@@ -1975,7 +1975,7 @@
                     </xpath>
                     
                     <xpath expr="//field[@name='name']" position="before">
-                        <field name="vendor_code"  placeholder="Vendor Code" attrs="{'invisible': [('supplier','=',False)],'required':[('supplier','!=',False)]}" />
+                        <field name="vendor_code"  readonly='1' placeholder="Vendor Code" attrs="{'invisible': [('supplier','=',False)],'required':[('supplier','!=',False)]}" />
                     	<field name="title" placeholder="Title" domain="[('domain', '=', 'contact')]" options="{&quot;no_open&quot;: True,'create': false, 'create_edit': false}"/>
                     </xpath>
                     <!-- TPT - Commented By BalamuruganPurushothaman as per customer Req No:3080 - ON 22/09/2015
