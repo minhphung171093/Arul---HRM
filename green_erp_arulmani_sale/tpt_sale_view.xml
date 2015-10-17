@@ -185,7 +185,7 @@
 	            <header>
 	            		<button name="bt_approve" states='draft' string="Confirm" type="object" class="oe_highlight" groups="green_erp_arulmani_sale.group_vvti_marketing_user"/>
 	                    <button name="bt_cancel" states='draft,approve' string="Cancel" type="object" class="oe_highlight" groups="green_erp_arulmani_sale.group_vvti_marketing_user"/>
-	                    <button name="bt_close" states='approve,cancel' string="Close" type="object" class="oe_highlight" groups="green_erp_arulmani_sale.group_vvti_marketing_user"/>
+	                    <button name="bt_close" states='approve' string="Close" type="object" class="oe_highlight" groups="green_erp_arulmani_sale.group_vvti_marketing_user"/>
 	                    <field name="state" widget="statusbar" statusbar_visible="draft,approve,done,cancel,close" statusbar_colors='{"draft":"blue","cancel":"blue","done":"red"}'/>
 	            </header>    
 	            	<sheet>
