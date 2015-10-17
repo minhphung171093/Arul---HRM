@@ -150,6 +150,7 @@ class service_tax_register(osv.osv_memory):
                     join account_move_line aml on (aml.move_id = am.id)
                     join res_partner rs on (rs.id = ai.partner_id)
                     where aml.name = ail.name and aml.id = %s
+                    and t.is_stax_report = 't'
                 '''%(moveid)
             cr.execute(sql)
             for move in cr.dictfetchall():
@@ -322,7 +323,7 @@ class service_tax_register(osv.osv_memory):
                     join account_invoice_line ail on (ail.invoice_id = ai.id)
                     join account_invoice_line_tax ailt on (ailt.invoice_line_id=ail.id)
                     join account_tax at on (at.id=ailt.tax_id)
-                    where at.description ~'STax' and at.amount>0 and aml.account_id = %s
+                    where at.amount>0 and aml.account_id = %s
                     and am.date <= '%s' and is_stax_report = 't'
                     group by aml.id 
                     order by aml.id)a
@@ -622,7 +623,7 @@ class service_tax_register(osv.osv_memory):
                     join account_invoice_line ail on (ail.invoice_id = ai.id and aml.name = ail.name)
                     join account_invoice_line_tax ailt on (ailt.invoice_line_id=ail.id)
                     join account_tax at on (at.id=ailt.tax_id)
-                    where at.description ~'STax' and at.amount>0 and aml.account_id = %s
+                    where at.amount>0 and aml.account_id = %s
                     and am.date < '%s' and is_stax_report = 't'
                     group by aml.id 
                     order by aml.id)a
@@ -735,7 +736,7 @@ class service_tax_register(osv.osv_memory):
                     JOIN account_invoice_line_tax ailt on (ailt.invoice_line_id=ail.id)
                     Join account_tax at on (at.id=ailt.tax_id and at.gl_account_id = %s)
                     join account_move_line aml on (aml.move_id=ai.move_id and aml.account_id = %s)
-                    where at.description ~'STax' and at.amount>0
+                    where at.amount>0
                     and ai.date_invoice between '%s' and '%s'
                     group by ail.id 
                     order by ail.id)a
@@ -765,7 +766,7 @@ class service_tax_register(osv.osv_memory):
                         join account_invoice_line ail on (ail.invoice_id = ai.id and aml.name = ail.name)
                         join account_invoice_line_tax ailt on (ailt.invoice_line_id=ail.id)
                         join account_tax at on (at.id=ailt.tax_id)
-                        where at.description ~'STax' and at.amount>0
+                        where at.amount>0
                         and is_stax_report = 't'                                                     
                         '''
             if date_from and date_to is False:
