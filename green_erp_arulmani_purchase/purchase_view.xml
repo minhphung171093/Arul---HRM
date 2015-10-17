@@ -1975,6 +1975,7 @@
                     </xpath>
                     
                     <xpath expr="//field[@name='name']" position="before">
+                    <!-- TPT-Vendor Code is freezed By BalamuruganPurushothaman -->
                         <field name="vendor_code"  readonly='1' placeholder="Vendor Code" attrs="{'invisible': [('supplier','=',False)],'required':[('supplier','!=',False)]}" />
                     	<field name="title" placeholder="Title" domain="[('domain', '=', 'contact')]" options="{&quot;no_open&quot;: True,'create': false, 'create_edit': false}"/>
                     </xpath>
