@@ -162,52 +162,54 @@ class res_partner(osv.osv):
         #tien
         'disapprove': False,
     }
-    def name_get(self, cr, uid, ids, context=None):
-        """Overrides orm name_get method"""
-        res = []
-        if isinstance(ids, (int, long)):
-            ids = [ids]
-        if not ids:
-            return res
-#         reads = self.read(cr, uid, ids, ['default_code'], context)
-        bp = self.pool.get('res.partner').browse(cr, uid, ids[0])
-        if bp.customer is False:
-            reads = self.read(cr, uid, ids, ['name','vendor_code'], context=context)
-        elif bp.customer is True:
-            reads = self.read(cr, uid, ids, ['name','customer_code'], context=context)
-        for record in reads:
-            if bp.customer is False:
-                name = str(record['vendor_code'])+ ' '+'-'+' ' + str((record['name'] or''))
-            elif bp.customer is True:
-                name = str(record['customer_code'])+ ' '+'-'+' ' + str((record['name'] or''))
-            elif bp.name=='VVTi Pigments':
-                name = str(record['name'] or '')
-            #name = record['default_code']+ ' '+'-'+' ' + (record['name'] or'')
-            res.append((record['id'], name))
-  
-        return res
-    
+#===============================================================================
+#     def name_get(self, cr, uid, ids, context=None):
+#         """Overrides orm name_get method"""
+#         res = []
+#         if isinstance(ids, (int, long)):
+#             ids = [ids]
+#         if not ids:
+#             return res
+# #         reads = self.read(cr, uid, ids, ['default_code'], context)
+#         bp = self.pool.get('res.partner').browse(cr, uid, ids[0])
+#         if bp.customer is False:
+#             reads = self.read(cr, uid, ids, ['name','vendor_code'], context=context)
+#         elif bp.customer is True:
+#             reads = self.read(cr, uid, ids, ['name','customer_code'], context=context)
+#         for record in reads:
+#             if bp.customer is False:
+#                 name = str(record['vendor_code'])+ ' '+'-'+' ' + str((record['name'] or''))
+#             elif bp.customer is True:
+#                 name = str(record['customer_code'])+ ' '+'-'+' ' + str((record['name'] or''))
+#             elif bp.name=='VVTi Pigments':
+#                 name = str(record['name'] or '')
+#             #name = record['default_code']+ ' '+'-'+' ' + (record['name'] or'')
+#             res.append((record['id'], name))
+#   
+#         return res
+#     
+# #     def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
+# #        ids = self.search(cr, user, args, context=context, limit=limit)
+# #        return self.name_get(cr, user, ids, context=context)
+# # 
+# #     def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
+# #       if not args:
+# #           args = []
+# #       args = args[:]
+# #       ids = []
+# #       name = upper(name)
+# #       if name:
+# #             ids = self.search(cr, user, ['|',('vendor_code', operator, name),('customer_code', operator, name), ('name', operator, name)]+ args, limit=limit)
+# #       else:
+# #           ids = self.search(cr, user, args, context=context, limit=limit)
+# #       return self.name_get(cr, user, ids, context=context)
 #     def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
-#        ids = self.search(cr, user, args, context=context, limit=limit)
-#        return self.name_get(cr, user, ids, context=context)
-# 
-#     def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
-#       if not args:
-#           args = []
-#       args = args[:]
-#       ids = []
-#       name = upper(name)
-#       if name:
-#             ids = self.search(cr, user, ['|',('vendor_code', operator, name),('customer_code', operator, name), ('name', operator, name)]+ args, limit=limit)
-#       else:
-#           ids = self.search(cr, user, args, context=context, limit=limit)
-#       return self.name_get(cr, user, ids, context=context)
-    def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
-        if name:
-            ids = self.search(cr, user, ['|',('name','like',name),('customer_code','like',name),('vendor_code', 'like', name)]+args, context=context, limit=limit)
-        else:
-            ids = self.search(cr, user, args, context=context, limit=limit)
-        return self.name_get(cr, user, ids, context=context)
+#         if name:
+#             ids = self.search(cr, user, ['|',('name','like',name),('customer_code','like',name),('vendor_code', 'like', name)]+args, context=context, limit=limit)
+#         else:
+#             ids = self.search(cr, user, args, context=context, limit=limit)
+#         return self.name_get(cr, user, ids, context=context)
+#===============================================================================
     def init(self, cr):
         sql ='''
             delete from ir_ui_menu where name = 'Partner Ledger';
