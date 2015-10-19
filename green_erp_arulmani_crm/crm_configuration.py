@@ -162,6 +162,8 @@ class res_partner(osv.osv):
         #tien
         'disapprove': False,
     }
+    #TPT- By BalamuruganPurushothaman - Incident No: 2430 - ON 16/10/2015 
+    # Customer/Vendor Code with Description in All Screen
     def name_get(self, cr, uid, ids, context=None):
         """Overrides orm name_get method"""
         res = []
@@ -188,27 +190,14 @@ class res_partner(osv.osv):
   
         return res
     
-#     def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
-#        ids = self.search(cr, user, args, context=context, limit=limit)
-#        return self.name_get(cr, user, ids, context=context)
-# 
-#     def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
-#       if not args:
-#           args = []
-#       args = args[:]
-#       ids = []
-#       name = upper(name)
-#       if name:
-#             ids = self.search(cr, user, ['|',('vendor_code', operator, name),('customer_code', operator, name), ('name', operator, name)]+ args, limit=limit)
-#       else:
-#           ids = self.search(cr, user, args, context=context, limit=limit)
-#       return self.name_get(cr, user, ids, context=context)
     def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
         if name:
             ids = self.search(cr, user, ['|',('name','like',name),('customer_code','like',name),('vendor_code', 'like', name)]+args, context=context, limit=limit)
         else:
             ids = self.search(cr, user, args, context=context, limit=limit)
-        return self.name_get(cr, user, ids, context=context)
+        return self.name_get(cr, user, ids, context=context)   
+    #TPT END
+    
     def init(self, cr):
         sql ='''
             delete from ir_ui_menu where name = 'Partner Ledger';

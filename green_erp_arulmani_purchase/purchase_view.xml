@@ -1975,11 +1975,13 @@
                     </xpath>
                     
                     <xpath expr="//field[@name='name']" position="before">
-                    <!-- TPT-Vendor Code is freezed By BalamuruganPurushothaman -->
+                    
+                    	<!-- TPT-Vendor Code is freezed By BalamuruganPurushothaman - Incident No: 2964 - on 17/10/2015 - readonly='1' is added here-->
+                    
                         <field name="vendor_code"  readonly='1' placeholder="Vendor Code" attrs="{'invisible': [('supplier','=',False)],'required':[('supplier','!=',False)]}" />
                     	<field name="title" placeholder="Title" domain="[('domain', '=', 'contact')]" options="{&quot;no_open&quot;: True,'create': false, 'create_edit': false}"/>
                     </xpath>
-                    <!-- TPT - Commented By BalamuruganPurushothaman as per customer Req No:3080 - ON 22/09/2015
+                    <!-- TPT - Commented By BalamuruganPurushothaman - Incident No: 3080 - ON 22/09/2015
                      <xpath expr="//field[@name='email']" position="after">
                         <field name="vendor_sub_group_id"  domain="[('vendor_group_id','=',vendor_group_id)]" attrs="{'invisible': [('supplier','=',False)],'required':[('supplier','!=',False)]}" options="{'create': false, 'create_edit': false}" />
                     </xpath>

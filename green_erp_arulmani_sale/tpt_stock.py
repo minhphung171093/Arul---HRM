@@ -1343,7 +1343,48 @@ class account_invoice(osv.osv):
                     'invoice_line': invoice_lines or False
                     }
         return {'value': vals}
+    #TPT- By BalamuruganPurushothaman - Incident No: 2430 - ON 16/10/2015 
+    # Customer/Vendor Code with Description in All Screen
+    def name_get(self, cr, uid, ids, context=None):
+        """Overrides orm name_get method"""
+        res = []
+        if isinstance(ids, (int, long)):
+            ids = [ids]
+        if not ids:
+            return res
+        bp = self.pool.get('account.invoice').browse(cr, uid, ids[0])
+        reads = self.read(cr, uid, ids, ['vvt_number', 'number', 'name', 'partner_id'], context=context)
+        bp_name = ''
+        
+        for record in reads:
+            doc_no = ''
+            if 'vvt_number' in record and record['vvt_number'] and 'type' in record and record['type']=='out_invoice':
+                doc_no = record['vvt_number'] 
+            elif 'sale_id' in record and record['sale_id'] is not null:
+                doc_no = record['vvt_number']                
+            elif 'number' in record and record['number'] and 'type' in record and record['type']=='in_invoice':
+                doc_no = record['number']
+            else: 
+                doc_no = record['name']          
+            
+            bp_name = record['partner_id']
+            bp_id = record['partner_id']
+            #--------------------------------------------------------- if bp_id:
+                # bp_name = self.pool.get('res.partner').browse(cr, uid, bp_id[0])
+            #name = doc_no + ' - ' + str(bp_name.name)
+            name = doc_no + ' - [' + bp_name[1] + ' ]'
+            
+            res.append((record['id'], name))
+  
+        return res
     
+    def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
+        if name:
+            ids = self.search(cr, user, ['|',('partner_id','like',name),('vvt_number','like',name),('number', 'like', name)]+args, context=context, limit=limit)
+        else:
+            ids = self.search(cr, user, args, context=context, limit=limit)
+        return self.name_get(cr, user, ids, context=context)   
+    #TPT END
     def create(self, cr, uid, vals, context=None):
         if vals.get('vvt_number','/')=='/' and 'type' in vals and vals['type']=='out_invoice':
             vals['vvt_number'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.customer.invoice.import') or '/'
@@ -1366,42 +1407,30 @@ class account_invoice(osv.osv):
                 return {
                 'type': 'ir.actions.report.xml',
                 'report_name': 'tpt_export_fob_account_invoice',
-#                 'datas': datas,
-#                 'nodestroy' : True
                 }
             if invoice_ids.sale_id.incoterms_id.code =='CFR':
                 return {
                 'type': 'ir.actions.report.xml',
                 'report_name': 'tpt_export_cfr_account_invoice',
-#                 'datas': datas,
-#                 'nodestroy' : True
                 }
             if invoice_ids.sale_id.incoterms_id.code =='CIF':
                 return {
                 'type': 'ir.actions.report.xml',
                 'report_name': 'tpt_export_cif_account_invoice',
-#                 'datas': datas,
-#                 'nodestroy' : True
                 }
             else:
                 return {
                 'type': 'ir.actions.report.xml',
                 'report_name': 'tpt_export_account_invoice',
-#                 'datas': datas,
-#                 'nodestroy' : True
                 }
             return {
                 'type': 'ir.actions.report.xml',
                 'report_name': 'tpt_export_account_invoice',
-#                 'datas': datas,
-#                 'nodestroy' : True
             }
         else:
             return {
                 'type': 'ir.actions.report.xml',
                 'report_name': 'tpt_domestic_account_invoice',
-#                 'datas': datas,
-#                 'nodestroy' : True
             }
     
     def write(self, cr, uid, ids, vals, context=None):

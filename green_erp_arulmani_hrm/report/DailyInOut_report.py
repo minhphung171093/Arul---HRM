@@ -32,6 +32,14 @@ from openerp.tools import DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_DATETIME_FO
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 
+""" 
+
+TPT - By BalamuruganPurushothaman - Incident No: 3267 - on 25/09/2015
+Daily Punch in Report : Display the Punch IN/OUT records based on selected Shift Type
+Timing is Configure in "Work Shift" Screen for this Report
+
+"""
+
 class Parser(report_sxw.rml_parse):
     
     def __init__(self, cr, uid, name, context):
@@ -89,22 +97,7 @@ class Parser(report_sxw.rml_parse):
         '''%(shift_type, shift_type, workdate)               
         self.cr.execute(sql)
         shifts_ids = self.cr.dictfetchall()
-        #=======================================================================
-        # if shift_type=='C':
-        #     c_shift_ids = []
-        #     sql = '''
-        #     select emp.employee_id, emp.name_related employeename, COALESCE(ast.ref_in_time,0.0) as ref_in_time          
-        #     from arul_hr_audit_shift_time ast
-        #      inner join hr_employee emp on ast.employee_id=emp.id
-        #      where ref_in_time between (select in_time from tpt_work_shift where 
-        #      code='%s') and (select out_time from tpt_work_shift where
-        #      code='%s') and work_date='%s'
-        #      order by emp.employee_id
-        #     '''%(shift_type, shift_type, workdate)               
-        #     self.cr.execute(sql)
-        #     c_shift_ids = self.cr.dictfetchall()
-        #     shifts_ids = shifts_ids + c_shift_ids
-        #=======================================================================
+        
         res = []
         s_no = 1
         for line in shifts_ids:#self.cr.dictfetchall():
@@ -133,7 +126,6 @@ class Parser(report_sxw.rml_parse):
                         'shift_continue': shift_continue ,
                         })
             s_no += 1
-            #shift_continue = ''
         return res     
     
     def get_Out(self):
