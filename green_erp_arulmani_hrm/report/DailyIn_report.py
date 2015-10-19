@@ -32,6 +32,13 @@ from openerp.tools import DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_DATETIME_FO
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 
+""" 
+TPT - By BalamuruganPurushothaman - Incident No: 3269 - on 05/10/2015
+Daily Punch in Report : Display the Punch IN records based on selected Shift Type
+Timing is Configure in "Work Shift" Screen for this Report
+
+"""
+
 class Parser(report_sxw.rml_parse):
     
     def __init__(self, cr, uid, name, context):

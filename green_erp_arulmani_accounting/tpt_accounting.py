@@ -6001,7 +6001,8 @@ product_category()
 class res_partner(osv.osv):
     _inherit = 'res.partner'
     _description = 'Partner'
-    #TPT By BalamuruganPurushothaman ON 14/10/2015
+    #TPT By BalamuruganPurushothaman - Incident No: 2991 - ON 14/10/2015 
+    # Credit Used fields should take effective in the following entries: Cash, Bank, Journal Entries, Customer Invoice Posting, Customer Payment etc
     def _tpt_credit_debit_get(self, cr, uid, ids, field_names, arg, context=None):
         res = {}
         for partner in self.browse(cr, uid, ids, context=context):
@@ -6045,10 +6046,11 @@ class res_partner(osv.osv):
         if not res:
             return [('id','=','0')]
         return [('id','in',map(itemgetter(0), res))]
+    #TPT-END
     def _tpt_credit_search(self, cr, uid, obj, name, args, context=None):
         return self._asset_difference_search(cr, uid, obj, name, 'receivable', args, context=context)
     _columns = {
-        'tpt_credit': fields.function(_tpt_credit_debit_get,
+        'tpt_credit': fields.function(_tpt_credit_debit_get, #TPT
             string='Credit Used.', multi='sums'),
         'property_account_payable': fields.property(
             'account.account',
