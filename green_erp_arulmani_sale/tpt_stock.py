@@ -1337,19 +1337,17 @@ class account_invoice(osv.osv):
         if not ids:
             return res
         bp = self.pool.get('account.invoice').browse(cr, uid, ids[0])
-        reads = self.read(cr, uid, ids, ['vvt_number', 'number', 'name', 'partner_id'], context=context)
+        reads = self.read(cr, uid, ids, ['vvt_number', 'number', 'name', 'partner_id', 'type'], context=context)
         bp_name = ''
         
         for record in reads:
-            doc_no = ''
+            doc_no = ''             
             if 'vvt_number' in record and record['vvt_number'] and 'type' in record and record['type']=='out_invoice':
-                doc_no = record['vvt_number'] 
-            elif 'sale_id' in record and record['sale_id'] is not null:
-                doc_no = record['vvt_number']                
+                doc_no = record['vvt_number']            
             elif 'number' in record and record['number'] and 'type' in record and record['type']=='in_invoice':
                 doc_no = record['number']
             else: 
-                doc_no = record['name']          
+                doc_no = record['name']                   
             
             bp_name = record['partner_id']
             bp_id = record['partner_id']
