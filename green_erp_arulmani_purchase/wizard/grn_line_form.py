@@ -82,6 +82,7 @@ class grn_line_details_report(osv.osv_memory):
         'action_taken':fields.selection([('direct','Direct Stock Update'),('move','Move To Consumption'),('need','Need Inspection')],'Action To Be Taken'),
         'state': fields.char('State', size = 1024),
         'prod_id': fields.many2one('product.product',string='Product'), 
+        'supplier_id': fields.many2one('res.partner',string='Supplier'),
                  
             
  }
@@ -296,7 +297,7 @@ class grn_detail_line_report(osv.osv_memory):
                       pr.name as proj_name,prs.name as proj_sec_name,sp.document_type as doc_type,pi.name as po_indent_no_1,
                       pi.id as po_indent_no,pp.default_code||'-'||pt.name as product,pp.id as prod_id, sm.item_text,sm.description,
                       sm.product_qty as prod_qty,pu.name as product_uom,sm.action_taken as act_take,sm.bin_location,                  
-                      sp.state as state,emp.name_related as requisitioner,sm.picking_id as pick_id,sm.action_taken as actn_taken
+                      sp.state as state,emp.name_related as requisitioner,sm.picking_id as pick_id,sm.action_taken as actn_taken, rp.id as supplier_id
                       from stock_move sm
                       inner join stock_picking sp on sm.picking_id=sp.id
                       inner join res_partner rp on (sp.partner_id = rp.id)                     
@@ -393,6 +394,7 @@ class grn_detail_line_report(osv.osv_memory):
                             'state': get_status(line['state']) or '',
                             'prod_id':line['prod_id'],
                             # 'pend_qty':get_pending_qty(line['po_id'],line['order_line_id']),
+                            'supplier_id': line['supplier_id'],
                                              
                 }))
              
