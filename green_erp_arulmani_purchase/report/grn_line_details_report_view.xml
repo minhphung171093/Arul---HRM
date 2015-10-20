@@ -94,7 +94,8 @@
 		                		<tree create="false" edit="false" delete="false">
 		                			<field name="grn_no"/>
 		                			<field name="grn_date"/>                			
-		                			<field name="supplier"/>
+		                			<!-- <field name="supplier"/>  -->
+		                			<field name="supplier_id"/>
 		                			<field name="doc_type"/>
 		                			<field name="po_no"/>
 		                			<field name="req"/>                			

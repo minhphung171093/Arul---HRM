@@ -259,7 +259,7 @@ class Parser(report_sxw.rml_parse):
         #raise osv.except_osv(_('Warning!'),_(grn_no))
   
         sql = '''
-                      select sp.name as grn_no,sp.id as grn_no_1,sp.date as grn_date,sp.purchase_id as po_no,rp.name supplier,
+                      select sp.name as grn_no,sp.id as grn_no_1,sp.date as grn_date,sp.purchase_id as po_no,rp.name supplier, rp.vendor_code supplier_code,
                       pr.name as proj_name,prs.name as proj_sec_name,sp.document_type as doc_type,pi.name as po_indent_no_1,
                       pi.id as po_indent_no,pp.default_code||'-'||pt.name as product,sm.item_text,sm.description,
                       sm.product_qty as prod_qty,pu.name as product_uom,sm.action_taken as act_take,sm.bin_location,                  
