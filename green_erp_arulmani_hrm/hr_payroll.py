@@ -816,14 +816,14 @@ class arul_hr_payroll_executions(osv.osv):
             shift_ids = self.pool.get('arul.hr.audit.shift.time').search(cr, uid, [('work_date','like',str(year)),('employee_id','=',emp),('state','=','cancel'),('additional_shifts','=',False)])
             #total_esi += len(shift_ids) #TPT CHECK POINT FOR GEN_PAYROLL
 
-	    # Special Holiday Calculation
+	        # Special Holiday Calculation
             sql2 = '''
                     select count(*) from arul_hr_holiday_special where EXTRACT(year FROM date) = %s and EXTRACT(month FROM date) = %s and is_local_holiday='f'
                 '''%(year, int(month))
             cr.execute(sql2)
             a =  cr.fetchone()
             special_holidays = a[0]
-	    #END:TPT
+	        #END:TPT
             for monthly_shift_schedule_id in monthly_shift_schedule_obj.browse(cr,uid,[kq[0][0]],context=context):
                 if monthly_shift_schedule_id.day_1:
                     if monthly_shift_schedule_id.day_1.code != 'W':
@@ -1033,6 +1033,7 @@ class arul_hr_payroll_executions(osv.osv):
             contribution_obj = self.pool.get('arul.hr.payroll.contribution.parameters')
             earning_obj = self.pool.get('arul.hr.payroll.earning.parameters')
             deduction_obj = self.pool.get('arul.hr.payroll.deduction.parameters')
+            skip_esi_obj = self.pool.get('tpt.skip.esi') # By BalamuruganPurushothaman ON 20/10/2015
             employee_ids = []
             ##    
             sql = '''
@@ -1370,7 +1371,24 @@ class arul_hr_payroll_executions(osv.osv):
                 special_holidays = spl[0]
                         
                 #TPT END
-                        
+                ###TPT By BalamuruganPurushothaman - ON 20/10/2015 - TO SKIP ESI DEDUCTION ONLY AFTER APRIL, OCT
+                sql = '''
+                delete from tpt_skip_esi where month = '%s' and year=%s and employee_id=%s
+                '''%(str(line.month),line.year, p.id)
+                cr.execute(sql)
+                
+                skip_esi_flag = False
+                if int(line.month)-1 == 11:
+                    month = 12
+                    year = int(line.year) - 1
+                else:
+                    month = int(line.month) - 1 
+                    year = line.year
+                esi_skip_id = skip_esi_obj.search(cr, uid, [('employee_id','=',p.id), ('month','=',str(month)), ('year','=',year)])
+                if esi_skip_id:
+                    esi_skip = skip_esi_obj.browse(cr,uid,esi_skip_id[0])
+                    skip_esi_flag = esi_skip.is_esi_applied           
+                ###
                 if payroll_executions_details_ids:
                     executions_details_obj.unlink(cr, uid, payroll_executions_details_ids, context=context) 
                 vals_earning_struc = []
@@ -1622,38 +1640,43 @@ class arul_hr_payroll_executions(osv.osv):
                                 spa = spa / calendar_days  * total_working_days_s1   
                                 spa  = round(spa,0)                     
                         
-            
-            ##TPT-New Joinee
-            
-            
-            
-			net_basic = round(basic - (basic / calendar_days) * total_no_of_leave,0)
-			net_da = round(da - (da / calendar_days) * total_no_of_leave, 0)
-			net_c = round(c - (c / calendar_days) * total_no_of_leave, 0)
-			net_hra = round(hra - (hra / calendar_days) * total_no_of_leave, 0)
-			net_ea = round(ea - (ea / calendar_days) * total_no_of_leave, 0)
-			net_aa = round(aa - (aa / calendar_days) * total_no_of_leave, 0)
-			net_la = round(la - (la / calendar_days) * total_no_of_leave, 0)
-			net_oa = round(oa - (oa / calendar_days) * total_no_of_leave, 0)
+
+                        net_basic = round(basic - (basic / calendar_days) * total_no_of_leave,0)
+                        net_da = round(da - (da / calendar_days) * total_no_of_leave, 0)
+                        net_c = round(c - (c / calendar_days) * total_no_of_leave, 0)
+                        net_hra = round(hra - (hra / calendar_days) * total_no_of_leave, 0)
+                        net_ea = round(ea - (ea / calendar_days) * total_no_of_leave, 0)
+                        net_aa = round(aa - (aa / calendar_days) * total_no_of_leave, 0)
+                        net_la = round(la - (la / calendar_days) * total_no_of_leave, 0)
+                        net_oa = round(oa - (oa / calendar_days) * total_no_of_leave, 0)
             
             
 
-			total_earning =  net_basic + net_da + net_c + net_hra + net_ea + net_aa + net_la + net_oa + fa + spa + pc + cre + sha + lta + med
-			gross_sal =  net_basic + net_da + net_c + net_hra + net_ea + net_aa + net_la + net_oa + fa + spa + pc + cre + sha + lta + med
+                        total_earning =  net_basic + net_da + net_c + net_hra + net_ea + net_aa + net_la + net_oa + fa + spa + pc + cre + sha + lta + med
+                        gross_sal =  net_basic + net_da + net_c + net_hra + net_ea + net_aa + net_la + net_oa + fa + spa + pc + cre + sha + lta + med
 
-			if gross_sal + esi_check >= emp_esi_limit:
-                            emp_esi_con_amount = 0
+                        if gross_sal + esi_check >= emp_esi_limit:
+                            ## TPT-By BalamuruganPurushothaman - on 20/20/2015 - to skip esi on apr,oct month only - this snippet is added as separately for every emp category
+                            if skip_esi_flag is True and line.month not in ('4', '10'): # SKip in only 4-April, 10-October
+                                emp_esi_con_amount = math.ceil(total_earning*emp_esi_con/100)
+                                skip_esi_obj.create(cr,uid,{'employee_id':p.id, 'month':line.month, 'year': line.year, 'esi_amt':emp_esi_con_amount,
+                            'base_gross': for_esi_base_gross_sal + esi_check, 'is_esi_applied':True 
+                            }) 
+                            else:
+                                emp_esi_con_amount = 0
+                            ##
                         else:
                             emp_esi_con_amount = math.ceil(total_earning*emp_esi_con/100)# round=math.ceil
-
+                            skip_esi_obj.create(cr,uid,{'employee_id':p.id, 'month':line.month, 'year': line.year, 'esi_amt':emp_esi_con_amount,
+                                'base_gross': for_esi_base_gross_sal + esi_check, 'is_esi_applied':True 
+                                }) 
+                            
                         base_amount = net_basic + net_da 
-                        emp_pf_con_amount = round(base_amount*emp_pf_con/100)
-                        #raise osv.except_osv(_('Warning !'), _(round(21.5)))
+                        emp_pf_con_amount = round(base_amount*emp_pf_con/100)                        
                         vpfd_amount = round(base_amount * vpfd / 100) 	
-			total_deduction += (emp_pf_con_amount + emp_esi_con_amount + emp_lwf_amt + vpfd_amount)            
-			net_sala = gross_sal - total_deduction
+                        total_deduction += (emp_pf_con_amount + emp_esi_con_amount + emp_lwf_amt + vpfd_amount)            
+                        net_sala = gross_sal - total_deduction
             
-
 
                         for _earning_struc_id in payroll_emp_struc_obj.browse(cr,uid,emp_struc_ids[0]).payroll_earning_structure_line:
                             if _earning_struc_id.earning_parameters_id.code == 'BASIC':
@@ -2069,11 +2092,20 @@ class arul_hr_payroll_executions(osv.osv):
                         total_earning = total_earning + shd
                         gross_sal = gross_sal + shd
                         
-
+                        
                         if for_esi_base_gross_sal + esi_check >= emp_esi_limit:#S2
-                            emp_esi_con_amount = 0
+                            if skip_esi_flag is True and line.month not in ('4', '10'): # SKip in only April, October
+                                emp_esi_con_amount = math.ceil(total_earning*emp_esi_con/100)
+                                skip_esi_obj.create(cr,uid,{'employee_id':p.id, 'month':line.month, 'year': line.year, 'esi_amt':emp_esi_con_amount,
+                            'base_gross': for_esi_base_gross_sal + esi_check, 'is_esi_applied':True 
+                            }) 
+                            else:
+                                emp_esi_con_amount = 0
                         else:
                             emp_esi_con_amount = math.ceil(total_earning*emp_esi_con/100)
+                            skip_esi_obj.create(cr,uid,{'employee_id':p.id, 'month':line.month, 'year': line.year, 'esi_amt':emp_esi_con_amount,
+                            'base_gross': for_esi_base_gross_sal + esi_check, 'is_esi_applied':True 
+                            }) 
 
                         base_amount = net_basic + net_da 
                         emp_pf_con_amount = round(base_amount*emp_pf_con/100)
@@ -2318,7 +2350,7 @@ class arul_hr_payroll_executions(osv.osv):
                                     }))
                                 
 
-		    #Start:TPT hadling Workers - S3 category
+		            #Start:TPT hadling Workers - S3 category
                     if p.employee_category_id and p.employee_category_id.code == 'S3':
                         pfd = 0.0
                         pd = 0.0
@@ -2506,9 +2538,18 @@ class arul_hr_payroll_executions(osv.osv):
                         gross_sal = gross_sal + shd
                         
                         if for_esi_base_gross_sal + esi_check >= emp_esi_limit:
-                            emp_esi_con_amount = 0
+                            if skip_esi_flag is True and line.month not in ('4', '10'): # SKip in only April, October
+                                emp_esi_con_amount = math.ceil(total_earning*emp_esi_con/100)
+                                skip_esi_obj.create(cr,uid,{'employee_id':p.id, 'month':line.month, 'year': line.year, 'esi_amt':emp_esi_con_amount,
+                            'base_gross': for_esi_base_gross_sal + esi_check, 'is_esi_applied':True 
+                            }) 
+                            else:
+                                emp_esi_con_amount = 0
                         else:
                             emp_esi_con_amount = math.ceil(total_earning*emp_esi_con/100)
+                            skip_esi_obj.create(cr,uid,{'employee_id':p.id, 'month':line.month, 'year': line.year, 'esi_amt':emp_esi_con_amount,
+                            'base_gross': for_esi_base_gross_sal + esi_check, 'is_esi_applied':True 
+                            }) 
 
                         base_amount = net_basic + net_da 
                         emp_pf_con_amount = round(base_amount*emp_pf_con/100) #math.ceil(base_amount*emp_pf_con/100)
@@ -2989,3 +3030,16 @@ class tpt_hr_ptax_slab(osv.osv):
         new_write = super(tpt_hr_ptax_slab, self).write(cr, uid,ids, vals, context)
         return new_write
 tpt_hr_ptax_slab()
+
+class tpt_skip_esi(osv.osv):
+    _name = "tpt.skip.esi"
+    _columns = {   
+        #'employee_id': fields.many2one('hr.employee', 'Employee',ondelete='restrict'),
+        'employee_id': fields.many2one('hr.employee', 'Employee'),
+        'year': fields.selection([(num, str(num)) for num in range(1951, 2026)], 'Year', required = True,),
+        'month': fields.selection([('1', 'January'),('2', 'February'), ('3', 'March'), ('4','April'), ('5','May'), ('6','June'), ('7','July'), ('8','August'), ('9','September'), ('10','October'), ('11','November'), ('12','December')], 'Month'),
+        'is_esi_applied': fields.boolean('Is ESI Applied'), 
+        'base_gross': fields.float('Base Pay'), 
+        'esi_amt': fields.float('ESI Amt'),
+    }
+tpt_skip_esi()
