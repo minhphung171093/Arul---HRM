@@ -121,6 +121,7 @@ class Parser(report_sxw.rml_parse):
                     join account_move_line aml on (aml.move_id = am.id)
                     join res_partner rs on (rs.id = ai.partner_id)
                     where aml.name = ail.name and aml.id = %s
+                    and t.is_stax_report = 't'
                 '''%(moveid)
         self.cr.execute(sql)
         for move in self.cr.dictfetchall():
@@ -197,7 +198,7 @@ class Parser(report_sxw.rml_parse):
                     join account_invoice_line_tax ailt on (ailt.invoice_line_id=ail.id)
                     join account_tax at on (at.id=ailt.tax_id)
                     where at.description ~'STax' and at.amount>0 and aml.account_id = %s
-                    and am.date <= '%s' and is_stax_report = 't'
+                    and am.date <= '%s' and at.is_stax_report = 't'
                     group by aml.id 
                     order by aml.id)a
                 '''%(accountid[0],date_to)              
@@ -225,7 +226,7 @@ class Parser(report_sxw.rml_parse):
                     Join account_tax at on (at.id=ailt.tax_id)
                     join account_move_line aml on (aml.move_id=ai.move_id and aml.account_id = %s)
                     where at.description ~'STax' and at.amount>0 and aml.name = ail.name
-                    and ai.date_invoice between '%s' and '%s' and is_stax_report = 't'
+                    and ai.date_invoice between '%s' and '%s' and at.is_stax_report = 't'
                     group by ail.id 
                     order by ail.id)a
                     '''%(accountid[0],date_from,date_to)
@@ -258,7 +259,7 @@ class Parser(report_sxw.rml_parse):
                     join account_tax at on (at.id=ailt.tax_id)
                     where at.description ~'STax' 
                     and aml.id< %s and at.amount>0 and aml.account_id = %s
-                    and am.date between '%s' and '%s' and is_stax_report = 't'
+                    and am.date between '%s' and '%s' and at.is_stax_report = 't'
                     group by aml.id 
                     order by aml.id)a                   
                    '''%(lineid,accountid[0],date_from,date_to)
@@ -292,7 +293,7 @@ class Parser(report_sxw.rml_parse):
                     join account_invoice_line_tax ailt on (ailt.invoice_line_id=ail.id)
                     join account_tax at on (at.id=ailt.tax_id)
                     where aml.debit>0 and am.state in ('posted') and at.amount>0 
-                    and is_stax_report = 't'                   
+                    and at.is_stax_report = 't'                   
                     and am.date between '%s' and '%s'
                     '''%(accountid[0],date_from,date_to)
             self.cr.execute(sql)            
@@ -322,7 +323,7 @@ class Parser(report_sxw.rml_parse):
                     join account_invoice_line_tax ailt on (ailt.invoice_line_id=ail.id)
                     join account_tax at on (at.id=ailt.tax_id)
                     where at.description ~'STax' and at.amount>0 and aml.account_id = %s
-                    and am.date < '%s' and is_stax_report = 't'
+                    and am.date < '%s' and at.is_stax_report = 't'
                     group by aml.id 
                     order by aml.id)a
                     '''%(accountid[0],date_from)
@@ -353,7 +354,7 @@ class Parser(report_sxw.rml_parse):
                         join account_invoice_line_tax ailt on (ailt.invoice_line_id=ail.id)
                         join account_tax at on (at.id=ailt.tax_id)
                         where at.description ~'STax' and at.amount>0
-                        and is_stax_report = 't'                                                       
+                        and at.is_stax_report = 't'                                                       
                         '''
             if date_from and date_to is False:
                     str = " and am.date <= %s"%(date_from)
