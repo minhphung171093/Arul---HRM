@@ -499,7 +499,7 @@ class service_tax_register(osv.osv_memory):
                     join account_invoice_line_tax ailt on (ailt.invoice_line_id=ail.id)
                     join account_tax at on (at.id=ailt.tax_id)
                     where aml.debit>0 and am.state in ('posted') and at.amount>0 
-                    and is_stax_report = 't'
+                    and at.is_stax_report = 't'
                     and am.date between '%s' and '%s'
                     '''%(account_id,date_from,date_to)
             cr.execute(sql)
@@ -624,7 +624,7 @@ class service_tax_register(osv.osv_memory):
                     join account_invoice_line_tax ailt on (ailt.invoice_line_id=ail.id)
                     join account_tax at on (at.id=ailt.tax_id)
                     where at.amount>0 and aml.account_id = %s
-                    and am.date < '%s' and is_stax_report = 't'
+                    and am.date < '%s' and at.is_stax_report = 't'
                     group by aml.id 
                     order by aml.id)a
                     '''%(account_id,date_from)
@@ -767,7 +767,7 @@ class service_tax_register(osv.osv_memory):
                         join account_invoice_line_tax ailt on (ailt.invoice_line_id=ail.id)
                         join account_tax at on (at.id=ailt.tax_id)
                         where at.amount>0
-                        and is_stax_report = 't'                                                     
+                        and at.is_stax_report = 't'                                                   
                         '''
             if date_from and date_to is False:
                     str = " and am.date <= %s"%(date_from)
