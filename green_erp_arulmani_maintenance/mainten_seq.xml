@@ -60,6 +60,21 @@
             <field name="number_next_actual">000001</field>
             <field name="implementation">no_gap</field>
         </record>      
-            
+   <!--    Blanked Order     -->
+
+        <record id="sequence_tpt_service_gpass_req_import_code" model="ir.sequence.type">
+            <field name="name">Service Gate Pass Requisition Import</field>
+            <field name="code">tpt.service.gpass.req.import</field>
+        </record>
+        
+        <record id="sequence_tpt_service_gpass_req_import_item" model="ir.sequence">
+            <field name="name">Service Gate Pass Requisition Import</field>
+            <field name="code">tpt.service.gpass.req.import</field>
+            <field name="prefix">VVTI/SGPR/</field>
+            <field name="padding">6</field>
+            <field name="number_next_actual">000001</field>
+            <field name="implementation">no_gap</field>
+	
+        </record>         
 	</data>
 </openerp>
