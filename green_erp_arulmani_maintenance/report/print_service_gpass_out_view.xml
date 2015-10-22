@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+	<data>
+    	<record id="service_gate_out_pass_report" model="ir.actions.report.xml">
+	        <field name="name">form.are.1.report</field>
+	        <field name="type">ir.actions.report.xml</field>
+	        <field name="model">tpt.service.gpass</field>
+	        <field name="report_name">Print Service Gate Out Pass</field>
+	        <field name="report_type">aeroo</field>
+	        <field name="in_format">oo-odt</field>
+	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-pdf'),('compatible_types','=','oo-odt')]"/>
+	        <field name="parser_loc">green_erp_arulmani_maintenance/report/print_service_gass_out.py</field>
+	        <field name="report_rml">green_erp_arulmani_maintenance/report/print_service_gpass_out.odt</field>
+	        <field name="parser_state">loc</field>
+	        <field name="tml_source">file</field>
+	        <field name="attachment_use" eval="0"/>
+    	</record> 
+    	   
+    	<report 
+			auto="False" 
+			menu="True"
+			id="service_gate_out_pass_report" 
+			model="tpt.service.gpass" 
+			name="service_gate_out_pass_report"
+	        string="Print Service Gate Out Pass"
+	        rml="green_erp_arulmani_maintenance/report/print_service_gpass_out.odt"/> 	
+	</data>
+</openerp>

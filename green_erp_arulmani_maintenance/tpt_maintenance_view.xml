@@ -148,7 +148,7 @@
 			<field name="name">tpt.machineries.tree</field>
 			<field name="model">tpt.machineries</field>
 			<field name="arch" type="xml">
-				<tree string="Machineries">
+				<tree string="Sub Equipment">
 					<field name="name"/>
 					<field name="code"/>
 					<field name="equip_id"/>
@@ -165,7 +165,7 @@
             <field name="name">tpt.machineries.form</field>
             <field name="model">tpt.machineries</field>
             <field name="arch" type="xml">
-	            <form string="Machineries" version="7.0">   
+	            <form string="Sub Equipment" version="7.0">   
 	            	<sheet>
 	            		<group col='4' colspan='2'>
 							<field name="name"/>
@@ -200,7 +200,7 @@
 		</record>
 		
 		<record id="action_tpt_machineries_form_view" model="ir.actions.act_window">
-            <field name="name">Machineries</field>
+            <field name="name">Sub Equipment</field>
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">tpt.machineries</field>
             <field name="view_type">form</field>
@@ -630,7 +630,190 @@
 				</xpath> 
             </field>
         </record>
+       
+       <!-- TPT-Start By BalamuruganPurushothaman-->  
+       <record id="view_tpt_service_gpass_req_tree" model="ir.ui.view">
+			<field name="name">tpt.service.gpass.req.tree</field>
+			<field name="model">tpt.service.gpass.req</field>
+			<field name="arch" type="xml">
+				<tree string="Service Gate Pass Requisition">
+					<field name="name"/>
+					<field name="maintenance_id"/>	
+					<field name="service_date"/>
+					<field name="create_uid"/>					
+					<field name="state"/>
+				</tree>
+			</field>
+	  </record>  
+	  <record id="view_tpt_service_gpass_req_search_vew" model="ir.ui.view">
+			<field name="name">tpt.service.gpass.req.search</field>
+			<field name="model">tpt.service.gpass.req</field>
+			<field name="arch" type="xml">
+				<search string="Service Gate Pass Requisition">
+					<field name="name"/>	
+					<field name="maintenance_id"/>
+					<filter string="Draft" name="draft" icon="terp-personal" domain="[('state','=','draft')]" context="{}"/>
+					<filter string="Waiting for Approval" name="waiting" icon="terp-personal" domain="[('state','=','waiting')]" context="{}"/>
+        			<filter string="Closed" name="cancel" icon="terp-personal" domain="[('state','=','cancel')]" context="{}"/>
+        			<filter string="Approve" name="done" icon="terp-personal" domain="[('state','=','approve')]" context="{}"/>
+        			<filter string="Service GPass Raised" name="done" icon="terp-personal" domain="[('state','=','done')]" context="{}"/>    			
+        			<group expand="0" string="Group By...">
+                        <filter string='Status' icon="terp-stock_symbol-selection" domain="[]" context="{'group_by' : 'state'}"/>                       
+                    </group>				
+				</search>
+			</field>
+		</record> 
+       <record id="view_tpt_service_gpass_req_form" model="ir.ui.view">
+            <field name="name">tpt.service.gpass.req.form</field>
+            <field name="model">tpt.service.gpass.req</field>
+            <field name="arch" type="xml">
+	            <form string="Service Gate Pass Requisition" version="7.0">   
+	            	<header>
+	            		<button name="bt_print" string="Print" type="object" class="oe_highlight"/>     
+	            		<button name="bt_generate" states='draft' string="Generate Requisition" type="object" class="oe_highlight"/>	            		
+	            		<button name="bt_approve" states='waiting' string="Approve" type="object" class="oe_highlight"/>
+	            		<button name="bt_cancel" states='waiting' string="Cancel" type="object" class="oe_highlight"/>	
+	                    <field name ="state" widget="statusbar" statusbar_visible="draft,waiting,approve,done,cancel" statusbar_colors='{"draft":"blue","in":"red","close":"grey"}'/>
+	                </header>
+	            	<sheet>
+	            		<group col='4' colspan='2'>		
+	            			<field name="name"/>	
+	            			<field name="service_date" required='1'/> 				
+							<field name="maintenance_id" required='1' options="{'create': false, 'create_edit': false}"/>
+							<field name="vendor_id" required='1' domain="[('supplier','=',1)]"
+							options="{'create': false, 'create_edit': false}"
+							/>
+							<field name="equipment_id" required='1' options="{'create': false, 'create_edit': false}"/>
+							<field name="sub_equipment_id" options="{'create': false, 'create_edit': false}"/>
+							<field name="carrier_name"/> 
+							<field name="truck_no"/> 
+							<field name="purpose"/> 
+							<newline/>	
+							<field name="create_uid"/>
+							<field name="create_date"/> 	
+						</group>
+						<notebook>
+						<page string = "Line Details" nolabel='1'>
+							<field name="service_gpass_req_line" >
+									<tree editable='top'>
+										<field name="item_desc" required='1'/>
+										<field name="service_qty" required='1'/>
+										<field name="approx_qty"/>
+										<field name="uom_po_id"/>
+									</tree>
+								</field>
+							</page>
+						</notebook>
+		         	</sheet>
+		         </form>
+			</field>
+		</record>
+		
+		<record id="action_tpt_service_gpass_req_form_view" model="ir.actions.act_window">
+            <field name="name">Service Gate Pass Requisition</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.service.gpass.req</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_tpt_service_gpass_req_tree"/>
+        </record>
+        
+        <menuitem action="action_tpt_service_gpass_req_form_view" 
+            id="menu_action_tpt_service_gpass_req_form_view"
+            parent="menu_tpt_maint_mg" sequence="5"/>
             
+       <!-- Screen 2 -->
+       <!-- TPT-Start By BalamuruganPurushothaman-->  
+       <record id="view_tpt_service_gpass_tree" model="ir.ui.view">
+			<field name="name">tpt.service.gpass.tree</field>
+			<field name="model">tpt.service.gpass</field>
+			<field name="arch" type="xml">
+				<tree string="Service Gate Pass">
+					<field name="gpass_req_id" />	
+					<field name="maintenance_id"/>
+					<field name="vendor_id"/>		
+					<field name="service_date"/>
+					<field name="create_uid"/>					
+					<field name="state"/>
+				</tree>
+			</field>
+	  </record> 
+	  <record id="view_tpt_service_gpass_search_vew" model="ir.ui.view">
+			<field name="name">tpt.service.gpass.search</field>
+			<field name="model">tpt.service.gpass</field>
+			<field name="arch" type="xml">
+				<search string="Service Gate Pass">
+					<field name="gpass_req_id"/>	
+					<field name="maintenance_id"/>
+					<field name="vendor_id"/>
+					<filter string="Draft" name="draft" icon="terp-personal" domain="[('state','=','draft')]" context="{}"/>	
+        			<filter string="Closed" name="cancel" icon="terp-personal" domain="[('state','=','cancel')]" context="{}"/>
+        			<filter string="Approve" name="done" icon="terp-personal" domain="[('state','=','approve')]" context="{}"/>  			
+        			<group expand="0" string="Group By...">
+                        <filter string='Status' icon="terp-stock_symbol-selection" domain="[]" context="{'group_by' : 'state'}"/>                       
+                    </group>				
+				</search>
+			</field>
+		</record>   
+       <record id="view_tpt_service_gpass_form" model="ir.ui.view">
+            <field name="name">tpt.service.gpass.form</field>
+            <field name="model">tpt.service.gpass</field>
+            <field name="arch" type="xml">
+	            <form string="Service GPass" version="7.0">   
+	            	<header>	
+	            		<button name="bt_print" string="Print" type="object" class="oe_highlight"/>            		
+	            		<button name="bt_cancel" states='draft' string="Cancel" type="object" class="oe_highlight"/>	
+	                    <field name ="state" widget="statusbar" statusbar_visible="draft,approve,cancel" statusbar_colors='{"draft":"blue","in":"red","close":"grey"}'/>
+	                </header>
+	            	<sheet>
+	            		<group col='4' colspan='2'>		
+	            			<field name="gpass_req_id" required='1' on_change="onchange_service_gpass_id(gpass_req_id)" 
+	            			domain="[('state','=','approve')]" options="{'create': false, 'create_edit': false}"/>					
+							<field name="service_date" required='1'/> 
+							<field name="maintenance_id" required='1' readonly='1' options="{'create': false, 'create_edit': false}"/>
+							<field name="vendor_id" required='1' readonly='1'  options="{'create': false, 'create_edit': false}"/>
+							<field name="equipment_id" readonly='1' options="{'create': false, 'create_edit': false}"/>
+							<field name="sub_equipment_id" readonly='1' options="{'create': false, 'create_edit': false}"/>
+							<field name="carrier_name" readonly='1' /> 
+							<field name="truck_no" readonly='1' /> 
+							<field name="purpose" readonly='1' /> 
+							<newline></newline>
+							<field name="exp_return_date"/> 
+							<field name="act_return_date"/> 
+							<field name="create_uid"/>
+							<field name="create_date"/> 
+							
+						</group>
+						<notebook>
+						<page string = "Line Details">
+							<field name="service_gpass_line" >
+									<tree>
+										<field name="item_desc" required='1'/>
+										<field name="service_qty" required='1'/>
+										<field name="approx_qty"/>
+										<field name="uom_po_id"/>
+									</tree>
+								</field>
+							</page>
+						</notebook>
+		         	</sheet>
+		         </form>
+			</field>
+		</record>
+		
+		<record id="action_tpt_service_gpass_form_view" model="ir.actions.act_window">
+            <field name="name">Service Gate Pass</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.service.gpass</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_tpt_service_gpass_tree"/>
+        </record>
+        
+        <menuitem action="action_tpt_service_gpass_form_view"
+            id="menu_action_tpt_service_gpass_form_view"
+            parent="menu_tpt_maint_mg" sequence="6"/>
+       <!-- TPT-End -->
             
     </data>
 </openerp>

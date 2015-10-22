@@ -164,8 +164,8 @@ tpt_document_attach()
 class tpt_machineries(osv.osv):
     _name = "tpt.machineries"
     _columns = {
-        'name':fields.char('Machineries Name', size = 1024,required=True),
-        'code':fields.char('Machineries Code', size = 1024,required=True),
+        'name':fields.char('Sub Equipment Name', size = 1024,required=True),
+        'code':fields.char('Sub Equipment Code', size = 1024,required=True),
         'equip_id': fields.many2one('tpt.equipment', 'Equipment',required=True),
         'cost_id': fields.many2one('tpt.cost.center', 'Cost Center',required=True),
 #         'department_id': fields.many2one('hr.department', 'Department',required=True),
@@ -234,7 +234,7 @@ class tpt_notification(osv.osv):
 #         'department_id': fields.related('equip_id','department_id',type='many2one', relation='hr.department',string='Department', readonly = True),
 #         'section_id': fields.related('equip_id','section_id',type='many2one', relation='arul.hr.section',string='Section', readonly = True),
         'equip_id': fields.many2one('tpt.equipment', 'Equipment',required = True,readonly = True,states={'draft': [('readonly', False)]}),
-        'machine_id': fields.many2one('tpt.machineries', 'Machineries',required = True,readonly = True,states={'draft': [('readonly', False)]}),
+        'machine_id': fields.many2one('tpt.machineries', 'Sub Equipment',required = True,readonly = True,states={'draft': [('readonly', False)]}),
         'issue_date': fields.date('Notification Date',required=True,readonly = True,states={'draft': [('readonly', False)]}),
         'issue_type':fields.selection([('major', 'Major'),('minor', 'Minor'),('critical', 'Critical')],'Complexity',required = True,readonly = True,states={'draft': [('readonly', False)]}),
         'priority':fields.selection([('high', 'High'),('medium', 'Medium'),('low', 'Low')],'Priority',required = True,readonly = True,states={'draft': [('readonly', False)]}),
@@ -443,7 +443,7 @@ class tpt_maintenance_oder(osv.osv):
 #         'department_id': fields.related('notification_id','department_id',type='many2one', relation='hr.department',string='Department', readonly = True),
 #         'section_id': fields.related('notification_id','section_id',type='many2one', relation='arul.hr.section',string='Section', readonly = True),
         'equip_id': fields.related('notification_id','equip_id',type='many2one', relation='tpt.equipment',string='Equipment', readonly = True),
-        'machine_id': fields.related('notification_id','machine_id',type='many2one', relation='tpt.machineries',string='Machineries', readonly = True),
+        'machine_id': fields.related('notification_id','machine_id',type='many2one', relation='tpt.machineries',string='Sub Equipment', readonly = True),
         
         'employee_id': fields.many2one('hr.employee', 'Assigned to',required=True,states={'close': [('readonly', True)]},ondelete='restrict'),
         'priority':fields.selection([('high', 'High'),('medium', 'Medium'),('low', 'Low')],'Priority',states={'close': [('readonly', True)]}),
@@ -1197,4 +1197,245 @@ class tpt_material_issue(osv.osv):
             self.write(cr, uid, ids,{'state':'done'})
         return True
 tpt_material_issue()
+
+### TPT-Start
+class tpt_service_gpass_req(osv.osv):
+    _name = "tpt.service.gpass.req"
+    
+    _columns = {               
+            'name': fields.char('Document No', size = 1024, readonly=True), 
+            'maintenance_id': fields.many2one('tpt.maintenance.oder', 'Maintenance Order', states={'cancel': [('readonly', True)], 'approve':[('readonly', True)], 'done':[('readonly', True)]}),
+            'vendor_id': fields.many2one('res.partner', '3rd Party Service Vendor', states={'cancel': [('readonly', True)], 'approve':[('readonly', True)], 'done':[('readonly', True)]}),
+            'equipment_id': fields.many2one('tpt.equipment', 'Equipement', states={'cancel': [('readonly', True)], 'approve':[('readonly', True)], 'done':[('readonly', True)]}),
+            'sub_equipment_id': fields.many2one('tpt.machineries', 'Sub Equipement', states={'cancel': [('readonly', True)], 'approve':[('readonly', True)], 'done':[('readonly', True)]}),
+            'service_date': fields.date('Date', states={'cancel': [('readonly', True)], 'approve':[('readonly', True)], 'done':[('readonly', True)]}),
+            'carrier_name': fields.char('Carrier Name', size = 1024, states={'cancel': [('readonly', True)], 'approve':[('readonly', True)], 'done':[('readonly', True)]}),
+            'truck_no': fields.char('Truck No.', size = 1024, states={'cancel': [('readonly', True)], 'approve':[('readonly', True)], 'done':[('readonly', True)]}),
+            'purpose': fields.text('Purpose', states={'cancel': [('readonly', True)], 'approve':[('readonly', True)], 'done':[('readonly', True)]}),
+            'service_gpass_req_line': fields.one2many('tpt.service.gpass.req.line', 'gpass_req_id', 'Service GPass', states={'cancel': [('readonly', True)], 'approve':[('readonly', True)], 'done':[('readonly', True)]}),
+            'state':fields.selection([('draft', 'Draft'), 
+                                      ('waiting', 'Waiting for Approval'), 
+                                      ('approve', 'Approved'), 
+                                      ('cancel', 'Cancel'), 
+                                      ('done', 'Service Gate Pass Raised')], 'Status', readonly=True),
+            'create_date': fields.datetime('Created Date', readonly = True),
+            'create_uid': fields.many2one('res.users', 'Created By', ondelete='restrict', readonly = True),    
+                }
+    _defaults = {
+        'state': 'draft',
+        'name': '/',
+        'service_date': time.strftime('%Y-%m-%d'),
+    }
+    
+    
+    def bt_generate(self, cr, uid, ids, context=None):
+        for line in self.browse(cr, uid, ids):
+            if not line.service_gpass_req_line:
+                raise osv.except_osv(_('Warning!'),_('You can not approve without lines!'))
+            self.write(cr, uid, ids,{'state':'waiting'})
+        return True 
+    def bt_approve(self, cr, uid, ids, context=None):
+        for line in self.browse(cr, uid, ids):
+            self.write(cr, uid, ids,{'state':'approve'})
+        return True 
+    def bt_cancel(self, cr, uid, ids, context=None):
+        for line in self.browse(cr, uid, ids):
+            self.write(cr, uid, ids,{'state':'cancel'})
+        return True 
+    def create(self, cr, uid, vals, context=None):
+        if vals.get('name','/')=='/':
+            vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.service.gpass.req.import') or '/'
+            
+        new_id = super(tpt_service_gpass_req, self).create(cr, uid, vals, context=context)
+        return new_id
+    def bt_print(self, cr, uid, ids, context=None):
+        '''
+        This function prints the Service Gate Pass Print and mark it as sent, so that we can see more easily the next step of the workflow
+        '''
+        assert len(ids) == 1, 'This option should only be used for a single id at a time.'
+        self.write(cr, uid, ids, {'sent': True}, context=context)
+        
+        datas = {
+             'ids': ids,
+             'model': 'tpt.service.gpass.req',
+             'form': self.read(cr, uid, ids[0], context=context)
+        }
+        
+        return {
+                'type': 'ir.actions.report.xml',
+                'report_name': 'service_gpass_req_report',
+            } 
+        
+tpt_service_gpass_req()
+
+class tpt_service_gpass_req_line(osv.osv):
+    _name = "tpt.service.gpass.req.line"
+       
+    _columns = {               
+            'gpass_req_id': fields.many2one('tpt.service.gpass.req', 'Service GPass Requisition', ondelete = 'cascade'),
+            'item_desc': fields.char('Item Description', size = 1024, ),
+            'service_qty': fields.float('Quatity'),
+            'approx_qty': fields.float('Approximate Value'),
+            'uom_po_id': fields.many2one('product.uom', 'UOM'),
+                }
+    
+tpt_service_gpass_req_line()
+
+class tpt_service_gpass(osv.osv):
+    _name = "tpt.service.gpass"
+    
+    _columns = {                
+            'gpass_req_id': fields.many2one('tpt.service.gpass.req', 'Service Gate Pass Requisition', states={'cancel': [('readonly', True)], 'approve':[('readonly', True)]}),
+            'maintenance_id': fields.many2one('tpt.maintenance.oder', 'Maintenance Order', states={'cancel': [('readonly', True)], 'approve':[('readonly', True)]}),
+            'vendor_id': fields.many2one('res.partner', '3rd Party Service Vendor', states={'cancel': [('readonly', True)], 'approve':[('readonly', True)]}),
+            'service_date': fields.date('Date'),
+            'equipment_id': fields.many2one('tpt.equipment', 'Equipement', states={'cancel': [('readonly', True)], 'approve':[('readonly', True)]}),
+            'sub_equipment_id': fields.many2one('tpt.machineries', 'Sub Equipement', states={'cancel': [('readonly', True)], 'approve':[('readonly', True)]}),
+            'carrier_name': fields.char('Carrier Name', size = 1024, ),
+            'truck_no': fields.char('Truck No.', size = 1024, ),
+            'purpose': fields.text('Purpose'),
+            'exp_return_date': fields.date('Expected Return Date'),
+            'act_return_date': fields.date('Actual Return Date'),
+            'service_gpass_line': fields.one2many('tpt.service.gpass.line', 'gpass_id', 'Service GPass', states={'cancel': [('readonly', True)], 'approve':[('readonly', True)]}),
+            'state':fields.selection([('draft', 'Draft'),
+                                      ('cancel', 'Cancel'),
+                                       ('approve', 'Approved')], 'Status', readonly=True),
+            'create_date': fields.datetime('Created Date', readonly = True),
+            'create_uid': fields.many2one('res.users', 'Created By', ondelete='restrict', readonly = True),    
+                }
+    _defaults = {
+        'state': 'draft',
+        'service_date': time.strftime('%Y-%m-%d'),
+    }
+    def onchange_service_gpass_id(self, cr, uid, ids,service_gpass_id=False, context=None):
+        vals = {}    
+        if service_gpass_id:
+            gpass_req_obj = self.pool.get('tpt.service.gpass.req').browse(cr, uid, service_gpass_id)
+            for line in self.browse(cr, uid, ids):
+                sql = '''
+                    delete from tpt_service_gpass_line where gpass_id = %s
+                '''%(line.id)
+                cr.execute(sql)
+            service_gpass_line = []
+            for gpass_req_line in gpass_req_obj.service_gpass_req_line:
+                rs_service = {
+                                  'item_desc': gpass_req_line.item_desc or '',
+                                  'service_qty': gpass_req_line.service_qty or 0,
+                                  'approx_qty': gpass_req_line.approx_qty or 0,
+                                  'uom_po_id': gpass_req_line.uom_po_id and gpass_req_line.uom_po_id.id or False,
+                                  
+                                  }
+                service_gpass_line.append((0,0,rs_service))
+                
+                         
+            
+            vals = {
+                    'maintenance_id':gpass_req_obj.maintenance_id and gpass_req_obj.maintenance_id.id or False,
+                    'vendor_id':gpass_req_obj.vendor_id and gpass_req_obj.vendor_id.id or False,
+                    'equipment_id':gpass_req_obj.equipment_id and gpass_req_obj.equipment_id.id or False,
+                    'sub_equipment_id':gpass_req_obj.sub_equipment_id and gpass_req_obj.sub_equipment_id.id or False,
+                    'carrier_name':gpass_req_obj.carrier_name or '',
+                    'truck_no':gpass_req_obj.truck_no or '',
+                    'purpose':gpass_req_obj.purpose or '',
+                    'service_gpass_line':service_gpass_line,
+                    }
+        return {'value': vals}  
+    def create(self, cr, uid, vals, context=None):
+        if 'gpass_req_id' in vals:
+            gpass_req_obj = self.pool.get('tpt.service.gpass.req').browse(cr, uid, vals['gpass_req_id']) 
+            service_gpass_line = []
+            for gpass_req_line in gpass_req_obj.service_gpass_req_line:
+                rs_service = {
+                                  'item_desc': gpass_req_line.item_desc or '',
+                                  'service_qty': gpass_req_line.service_qty or 0,
+                                  'approx_qty': gpass_req_line.approx_qty or 0,
+                                  'uom_po_id': gpass_req_line.uom_po_id and gpass_req_line.uom_po_id.id or False,
+                                  
+                                  }
+                service_gpass_line.append((0,0,rs_service))
+                 
+            vals.update( {
+                    'maintenance_id':gpass_req_obj.maintenance_id and gpass_req_obj.maintenance_id.id or False,
+                    'vendor_id':gpass_req_obj.vendor_id and gpass_req_obj.vendor_id.id or False,
+                    'equipment_id':gpass_req_obj.equipment_id and gpass_req_obj.equipment_id.id or False,
+                    'sub_equipment_id':gpass_req_obj.sub_equipment_id and gpass_req_obj.sub_equipment_id.id or False,
+                    'carrier_name':gpass_req_obj.carrier_name or '',
+                    'truck_no':gpass_req_obj.truck_no or '',
+                    'purpose':gpass_req_obj.purpose or '',
+                    'service_gpass_line':service_gpass_line,
+                    })
+                   
+        new_id = super(tpt_service_gpass, self).create(cr, uid, vals, context=context)
+        if 'gpass_req_id' in vals:
+            gpass_obj = self.pool.get('tpt.service.gpass.req')
+            gpass_req_obj = gpass_obj.browse(cr, uid, vals['gpass_req_id']) 
+            gpass_obj.write(cr, uid, [gpass_req_obj.id], {'state':'done'})        
+        return new_id
+    def write(self, cr, uid, ids, vals, context=None):
+        if 'gpass_req_id' in vals:
+            gpass_req_obj = self.pool.get('tpt.service.gpass.req').browse(cr, uid, vals['gpass_req_id']) 
+            service_gpass_line = []
+            for gpass_req_line in gpass_req_obj.service_gpass_req_line:
+                rs_service = {
+                                  'item_desc': gpass_req_line.item_desc or '',
+                                  'service_qty': gpass_req_line.service_qty or 0,
+                                  'approx_qty': gpass_req_line.approx_qty or 0,
+                                  'uom_po_id': gpass_req_line.uom_po_id and gpass_req_line.uom_po_id.id or False,
+                                  
+                                  }
+                service_gpass_line.append((0,0,rs_service))
+                 
+            vals.update( {
+                    'maintenance_id':gpass_req_obj.maintenance_id and gpass_req_obj.maintenance_id.id or False,
+                    'vendor_id':gpass_req_obj.vendor_id and gpass_req_obj.vendor_id.id or False,
+                    'equipment_id':gpass_req_obj.equipment_id and gpass_req_obj.equipment_id.id or False,
+                    'sub_equipment_id':gpass_req_obj.sub_equipment_id and gpass_req_obj.sub_equipment_id.id or False,
+                    'carrier_name':gpass_req_obj.carrier_name or '',
+                    'truck_no':gpass_req_obj.truck_no or '',
+                    'purpose':gpass_req_obj.purpose or '',
+                    'service_gpass_line':service_gpass_line,
+                    })
+        new_write = super(tpt_service_gpass, self).write(cr, uid,ids, vals, context)
+        if 'gpass_req_id' in vals:
+            gpass_obj = self.pool.get('tpt.service.gpass.req')
+            gpass_req_obj = gpass_obj.browse(cr, uid, vals['gpass_req_id']) 
+            gpass_obj.write(cr, uid, [gpass_req_obj.id], {'state':'done'})                  
+        return new_write
+    def bt_cancel(self, cr, uid, ids, context=None):
+        for line in self.browse(cr, uid, ids):
+            self.write(cr, uid, ids,{'state':'cancel'})
+        return True 
+    def bt_print(self, cr, uid, ids, context=None):
+        '''
+        This function prints the Service Gate Pass Print and mark it as sent, so that we can see more easily the next step of the workflow
+        '''
+        assert len(ids) == 1, 'This option should only be used for a single id at a time.'
+        self.write(cr, uid, ids, {'sent': True}, context=context)
+        
+        datas = {
+             'ids': ids,
+             'model': 'tpt.service.gpass',
+             'form': self.read(cr, uid, ids[0], context=context)
+        }
+        
+        return {
+                'type': 'ir.actions.report.xml',
+                'report_name': 'service_gate_out_pass_report',
+            } 
+tpt_service_gpass()
+
+class tpt_service_gpass_line(osv.osv):
+    _name = "tpt.service.gpass.line"
+       
+    _columns = {               
+            'gpass_id': fields.many2one('tpt.service.gpass', 'Service GPass', ondelete = 'cascade'),
+            'item_desc': fields.char('Item Description', size = 1024, ),
+            'service_qty': fields.float('Quatity'),          
+            'approx_qty': fields.float('Approximate Value'),
+            'uom_po_id': fields.many2one('product.uom', 'UOM'),
+                }
+    
+tpt_service_gpass_line()
+
+### TPT-Start
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

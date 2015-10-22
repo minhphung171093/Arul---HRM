@@ -255,9 +255,7 @@ class Parser(report_sxw.rml_parse):
         state=wizard_data['state']
         project_id=wizard_data['project_id']
         project_section_id=wizard_data['project_section_id'] 
-       
-        #raise osv.except_osv(_('Warning!'),_(grn_no))
-  
+         
         sql = '''
                       select sp.name as grn_no,sp.id as grn_no_1,sp.date as grn_date,sp.purchase_id as po_no,rp.name supplier, rp.vendor_code supplier_code,
                       pr.name as proj_name,prs.name as proj_sec_name,sp.document_type as doc_type,pi.name as po_indent_no_1,
@@ -278,56 +276,56 @@ class Parser(report_sxw.rml_parse):
         
         
         if date_from or date_to or po_no or grn_no or requisitioner or project_id or project_section_id or state:
-                    str = "where "
-                    sql = sql+str
+            str = "where "
+            sql = sql+str
         if date_from and not date_to:
-                    str = " sp.date <= '%s'"%(date_from)
-                    sql = sql+str               
+            str = " sp.date <= '%s'"%(date_from)
+            sql = sql+str               
         if date_to and not date_from:
-                    str = " sp.date <= '%s'"%(date_to)
-                    sql = sql+str               
+            str = " sp.date <= '%s'"%(date_to)
+            sql = sql+str               
         if date_to and date_from:
-                    if date_to == date_from:
-                        str = "extract(day from sp.date)=%s and extract(month from sp.date)=%s and extract(year from sp.date)=%s "%(int(date_from[8:10]), int(date_from[5:7]), date_from[:4])
-                    else:
-                        str = "sp.date between '%s' and '%s' "%(date_from, date_to) 
-                    sql = sql+str        
+            if date_to == date_from:
+                str = "extract(day from sp.date)=%s and extract(month from sp.date)=%s and extract(year from sp.date)=%s "%(int(date_from[8:10]), int(date_from[5:7]), date_from[:4])
+            else:
+                str = "sp.date between '%s' and '%s' "%(date_from, date_to) 
+            sql = sql+str        
         if grn_no and not date_to and not date_from:
-                    str = " sp.id = %s"%(grn_no[0])
-                    sql = sql+str
+            str = " sp.id = %s"%(grn_no[0])
+            sql = sql+str
         if grn_no and (date_to or date_from):
-                    str = " and sp.id = %s"%(grn_no[0])
-                    sql = sql+str        
+            str = " and sp.id = %s"%(grn_no[0])
+            sql = sql+str        
         if po_no and not date_to and not date_from and not grn_no:
-                    str = " sp.purchase_id = %s "%(po_no[0])
-                    sql = sql+str
+            str = " sp.purchase_id = %s "%(po_no[0])
+            sql = sql+str
         if po_no and (date_to or date_from or grn_no):
-                    str = " and sp.purchase_id = %s "%(po_no[0])
-                    sql = sql+str
+            str = " and sp.purchase_id = %s "%(po_no[0])
+            sql = sql+str
         if state and not po_no and not grn_no and not date_to and not date_from:
-                    str = " sm.state = '%s' "%(state)
-                    sql = sql+str
+            str = " sm.state = '%s' "%(state)
+            sql = sql+str
         if state and (date_to or date_from or po_no or grn_no):
-                    str = " and sm.state = '%s' "%(state)
-                    sql = sql+str
+            str = " and sm.state = '%s' "%(state)
+            sql = sql+str
         if requisitioner and not state and not po_no and not grn_no and not date_to and not date_from: 
-                    str = " pi.requisitioner = %s "%(requisitioner[0])
-                    sql = sql+str
+            str = " pi.requisitioner = %s "%(requisitioner[0])
+            sql = sql+str
         if requisitioner and (date_to or date_from or state or po_no or grn_no):
-                    str = " and pi.requisitioner = %s "%(requisitioner[0])
-                    sql = sql+str
+            str = " and pi.requisitioner = %s "%(requisitioner[0])
+            sql = sql+str
         if project_id and not requisitioner and not state and not po_no and not grn_no and not date_to and not date_from:
-                    str = " pr.id = %s "%(project_id[0])
-                    sql = sql+str
+            str = " pr.id = %s "%(project_id[0])
+            sql = sql+str
         if project_id and (date_to or date_from or requisitioner or state or po_no or grn_no):
-                    str = " and pr.id = %s "%(project_id[0])
-                    sql = sql+str
+            str = " and pr.id = %s "%(project_id[0])
+            sql = sql+str
         if project_section_id and not project_id and not requisitioner and not state and not po_no and not grn_no and not date_to and not date_from:
-                    str = " prs.id = %s"%(project_section_id[0])
-                    sql = sql+str
+            str = " prs.id = %s"%(project_section_id[0])
+            sql = sql+str
         if project_section_id and (date_to or date_from or project_id or requisitioner or state or po_no or grn_no):
-                    str = " and prs.id = %s "%(project_section_id[0])
-                    sql = sql+str
+            str = " and prs.id = %s "%(project_section_id[0])
+            sql = sql+str
         sql=sql+" order by sp.date asc" 
                         
         self.cr.execute(sql)

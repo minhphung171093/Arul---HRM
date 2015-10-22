@@ -19,7 +19,9 @@
         'security/green_erp_arulmani_maintenance_security.xml',
         'security/ir.model.access.csv',
         'mainten_seq.xml',
-        'tpt_maintenance_view.xml',
+        'tpt_maintenance_view.xml',       
+        'report/print_gpass_req_view.xml', 
+        'report/print_service_gpass_out_view.xml',
     ],
     'test': [
     ],

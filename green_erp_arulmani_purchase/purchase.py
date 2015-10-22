@@ -451,7 +451,7 @@ class tpt_purchase_product(osv.osv):
         'is_mrp': fields.boolean('Is MRP'),
         'intdent_cate':fields.selection([
                                 ('emergency','Emergency Indent'),
-                                ('normal','Normal Indent')],'Indent Category'),
+                                ('normal','Normal Indent')],'Indent Category'),        
         }  
 #     
     _defaults = {
@@ -3047,7 +3047,62 @@ class purchase_order_line(osv.osv):
             
             res[line.id]['amount_basic'] = amount_basic
         return res
-    
+    def get_pending_qty(self, cr, uid, ids, field_name, args, context=None):
+        res = {}
+        for line in self.browse(cr, uid, ids, context=context):
+            res[line.id] = {
+                'pending_qty': 0.0,
+            }
+            
+            res[line.id]['pending_qty'] = 0
+        return res
+    #===========================================================================
+    # def get_pending_qty(count,indent_id,prod_id,ind_qty,item_text,desc):                   
+    #         if count > 0:
+    #             sql = '''
+    #                     select pol.product_qty as rfq_qty
+    #                     from purchase_order_line pol
+    #                     join purchase_order po on (po.id = pol.order_id)
+    #                     join tpt_purchase_indent pi on (pi.id = pol.po_indent_no)
+    #                     where pol.po_indent_no = %s and pol.product_id = %s
+    #                   '''%(indent_id,prod_id)
+    #             if item_text:
+    #                 item_text = item_text.replace("'", "'||''''||'")
+    #                 str = " and pol.item_text = '%s'"%(item_text)
+    #                 sql = sql+str
+    #             if desc:
+    #                 desc = desc.replace("'", "'||''''||'")
+    #                 str = " and pol.description = '%s'"%(desc)
+    #                 sql = sql+str
+    #             cr.execute(sql)
+    #             for move in cr.dictfetchall():                      
+    #                     rfq_qty = move['rfq_qty']
+    #                     pen_qty = ind_qty - rfq_qty
+    #                     return pen_qty or 0.000
+    #         else:
+    #             return ind_qty or 0.000
+    # def get_issue_qty_count(indent_id,prod_id,item_text,desc):             
+    #             
+    #             sql = '''
+    #                     select count(*)
+    #                     from purchase_order_line pol
+    #                     join purchase_order po on (po.id = pol.order_id)
+    #                     join tpt_purchase_indent pi on (pi.id = pol.po_indent_no)
+    #                     where pol.po_indent_no = %s and pol.product_id = %s
+    #                 '''%(indent_id,prod_id)
+    #             if item_text:
+    #                 item_text = item_text.replace("'", "'||''''||'")
+    #                 str = " and pol.item_text = '%s'"%(item_text)
+    #                 sql = sql+str
+    #             if desc:
+    #                 desc = desc.replace("'", "'||''''||'")
+    #                 str = " and pol.description = '%s'"%(desc)
+    #                 sql = sql+str
+    #             cr.execute(sql)
+    #             for move in cr.dictfetchall():
+    #                 count = move['count']
+    #                 return count or 0.000  
+    #===========================================================================
     _columns = {
 #                 'purchase_tax_id': fields.many2one('account.tax', 'Taxes', domain="[('type_tax_use','=','purchase')]", required = True), 
                 
@@ -3098,6 +3153,7 @@ class purchase_order_line(osv.osv):
                                     ('cancel', 'Cancelled'),
                                    ], string='State'),
 #                 'po_document_type_relate':fields.selection([('raw','VV Raw material PO'),('asset','VV Capital PO'),('standard','VV Standard PO'),('local','VV Local PO'),('return','VV Return PO'),('service','VV Service PO'),('out','VV Out Service PO')],'PO Document Type'),
+                'pending_qty': fields.function(get_pending_qty, type='float', digits=(16,0), multi='sum', string='Pending Qty',),
                 }   
     
 
