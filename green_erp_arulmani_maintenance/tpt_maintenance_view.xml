@@ -679,7 +679,8 @@
 	            		<group col='4' colspan='2'>		
 	            			<field name="name"/>	
 	            			<field name="service_date" required='1'/> 				
-							<field name="maintenance_id" required='1' options="{'create': false, 'create_edit': false}"/>
+							<field name="maintenance_id" required='1' on_change="onchange_maintenance_id(maintenance_id)" 
+							options="{'create': false, 'create_edit': false}"/>
 							<field name="vendor_id" required='1' domain="[('supplier','=',1)]"
 							options="{'create': false, 'create_edit': false}"
 							/>
@@ -747,7 +748,7 @@
 					<field name="maintenance_id"/>
 					<field name="vendor_id"/>
 					<filter string="Draft" name="draft" icon="terp-personal" domain="[('state','=','draft')]" context="{}"/>	
-        			<filter string="Closed" name="cancel" icon="terp-personal" domain="[('state','=','cancel')]" context="{}"/>
+        			<filter string="Closed" name="cancel" icon="terp-personal" domain="[('state','=','close')]" context="{}"/>
         			<filter string="Approve" name="done" icon="terp-personal" domain="[('state','=','approve')]" context="{}"/>  			
         			<group expand="0" string="Group By...">
                         <filter string='Status' icon="terp-stock_symbol-selection" domain="[]" context="{'group_by' : 'state'}"/>                       
@@ -761,9 +762,10 @@
             <field name="arch" type="xml">
 	            <form string="Service GPass" version="7.0">   
 	            	<header>	
-	            		<button name="bt_print" string="Print" type="object" class="oe_highlight"/>            		
-	            		<button name="bt_cancel" states='draft' string="Cancel" type="object" class="oe_highlight"/>	
-	                    <field name ="state" widget="statusbar" statusbar_visible="draft,approve,cancel" statusbar_colors='{"draft":"blue","in":"red","close":"grey"}'/>
+	            	    <button name="bt_generate" states='draft' string="Generate Gate Pass" type="object" class="oe_highlight"/>
+	            		<button name="bt_print" states='approve' string="Print" type="object" class="oe_highlight"/>            		
+	            		<button name="bt_close" states='approve' string="Close" type="object" class="oe_highlight"/>	
+	                    <field name ="state" widget="statusbar" statusbar_visible="draft,approve,close" statusbar_colors='{"draft":"blue","in":"red","close":"grey"}'/>
 	                </header>
 	            	<sheet>
 	            		<group col='4' colspan='2'>		

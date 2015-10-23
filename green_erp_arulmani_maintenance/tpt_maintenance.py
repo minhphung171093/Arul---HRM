@@ -1216,7 +1216,7 @@ class tpt_service_gpass_req(osv.osv):
             'state':fields.selection([('draft', 'Draft'), 
                                       ('waiting', 'Waiting for Approval'), 
                                       ('approve', 'Approved'), 
-                                      ('cancel', 'Cancel'), 
+                                      ('cancel', 'Cancelled'), 
                                       ('done', 'Service Gate Pass Raised')], 'Status', readonly=True),
             'create_date': fields.datetime('Created Date', readonly = True),
             'create_uid': fields.many2one('res.users', 'Created By', ondelete='restrict', readonly = True),    
@@ -1227,7 +1227,15 @@ class tpt_service_gpass_req(osv.osv):
         'service_date': time.strftime('%Y-%m-%d'),
     }
     
-    
+    def onchange_maintenance_id(self, cr, uid, ids,maintenance_id=False, context=None):
+        vals = {}    
+        if maintenance_id:
+            maintenance_obj = self.pool.get('tpt.maintenance.oder').browse(cr, uid, maintenance_id)
+            vals.update( {
+                    'equipment_id':maintenance_obj.equip_id and maintenance_obj.equip_id.id or False,
+                    'sub_equipment_id':maintenance_obj.machine_id and maintenance_obj.machine_id.id or False,
+                    })
+        return {'value': vals} 
     def bt_generate(self, cr, uid, ids, context=None):
         for line in self.browse(cr, uid, ids):
             if not line.service_gpass_req_line:
@@ -1285,20 +1293,20 @@ class tpt_service_gpass(osv.osv):
     _name = "tpt.service.gpass"
     
     _columns = {                
-            'gpass_req_id': fields.many2one('tpt.service.gpass.req', 'Service Gate Pass Requisition', states={'cancel': [('readonly', True)], 'approve':[('readonly', True)]}),
-            'maintenance_id': fields.many2one('tpt.maintenance.oder', 'Maintenance Order', states={'cancel': [('readonly', True)], 'approve':[('readonly', True)]}),
-            'vendor_id': fields.many2one('res.partner', '3rd Party Service Vendor', states={'cancel': [('readonly', True)], 'approve':[('readonly', True)]}),
+            'gpass_req_id': fields.many2one('tpt.service.gpass.req', 'Service Gate Pass Requisition', states={'close': [('readonly', True)], 'approve':[('readonly', True)]}),
+            'maintenance_id': fields.many2one('tpt.maintenance.oder', 'Maintenance Order'),
+            'vendor_id': fields.many2one('res.partner', '3rd Party Service Vendor'),
             'service_date': fields.date('Date'),
-            'equipment_id': fields.many2one('tpt.equipment', 'Equipement', states={'cancel': [('readonly', True)], 'approve':[('readonly', True)]}),
-            'sub_equipment_id': fields.many2one('tpt.machineries', 'Sub Equipement', states={'cancel': [('readonly', True)], 'approve':[('readonly', True)]}),
+            'equipment_id': fields.many2one('tpt.equipment', 'Equipement'),
+            'sub_equipment_id': fields.many2one('tpt.machineries', 'Sub Equipement'),
             'carrier_name': fields.char('Carrier Name', size = 1024, ),
             'truck_no': fields.char('Truck No.', size = 1024, ),
             'purpose': fields.text('Purpose'),
-            'exp_return_date': fields.date('Expected Return Date'),
-            'act_return_date': fields.date('Actual Return Date'),
-            'service_gpass_line': fields.one2many('tpt.service.gpass.line', 'gpass_id', 'Service GPass', states={'cancel': [('readonly', True)], 'approve':[('readonly', True)]}),
+            'exp_return_date': fields.date('Expected Return Date', states={'close': [('readonly', True)], 'approve':[('readonly', True)]}),
+            'act_return_date': fields.date('Actual Return Date', states={'close': [('readonly', True)]}),
+            'service_gpass_line': fields.one2many('tpt.service.gpass.line', 'gpass_id', 'Service GPass', states={'close': [('readonly', True)], 'approve':[('readonly', True)]}),
             'state':fields.selection([('draft', 'Draft'),
-                                      ('cancel', 'Cancel'),
+                                      ('close', 'Closed'),
                                        ('approve', 'Approved')], 'Status', readonly=True),
             'create_date': fields.datetime('Created Date', readonly = True),
             'create_uid': fields.many2one('res.users', 'Created By', ondelete='restrict', readonly = True),    
@@ -1401,9 +1409,15 @@ class tpt_service_gpass(osv.osv):
             gpass_req_obj = gpass_obj.browse(cr, uid, vals['gpass_req_id']) 
             gpass_obj.write(cr, uid, [gpass_req_obj.id], {'state':'done'})                  
         return new_write
-    def bt_cancel(self, cr, uid, ids, context=None):
+    def bt_generate(self, cr, uid, ids, context=None):
         for line in self.browse(cr, uid, ids):
-            self.write(cr, uid, ids,{'state':'cancel'})
+            self.write(cr, uid, ids,{'state':'approve'})
+        return True 
+    def bt_close(self, cr, uid, ids, context=None):
+        for line in self.browse(cr, uid, ids):
+            if not line.act_return_date:
+                raise osv.except_osv(_('Warning!'),_('Please fill the Actual Retutrn Date!'))
+            self.write(cr, uid, ids,{'state':'close'})
         return True 
     def bt_print(self, cr, uid, ids, context=None):
         '''
@@ -1422,6 +1436,17 @@ class tpt_service_gpass(osv.osv):
                 'type': 'ir.actions.report.xml',
                 'report_name': 'service_gate_out_pass_report',
             } 
+    def _check_date(self, cr, uid, ids, context=None): 
+        for line in self.browse(cr, uid, ids, context = context):
+            if line.act_return_date:
+                if line.act_return_date < line.service_date:
+                    raise osv.except_osv(_('Warning!'),_('Actual Return Date is less than Gate Pass Date'))
+                    return False
+        return True    
+    _constraints = [
+       
+        (_check_date, _(''), ['service_date', 'act_return_date']),
+        ]
 tpt_service_gpass()
 
 class tpt_service_gpass_line(osv.osv):
