@@ -276,14 +276,38 @@ class purchase_order_list_wizard(osv.osv_memory):
         
         cr.execute(sql)
         order_line_ids = [r[0] for r in cr.fetchall()]
-        for seq,order_line in enumerate(order_line_obj.browse(cr, uid, order_line_ids)):
+        for seq,order_line in enumerate(order_line_obj.browse(cr, uid, order_line_ids)):            
+            
+            grn_qty_1 = 0
+            grn_qty_2 = 0
+            grn_qty = 0
+            
             sql = '''
                 select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty
                     from stock_move where purchase_line_id=%s and state='done'
                     and origin is not null
             '''%(order_line.id)
             cr.execute(sql)
-            grn_qty = cr.fetchone()[0]
+            grn_qty_1 = cr.fetchone()[0]
+            
+            sql = '''
+                select count(*) from tpt_gate_out_pass_line where gate_out_pass_id in (
+                    select id from tpt_gate_out_pass where po_id = %s)
+            '''%(order_line.order_id.id)
+            cr.execute(sql)           
+            count = cr.fetchone()[0]
+            
+            if count>0:
+                sql = '''
+                    select COALESCE(product_qty,0) as product_qty from tpt_gate_out_pass_line where gate_out_pass_id in (
+                        select id from tpt_gate_out_pass where po_id = %s)
+                '''%(order_line.order_id.id)
+                cr.execute(sql)           
+                grn_qty_2 = cr.fetchone()[0]
+            else:
+                grn_qty_2 = 0
+            
+            grn_qty = grn_qty_1 - grn_qty_2
             
             ##    
             indent_line_obj = self.pool.get('tpt.purchase.product') 
@@ -528,13 +552,37 @@ class Parser(report_sxw.rml_parse):
         self.cr.execute(sql)
         order_line_ids = [r[0] for r in self.cr.fetchall()]
         for seq,order_line in enumerate(order_line_obj.browse(self.cr, self.uid, order_line_ids)):
+            
+            grn_qty_1 = 0
+            grn_qty_2 = 0
+            grn_qty = 0            
+            
             sql = '''
                 select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty
                     from stock_move where purchase_line_id=%s and state='done'
                     and origin is not null
             '''%(order_line.id)
             self.cr.execute(sql)
-            grn_qty = self.cr.fetchone()[0]
+            grn_qty_1 = self.cr.fetchone()[0]
+            
+            sql = '''
+                select count(*) from tpt_gate_out_pass_line where gate_out_pass_id in (
+                    select id from tpt_gate_out_pass where po_id = %s)
+            '''%(order_line.order_id.id)
+            self.cr.execute(sql)           
+            count = self.cr.fetchone()[0]
+            
+            if count>0:
+                sql = '''
+                    select COALESCE(product_qty,0) as product_qty from tpt_gate_out_pass_line where gate_out_pass_id in (
+                        select id from tpt_gate_out_pass where po_id = %s)
+                '''%(order_line.order_id.id)
+                self.cr.execute(sql)           
+                grn_qty_2 = self.cr.fetchone()[0]
+            else:
+                grn_qty_2 = 0
+                            
+            grn_qty = grn_qty_1 - grn_qty_2
             
             ##    
             indent_line_obj = self.pool.get('tpt.purchase.product') 
