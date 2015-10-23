@@ -120,8 +120,15 @@
 							</page>
 							<page string = "Equipment Master History">
 								<field name="maintenance_oder_line" nolabel='1'>
-									<tree editable='top'>
+									<tree editable='top'>									
 										<field name="name" string='Maintenance Order'/>
+										<field name="create_date" string='Date'/>
+										<field name="notif_type" string='Type of Work'/>
+										<field name="start_date" string='Started Date'/>
+										<field name="completion_date" string='End Date'/>
+										<field name="total_hours" widget="float_time" string='Man Power Consumption (in Hrs)'/>
+										<field name="create_uid" string='User ID'/>
+										<field name="state" invisible="1"/>
 									</tree>
 								</field>
 							</page>
