@@ -1307,7 +1307,7 @@ class tpt_service_gpass(osv.osv):
             'service_gpass_line': fields.one2many('tpt.service.gpass.line', 'gpass_id', 'Service GPass', states={'close': [('readonly', True)], 'approve':[('readonly', True)]}),
             'state':fields.selection([('draft', 'Draft'),
                                       ('close', 'Closed'),
-                                       ('approve', 'Approved')], 'Status', readonly=True),
+                                       ('approve', 'Gate Pass Generated')], 'Status', readonly=True),
             'create_date': fields.datetime('Created Date', readonly = True),
             'create_uid': fields.many2one('res.users', 'Created By', ondelete='restrict', readonly = True),    
                 }
@@ -1436,6 +1436,16 @@ class tpt_service_gpass(osv.osv):
                 'type': 'ir.actions.report.xml',
                 'report_name': 'service_gate_out_pass_report',
             } 
+    def name_get(self, cr, uid, ids, context=None):
+        res = []
+        if not ids:
+            return res
+        reads = self.read(cr, uid, ids, ['gpass_req_id', 'maintenance_id'], context)
+  
+        for record in reads:
+            name = record['gpass_req_id']
+            res.append((record['id'], name))
+        return res 
     def _check_date(self, cr, uid, ids, context=None): 
         for line in self.browse(cr, uid, ids, context = context):
             if line.act_return_date:
