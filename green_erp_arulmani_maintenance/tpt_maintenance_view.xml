@@ -126,7 +126,7 @@
 										<field name="notif_type" string='Type of Work'/>
 										<field name="start_date" string='Started Date'/>
 										<field name="completion_date" string='End Date'/>
-										<field name="total_hours" widget="float_time" string='Man Power Consumption (in Hrs)'/>
+										<field name="total_hours" widget="float_time" string='Man Power Cons.(in Hrs)'/>
 										<field name="create_uid" string='User ID'/>
 										<field name="state" invisible="1"/>
 									</tree>

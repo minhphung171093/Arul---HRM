@@ -1247,9 +1247,7 @@ class tpt_blanket_order(osv.osv):
                 for so_id in cl_sale_order_ids:
                     so_line_ids = self.pool.get('sale.order.line').search(cr,uid,[ ('order_id', '=',so_id)])               
                     so_line = self.pool.get('sale.order.line').browse(cr,uid,so_line_ids[0])
-                    so_qty += so_line.product_uom_qty
-                print so_qty
-                print bo_line.product_uom_qty
+                    so_qty += so_line.product_uom_qty                
                 if so_qty!=bo_line.product_uom_qty:
                     raise osv.except_osv(_('Warning!'),_('Blanket Order has already existed on Sale Order'))
             confirm_sale_order_ids = self.pool.get('sale.order').search(cr,uid,[('blanket_id', '=',line.id ), ('state', 'in',('draft', 'progress','done'))])

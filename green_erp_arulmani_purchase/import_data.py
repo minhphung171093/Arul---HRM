@@ -145,11 +145,7 @@ class tpt_import_supplier(osv.osv):
                     cst = sh.cell(row, 11).value
                     tin = sh.cell(row, 12).value
                     pan_tin = sh.cell(row, 13).value
-                    
-                    print cst
-                    print tin
-                    print pan_tin
-                    
+                        
                     if exist_custo_count > 0:
                         dem += 1
                         sql = '''

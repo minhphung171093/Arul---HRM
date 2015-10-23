@@ -1105,9 +1105,7 @@ class arul_hr_payroll_executions(osv.osv):
             cr.execute(sql)
             emp_ids = []
             emp_ids = [r[0] for r in cr.fetchall()]
-            employee_ids = employee_ids+emp_ids
-            #print "1: %s "%emp_ids
-            #print "2: %s "%employee_ids
+            employee_ids = employee_ids+emp_ids           
             ### TPT-END
             
             for p in emp_obj.browse(cr,uid,employee_ids):
@@ -2511,9 +2509,7 @@ class arul_hr_payroll_executions(osv.osv):
                         else:
                             ma = (total_shift_worked * ( lunch_allowance + washing_allowane )) + total_all_shift_allowance
                             ma = round(ma,0) 
-			            
-                        if p.id==322:
-                            print "EMP"
+			                                   
                         net_basic = round(basic - (basic / s3_working_days) * total_no_of_leave, 0)
                         net_da = round(da - (da / s3_working_days) * total_no_of_leave, 0)
                         net_c = round(c - (c / s3_working_days) * total_no_of_leave, 0)
