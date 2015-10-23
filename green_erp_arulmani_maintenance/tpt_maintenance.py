@@ -1292,7 +1292,8 @@ tpt_service_gpass_req_line()
 class tpt_service_gpass(osv.osv):
     _name = "tpt.service.gpass"
     
-    _columns = {                
+    _columns = {    
+            'name': fields.char('Document No', size = 1024, readonly=True),             
             'gpass_req_id': fields.many2one('tpt.service.gpass.req', 'Service Gate Pass Requisition', states={'close': [('readonly', True)], 'approve':[('readonly', True)]}),
             'maintenance_id': fields.many2one('tpt.maintenance.oder', 'Maintenance Order'),
             'vendor_id': fields.many2one('res.partner', '3rd Party Service Vendor'),
@@ -1313,6 +1314,7 @@ class tpt_service_gpass(osv.osv):
                 }
     _defaults = {
         'state': 'draft',
+        'name': '/',
         'service_date': time.strftime('%Y-%m-%d'),
     }
     def onchange_service_gpass_id(self, cr, uid, ids,service_gpass_id=False, context=None):
@@ -1348,7 +1350,10 @@ class tpt_service_gpass(osv.osv):
                     'service_gpass_line':service_gpass_line,
                     }
         return {'value': vals}  
+    
     def create(self, cr, uid, vals, context=None):
+        if vals.get('name','/')=='/':
+            vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.service.gpass.import') or '/'
         if 'gpass_req_id' in vals:
             gpass_req_obj = self.pool.get('tpt.service.gpass.req').browse(cr, uid, vals['gpass_req_id']) 
             service_gpass_line = []
@@ -1436,16 +1441,18 @@ class tpt_service_gpass(osv.osv):
                 'type': 'ir.actions.report.xml',
                 'report_name': 'service_gate_out_pass_report',
             } 
-    def name_get(self, cr, uid, ids, context=None):
-        res = []
-        if not ids:
-            return res
-        reads = self.read(cr, uid, ids, ['gpass_req_id', 'maintenance_id'], context)
-  
-        for record in reads:
-            name = record['gpass_req_id']
-            res.append((record['id'], name))
-        return res 
+  #=============================================================================
+  #   def name_get(self, cr, uid, ids, context=None):
+  #       res = []
+  #       if not ids:
+  #           return res
+  #       reads = self.read(cr, uid, ids, ['gpass_req_id', 'maintenance_id'], context)
+  # 
+  #       for record in reads:
+  #           name = record['gpass_req_id']
+  #           res.append((record['id'], name))
+  #       return res 
+  #=============================================================================
     def _check_date(self, cr, uid, ids, context=None): 
         for line in self.browse(cr, uid, ids, context = context):
             if line.act_return_date:
