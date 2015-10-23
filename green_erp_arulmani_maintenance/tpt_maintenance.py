@@ -430,6 +430,33 @@ class tpt_maintenance_oder(osv.osv):
             res[line.id]['net_value'] = net_value
         return res
     
+    def _time_total(self, cr, uid, ids, field_name, arg, context=None):
+        res = {}
+        for main_obj in self.browse(cr, uid, ids, context=context):
+            res[main_obj.id] = {
+                'total_hours': 0.0,
+            }
+            time_total = 0
+            #service_obj = self.pool.get('tpt.maintenance.oder').browse(cr, uid, 'id','=',ids[0]) 
+            
+            for service_entry_header in main_obj.service_entry_line:
+                for service_entry_line in service_entry_header.service_entry_line:
+                    time_total += service_entry_line.work_hour
+                
+            #===================================================================
+            # if time.in_time != 0 and time.out_time!=0:
+            #     if time.in_time > time.out_time:
+            #         time_total = 24-time.in_time + time.out_time
+            #     else:
+            #         time_total = time.out_time - time.in_time
+            #     if time.diff_day and (time.in_time <= time.out_time):
+            #         time_total += 24
+            # else:
+            #     time_total=0
+            #===================================================================
+            res[main_obj.id]['total_hours'] = time_total            
+        return res
+    
     _columns = {
         'name':fields.char('Order No', size = 1024,readonly=True),
         'issue_type':fields.selection([('major', 'Major'),('minor', 'Minor'),('critical', 'Critical')],'Issue Type',states={'close': [('readonly', True)]}),
@@ -466,7 +493,8 @@ class tpt_maintenance_oder(osv.osv):
                                   ('completed', 'Completed'),
                                   ('put', 'Put On Hold'),
                                   ('close','Closed'),
-                                  ('cancel','Cancelled')],'Status', readonly=True),
+                                  ('cancel','Cancelled')],'Status', readonly=True),        
+        'total_hours': fields.function(_time_total, string='Total Hours', multi='sums', help="The total amount."),
     }
     _defaults = {
         'state':'draft',
