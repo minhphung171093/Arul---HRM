@@ -10,6 +10,7 @@ from openerp import pooler
 from openerp.osv import osv
 from openerp.tools.translate import _
 import random
+import locale
 DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
 DATE_FORMAT = "%Y-%m-%d"
 
@@ -24,6 +25,7 @@ class Parser(report_sxw.rml_parse):
         pool = pooler.get_pool(self.cr.dbname)
         self.localcontext.update({
             'get_date': self.get_date,
+            'get_amt': self.get_amt,
             
             
         })
@@ -33,6 +35,10 @@ class Parser(report_sxw.rml_parse):
             date = time.strftime(DATETIME_FORMAT)
         date = datetime.strptime(date, DATE_FORMAT)
         return date.strftime('%d/%m/%Y')
+    def get_amt(self, amt):
+        locale.setlocale(locale.LC_NUMERIC, "en_IN")
+        inr_comma_format = locale.format("%.3f", amt, grouping=True)
+        return inr_comma_format
 
 
    

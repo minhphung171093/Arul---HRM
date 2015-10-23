@@ -1296,7 +1296,7 @@ class tpt_service_gpass(osv.osv):
             'gpass_req_id': fields.many2one('tpt.service.gpass.req', 'Service Gate Pass Requisition', states={'close': [('readonly', True)], 'approve':[('readonly', True)]}),
             'maintenance_id': fields.many2one('tpt.maintenance.oder', 'Maintenance Order'),
             'vendor_id': fields.many2one('res.partner', '3rd Party Service Vendor'),
-            'service_date': fields.date('Date'),
+            'service_date': fields.date('Date', states={'close': [('readonly', True)], 'approve':[('readonly', True)]}),
             'equipment_id': fields.many2one('tpt.equipment', 'Equipement'),
             'sub_equipment_id': fields.many2one('tpt.machineries', 'Sub Equipement'),
             'carrier_name': fields.char('Carrier Name', size = 1024, ),
