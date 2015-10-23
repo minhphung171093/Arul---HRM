@@ -772,6 +772,7 @@
 	            	<sheet>
 	            		<group col='4' colspan='2'>	
 	            			<field name="name" readonly='1'/>	
+	            			<newline></newline>
 	            			<field name="gpass_req_id" required='1' on_change="onchange_service_gpass_id(gpass_req_id)" 
 	            			domain="[('state','=','approve')]" options="{'create': false, 'create_edit': false}"/>					
 							<field name="service_date" required='1'/> 
