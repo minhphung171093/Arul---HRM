@@ -237,7 +237,6 @@ class Parser(report_sxw.rml_parse):
         
     
     def get_total_openbal(self,lineid):
-        #print lineid
         wizard_data = self.localcontext['data']['form']
         date_from = wizard_data['date_from']
         date_to = wizard_data['date_to']
@@ -267,10 +266,7 @@ class Parser(report_sxw.rml_parse):
         for move in self.cr.dictfetchall():            
             temp_taxamt += move['debit']
         return temp_taxamt or 0.00
-            
-       
- 
-    
+               
     def get_debit_balance(self):
             wizard_data = self.localcontext['data']['form']
             date_from = wizard_data['date_from']
@@ -372,67 +368,7 @@ class Parser(report_sxw.rml_parse):
             self.cr.execute(sql)
             invoice_ids = [r[0] for r in self.cr.fetchall()]
             return invoice_obj.browse(self.cr,self.uid,invoice_ids)
-    
-#===============================================================================
-#     def get_invoice(self):
-#         res = {}
-#         wizard_data = self.localcontext['data']['form']
-#         date_from = wizard_data['date_from']
-#         date_to = wizard_data['date_to']
-#         invoice_obj = self.pool.get('account.invoice.line')
-#         sql = '''
-#             select ail.id,
-#             inv.date_invoice as invoice_date,
-#             inv.bill_number as bill_no,
-#             inv.bill_date as bill_dt,
-#             rs.name as party_name,
-#             inv.name as invoice_no,
-#             ail.line_net as net_amount,
-#             at.description as desp,
-#             ail.line_net * (at.amount/100) as service_amt
-#             from account_invoice_line ail
-#             join account_invoice ai on (ai.id=ail.invoice_id)
-#             JOIN account_invoice_line_tax ailt on (ailt.invoice_line_id=ail.id)
-#             Join account_tax at on (at.id=ailt.tax_id)
-#             join account_invoice inv on (ail.invoice_id = inv.id)
-#             join res_partner rs on (inv.partner_id = rs.id)
-#             where invoice_id in (select id from account_invoice where date_invoice between '%s' and '%s' and type = 'in_invoice') 
-#             and at.description ~'STax' and at.amount>0
-#             '''%(date_from, date_to)
-#         #self.cr.execute(sql)
-#         #invoice_ids = [r[0] for r in self.cr.fetchall()]
-#         #return invoice_obj.browse(self.cr,self.uid,invoice_ids)
-#         self.cr.execute(sql)                    
-#         return self.cr.dictfetchall()
-#         
-# 
-#         
-#     '''def get_service_tax(self):
-#         res = {}
-#         wizard_data = self.localcontext['data']['form']
-#         date_from = wizard_data['date_from']
-#         date_to = wizard_data['date_to']
-#         invoice_obj = self.pool.get('account.invoice.line')
-#         sql = 
-#             select ail.id, 
-#             cast(round(sum(ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount
-#             from account_invoice_line ail
-#             JOIN account_invoice_line_tax ailt on (ailt.invoice_line_id=ail.id)
-#             Join account_tax at on (at.id=ailt.tax_id)
-#             where invoice_id in (select id from account_invoice where date_invoice between '%s' and '%s' and type = 'in_invoice') 
-#             and at.description ~'STax' and at.amount>0
-#             %(date_from, date_to)
-#         self.cr.execute(sql)
-#         invoice_ids = [r[0] for r in self.cr.fetchall()]
-#         details = invoice_obj.browse(self.cr,self.uid,invoice_ids)  
-#         for line in details:
-#             for a in line.invoice_line_tax_id:
-#                 tax_amt = a.amount
-#                 tax_des = a.description
-#             
-#                 return tax_des'''
-#===============================================================================
-    
+   
     def get_tax(self, invoice_line_tax_id):
         tax_amounts = 0
         tax_amounts = [r.amount for r in invoice_line_tax_id]

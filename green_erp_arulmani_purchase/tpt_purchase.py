@@ -124,7 +124,7 @@ class tpt_mrp_process(osv.osv):
 #                             and product_id in (select st.product_id from stock_move st, tpt_purchase_indent ind 
 #                                                where st.po_indent_id = ind.id and ind.document_type = 'base' and st.state = 'done')
 #                         '''%(tuple(indent_ids),tuple(product_ids))
-#                         print sql
+#                         
 #                         cr.execute('''
 #                             select product_id from tpt_purchase_indent ind, tpt_purchase_product line
 #                             where ind.id = line.pur_product_id and ind.id in %s and line.product_uom_qty = line.rfq_qty and product_id in %s
