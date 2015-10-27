@@ -1584,5 +1584,116 @@
             <field name="number_next_actual">100001</field> <!-- 100001 -->
             <field name="implementation">no_gap</field>
             </record>
+            
+            <!-- TPT-START Canteen Deduction -->
+		<record id="tpt_canteen_deduction_tree_view" model="ir.ui.view">
+			<field name="name">tpt.canteen.deduction.tree</field>
+			<field name="model">tpt.canteen.deduction</field>
+			<field name="arch" type="xml">
+				<tree string="Canteen Deduction">
+					<field name ="employee_id" />
+					<field name ="issue_date" />
+					<field name ="book_type_id" />
+					<field name ="no_of_book" />
+					<field name ="net_value" />
+					<field name="state"/>
+				</tree>
+			</field>
+		</record>
+
+		<record id="tpt_canteen_deduction_form_view" model="ir.ui.view">
+            <field name="name">tpt.canteen.deduction.form</field>
+            <field name="model">tpt.canteen.deduction</field>
+            <field name="arch" type="xml">
+                <form string="Canteen Deduction" version="7.0">  
+                <header>	
+	            		<button name="bt_approve" states='draft' string="Approve" type="object" class="oe_highlight" groups="green_erp_arulmani_hrm.group_vvti_hrm_hr_manager,green_erp_arulmani_hrm.group_vvti_hrm_time_user"/>            		
+	            		<button name="bt_cancel" states='approve' string="Cancel" type="object" class="oe_highlight" groups="green_erp_arulmani_hrm.group_vvti_hrm_hr_manager,green_erp_arulmani_hrm.group_vvti_hrm_time_user"/>
+	            		<button name="bt_rollback" states='approve,cancel' string="Rollback" type="object" class="oe_highlight" groups="green_erp_arulmani_hrm.group_vvti_hrm_hr_manager,green_erp_arulmani_hrm.group_vvti_hrm_time_user"/>		
+	                   
+	                	<field name="state" widget="statusbar" statusbar_visible="draft,approve,cancel,done" statusbar_colors='{"draft":"blue","done":"blue"}'/>
+	                </header>
+                	<sheet>  
+                		<group col='4' colspan='2'>
+                			<field name ="employee_id" options="{'create': false, 'create_edit': false}"/>
+							<field name ="issue_date" />
+							<field name ="book_type_id" domain="[('is_active','=',1)]" options="{'create': false, 'create_edit': false}"/>
+							<newline></newline>
+							<field name ="no_of_book" />
+							<field name ="net_value" />
+							<field name ="desc" />
+							<newline></newline>
+							<field name ="create_date" />
+							<field name ="create_uid" />
+                		</group>
+                	</sheet>
+				</form>
+			</field>
+		</record>
+
+        <record id="action_tpt_canteen_deduction_form" model="ir.actions.act_window">
+            <field name="name">Canteen Deduction</field>
+			<field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.canteen.deduction</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="tpt_canteen_deduction_tree_view"/>
+        </record>
+        
+        <menuitem action="action_tpt_canteen_deduction_form"
+            id="menu_tpt_canteen_deduction_form"
+            parent="hr.menu_hr_main" sequence="34"/>
+            
+         <!-- TPT-START Canteen Book Type Details -->
+		<record id="tpt_canteen_book_type_tree_view" model="ir.ui.view">
+			<field name="name">tpt.canteen.book.type.tree</field>
+			<field name="model">tpt.canteen.book.type</field>
+			<field name="arch" type="xml">
+				<tree string="Canteen Book Type">
+					<field name ="name" />
+					<field name ="unit_price" />
+					<field name ="net_value" />
+					<field name ="is_active" />
+					
+				</tree>
+			</field>
+		</record>
+
+		<record id="tpt_canteen_book_type_form_view" model="ir.ui.view">
+            <field name="name">tpt.canteen.book.type.form</field>
+            <field name="model">tpt.canteen.book.type</field>
+            <field name="arch" type="xml">
+                <form string="Canteen Book Type" version="7.0">  
+                	<sheet>  
+                		<group col='4' colspan='2'>
+                			<field name ="name" />
+                			<field name ="token_count" />
+							<field name ="unit_price" />
+							<field name ="net_value" />
+							<field name ="is_active" />
+							<field name ="desc" />
+							<field name ="create_date" />
+							<field name ="create_uid" />
+							<field name ="write_date" />
+							<field name ="write_uid" />
+                		</group>
+                	</sheet>
+				</form>
+			</field>
+		</record>
+
+        <record id="action_tpt_canteen_book_type_form" model="ir.actions.act_window">
+            <field name="name">Canteen Book Type</field>
+			<field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.canteen.book.type</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="tpt_canteen_book_type_tree_view"/>
+        </record>
+        
+        <menuitem action="action_tpt_canteen_book_type_form"
+            id="menu_tpt_canteen_book_type_form"
+            parent="hr.menu_hr_main" sequence="35"/>
+		<!-- TPT-END -->
     </data>
 </openerp>

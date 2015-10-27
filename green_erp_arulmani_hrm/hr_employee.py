@@ -1533,3 +1533,145 @@ class tpt_hr_training(osv.osv):
     #     return new_write
     #===========================================================================
 tpt_hr_training()
+
+
+#TPT-By BalamuruganPurushothaman
+
+class tpt_canteen_book_type(osv.osv):
+    _name = "tpt.canteen.book.type"
+    def _net_value(self, cr, uid, ids, field_name, arg, context=None):
+        res = {}
+        net_value = 0
+        token_count = 0
+        unit_price = 0
+        book_obj = self.pool.get('tpt.canteen.book.type') 
+        for book_obj in self.browse(cr, uid, ids, context=context):
+            res[book_obj.id] = {
+                'net_value': 0.0,
+            }
+            net_value = book_obj.token_count * book_obj.unit_price
+            res[book_obj.id]['net_value'] = net_value            
+        return res
+    _columns = {
+        'name': fields.char('Name'),
+        'token_count': fields.float('No.of Tokens'),
+        'unit_price': fields.float('Unit Price'),
+        #'net_value': fields.float('Total Value'),
+        'net_value': fields.function(_net_value, string='Total Value', multi='sums', 
+                                           help="(No.of Book Issued * Net Amount of a Book) -> The total amount will be deducted during payroll executions. "),
+        'is_active': fields.boolean('Is Active'),
+        'desc':fields.char('Description'),
+        'create_date': fields.datetime('Created Date',readonly = True),
+        'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
+        'write_date': fields.datetime('Modified Date',readonly = True),
+        'write_uid': fields.many2one('res.users','Modified By',ondelete='restrict',readonly = True),
+    }
+    _defaults = {
+        'is_active':True,
+        }
+tpt_canteen_book_type()
+
+class tpt_canteen_deduction(osv.osv):
+    _name='tpt.canteen.deduction'
+    _order = 'create_date desc'
+    
+    def _net_value(self, cr, uid, ids, field_name, arg, context=None):
+        res = {}
+        net_value = 0
+        book_obj = self.pool.get('tpt.canteen.book.type') 
+        for c_deduct in self.browse(cr, uid, ids, context=context):
+            res[c_deduct.id] = {
+                'net_value': 0.0,
+            }
+            if c_deduct.book_type_id:
+                type = c_deduct.book_type_id.id 
+                book_temp_obj = book_obj.browse(cr,uid,c_deduct.book_type_id.id)
+                net_value = book_temp_obj.net_value
+                net_value *= c_deduct.no_of_book
+            res[c_deduct.id]['net_value'] = net_value            
+        return res
+    
+    
+    _columns={
+              'employee_id':fields.many2one('hr.employee','Employee',required=True,  states={'approve': [('readonly', True)], 'cancel': [('readonly', True)]},
+                                            help="Employee ID",),              
+              'issue_date':fields.date('Issue Date',required=True, states={'approve': [('readonly', True)], 'cancel': [('readonly', True)]},
+                                       help="The date in which the Booklet is issued to Employee"),
+              'book_type_id':fields.many2one('tpt.canteen.book.type','Book Type',required=True, states={'approve': [('readonly', True)], 'cancel': [('readonly', True)]},
+                                             help="Type of Book"),
+              'no_of_book': fields.float('No.of Book Issued', states={'approve': [('readonly', True)], 'cancel': [('readonly', True)]},
+                                            help="Number of Booklet issued to Employee"),
+              'net_value': fields.function(_net_value, string='Total Value', store=True, multi='sums', 
+                                           help="(No.of Book Issued * Net Amount of a Book) -> The total amount will be deducted during payroll executions. "),
+              'desc':fields.char('Description', states={'approve': [('readonly', True)], 'cancel': [('readonly', True)]},
+                                 help="Misc Info"),
+              #'state':fields.selection([('draft', 'Draft'),('approve', 'Approved'),('cancel', 'Cancelled'),('done', 'Done')],'Status'),             
+              'create_date': fields.datetime('Created Date',readonly = True,help="Date onwhich this record is created"),
+              'create_uid': fields.many2one('res.users','Created By', ondelete='restrict', readonly = True, help="who created the record"),
+              'state':fields.selection([('draft', 'Draft'),('done', 'Done'),('approve', 'Approved'),('cancel', 'Cancelled')],'Status', readonly=True),
+              }
+    _defaults = {
+        'state':'draft',
+        'issue_date':time.strftime('%Y-%m-%d'),
+        }
+    
+    
+   
+    def name_get(self, cr, uid, ids, context=None):
+        res = []
+        if not ids:
+            return res
+        reads = self.read(cr, uid, ids, ['employee_id'], context)
+  
+        for record in reads:
+            name = record['employee_id']
+            res.append((record['id'], name))
+        return res 
+    def bt_approve(self, cr, uid, ids, context=None):
+        for line in self.browse(cr, uid, ids):
+            if line.issue_date: 
+                month = line.issue_date[5:7]
+                year = line.issue_date[:4]
+                payroll_ids = self.pool.get('arul.hr.payroll.executions').search(cr,uid,[('month','=',int(month)),('year','=',year),('state','=','approve'),('payroll_area_id','=',line.employee_id.payroll_area_id.id)])
+                if payroll_ids :
+                    raise osv.except_osv(_('Warning!'),_('Payroll were already exists, not allowed to Approve!'))
+            self.write(cr, uid, ids,{'state':'approve'})
+        return True 
+    def bt_cancel(self, cr, uid, ids, context=None):
+        for line in self.browse(cr, uid, ids):
+            if line.issue_date: 
+                month = line.issue_date[5:7]
+                year = line.issue_date[:4]
+                payroll_ids = self.pool.get('arul.hr.payroll.executions').search(cr,uid,[('month','=',int(month)),('year','=',year),('state','=','approve'),('payroll_area_id','=',line.employee_id.payroll_area_id.id)])
+                if payroll_ids :
+                    raise osv.except_osv(_('Warning!'),_('Payroll were already exists, not allowed to Cancel!'))
+            self.write(cr, uid, ids,{'state':'close'})
+        return True 
+    def bt_rollback(self, cr, uid, ids, context=None):
+        for line in self.browse(cr, uid, ids):
+            if line.issue_date: 
+                month = line.issue_date[5:7]
+                year = line.issue_date[:4]
+                payroll_ids = self.pool.get('arul.hr.payroll.executions').search(cr,uid,[('month','=',int(month)),('year','=',year),('state','=','approve'),('payroll_area_id','=',line.employee_id.payroll_area_id.id)])
+                if payroll_ids :
+                    raise osv.except_osv(_('Warning!'),_('Payroll were already exists, not allowed to Rollback!'))
+            self.write(cr, uid, ids,{'state':'draft'})
+        return True 
+    def create(self, cr, uid, vals, context=None):        
+        if 'employee_id' in vals and 'issue_date' in vals and 'book_type_id' in vals: 
+            emp_meals_ids = self.search(cr,uid,[('employee_id','=',vals['employee_id']), ('issue_date','=',vals['issue_date']), ('book_type_id','=',vals['book_type_id']),]) 
+            if emp_meals_ids:
+                raise osv.except_osv(_('Warning!'),_('Already Exist!'))
+        new_id = super(tpt_canteen_deduction, self).create(cr, uid, vals, context=context)    
+        return new_id
+    def write(self, cr, uid, ids, vals, context=None):
+        if 'employee_id' in vals and 'issue_date' in vals and 'book_type_id' in vals: 
+            emp_meals_ids = self.search(cr,uid,[('employee_id','=',vals['employee_id']), ('issue_date','=',vals['issue_date']), ('book_type_id','=',vals['book_type_id']),]) 
+            if emp_meals_ids:
+                raise osv.except_osv(_('Warning!'),_('Already Exist!'))     
+        new_write = super(tpt_canteen_deduction, self).write(cr, uid,ids, vals, context)
+        return new_write
+    
+    #_sql_constraints = [('emp_date_type_uniq', 'unique(employee_id, issue_date, book_type_id)', 'Already Entered!'),]
+    
+tpt_canteen_deduction()
