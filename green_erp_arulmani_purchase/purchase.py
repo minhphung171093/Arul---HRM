@@ -992,6 +992,18 @@ class product_product(osv.osv):
                 cr.execute(sql)
                 product_ids = [row[0] for row in cr.fetchall()]
                 args += [('id','in',product_ids)]
+        #TPT BM
+        if context.get('search_spent_product_id'):
+            if uid!=1:
+                sql = '''
+                     select product_product.id 
+                        from product_product
+                        where default_code = 'M0501020028'
+                '''
+                cr.execute(sql)
+                product_ids = [row[0] for row in cr.fetchall()]
+                args += [('id','in',product_ids)]
+        #TPT BM 
         if context.get('search_indent_type_cate'):
             if context.get('document_type'):
                 if context.get('document_type')=='raw':
@@ -5490,3 +5502,46 @@ class tpt_material_issue_line(osv.osv):
         return new_write
 tpt_material_issue_line()
 
+class tpt_spent_acid(osv.osv):
+    _name = "tpt.spent.acid"
+    _columns = {
+               'location_id': fields.many2one('stock.location', 'Location', required=True),
+                'product_id': fields.many2one('product.product', 'Product', required=True, select=True),
+                'product_uom': fields.many2one('product.uom', 'Product Unit of Measure', required=True),
+                'product_qty': fields.float('Quantity', digits_compute=dp.get_precision('Product Unit of Measure')),
+                'state':fields.selection([('draft', 'Draft'),('done', 'Approve')],'Status', readonly=True),
+                } 
+    _defaults = {
+                 'state': 'draft',
+                 'location_id': 23,
+                 'product_id': 10745,
+                 #'product_uom':7
+                 }  
+    def onchange_product_id(self, cr, uid, ids,product_id=False, context=None):
+        res = {'value':{
+                    'product_uom':False,
+                    }}
+        if product_id:
+            product = self.pool.get('product.product').browse(cr, uid, product_id)
+            res['value'].update({
+                    'product_uom':product.uom_id.id,
+                    })          
+        return res
+    
+tpt_spent_acid()
+
+class stock_inventory(osv.osv):
+    _inherit = "stock.inventory"
+    _columns = {
+                'create_uid': fields.many2one('res.users','Created By'),
+                }
+    
+stock_inventory()
+
+class stock_inventory_line(osv.osv):
+    _inherit = "stock.inventory.line"
+    _columns = {
+                'create_uid': fields.many2one('res.users','Created By'),
+                }
+    
+stock_inventory_line()

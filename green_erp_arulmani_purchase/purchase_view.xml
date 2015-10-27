@@ -2450,5 +2450,82 @@
             id="menu_action_view_tpt_material_request_line_form"
             parent="purchase.menu_procurement_management" sequence="21"/>
         
+        <!--  -->
+        <record id="view_tpt_spent_acid_tree" model="ir.ui.view">
+			<field name="name">tpt.spent.acid.tree</field>
+			<field name="model">tpt.spent.acid</field>
+			<field name="arch" type="xml">
+				<tree string="Material Request">
+						<field name="location_id"/>
+						<field name="product_id"/>		
+				</tree>
+			</field>
+		</record>
+		
+		<record id="view_tpt_spent_acid_form" model="ir.ui.view">
+            <field name="name">tpt.spent.acid.form</field>
+            <field name="model">tpt.spent.acid</field>
+            <field name="arch" type="xml">
+	            <form string="Material Request" version="7.0">   
+	             <header>
+	            		<button name="bt_approve"  string="Confirm Inventory" type="object" class="oe_highlight" />
+	            		<button name="bt_rollback" string="Rollback Inventory" type="object" class="oe_highlight" />                    
+	                    <field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue"}'/>
+	            </header>    
+	            	<sheet>
+		                <group col="4" colspan="2">    
+							<field name="location_id"/>
+
+						</group>
+						<group col="4" colspan="2" >    
+							
+							<field name="product_id" domain="[('id','=',10745)]" on_change="onchange_product_id(product_id)" 
+							context="{'search_spent_product_id':True, 'create_uid':create_uid}"
+							/>
+							<newline></newline>
+							<field name="product_qty"/>
+							<field name="product_uom"/> 
+						</group>
+						
+		         	</sheet>
+		         </form>
+			</field>
+		</record>
+          
+		<record id="action_view_tpt_spent_acid_form" model="ir.actions.act_window">
+            <field name="name">Spent Acid</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.spent.acid</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_tpt_spent_acid_tree"/>
+        </record>
+     
+        
+        <menuitem action="action_view_tpt_spent_acid_form"
+            id="menu_action_view_tpt_spent_acid_form"
+            parent="purchase.menu_procurement_management" sequence="25"/>
+
+        
+        <!--  -->
+        
+        <record id="tpt_view_stock_inv_form" model="ir.ui.view">
+            <field name="name">tpt.stock.inventory.form</field>
+            <field name="model">stock.inventory</field>
+            <field name="inherit_id" ref="stock.view_inventory_form"/>
+            <field name="arch" type="xml">
+                
+			    <xpath expr="//form/sheet/notebook/page[@string='General Information']/field/tree/field[@name='product_id']"  position="replace">
+					<field name="product_id" 
+					context="{'search_spent_product_id':True,'location':location_id, 'uom':product_uom, 'to_date':parent.date}" 
+					on_change="on_change_product_id(location_id,product_id,product_uom,parent.date)"  domain="[('type','&lt;&gt;','service')]"
+                    options="{'create': false, 'create_edit': false}"/> 
+				</xpath>
+				
+				<!-- context="{'location':location_id, 'uom':product_uom, 'to_date':parent.date}" -->
+	       	</field>
+        </record>
+        
+        
     </data>
 </openerp>

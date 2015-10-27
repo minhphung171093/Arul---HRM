@@ -55,6 +55,7 @@ class Parser(report_sxw.rml_parse):
             'get_sub_vpf': self.get_sub_vpf,
             'get_sub_esi_con': self.get_sub_esi_con,
             'get_sub_fd': self.get_sub_fd,
+            'get_sub_cd': self.get_sub_cd,
             'get_sub_loan': self.get_sub_loan,
             'get_sub_id': self.get_sub_id,
             'get_sub_pt': self.get_sub_pt,
@@ -189,6 +190,11 @@ class Parser(report_sxw.rml_parse):
         for line in self.get_payslip():
             subtotal_fd += line['fd']          
         return round(subtotal_fd,2)
+    def get_sub_cd(self):
+        subtotal_fd = 0
+        for line in self.get_payslip():
+            subtotal_fd += line['cd']          
+        return round(subtotal_fd,2)
     
     def get_sub_loan(self):
         subtotal_loan = 0
@@ -311,6 +317,7 @@ class Parser(report_sxw.rml_parse):
             vpf = 0
             esi_con = 0
             fd = 0
+            cd = 0
             loan = 0
             id = 0
             pt = 0
@@ -370,6 +377,8 @@ class Parser(report_sxw.rml_parse):
                     vpf += deduction.float
                 if deduction.deduction_parameters_id.code=='F.D':
                     fd += deduction.float
+                if deduction.deduction_parameters_id.code=='C.D': # ON 27/10/2015
+                    cd += deduction.float
                 if deduction.deduction_parameters_id.code=='PT':
                     pt += deduction.float
                 if deduction.deduction_parameters_id.code=='L.D':
@@ -413,6 +422,7 @@ class Parser(report_sxw.rml_parse):
                 'vpf': vpf,
                 'esi_con': esi_con,
                 'fd': fd,
+                'cd': cd,
                 'loan': loan,
                 'id': id,
                 'pt': pt,

@@ -3059,7 +3059,9 @@ class arul_hr_audit_shift_time(osv.osv):
                     continue
                 else:    
                     if in_time <= line.in_time <= out_time or in_time <= line.out_time <= out_time: 
-                        raise osv.except_osv(_('Warning!'),_('Attendance Already Entered for this Time Period'))  
+                        raise osv.except_osv(_('Attendance Already Entered for this Time Period'),_(line.employee_id.employee_id))
+                        #raise osv.except_osv(_('Pay Structure not Approved for the following Employees'),_(emp_code)) 
+                     
             #TPT END
         for line in self.browse(cr,uid,ids):
             emp_attendence_obj = self.pool.get('arul.hr.employee.attendence.details')
