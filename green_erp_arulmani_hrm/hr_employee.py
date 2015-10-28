@@ -1645,7 +1645,7 @@ class tpt_canteen_deduction(osv.osv):
                 payroll_ids = self.pool.get('arul.hr.payroll.executions').search(cr,uid,[('month','=',int(month)),('year','=',year),('state','=','approve'),('payroll_area_id','=',line.employee_id.payroll_area_id.id)])
                 if payroll_ids :
                     raise osv.except_osv(_('Warning!'),_('Payroll were already exists, not allowed to Cancel!'))
-            self.write(cr, uid, ids,{'state':'close'})
+            self.write(cr, uid, ids,{'state':'cancel'})
         return True 
     def bt_rollback(self, cr, uid, ids, context=None):
         for line in self.browse(cr, uid, ids):
