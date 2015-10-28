@@ -1569,6 +1569,9 @@ class tpt_canteen_book_type(osv.osv):
     _defaults = {
         'is_active':True,
         }
+    _sql_constraints = [
+        ('name_uniq', 'unique (name)', 'The Name must be unique !'),
+    ]
 tpt_canteen_book_type()
 
 class tpt_canteen_deduction(osv.osv):
@@ -1604,8 +1607,7 @@ class tpt_canteen_deduction(osv.osv):
               'net_value': fields.function(_net_value, string='Total Value', store=True, multi='sums', 
                                            help="(No.of Book Issued * Net Amount of a Book) -> The total amount will be deducted during payroll executions. "),
               'desc':fields.text('Description', states={'approve': [('readonly', True)], 'cancel': [('readonly', True)]},
-                                 help="Misc Info"),
-              #'state':fields.selection([('draft', 'Draft'),('approve', 'Approved'),('cancel', 'Cancelled'),('done', 'Done')],'Status'),             
+                                 help="Misc Info"),                         
               'create_date': fields.datetime('Created Date',readonly = True,help="Date onwhich this record is created"),
               'create_uid': fields.many2one('res.users','Created By', ondelete='restrict', readonly = True, help="who created the record"),
               'state':fields.selection([('draft', 'Draft'),('done', 'Done'),('approve', 'Approved'),('cancel', 'Cancelled')],'Status', readonly=True),
