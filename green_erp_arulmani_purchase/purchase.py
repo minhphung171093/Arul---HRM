@@ -44,8 +44,8 @@ class tpt_purchase_indent(osv.osv):
         'header_text':fields.text('Header Text',states={'cancel': [('readonly', True)] }), #TPT
         'requisitioner':fields.many2one('hr.employee','Requisitioner',states={'cancel': [('readonly', True)] }),
         'purchase_product_line':fields.one2many('tpt.purchase.product','pur_product_id','Materials',states={'cancel': [('readonly', True)], 'done':[('readonly', True)] }),
-        'state':fields.selection([('draft', 'Draft'),('cancel', 'Closed'),
-                                  ('done', 'Approve'),('rfq_raised','RFQ Raised'),
+        'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancelled'),
+                                  ('done', 'Approved'),('rfq_raised','RFQ Raised'),
                                   ('quotation_raised','Quotation Raised'),
                                   ('po_raised','PO Raised')],'Status', readonly=True),
         'section_id': fields.many2one('arul.hr.section','Section',ondelete='restrict',states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
@@ -1206,7 +1206,7 @@ class tpt_gate_in_pass(osv.osv):
         'supplier_id': fields.many2one('res.partner', 'Supplier', required = True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'po_date': fields.datetime('PO Date', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'gate_date_time': fields.datetime('Gate In Pass Date & Time', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancel'),('done', 'Approve')],'Status', readonly=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancelled'),('done', 'Approved')],'Status', readonly=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'gate_in_pass_line': fields.one2many('tpt.gate.in.pass.line', 'gate_in_pass_id', 'Product Details', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'truck_no':fields.text('Truck Number'),
         'invoice_no':fields.text('DC/Invoice No'),
@@ -1444,7 +1444,7 @@ class tpt_purchase_quotation(osv.osv):
              states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         
         
-        'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancel'),('done', 'Approve')],'Status', readonly=True),
+        'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancelled'),('done', 'Approved')],'Status', readonly=True),
         'for_basis':fields.char('For Basis',size = 1024),
         'schedule':fields.date('Delivery Schedule'),
         'comparison_chart_id':fields.many2one('tpt.comparison.chart','Comparison Chart'),
@@ -4665,7 +4665,7 @@ class tpt_material_request(osv.osv):
         'project_id': fields.many2one('tpt.project','Project', states={'done':[('readonly', True)], 'cancel':[('readonly', True)]}),
         'project_section_id': fields.many2one('tpt.project.section','Project Section',ondelete='restrict',states={'done':[('readonly', True)], 'cancel':[('readonly', True)]}),
         'material_request_line':fields.one2many('tpt.material.request.line','material_request_id','Vendor Group',states={'done':[('readonly', True)], 'cancel':[('readonly', True)]}),
-        'state':fields.selection([('draft', 'Draft'),('done', 'Approve'),('cancel', 'Cancelled'),('partially', 'Partially Issued'),('closed', 'Closed')],'Status', readonly=True),
+        'state':fields.selection([('draft', 'Draft'),('done', 'Approved'),('cancel', 'Cancelled'),('partially', 'Partially Issued'),('closed', 'Closed')],'Status', readonly=True),
         'cost_center_id': fields.many2one('tpt.cost.center','Cost center',states={'done':[('readonly', True)], 'cancel':[('readonly', True)]}),
         'request_type':fields.selection([('production', 'Production'),('normal', 'Normal'),('main', 'Maintenance')],'Request Type', states={'done':[('readonly', True)], 'cancel':[('readonly', True)]}),
                 }
@@ -5154,7 +5154,7 @@ class tpt_material_request_line(osv.osv):
         'section_relate': fields.related('material_request_id','section_id',type='many2one', relation='arul.hr.section',string='Section'),
         'requisitioner_relate': fields.related('material_request_id','requisitioner',type='many2one', relation='hr.employee',string='Requisitioner'),
         'raise_relate': fields.related('material_request_id','create_uid',type='many2one', relation='res.users',string='Request Raised By'),
-        'state_relate':fields.related('material_request_id', 'state' ,type = 'selection',selection=[('draft', 'Draft'),('done', 'Approve'),('partially', 'Partially Issued'),('closed', 'Closed')], string='State'),
+        'state_relate':fields.related('material_request_id', 'state' ,type = 'selection',selection=[('draft', 'Draft'),('done', 'Approved'),('partially', 'Partially Issued'),('closed', 'Closed')], string='State'),
         'pending_qty': fields.float('Pending Qty'),       
                 }
     
@@ -5203,7 +5203,7 @@ class tpt_material_issue(osv.osv):
         'department_id':fields.many2one('hr.department','Department',readonly=True),
         'request_type':fields.selection([('production', 'Production'),('normal', 'Normal'),('main', 'Maintenance')],'Request Type', states={'done':[('readonly', True)]}),
         'material_issue_line':fields.one2many('tpt.material.issue.line','material_issue_id','Vendor Group',states={'done':[('readonly', True)]}),
-        'state':fields.selection([('draft', 'Draft'),('done', 'Approve')],'Status', readonly=True),
+        'state':fields.selection([('draft', 'Draft'),('done', 'Approved')],'Status', readonly=True),
         'doc_no': fields.char('Document Number', size = 1024,readonly = True),
         'cost_center_id': fields.many2one('tpt.cost.center','Cost center',states={'done':[('readonly', True)]}),
         'flag': fields.boolean('Flag'),
@@ -5510,7 +5510,7 @@ class tpt_spent_acid(osv.osv):
                 'product_id': fields.many2one('product.product', 'Product', required=True, select=True),
                 'product_uom': fields.many2one('product.uom', 'Product Unit of Measure', required=True),
                 'product_qty': fields.float('Quantity', digits_compute=dp.get_precision('Product Unit of Measure')),
-                'state':fields.selection([('draft', 'Draft'),('done', 'Approve')],'Status', readonly=True),
+                'state':fields.selection([('draft', 'Draft'),('done', 'Approved')],'Status', readonly=True),
                 } 
     _defaults = {
                  'state': 'draft',

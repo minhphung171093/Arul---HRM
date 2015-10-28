@@ -1638,7 +1638,7 @@
 							<field name ="issue_date" />
 							<field name ="book_type_id" domain="[('is_active','=',1)]" options="{'create': false, 'create_edit': false}"/>
 							<newline></newline>
-							<field name ="no_of_book" />
+							<field name ="no_of_book" required='1'/>
 							<field name ="net_value" />
 							<field name ="desc" />
 							<newline></newline>
@@ -1685,11 +1685,12 @@
                 <form string="Canteen Book Type" version="7.0">  
                 	<sheet>  
                 		<group col='4' colspan='2'>
-                			<field name ="name" />
-                			<field name ="token_count" />
-							<field name ="unit_price" />
-							<field name ="net_value" />
+                			<field name ="name" required='1'/>
+                			<field name ="token_count" required='1'/>
+							<field name ="unit_price" required='1'/>
+							<field name ="net_value" required='1'/>
 							<field name ="is_active" />
+							<newline></newline>
 							<field name ="desc" />
 							<field name ="create_date" />
 							<field name ="create_uid" />

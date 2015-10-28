@@ -61,7 +61,7 @@ class approve_reject_quanlity_inspection(osv.osv_memory):
         return res
     
     _columns = {    
-        'type': fields.selection([('approve','Approve'),('reject','Reject')]),
+        'type': fields.selection([('approve','Approved'),('reject','Reject')]),
         'quantity': fields.float('Quantity', required=True, digits=(16,3)),
         'inspection_quantity': fields.float('Inspection Quantity', digits=(16,3)),
     }

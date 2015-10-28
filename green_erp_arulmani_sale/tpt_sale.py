@@ -1740,7 +1740,7 @@ class tpt_batch_request(osv.osv):
         'description': fields.text('Description', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'request_date': fields.date('Request Date', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'product_information_line': fields.one2many('tpt.product.information', 'product_information_id', 'Product Information', readonly=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancel'),('done', 'Approve')],'Status', readonly=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancelled'),('done', 'Approved')],'Status', readonly=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
                 }
     _defaults={
                'name':'/',
@@ -2766,7 +2766,7 @@ class tpt_schedule_dispatch_update(osv.osv):
         'name': fields.many2one('tpt.blanket.order', 'Blanket Order', required = True, states={'done':[('readonly', True)]}),
         'bo_line_id': fields.many2one('tpt.blank.order.line', 'Blanket Order Line', required=True, states={'done':[('readonly', True)]}),
         'schedule_date': fields.date('Schedule Dispatch Date', states={'done':[('readonly', True)]}),
-        'state':fields.selection([('draft', 'Draft'),('done', 'Approve')],'Status', readonly=True, states={'done':[('readonly', True)]}),
+        'state':fields.selection([('draft', 'Draft'),('done', 'Approved')],'Status', readonly=True, states={'done':[('readonly', True)]}),
                 }
     _defaults = {
         'state': 'draft',
