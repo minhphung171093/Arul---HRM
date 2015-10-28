@@ -1600,7 +1600,26 @@
 				</tree>
 			</field>
 		</record>
-
+		<record id="view_tpt_canteen_deduction_search_vew" model="ir.ui.view">
+        	<field name="name">tpt.canteen.deduction.search</field>
+            <field name="model">tpt.canteen.deduction</field>
+            <field name="arch" type="xml">
+                <search string="Canteen Deduction">
+                	<field name="employee_id"/>
+					<field name="issue_date"/>	
+					<field name="book_type_id"/>
+					<field name="state"/>				
+					<group expand="0" string="Group By...">
+						<filter string="Employee" icon="terp-personal" domain="[]" context="{'group_by':'employee_id'}"/>   
+                        <filter string="issue Date" name="group_issue_date" icon="terp-personal" domain="[]" context="{'group_by':'issue_date'}"/>   
+                        <filter string="Book Type" name="group_book_type" icon="terp-personal" domain="[]" context="{'group_by':'book_type_id'}"/>            
+	                    <filter string="Approved" name="approved" domain="[('state','=','approve')]"/>
+	                    <filter string="Rejected" name="rejected" domain="[('state','=','cancel')]"/>
+	                    <filter string="Draft" name="draft" domain="[('state','=','draft')]"/>
+                    </group> 
+                </search>
+            </field>
+        </record>
 		<record id="tpt_canteen_deduction_form_view" model="ir.ui.view">
             <field name="name">tpt.canteen.deduction.form</field>
             <field name="model">tpt.canteen.deduction</field>
@@ -1658,7 +1677,7 @@
 				</tree>
 			</field>
 		</record>
-
+		
 		<record id="tpt_canteen_book_type_form_view" model="ir.ui.view">
             <field name="name">tpt.canteen.book.type.form</field>
             <field name="model">tpt.canteen.book.type</field>
