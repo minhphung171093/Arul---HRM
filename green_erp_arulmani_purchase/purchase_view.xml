@@ -2450,7 +2450,7 @@
             id="menu_action_view_tpt_material_request_line_form"
             parent="purchase.menu_procurement_management" sequence="21"/>
         
-        <!--  -->
+        <!-- 
         <record id="view_tpt_spent_acid_tree" model="ir.ui.view">
 			<field name="name">tpt.spent.acid.tree</field>
 			<field name="model">tpt.spent.acid</field>
@@ -2506,7 +2506,7 @@
             id="menu_action_view_tpt_spent_acid_form"
             parent="purchase.menu_procurement_management" sequence="25"/>
 
-        
+         -->
         <!--  -->
         
         <record id="tpt_view_stock_inv_form" model="ir.ui.view">
