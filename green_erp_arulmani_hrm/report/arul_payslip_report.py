@@ -165,6 +165,7 @@ class Parser(report_sxw.rml_parse):
             l_others = 0
             md1 = 0
             lic = 0
+            cd = 0
             
             if payroll_ids:
                 payroll = payroll_obj.browse(self.cr, self.uid, payroll_ids[0])
@@ -218,6 +219,8 @@ class Parser(report_sxw.rml_parse):
                         pt += deduction.float
                     if deduction.deduction_parameters_id.code=='L.D':
                         loan += deduction.float
+                    if deduction.deduction_parameters_id.code=='C.D':
+                        cd += deduction.float
 #                     if earning.earning_parameters_id.code=='PF.D':
 #                         epf += earning.float
                     if deduction.deduction_parameters_id.code=='TOTAL_DEDUCTION':
@@ -326,7 +329,7 @@ class Parser(report_sxw.rml_parse):
                         temp = 26 - new_emp_day - 4 + 1 # 4 is weekly off
                         ndw = temp - (tpt_lop_leave + tpt_esi_leave)
                         
-                        
+                md3 =  round(total_fd) + cd       
                 res.append({
                     'emp_id': emp_id,
                     'emp_name': payroll.employee_id.name + ' ' + (payroll.employee_id.last_name and payroll.employee_id.last_name or ''),
@@ -358,7 +361,7 @@ class Parser(report_sxw.rml_parse):
                     'epf': epf,
                     'lwf':lwf,
                     'total_fd':format(total_fd,'.2f'),
-                   
+                    'md3':format(md3,'.2f'),
                     'calendar_days':tdw, 
                     'ndw':ndw,
                     'special_holiday_worked_count':special_holiday_worked_count,
