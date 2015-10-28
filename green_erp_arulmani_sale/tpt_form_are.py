@@ -33,7 +33,7 @@ class tpt_form_are_1(osv.osv):
         'rebate_claimed_amt': fields.float('Rebate Claimed Amt', digits=(16,2), states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'remarks': fields.char('Remarks',size = 1024, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'duty_rate_line':fields.one2many('tpt.form.are.1.duty.rate','form_are_1_id','Duty Rate'),   
-        'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancel'),('done', 'Approve')],'Status', readonly=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancelled'),('done', 'Approved')],'Status', readonly=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         
         'excise_duty_id': fields.many2one('account.tax', 'Ex.Duty', domain="[('type_tax_use','=','excise_duty')]", ),
         'ed_amount': fields.float('ED Amt', ),

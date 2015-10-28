@@ -19,7 +19,7 @@ class tpt_mrp_process(osv.osv):
         'name':fields.date('MRP Date',required = True,states={'done':[('readonly', True)]}),
         'mrp_process_line':fields.one2many('tpt.mrp.process.line','mrp_process_id','Vendor Group',states={'done':[('readonly', True)]}),
         'flag':fields.boolean('Flag'),
-        'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancel'),('approve', 'Approve')],'Status', readonly=True, states={'cancel': [('readonly', True)], 'approve':[('readonly', True)]}),
+        'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancelled'),('approve', 'Approved')],'Status', readonly=True, states={'cancel': [('readonly', True)], 'approve':[('readonly', True)]}),
                 }
     _defaults={
                'state': 'draft',

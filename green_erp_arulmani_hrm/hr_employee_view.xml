@@ -1585,7 +1585,7 @@
             <field name="implementation">no_gap</field>
             </record>
             
-            <!-- TPT-START Canteen Deduction -->
+        <!-- TPT-START By BalamuruganPurushothaman - Canteen Deduction - ON 27/10/2015 -->
 		<record id="tpt_canteen_deduction_tree_view" model="ir.ui.view">
 			<field name="name">tpt.canteen.deduction.tree</field>
 			<field name="model">tpt.canteen.deduction</field>
@@ -1628,7 +1628,7 @@
                 <header>	
 	            		<button name="bt_approve" states='draft' string="Approve" type="object" class="oe_highlight" groups="green_erp_arulmani_hrm.group_vvti_hrm_hr_manager,green_erp_arulmani_hrm.group_vvti_hrm_time_user"/>            		
 	            		<button name="bt_cancel" states='approve' string="Cancel" type="object" class="oe_highlight" groups="green_erp_arulmani_hrm.group_vvti_hrm_hr_manager,green_erp_arulmani_hrm.group_vvti_hrm_time_user"/>
-	            		<button name="bt_rollback" states='approve,cancel' string="Rollback" type="object" class="oe_highlight" groups="green_erp_arulmani_hrm.group_vvti_hrm_hr_manager,green_erp_arulmani_hrm.group_vvti_hrm_time_user"/>		
+	            		<button name="bt_rollback" states='approve,cancel' string="Set to Draft" type="object" class="oe_highlight" groups="green_erp_arulmani_hrm.group_vvti_hrm_hr_manager,green_erp_arulmani_hrm.group_vvti_hrm_time_user"/>		
 	                   
 	                	<field name="state" widget="statusbar" statusbar_visible="draft,approve,cancel,done" statusbar_colors='{"draft":"blue","done":"blue"}'/>
 	                </header>
@@ -1638,7 +1638,7 @@
 							<field name ="issue_date" />
 							<field name ="book_type_id" domain="[('is_active','=',1)]" options="{'create': false, 'create_edit': false}"/>
 							<newline></newline>
-							<field name ="no_of_book" />
+							<field name ="no_of_book" required='1'/>
 							<field name ="net_value" />
 							<field name ="desc" />
 							<newline></newline>
@@ -1677,7 +1677,18 @@
 				</tree>
 			</field>
 		</record>
-		
+		<record id="view_tpt_canteen_book_type_search_vew" model="ir.ui.view">
+        	<field name="name">tpt.canteen.book.type.search</field>
+            <field name="model">tpt.canteen.book.type</field>
+            <field name="arch" type="xml">
+                <search string="Canteen Book Type">
+                	<field name="name"/>
+					<group expand="0" string="Group By...">
+						<filter string="Is Active" icon="terp-personal" domain="[]" context="{'group_by':'is_active'}"/>                         
+                    </group> 
+                </search>
+            </field>
+        </record>
 		<record id="tpt_canteen_book_type_form_view" model="ir.ui.view">
             <field name="name">tpt.canteen.book.type.form</field>
             <field name="model">tpt.canteen.book.type</field>
@@ -1685,12 +1696,15 @@
                 <form string="Canteen Book Type" version="7.0">  
                 	<sheet>  
                 		<group col='4' colspan='2'>
-                			<field name ="name" />
-                			<field name ="token_count" />
-							<field name ="unit_price" />
-							<field name ="net_value" />
+                			<field name ="name" required='1'/>
+                			<newline></newline>
+                			<field name ="token_count" required='1'/>
+							<field name ="unit_price" required='1'/>
+							<field name ="net_value" required='1'/>
 							<field name ="is_active" />
+							<newline></newline>
 							<field name ="desc" />
+							<newline></newline>
 							<field name ="create_date" />
 							<field name ="create_uid" />
 							<field name ="write_date" />

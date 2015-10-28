@@ -327,7 +327,7 @@ class arul_hr_audit_shift_time(osv.osv):
                    'arul.hr.punch.in.out.time': (_get_audit, ['employee_id', 'work_date'], 10),
                    }),
               'approval': fields.boolean('Is Approved', readonly =  True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
-              'state':fields.selection([('draft', 'Draft'),('cancel', 'Reject'),('done', 'Approve')],'Status', readonly=True),
+              'state':fields.selection([('draft', 'Draft'),('cancel', 'Rejected'),('done', 'Approved')],'Status', readonly=True),
               'type':fields.selection([('permission', 'Permission'),('on_duty', 'On Duty'),('shift', 'Waiting'),('punch', 'Punch In/Out'),
                                        ('punch_edited', 'Punch In/Out-Edited'),
                                        ('permission_edited', 'Permission-Edited'),
@@ -5128,7 +5128,7 @@ class arul_hr_permission_onduty(osv.osv):
         
         'total_shift_worked': fields.function(_shift_total,store=True, type='float', string='No.Of Shift Worked', multi='shift_total', help="The total amount."),
         
-        'state':fields.selection([('draft', 'Draft'),('cancel', 'Reject'),('done', 'Approve'),('time_leave_confirmed','Time Leave Evaluation Confirmed')],'Status', readonly=True),
+        'state':fields.selection([('draft', 'Draft'),('cancel', 'Rejected'),('done', 'Approved'),('time_leave_confirmed','Time Leave Evaluation Confirmed')],'Status', readonly=True),
               }
     _defaults = {
            'state': 'draft',  
@@ -5758,7 +5758,7 @@ class arul_hr_punch_in_out_time(osv.osv):
         'out_time': fields.float('Out Time', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
         'total_hours': fields.function(_time_total, store=True, string='Total Hours', multi='sums', help="The total amount.", states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
         'approval': fields.boolean('Is Approved', readonly =  True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
-        'state':fields.selection([('draft', 'Draft'),('cancel', 'Reject'),('done', 'Approve'),('time_leave_confirmed','Time Leave Evaluation Confirmed')],'Status', readonly=True),
+        'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancelled'),('done', 'Approved'),('time_leave_confirmed','Time Leave Evaluation Confirmed')],'Status', readonly=True),
         'type':fields.selection([('permission', 'Permission'),('shift', 'Waiting'),('punch', 'Punch In/Out')],'Type', readonly=True),
         'permission_id':fields.many2one('arul.hr.permission.onduty','Permission/On Duty'),
         'time_evaluate_id': fields.many2one('tpt.time.leave.evaluation','Time Evaluation'),
@@ -10176,8 +10176,8 @@ class shift_adjustment(osv.osv):
               'reason_for_adj': fields.selection([('sys_err', 'System Error'),
                                             ('clerk_err', 'Clerical Error')],'Reason for Change', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
               'reason_details': fields.text('Reason In Details', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
-              'state':fields.selection([('draft', 'Draft'),('cancel', 'Reject'),
-                                            ('done', 'Approve')],'Status', readonly=True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),              
+              'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancelled'),
+                                            ('done', 'Approved')],'Status', readonly=True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),              
               'create_date': fields.datetime('Created Date',readonly = True),
               'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
         
@@ -10246,8 +10246,8 @@ class leave_adjustment(osv.osv):
               'reason_for_adj': fields.selection([('sys_err', 'System Error'),
                                             ('clerk_err', 'Clerical Error')],'Reason for Change',states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
               'reason_details': fields.text('Reason In Details', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
-              'state':fields.selection([('draft', 'Draft'),('cancel', 'Reject'),
-                                            ('done', 'Approve')],'Status', readonly=True),              
+              'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancelled'),
+                                            ('done', 'Approved')],'Status', readonly=True),              
               'create_date': fields.datetime('Created Date',readonly = True),
               'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
         
