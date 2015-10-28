@@ -1611,8 +1611,9 @@ class tpt_canteen_deduction(osv.osv):
               'state':fields.selection([('draft', 'Draft'),('done', 'Done'),('approve', 'Approved'),('cancel', 'Cancelled')],'Status', readonly=True),
               }
     _defaults = {
-        'state':'draft',
-        'issue_date':time.strftime('%Y-%m-%d'),
+        'state': 'draft',
+        'issue_date': time.strftime('%Y-%m-%d'),
+        'no_of_book': 1.0,
         }
     
     
