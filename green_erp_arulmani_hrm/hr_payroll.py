@@ -1485,6 +1485,7 @@ class arul_hr_payroll_executions(osv.osv):
                         from tpt_canteen_deduction
                         where employee_id=%s
                         and extract(year from issue_date)=%s and extract(month from issue_date)=%s 
+                        and state='approve'
 
                     '''%(p.id,line.year,int(line.month))
                     cr.execute(sql)
