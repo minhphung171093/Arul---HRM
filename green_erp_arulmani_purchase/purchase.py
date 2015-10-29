@@ -574,6 +574,11 @@ class tpt_purchase_product(osv.osv):
                 res['value'].update({
                     'flag':True,
                     })
+            # TPT - By BalamuruganPurushothaman - ON 29/10/2015 - Avoid Auto load UOM for Consumable and Service Product
+            if product.categ_id.cate_name == 'consum':
+                res['value'].update({
+                    'uom_po_id':False,     
+                    })
         return res
     
     def create(self, cr, uid, vals, context=None):
