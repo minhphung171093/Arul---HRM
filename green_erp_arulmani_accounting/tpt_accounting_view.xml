@@ -66,6 +66,7 @@
 										<field name="vpf_id" options="{'create': false, 'create_edit': false}"/>
 										<field name="esi_id" options="{'create': false, 'create_edit': false}"/>
 										<field name="staff_welfare_id" options="{'create': false, 'create_edit': false}"/>
+										<field name="canteen_expense_id" options="{'create': false, 'create_edit': false}"/>
 										<field name="lic_id" options="{'create': false, 'create_edit': false}"/>
 										<field name="profes_tax_id" options="{'create': false, 'create_edit': false}"/>
 										<field name="lwf_id" options="{'create': false, 'create_edit': false}"/>

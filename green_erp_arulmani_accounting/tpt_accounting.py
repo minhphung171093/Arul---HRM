@@ -43,6 +43,7 @@ class tpt_posting_configuration(osv.osv):
         'vpf_id': fields.many2one('account.account', 'VPF', states={ 'done':[('readonly', True)]}),
         'esi_id': fields.many2one('account.account', 'ESI Payable', states={ 'done':[('readonly', True)]}),
         'staff_welfare_id': fields.many2one('account.account', 'Staff Welfare Expenses', states={ 'done':[('readonly', True)]}),
+        'canteen_expense_id': fields.many2one('account.account', 'Canteen Expenses', states={ 'done':[('readonly', True)]}),#TPT-BM-ON 29/10/2015
         'lic_id': fields.many2one('account.account', 'LIC-Premium-Employee', states={ 'done':[('readonly', True)]}),
         'profes_tax_id': fields.many2one('account.account', 'Profession Tax Payable', states={ 'done':[('readonly', True)]}),
         'lwf_id': fields.many2one('account.account', 'Labour welfare Fund', states={ 'done':[('readonly', True)]}),
@@ -5017,6 +5018,14 @@ class tpt_hr_payroll_approve_reject(osv.osv):
             cr.execute(sql_welfare)
             welfare = cr.dictfetchone()['tax'] or 0.0
             
+            #TPT - BM - ON 29/10/2015
+            sql_canteen = ''' 
+                select sum(float) as tax from arul_hr_payroll_other_deductions where deduction_parameters_id in (select id from arul_hr_payroll_deduction_parameters where code='C.D')
+                and executions_details_id in (select id from arul_hr_payroll_executions_details where payroll_executions_id = %s)
+            '''%(payroll_ids)
+            cr.execute(sql_canteen)
+            canteen = cr.dictfetchone()['tax'] or 0.0
+            
             sql_esi = '''
                 select sum(float) as tax from arul_hr_payroll_other_deductions where deduction_parameters_id in (select id from arul_hr_payroll_deduction_parameters where code='ESI.D')
                 and executions_details_id in (select id from arul_hr_payroll_executions_details where payroll_executions_id = %s)
@@ -5033,7 +5042,7 @@ class tpt_hr_payroll_approve_reject(osv.osv):
             
             ### END Excutive & Staff - Worker
             
-            sum_credit = (round(provident) + round(vpf) + round(tax) + round(lwf) + round(welfare) + round(lic_premium) +
+            sum_credit = (round(provident) + round(vpf) + round(tax) + round(lwf) + round(welfare) + round(canteen) + round(lic_premium) +
                            + round(ins_oth) + round(vvt_loan) + round(vvt_hdfc) + round(hfl) + round(tmb) + round(sbt) + round(other) + round(esi) + round(it))
             diff = round(gross) - sum_credit
             gross = round(gross) - round(shd)
@@ -5045,6 +5054,7 @@ class tpt_hr_payroll_approve_reject(osv.osv):
                    'lwf':round(lwf),
                    'lic_premium':round(lic_premium),
                    'welfare':round(welfare),
+                   'canteen':round(canteen),#TPT
                    'ins_oth':round(ins_oth),
                    'vvt_loan':round(vvt_loan),
                    'vvt_hdfc':round(vvt_hdfc),
@@ -5104,6 +5114,7 @@ class tpt_hr_payroll_approve_reject(osv.osv):
                 provident_acc = configuration.pfp_id and configuration.pfp_id.id or False
                 vpf_acc = configuration.vpf_id and configuration.vpf_id.id or False
                 welfare_acc = configuration.staff_welfare_id and configuration.staff_welfare_id.id or False
+                canteen_acc = configuration.canteen_expense_id and configuration.canteen_expense_id.id or False#TPT-BM-ON 29/10/2015
                 lic_premium_acc = configuration.lic_id and configuration.lic_id.id or False
                 pro_tax_acc = configuration.profes_tax_id and configuration.profes_tax_id.id or False
                 lwf_acc = configuration.lwf_id and configuration.lwf_id.id or False
@@ -5182,6 +5193,13 @@ class tpt_hr_payroll_approve_reject(osv.osv):
                                     'account_id': welfare_acc,
                                     'debit':0,
                                     'credit':res1['welfare'],
+                                   }))
+                    if res1['canteen'] > 0: #TPT-BM-ON 29/10/2015
+                        journal_s1_line.append((0,0,{
+                                    'name':line.year, 
+                                    'account_id': canteen_acc,
+                                    'debit':0,
+                                    'credit':res1['canteen'],
                                    }))
                     if res1['lic_premium'] > 0:
                         journal_s1_line.append((0,0,{
@@ -5341,6 +5359,13 @@ class tpt_hr_payroll_approve_reject(osv.osv):
                                     'debit':0,
                                     'credit':res2['welfare'],
                                    }))
+                    if res2['canteen'] > 0: #TPT-BM-ON 29/10/2015
+                        journal_s2_line.append((0,0,{
+                                    'name':line.year, 
+                                    'account_id': canteen_acc,
+                                    'debit':0,
+                                    'credit':res2['canteen'],
+                                   }))
                     if res2['lic_premium'] > 0:
                         journal_s2_line.append((0,0,{
                                     'name':line.year, 
@@ -5499,6 +5524,13 @@ class tpt_hr_payroll_approve_reject(osv.osv):
                                     'account_id': welfare_acc,
                                     'debit':0,
                                     'credit':res3['welfare'],
+                                   }))
+                    if res3['canteen'] > 0: #TPT-BM-ON 29/10/2015
+                        journal_s3_line.append((0,0,{
+                                    'name':line.year, 
+                                    'account_id': canteen_acc,
+                                    'debit':0,
+                                    'credit':res3['canteen'],
                                    }))
                     if res3['lic_premium'] > 0:
                         journal_s3_line.append((0,0,{
