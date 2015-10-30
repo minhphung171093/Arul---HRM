@@ -22,7 +22,7 @@
                 		<field name="payment_term_id" readonly='1' options="{'create': false, 'create_edit': false}"/>
                 		<field name="incoterms_id" readonly='1' options="{'create': false, 'create_edit': false}" />
 	        			<field name="create_uid" />
-						<field name="write_uid" />
+						<field name="create_date" />
 	        	</xpath>
 				<xpath expr="//field[@name='date_order']"  position="replace">
 					<!--<field name="date_order" string = "SO Date" on_change = "onchange_so_date(date_order, blanket_id)"/>-->
@@ -39,6 +39,9 @@
                 	 <field name="tpt_currency_id" invisible="1" />
                 	 <field name="excise_duty_id" readonly='1' options="{'create': false, 'create_edit': false}"/>
                 	 
+				</xpath>
+				<xpath expr="//field[@name='shop_id']"  position="attributes">
+					<attribute name='invisible'>1</attribute>	
 				</xpath>
 				<xpath expr="//field[@name='client_order_ref']"  position="replace">
 					<field name="client_order_ref" invisible="1" />
@@ -71,8 +74,8 @@
 					<field name="currency_id" invisible="0" readonly = "0" on_change="onchange_currency(currency_id)"
 					attrs="{'readonly': [('state','in',('draft','done','progress'))]}"
 					required = "0" options="{'create': false, 'create_edit': false}" />
-					<field name="create_date" />
-                	<field name="write_date" />
+					<!-- <field name="create_date" />
+                	<field name="write_date" /> -->
 				</xpath>
 				<xpath expr="//field[@name='payment_term']"  position="replace">
 				</xpath>
