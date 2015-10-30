@@ -6,11 +6,9 @@
 			<field name="model">tpt.form.are.1</field>
 			<field name="arch" type="xml">
 				<tree string="Form A.R.E - 1">
-						<field name="name"/>						
-						<field name="invoice_no_id"/>
-						
-						<field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
-						 
+					<field name="name"/>						
+					<field name="invoice_no_id"/>
+					<field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
 				</tree>
 			</field>
 		</record>      
@@ -22,16 +20,13 @@
 	            <form string="Form A.R.E - 1" version="7.0">  
 	            <header>
 	            	<button name='print_are1' string="Print ARE-1" type="object" class="oe_highlight" />
-	            	
 	            	<button name="bt_approve" states='draft' string="Approve" type="object" class="oe_highlight" groups="green_erp_arulmani_sale.group_vvti_sale_user"/>
                     <button name="bt_cancel" states='draft' string="Cancel" type="object" class="oe_highlight" groups="green_erp_arulmani_sale.group_vvti_sale_user"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
-	            
 	            </header> 
 	            	<sheet>
 	            		<group col="4" colspan="2">
 	            			<field name="name"/>
-							<!-- <field name="date"/>  -->
 							<field name="is_original"/>
 							<field name="is_duplicate"/>
 							<field name="is_triplicate"/>
@@ -41,7 +36,11 @@
 							<field name="invoice_no_id"  domain="[('sale_id','!=',False)]" options="{'create': false, 'create_edit': false}" />
 							<field name="excise_duty_id" options="{'create': false, 'create_edit': false}" required='1'/>
 							<field name="description_goods" />
-							<field name="remarks" />								
+							<field name="remarks" />	
+							<field name="create_uid" />
+							<field name="create_date" />
+							<field name="write_uid" />
+							<field name="write_date" />							
 	            		</group>	            		
 	            	</sheet>
 		         </form>
@@ -107,9 +106,6 @@
             id="menu_action_tpt_commisionarate_form_vew"
             parent="menu_hr_sale_management" sequence="15"/>          		
 	            		
-	            		
-	            		
-       
        	<record id="tpt_form_are_3_tree_vew" model="ir.ui.view">
 			<field name="name">tpt.form.are.3.tree</field>
 			<field name="model">tpt.form.are.3</field>
@@ -132,71 +128,21 @@
 	            </header> 
 	            	<sheet>
 	            		<group col="4" colspan="2">
-	            			<group>
-	            				<field name="name" />
-	            				<field name="is_original"/>
+	            			<field name="name" />
+	            			<field name="is_original"/>
 							<field name="is_duplicate"/>
 							<field name="is_triplicate"/>
 							<field name="is_quadruplicate"/>
-							
 							<newline/>
-							<!-- 
-	            				<field name="range_from" />
-	            				<field name="reg_no_from" />
-	            				<field name="division_from" /> -->
-	            				<!-- 
-	            				<field name="warehouse_from_id" options="{'create': false, 'create_edit': false}" />
-	            				 <field name="to_mr_mess" />  -->
-	            				<field name="invoice_no_id" domain="[('sale_id','!=',False)]" options="{'create': false, 'create_edit': false}" on_change = "onchange_so_date(invoice_no_id)" />
-	            				<field name="excise_duty_id" required='1' options="{'create': false, 'create_edit': false}" />
-	            				<field name="package_description" />
-	            			</group>
-	            			<group>
-	            				<!-- <field name="date" />--><!-- 
-	            				<field name="range_to" />
-	            				<field name="reg_no_to" />
-	            				<field name="division_to" />-->
-	            				<!-- 
-	            				<field name="warehouse_to_id" options="{'create': false, 'create_edit': false}" />
-	            				 -->
-	            			</group>
+	            			<field name="invoice_no_id" domain="[('sale_id','!=',False)]" options="{'create': false, 'create_edit': false}" on_change = "onchange_so_date(invoice_no_id)" />
+	            			<field name="excise_duty_id" required='1' options="{'create': false, 'create_edit': false}" />
+	            			<field name="package_description" />
+	            			<newline/>
+	            			<field name="create_uid" />
+							<field name="create_date" />
+							<field name="write_uid" />
+							<field name="write_date" />
 	            		</group>
-	            		<notebook><!-- 
-							<page string = "Goods Detail">
-								<group col="4" colspan="2">
-									<group>
-									 
-										<field name="warehouse_register" />
-			            				<field name="good_description" />
-			            				<field name="gross_weight" />
-			            				<label for="good_qty"/>
-			            				<div>
-			            				<field name="good_qty" class="oe_inline"/> MT
-			            				</div>
-			            				 <field name="value" /> 
-			            				 <field name="remarks" />  
-									</group>
-									<group>
-										<field name="warehouse_date" />
-			            				<field name="package_description" />
-			            				<field name="marks_package" />
-			            				<field name="warehousing_date" /> 
-			            				<field name="tranport" />
-			            				<field name="invoiced_date" /> 
-									</group>
-								</group>
-							</page> -->
-							<!-- 
-							<page string = "Duty Rate">
-								<field name="duty_rate_line" nolabel='1'>
-									<tree editable='bottom'>
-										<field name="duty_rate" />
-										<field name="amount_usd" />
-										<field name="amount_inr" />
-									</tree>
-								</field>
-							</page>  -->
-						</notebook>
 	            	</sheet>
 		         </form>
 			</field>
@@ -214,7 +160,6 @@
         <menuitem action="action_tpt_form_are_3_form_vew"
             id="menu_action_action_tpt_form_are_3_form_vew"
             parent="menu_hr_sale_management" sequence="15"/>           
-            
-                 
+
       </data>
 </openerp>

@@ -45,6 +45,12 @@ class tpt_form_are_1(osv.osv):
         'is_triplicate': fields.boolean('Triplicate Copy'),
         'is_quadruplicate': fields.boolean('Quadruplicate Copy'),
         'is_extra': fields.boolean('Extra Copy'),
+        
+        'create_date': fields.datetime('Created Date',readonly = True),
+        'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),       
+        'write_date': fields.datetime('Updated Date',readonly = True),
+        'write_uid': fields.many2one('res.users','Updated By',ondelete='restrict',readonly = True),
+        
                 }
     _defaults={
                'name':'/',
@@ -151,7 +157,12 @@ class tpt_form_are_3(osv.osv):
         'is_original': fields.boolean('Original Copy'),
         'is_duplicate': fields.boolean('Duplicate Copy'),
         'is_triplicate': fields.boolean('Triplicate Copy'),
-        'is_quadruplicate': fields.boolean('Quadruplicate Copy'),    
+        'is_quadruplicate': fields.boolean('Quadruplicate Copy'), 
+        
+        'create_date': fields.datetime('Created Date',readonly = True),
+        'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),       
+        'write_date': fields.datetime('Updated Date',readonly = True),
+        'write_uid': fields.many2one('res.users','Updated By',ondelete='restrict',readonly = True),   
                 }
     _defaults={
                'name':'/',

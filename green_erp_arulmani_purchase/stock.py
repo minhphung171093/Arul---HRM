@@ -757,7 +757,7 @@ class account_invoice(osv.osv):
                         update account_invoice_tax set amount=%s where id=%s
                     '''%(round(val2+freight),taxline.id)
                     cr.execute(sql)#                         amount_total_tax = round(amount_total_tax)
-            else:
+            else: # IN_INVOICE
                 if line.purchase_id:
                     amount_untaxed = 0.0
                     p_f_charge=0.0
@@ -967,6 +967,9 @@ class account_invoice(osv.osv):
                     else:
                         deducte = 0
                     
+                    ###TPT-By BalamuruganPurushothaman - ON 30/10/2015 - TO CALCULATE TAX AMOUNT IN SUPPLIER INV WITHOUT PO SCREEN
+                    total_tax = po.price_unit * (po.tax_id and po.tax_id.amount / 100 or 0)
+                    ###TPT-END
                     res[line.id]['amount_untaxed'] = round(amount_untaxed,2)
                     res[line.id]['p_f_charge'] = round(p_f_charge,2)
                     res[line.id]['excise_duty'] = round(excise_duty,2)

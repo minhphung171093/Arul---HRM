@@ -36,6 +36,10 @@ class stock_picking(osv.osv):
         'order_type':fields.selection([('domestic','Domestic'),('export','Export')],'Order Type' ),
         'description':fields.char('Description', size = 50, readonly = True),
         'item_text':fields.text('Item Text'),
+        'create_date': fields.datetime('Created Date',readonly = True),
+        'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),       
+        'write_date': fields.datetime('Updated Date',readonly = True),
+        'write_uid': fields.many2one('res.users','Updated By',ondelete='restrict',readonly = True),
                 }
     
     _defaults = {
@@ -1259,7 +1263,12 @@ class account_invoice(osv.osv):
                 'account.invoice.line': (_get_invoice_line, ['price_unit','invoice_line_tax_id','quantity','discount','invoice_id'], 20),
             },
             multi='sums', help="The total amount."),
-                }
+                
+        'create_date': fields.datetime('Created Date',readonly = True),
+        'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),       
+        'write_date': fields.datetime('Updated Date',readonly = True),
+        'write_uid': fields.many2one('res.users','Updated By',ondelete='restrict',readonly = True),      
+    }
     _defaults = {
         'vvt_number': '/',
         'form_type': 'tbc',

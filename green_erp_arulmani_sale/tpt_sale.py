@@ -169,7 +169,10 @@ class sale_order(osv.osv):
         'blanket_line_id':fields.many2one('tpt.blank.order.line','Blanket Order Line',states={'progress':[('readonly',True)],'done':[('readonly',True)]}),
         'currency_id': fields.many2one('res.currency', 'Currency', states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}),#TPT
         'tpt_currency_id': fields.many2one('res.currency', 'Currency'),#TPT
-              
+        'create_date': fields.datetime('Created Date',readonly = True),
+        'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),       
+        'write_date': fields.datetime('Updated Date',readonly = True),
+        'write_uid': fields.many2one('res.users','Updated By',ondelete='restrict',readonly = True),     
     }
     _defaults = {
 #                  'name': lambda obj, cr, uid, context: '/',
@@ -1174,6 +1177,10 @@ class tpt_blanket_order(osv.osv):
         'blank_consignee_line': fields.one2many('tpt.consignee', 'blanket_consignee_id', 'Consignee', states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}), 
         'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancel'),('done', 'Done'), ('approve', 'Confirmed'), ('close', 'Closed')],'Status', readonly=True),
         'flag2':fields.boolean(''),
+        'create_date': fields.datetime('Created Date',readonly = True),
+        'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),       
+        'write_date': fields.datetime('Updated Date',readonly = True),
+        'write_uid': fields.many2one('res.users','Updated By',ondelete='restrict',readonly = True),
     }
     
     
@@ -1741,6 +1748,10 @@ class tpt_batch_request(osv.osv):
         'request_date': fields.date('Request Date', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'product_information_line': fields.one2many('tpt.product.information', 'product_information_id', 'Product Information', readonly=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancelled'),('done', 'Approved')],'Status', readonly=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'create_date': fields.datetime('Created Date',readonly = True),
+        'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),       
+        'write_date': fields.datetime('Updated Date',readonly = True),
+        'write_uid': fields.many2one('res.users','Updated By',ondelete='restrict',readonly = True),  
                 }
     _defaults={
                'name':'/',
@@ -1949,6 +1960,10 @@ class tpt_batch_allotment(osv.osv):
         'state': fields.selection([('to_approve', 'To Approved'), ('refuse', 'Refused'),('confirm', 'Approved'), ('cancel', 'Cancelled')],'Status'),
         'batch_allotment_line': fields.one2many('tpt.batch.allotment.line', 'batch_allotment_id', 'Product Information'), 
         'requested_qty': fields.float('Requested Quantity', digits=(16,3),readonly = True),   
+        'create_date': fields.datetime('Created Date',readonly = True),
+        'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),       
+        'write_date': fields.datetime('Updated Date',readonly = True),
+        'write_uid': fields.many2one('res.users','Updated By',ondelete='restrict',readonly = True),
                 }
     _defaults = {
               'state': 'to_approve',

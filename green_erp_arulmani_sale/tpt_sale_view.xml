@@ -19,19 +19,16 @@
                 		<field name="state_id" readonly='1' placeholder="State" options="{'create': false, 'create_edit': false}"/>
                 		<field name="zip" readonly='1' placeholder="ZIP"/> 
                 		<field name="document_type"/>
-                		
                 		<field name="payment_term_id" readonly='1' options="{'create': false, 'create_edit': false}"/>
                 		<field name="incoterms_id" readonly='1' options="{'create': false, 'create_edit': false}" />
-                		<field name="excise_duty_id" readonly='1' options="{'create': false, 'create_edit': false}"/>
+	        			<field name="create_uid" />
+						<field name="write_uid" />
 	        	</xpath>
 				<xpath expr="//field[@name='date_order']"  position="replace">
 					<!--<field name="date_order" string = "SO Date" on_change = "onchange_so_date(date_order, blanket_id)"/>-->
 					<field name="date_order" string = "SO Date" on_change = "onchange_date_order(date_order)"/>
                 	<field name="po_date" readonly='1' on_change="onchange_po_date(po_date)" />
                 	<field name="po_number" readonly='1'/>
-                	<!-- 
-                	<field name="expected_date" />
-                	 -->
                 	<field name="quotaion_no"/>
                 	<field name="distribution_channel" readonly='1' options="{'create': false, 'create_edit': false}" />
                 	<field name="sale_tax_id" readonly='1' options="{'create': false, 'create_edit': false}"/>
@@ -40,6 +37,8 @@
                 	 <field name="flag_t" invisible="1" />
                 	 <field name="flag_p" invisible="1" />
                 	 <field name="tpt_currency_id" invisible="1" />
+                	 <field name="excise_duty_id" readonly='1' options="{'create': false, 'create_edit': false}"/>
+                	 
 				</xpath>
 				<xpath expr="//field[@name='client_order_ref']"  position="replace">
 					<field name="client_order_ref" invisible="1" />
@@ -72,6 +71,8 @@
 					<field name="currency_id" invisible="0" readonly = "0" on_change="onchange_currency(currency_id)"
 					attrs="{'readonly': [('state','in',('draft','done','progress'))]}"
 					required = "0" options="{'create': false, 'create_edit': false}" />
+					<field name="create_date" />
+                	<field name="write_date" />
 				</xpath>
 				<xpath expr="//field[@name='payment_term']"  position="replace">
 				</xpath>
@@ -216,15 +217,18 @@
 						<group>
 						<field name="bo_date" on_change="onchange_bo_date(bo_date)"/>
 						<field name="po_date" on_change="onchange_po_date(po_date)"/>
-						<field name="po_number" />
-						<!-- <field name="exp_delivery_date" on_change = "onchange_exp_delivery_date(exp_delivery_date)"/>  -->
-						<!--<field name="dispatch_date" on_change = "onchange_sche_dispatch_date(dispatch_date)"/>-->
+						<field name="po_number" />						
 						<field name="quotaion_no" invisible='1'/>
 						<field name="channel" readonly='1' options="{'create': false, 'create_edit': false}"/>
 						<field name="sale_tax_id" domain="[('type_tax_use','=','sale')]" options="{'create': false, 'create_edit': false}"/>
 						<field name="order_type" />
 						<field name="reason" />
-						
+						</group>
+						<group col='4' colspan='2'>		
+							<field name="create_uid" />
+							<field name="create_date" />
+							<field name="write_uid" />
+							<field name="write_date" />
 						</group>
 						
 					</group>
@@ -370,13 +374,18 @@
                     <field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
 	            </header>
 	            	<sheet>
-		                <group>    
+		                <group col='4' colspan='2'>    
 						<field name="name"/>
 						<field name="sale_order_id" domain="[('document_type','in',['scrap','saleorder']),('state','in',['progress']),('order_line','!=',False),('state','!=','cancel')]" on_change = "onchange_sale_order_id(sale_order_id)" options="{'create': false, 'create_edit': false}"/>
 						<!--<field name="sale_order_id" domain="[('document_type','in',['scrap','saleorder']),('state','in',['progress']),('order_line','!=',False),('state','!=','cancel'),('payment_term_id','not in',['Immediate Payment','Immediate'])]" on_change = "onchange_sale_order_id(sale_order_id)" options="{'create': false, 'create_edit': false}"/>-->
 						<field name="customer_id" domain="[('customer','=',1),('is_company','=',1)]" options="{'create': false, 'create_edit': false}"/>
 						<field name="request_date"/>
 						<field name="description"/>
+						<newline></newline>
+						<field name="create_uid" />
+						<field name="create_date" />
+						<field name="write_uid" />
+						<field name="write_date" />
 						</group>
 						<notebook>
 							<page string = "Product Information">
@@ -776,13 +785,17 @@
                      <field name="state" widget="statusbar" statusbar_colors='{"confirm":"blue","to_approve":"blue","refuse":"red"}'/>
                     </header>
                    <sheet>
-                   		<group>
+                   		<group col='4' colspan='2'>
                         	<field name="batch_request_id" context="{'search_default_batch_request_by_allot':1}" options="{'create': false, 'create_edit': false}" on_change="onchange_batch_request_id(batch_request_id)" attrs="{'readonly':[('state','in',('cancel','confirm'))]}"/>
                     		<field name="name" attrs="{'readonly':[('state','in',('cancel','confirm'))]}"/>
                     		<field name="sale_order_id" domain="[('state','=','progress')]" options="{'create': false, 'create_edit': false}" attrs="{'readonly':[('state','in',('cancel','confirm'))]}"/>
                     		<field name="customer_id" domain="[('customer','=',1),('is_company','=',1)]" options="{'create': false, 'create_edit': false}" attrs="{'readonly':[('state','in',('cancel','confirm'))]}"/>
                     		<field name="description" attrs="{'readonly':[('state','in',('cancel','confirm'))]}"/>
                     		<field name="requested_qty"/>
+                    		<field name="create_uid" />
+							<field name="create_date" />
+							<field name="write_uid" />
+							<field name="write_date" />
 	                    </group>
 	                    <notebook>
 		                    <page string="Product Information" autofocus="autofocus">
