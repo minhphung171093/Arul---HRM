@@ -1575,8 +1575,9 @@ class tpt_canteen_book_type(osv.osv):
 tpt_canteen_book_type()
 
 class tpt_canteen_deduction(osv.osv):
-    _name='tpt.canteen.deduction'
+    _name ='tpt.canteen.deduction'
     _order = 'create_date desc'
+    #_rec_name = 'employee_id' #TPT-BM
     
     def _net_value(self, cr, uid, ids, field_name, arg, context=None):
         res = {}
@@ -1618,14 +1619,12 @@ class tpt_canteen_deduction(osv.osv):
         'no_of_book': 1.0,
         }
     
-    
-   
     def name_get(self, cr, uid, ids, context=None):
         res = []
         if not ids:
             return res
         reads = self.read(cr, uid, ids, ['employee_id'], context)
-  
+   
         for record in reads:
             name = record['employee_id']
             res.append((record['id'], name))
