@@ -968,7 +968,8 @@ class account_invoice(osv.osv):
                         deducte = 0
                     
                     ###TPT-By BalamuruganPurushothaman - ON 30/10/2015 - TO CALCULATE TAX AMOUNT IN SUPPLIER INV WITHOUT PO SCREEN
-                    total_tax = po.price_unit * (po.tax_id and po.tax_id.amount / 100 or 0)
+                    total_tax = (basic +  ed)* (po.tax_id and po.tax_id.amount / 100 or 0)
+                    print po.tax_id.amount
                     ###TPT-END
                     res[line.id]['amount_untaxed'] = round(amount_untaxed,2)
                     res[line.id]['p_f_charge'] = round(p_f_charge,2)
