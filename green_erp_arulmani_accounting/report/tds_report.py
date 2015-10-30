@@ -208,7 +208,7 @@ class Parser(report_sxw.rml_parse):
                         join account_invoice ai on (ai.id=ail.invoice_id)
                         inner join account_move am on (am.name=ai.number and ai.move_id = am.id)                                             
                         join res_partner bp on (bp.id=ai.partner_id)
-                        left join account_tax at on (at.id=ail.tds_id)
+                        left join account_tax at on (at.id=ail.tds_id or at.id=ail.tds_id_2)
                         where am.date between '%s' and '%s'                       
         '''%(date_from,date_to)
            
