@@ -982,6 +982,9 @@ class account_invoice(osv.osv):
                             tds_amount += po.quantity * po.price_unit * po.tds_id.amount/100
                             tds_amount = round(tds_amount,2)
                     
+                    ###TPT-By BalamuruganPurushothaman - ON 30/10/2015 - TO CALCULATE TAX AMOUNT IN SUPPLIER INV WITHOUT PO SCREEN
+                    total_tax = (basic +  ed)* (po.tax_id and po.tax_id.amount / 100 or 0)
+                    ###TPT-END
                     total_round_2 = round(amount_untaxed,2) + round(p_f_charge,2) + round(excise_duty,2) + round(total_tax,2) + round(total_fright,2) - round(tds_amount,2)
                     total_round = round(round(amount_untaxed,2) + round(p_f_charge,2) + round(excise_duty,2) + round(total_tax,2) + round(total_fright,2) - round(tds_amount,2))
                     deducte = total_round_2 - total_round
@@ -991,10 +994,7 @@ class account_invoice(osv.osv):
                         deducte = -(deducte)
                     else:
                         deducte = 0
-                    
-                    ###TPT-By BalamuruganPurushothaman - ON 30/10/2015 - TO CALCULATE TAX AMOUNT IN SUPPLIER INV WITHOUT PO SCREEN
-                    total_tax = po.price_unit * (po.tax_id and po.tax_id.amount / 100 or 0)
-                    ###TPT-END
+
                     res[line.id]['amount_untaxed'] = round(amount_untaxed,2)
                     res[line.id]['p_f_charge'] = round(p_f_charge,2)
                     res[line.id]['excise_duty'] = round(excise_duty,2)
