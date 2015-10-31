@@ -55,6 +55,25 @@
 	        <field name="view_id" ref="alert_mgnt_warning_form_view" />
 	        <field name="target">new</field>
 	    </record>
+	    
+	    <record id="alert_bo_cancel_form_view" model="ir.ui.view">
+	        <field name="name">tpt.bo.cancel</field>
+	        <field name="model">tpt.bo.cancel</field>
+	        <field eval="20" name="priority"/>
+	        <field name="arch" type="xml">
+	            <form string="Alert" version="7.0">
+	            	<field name="message"  nolabel="1" />
+	                <footer>
+	                <button name="action_bo_cancel" type='object' string="Yes" class="oe_highlight"/>
+	                    or
+	                <button string="No" class="oe_highlight" special="cancel" />
+	                
+	                </footer>
+	            </form>
+	        </field>
+    	</record>
+
+	    
 	    <!-- TPT - DO -->
 	    <record id="view_do_adj_process" model="ir.ui.view">
             <field name="name">tpt.do.adj.process</field>
