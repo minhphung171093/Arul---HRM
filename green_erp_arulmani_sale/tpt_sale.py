@@ -1281,6 +1281,9 @@ class tpt_blanket_order(osv.osv):
     
     ###TPT- By BalamuruganPurushothaman on 16/10/2015 - TO CLOSE THE BO, IF CUSTOMER STOP RECEIVEING SERVICE EVENTHOUGHT IT HAS PARTIAL QTY SHIPPED
     def bt_cancel(self, cr, uid, ids, context=None):
+        
+                    
+                    
         for line in self.browse(cr, uid, ids):
             sale_order_ids = self.pool.get('sale.order').search(cr,uid,[('blanket_id', '=',line.id ),('state', '!=','cancel')])
             
@@ -1316,6 +1319,20 @@ class tpt_blanket_order(osv.osv):
                     so_qty += so_line.product_uom_qty                
                 if so_qty!=bo_line.product_uom_qty:
                     raise osv.except_osv(_('Warning!'),_('Blanket Order has already existed on Sale Order'))
+            #TPT-BM-31/10/2015 - TO GIVE ALERT WHEN BO IS CANCELLED 
+            res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
+                                            'green_erp_arulmani_sale', 'alert_bo_cancel_form_view')
+            return {
+                    'name': 'Alert for BO Cancel',
+                    'view_type': 'form',
+                    'view_mode': 'form',
+                    'view_id': res[1],
+                    'res_model': 'tpt.bo.cancel',
+                    'domain': [],
+                    'context': {'default_message':'Do You Really want to Cancel this BO?','bo_id':line.id},
+                    'type': 'ir.actions.act_window',
+                    'target': 'new',
+            }
             self.write(cr, uid, ids,{'state':'cancel'})
         return True  
     ###

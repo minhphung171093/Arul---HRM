@@ -49,6 +49,26 @@ class do_mgnt_confirm(osv.osv_memory):
     
 do_mgnt_confirm()
 
+class tpt_bo_cancel(osv.osv_memory):
+    _name = "tpt.bo.cancel"
+    _columns = {    
+                'name': fields.char(string="Title", size=1024, readonly=True),
+                'title': fields.char(string="Title", size=100, readonly=True),
+                'message': fields.text(string="Message ", readonly=True),    
+                }
+    
+    def action_bo_cancel(self, cr, uid, ids, context=None): 
+        bo_id = context.get('bo_id')
+        bo_obj = self.pool.get('tpt.blanket.order')
+ 
+        
+        bo_obj.write(cr, uid, [bo_id],{'state':'cancel'})
+            
+        return {'type': 'ir.actions.act_window_close'}   
+    
+    
+tpt_bo_cancel()
+
 class tpt_do_adj(osv.osv_memory):
     _name = "tpt.do.adj"
     _columns = {    

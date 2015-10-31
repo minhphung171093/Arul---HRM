@@ -1283,6 +1283,7 @@
 			<field name="model">tpt.comparison.chart</field>
 			<field name="arch" type="xml">
 				<tree string="Comparison Chart" >
+						<field name="doc_no" />
 						<field name="name"/>
 						<field name="date" />
 						<field name="quotation_cate" />
@@ -1303,10 +1304,12 @@
 	            </header>    
 	            	<sheet>
 	                   	 <group col="4" colspan="2" >
+	                   	 	<field name="doc_no" readonly='1'/>
+	                   	 	<newline></newline>
 	                   	 	<field name="name" on_change="onchange_request_quotation(name)" options="{'create': false, 'create_edit': false}" context="{'search_rfq_id':True}" />
 							<field name="date" />
 							<field name="quotation_cate" />
-							<field name="create_uid" />
+							<field name="create_uid" readonly='1'/>
 	                    </group >
 	                    <notebook>
 						<page>
