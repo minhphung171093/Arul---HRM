@@ -979,14 +979,14 @@ class stock_picking_out(osv.osv):
                         if (picking_line['product_id']==order_line['product_id']):
                             if (picking_line['picking_product_qty'] > order_line['sale_product_qty']):
                                 raise osv.except_osv(_('Warning!'),_('You are input %s quantity in delivery order but only %s quantity in sale order for this product.' %(picking_line['picking_product_qty'], order_line['sale_product_qty'])))
-        if 'warehouse' in vals:
-            location_id = vals['warehouse']
-            sql = '''
-                UPDATE stock_move
-                SET location_id= %s
-                WHERE picking_id = %s;
-                '''%(location_id,stock.id)
-            cr.execute(sql)
+            if stock.warehouse:
+                location_id = stock.warehouse and stock.warehouse.id or False
+                sql = '''
+                    UPDATE stock_move
+                    SET location_id= %s
+                    WHERE picking_id = %s;
+                    '''%(location_id,stock.id)
+                cr.execute(sql)
         return new_write
     
     def print_dispatch_slip(self, cr, uid, ids, context=None):
