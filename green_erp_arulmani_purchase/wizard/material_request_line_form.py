@@ -251,14 +251,14 @@ class material_request_line_report(osv.osv_memory):
              
             def get_status(type):
                 if type == 'draft':
-                    res = 'Draft'
+                    return 'Draft'
                 if type == 'done':
-                    res = 'Approve'
+                    return 'Approve'
                 if type == 'partially':
-                    res = 'Partially Issued'
+                    return 'Partially Issued'
                 if type == 'closed':
-                    res = 'Closed'
-                return res or ''
+                    return 'Closed'
+                
          
             def get_invoice(cb):
                 res = {}                

@@ -1933,6 +1933,7 @@ class tpt_comparison_chart(osv.osv):
     _name = "tpt.comparison.chart"
     _order = 'name desc'  
     _columns = {
+        'doc_no':fields.char('Document No'),        
         'name':fields.many2one('tpt.request.for.quotation','RFQ No', required = True),
         'date':fields.date('Create Date', size = 1024,required=True),
         'quotation_cate':fields.selection([
@@ -1940,6 +1941,9 @@ class tpt_comparison_chart(osv.osv):
         'create_uid':fields.many2one('res.users','Created By'),
         'comparison_chart_line':fields.one2many('tpt.purchase.quotation','comparison_chart_id','Line')
                 }
+    _defaults={
+               'doc_no': '/',
+    }
     
     def onchange_request_quotation(self, cr, uid, ids,name=False, context=None):
         vals = {}
@@ -1949,6 +1953,8 @@ class tpt_comparison_chart(osv.osv):
         return {'value': vals}
 
     def create(self, cr, uid, vals, context=None):
+        if vals.get('doc_no','/')=='/':
+            vals['doc_no'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.comparison.chart.import') or '/'
         if vals.get('name',False):
 #             quotation_ids = self.pool.get('tpt.purchase.quotation').search(cr, uid, [('rfq_no_id','=',vals['name']),('state','=','draft')])
             sql = '''
@@ -4540,7 +4546,6 @@ class tpt_rfq_supplier(osv.osv):
         'vendor_id':fields.many2one('res.partner','Vendor Name', required = True),
         'state_id': fields.many2one('res.country.state', 'Vendor Location'),
         'quotation_no_id': fields.many2one('tpt.purchase.quotation', 'Quotation No', readonly = True),
-#         'uom_po_id': fields.many2one('product.uom', 'UOM', readonly = True),
         }  
     
 

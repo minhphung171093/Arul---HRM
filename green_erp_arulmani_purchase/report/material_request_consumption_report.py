@@ -77,14 +77,14 @@ class Parser(report_sxw.rml_parse):
     
     def get_status(self,type):
         if type == 'draft':
-            res = 'Draft'
+            return 'Draft'
         if type == 'done':
-            res = 'Approve'
+            return 'Approve'
         if type == 'partially':
-            res = 'Partially Issued'
+            return 'Partially Issued'
         if type == 'closed':
-            res = 'Closed'
-        return res or ''
+            return 'Closed'
+        
     
     def get_pending_qty(self,move_line_id,req_qty,check_count):
         
