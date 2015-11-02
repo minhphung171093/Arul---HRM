@@ -1336,7 +1336,7 @@ class tpt_service_gpass(osv.osv):
             'carrier_name': fields.char('Carrier Name', size = 1024, ),
             'truck_no': fields.char('Truck No.', size = 1024, ),
             'purpose': fields.text('Purpose'),
-            'employee_id': fields.many2one('hr.employee', 'Requisitioner By'),
+            'employee_id': fields.many2one('hr.employee', 'Requisitioner'),
             'exp_return_date': fields.date('Expected Return Date'),
             'act_return_date': fields.date('Actual Return Date', states={'close': [('readonly', True)]}),
             'service_gpass_line': fields.one2many('tpt.service.gpass.line', 'gpass_id', 'Service GPass', states={'close': [('readonly', True)], 'approve':[('readonly', True)]}),
