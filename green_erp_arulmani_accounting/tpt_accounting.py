@@ -5877,6 +5877,8 @@ class mrp_production(osv.osv):
                             hand_quantity_out = hand_quantity_out - mat.product_qty
                             total_cost_out = inventory['total_cost'] or 0
                         price_unit = (hand_quantity_in-hand_quantity_out) and (total_cost_in-total_cost_out)/(hand_quantity_in-hand_quantity_out)
+                        if price_unit<0:
+                            price_unit = 0
                         stock_move_obj.write(cr, 1, [mat.id],{'price_unit':price_unit})
                         cost = price_unit*mat.product_qty or 0
                         debit += round(cost,2)
