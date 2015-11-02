@@ -215,6 +215,15 @@
                                 groups="base.group_user" context="{'search_default_customer':1, 'show_address': 1}"
                                 domain="[('customer','=',1),('is_company','=',1)]"
                                 options="{'create': false, 'create_edit': false,'always_reload': True}"/>
+				<!-- 
+				<field name="invoice_address" readonly='1' placeholder="Street..."/>
+                		<field name="street2" readonly='1'/>
+                		<field name="street3" readonly='1'/>
+                		<field name="city" readonly='1' placeholder="City"/>
+                		<field name="country_id" readonly='1' placeholder="Country" options="{'create': false, 'create_edit': false}"/>
+                		<field name="state_id" readonly='1' placeholder="State" options="{'create': false, 'create_edit': false}"/>
+                		<field name="zip" readonly='1' placeholder="ZIP"/> 
+				 -->
 				</xpath>  
 				<xpath expr="//field[@name='number']" position="replace">
 					<field name="vvt_number" readonly="1" class="oe_inline"/>
