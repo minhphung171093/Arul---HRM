@@ -35,6 +35,7 @@ class Parser(report_sxw.rml_parse):
             'get_iamt':self.get_iamt,
 
             'get_dec':self.get_dec, 
+            'get_type':self.get_type, 
         })
     def get_approx_value(self, po_id, product_id, prod_qty):
         sql = '''
@@ -80,6 +81,12 @@ class Parser(report_sxw.rml_parse):
             date = time.strftime(DATETIME_FORMAT)
         date = datetime.strptime(date, DATETIME_FORMAT)
         return date.strftime('%d/%m/%Y')
+    def get_type(self, type=False):
+        if type=='return':
+            res = 'RETURNABLE'
+        else:
+            res = 'NON-RETURNABLE'
+        return res
     
     
 

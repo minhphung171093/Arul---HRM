@@ -26,7 +26,7 @@ class Parser(report_sxw.rml_parse):
         self.localcontext.update({
             'get_date': self.get_date,
             'get_amt': self.get_amt,
-            
+            'get_type': self.get_type,
             
         })
     
@@ -39,9 +39,12 @@ class Parser(report_sxw.rml_parse):
         locale.setlocale(locale.LC_NUMERIC, "en_IN")
         inr_comma_format = locale.format("%.3f", amt, grouping=True)
         return inr_comma_format
-
-
-   
+    def get_type(self, type=False):
+        if type=='return':
+            res = 'RETURNABLE'
+        else:
+            res = 'NON-RETURNABLE'
+        return res
     
 
     

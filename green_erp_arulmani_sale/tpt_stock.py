@@ -1284,6 +1284,13 @@ class account_invoice(osv.osv):
         'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),       
         'write_date': fields.datetime('Updated Date',readonly = True),
         'write_uid': fields.many2one('res.users','Updated By',ondelete='restrict',readonly = True),      
+        'invoice_address': fields.char('Invoice Address', size = 1024,states={'draft':[('readonly',True)],'done':[('readonly',True)]}),
+        'street2': fields.char('', size = 1024,states={'draft':[('readonly',True)],'done':[('readonly',True)]}),
+        'street3': fields.char('', size = 1024,states={'draft':[('readonly',True)],'done':[('readonly',True)]}),
+        'city': fields.char('', size = 1024,states={'draft':[('readonly',True)],'done':[('readonly',True)]}),
+        'country_id': fields.many2one('res.country', '',states={'draft':[('readonly',True)],'done':[('readonly',True)]}),
+        'state_id': fields.many2one('res.country.state', '',states={'draft':[('readonly',True)],'done':[('readonly',True)]}),
+        'zip': fields.char('', size = 1024,states={'draft':[('readonly',True)],'done':[('readonly',True)]}),
     }
     _defaults = {
         'vvt_number': '/',

@@ -2,7 +2,7 @@
 <openerp>
 	<data>
     	<record id="service_gate_out_pass_report" model="ir.actions.report.xml">
-	        <field name="name">form.are.1.report</field>
+	        <field name="name">service_gate_out_pass_report</field>
 	        <field name="type">ir.actions.report.xml</field>
 	        <field name="model">tpt.service.gpass</field>
 	        <field name="report_name">Print Service Gate Out Pass</field>

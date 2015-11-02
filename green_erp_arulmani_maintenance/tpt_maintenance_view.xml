@@ -695,6 +695,9 @@
 							<field name="sub_equipment_id" options="{'create': false, 'create_edit': false}"/>
 							<field name="carrier_name"/> 
 							<field name="truck_no"/> 
+							<field name="employee_id" required="1" options="{'create': false, 'create_edit': false}"/> 
+							<field name="gpass_type" required="1"/>
+							<field name="exp_return_date"/> 
 							<field name="purpose"/> 
 							<newline/>	
 							<field name="create_uid"/>
@@ -706,8 +709,8 @@
 									<tree editable='top'>
 										<field name="item_desc" required='1'/>
 										<field name="service_qty" required='1'/>
-										<field name="approx_qty"/>
-										<field name="uom_po_id"/>
+										<field name="approx_qty" required='1'/>
+										<field name="uom_po_id" required='1'/>
 									</tree>
 								</field>
 							</page>
@@ -772,9 +775,10 @@
 	            <form string="Service GPass" version="7.0">   
 	            	<header>	
 	            	    <button name="bt_generate" states='draft' string="Generate Gate Pass" type="object" class="oe_highlight"/>
+	            		<button name="bt_approve" states='generate' string="Approve" type="object" class="oe_highlight"/>
 	            		<button name="bt_print" states='approve' string="Print" type="object" class="oe_highlight"/>            		
 	            		<button name="bt_close" states='approve' string="Close" type="object" class="oe_highlight"/>	
-	                    <field name ="state" widget="statusbar" statusbar_visible="draft,approve,close" statusbar_colors='{"draft":"blue","in":"red","close":"grey"}'/>
+	                    <field name ="state" widget="statusbar" statusbar_visible="draft,generate,approve,close" statusbar_colors='{"draft":"blue","in":"red","close":"grey"}'/>
 	                </header>
 	            	<sheet>
 	            		<group col='4' colspan='2'>	
@@ -790,8 +794,9 @@
 							<field name="carrier_name" readonly='1' /> 
 							<field name="truck_no" readonly='1' /> 
 							<field name="purpose" readonly='1' /> 
+							<field name="employee_id" readonly='1' /> 
 							<newline></newline>
-							<field name="exp_return_date"/> 
+							<field name="exp_return_date" readonly='1'/> 
 							<field name="act_return_date"/> 
 							<field name="create_uid"/>
 							<field name="create_date"/> 
@@ -803,8 +808,8 @@
 									<tree>
 										<field name="item_desc" required='1'/>
 										<field name="service_qty" required='1'/>
-										<field name="approx_qty"/>
-										<field name="uom_po_id"/>
+										<field name="approx_qty" required='1'/>
+										<field name="uom_po_id" required='1'/>
 									</tree>
 								</field>
 							</page>
