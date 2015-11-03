@@ -2512,22 +2512,25 @@
             parent="purchase.menu_procurement_management" sequence="25"/>
 
          -->
-        <!--  -->
+        <!--  TPT-BM-ON 03/11/2015-->
         
         <record id="tpt_view_stock_inv_form" model="ir.ui.view">
             <field name="name">tpt.stock.inventory.form</field>
             <field name="model">stock.inventory</field>
             <field name="inherit_id" ref="stock.view_inventory_form"/>
             <field name="arch" type="xml">
-				<!-- <xpath expr="//button[@name='action_confirm']" position="attributes">
+				<!--  
+				 <xpath expr="//button[@name='action_confirm']" position="attributes">
 					<attribute name='groups'>green_erp_arulmani_production.group_vvti_production_user</attribute>
 				</xpath>
 				<xpath expr="//button[@name='action_done']" position="attributes">
-					<attribute name='groups'>green_erp_arulmani_production.group_vvti_production_user</attribute>
+					<attribute name='groups'>green_erp_arulmani_production.group_vvti_production_user,green_erp_arulmani_production.group_vvti_production_admin</attribute>
 				</xpath>
 				<xpath expr="//button[@name='action_cancel_inventory']" position="attributes">
 					<attribute name='groups'>green_erp_arulmani_production.group_vvti_production_admin</attribute>
-				</xpath> -->
+				</xpath> 
+				-->
+				<!-- 
 				 <xpath expr="//button[@name='action_confirm']" position="replace">
             		<button name="action_confirm" states="draft" 
             		groups="green_erp_arulmani_production.group_vvti_production_user"
@@ -2536,7 +2539,7 @@
             	</xpath>
             	<xpath expr="//button[@name='action_done']" position="replace">
             		<button name="action_done" states="confirm" 
-            		groups="green_erp_arulmani_production.group_vvti_production_user"
+            		groups="green_erp_arulmani_production.group_vvti_production_user,green_erp_arulmani_production.group_vvti_production_admin"
             		string="Validate Inventory" type="object" class="oe_highlight"
             		/>
             	</xpath>
@@ -2546,7 +2549,7 @@
             		string="Cancel Inventory" type="object" class="oe_highlight"
             		/>
             	</xpath>
-            	 
+            	  -->
 			    <xpath expr="//form/sheet/notebook/page[@string='General Information']/field/tree/field[@name='product_id']"  position="replace">
 					<field name="product_id" 
 					context="{'search_spent_product_id':True,'location':location_id, 'uom':product_uom, 'to_date':parent.date}" 
@@ -2556,7 +2559,6 @@
 
 	       	</field>
         </record>
-        
-        
+ 
     </data>
 </openerp>
