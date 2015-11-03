@@ -5546,6 +5546,92 @@ class stock_inventory(osv.osv):
     _columns = {
                 'create_uid': fields.many2one('res.users','Created By'),
                 }
+    def action_done(self, cr, uid, ids, context=None):
+        """ Finish the inventory
+        @return: True
+        """
+        if context is None:
+            context = {}
+        move_obj = self.pool.get('stock.move')
+        for inv in self.browse(cr, uid, ids, context=context):
+            move_obj.action_done(cr, uid, [x.id for x in inv.move_ids], context=context)
+            self.write(cr, uid, [inv.id], {'state':'done', 'date_done': time.strftime('%Y-%m-%d %H:%M:%S')}, context=context)
+        return True
+
+    def action_confirm(self, cr, uid, ids, context=None):
+        """ Confirm the inventory and writes its finished date
+        @return: True
+        """
+        if context is None:
+            context = {}
+        # to perform the correct inventory corrections we need analyze stock location by
+        # location, never recursively, so we use a special context
+        product_context = dict(context, compute_child=False)
+
+        location_obj = self.pool.get('stock.location')
+        for inv in self.browse(cr, uid, ids, context=context):
+            move_ids = []
+            for line in inv.inventory_line_id:
+                pid = line.product_id.id
+                product_context.update(uom=line.product_uom.id, to_date=inv.date, date=inv.date, prodlot_id=line.prod_lot_id.id)
+                amount = location_obj._product_get(cr, uid, line.location_id.id, [pid], product_context)[pid]
+                change = line.product_qty - amount
+                lot_id = line.prod_lot_id.id
+                if change:
+                    location_id = line.product_id.property_stock_inventory.id
+                    value = {
+                        'name': _('INV:') + (line.inventory_id.name or ''),
+                        'product_id': line.product_id.id,
+                        'product_uom': line.product_uom.id,
+                        'prodlot_id': lot_id,
+                        'date': inv.date,
+                    }
+
+                    if change > 0:
+                        value.update( {
+                            'product_qty': change,
+                            'location_id': location_id,
+                            'location_dest_id': line.location_id.id,
+                        })
+                    else:
+                        value.update( {
+                            'product_qty': -change,
+                            'location_id': line.location_id.id,
+                            'location_dest_id': location_id,
+                        })
+                    move_ids.append(self._inventory_line_hook(cr, uid, line, value))
+            self.write(cr, uid, [inv.id], {'state': 'confirm', 'move_ids': [(6, 0, move_ids)]})
+            self.pool.get('stock.move').action_confirm(cr, uid, move_ids, context=context)
+        return True
+
+    def action_cancel_draft(self, cr, uid, ids, context=None):
+        """ Cancels the stock move and change inventory state to draft.
+        @return: True
+        """
+        for inv in self.browse(cr, uid, ids, context=context):
+            self.pool.get('stock.move').action_cancel(cr, uid, [x.id for x in inv.move_ids], context=context)
+            self.write(cr, uid, [inv.id], {'state':'draft'}, context=context)
+        return True
+
+    def action_cancel_inventory(self, cr, uid, ids, context=None):
+        """ Cancels both stock move and inventory
+        @return: True
+        """
+        move_obj = self.pool.get('stock.move')
+        account_move_obj = self.pool.get('account.move')
+        for inv in self.browse(cr, uid, ids, context=context):
+            move_obj.action_cancel(cr, uid, [x.id for x in inv.move_ids], context=context)
+            for move in inv.move_ids:
+                 account_move_ids = account_move_obj.search(cr, uid, [('name', '=', move.name)])
+                 if account_move_ids:
+                     account_move_data_l = account_move_obj.read(cr, uid, account_move_ids, ['state'], context=context)
+                     for account_move in account_move_data_l:
+                         if account_move['state'] == 'posted':
+                             raise osv.except_osv(_('User Error!'),
+                                                  _('In order to cancel this inventory, you must first unpost related journal entries.'))
+                         account_move_obj.unlink(cr, uid, [account_move['id']], context=context)
+            self.write(cr, uid, [inv.id], {'state': 'cancel'}, context=context)
+        return True
     
 stock_inventory()
 
