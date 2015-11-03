@@ -221,16 +221,28 @@
 				
             </field>
         </record>
-        
+        <!-- TPT-BM-ON 03/11/2015 -->
         <record id="view_inventory_form_pur_inherit" model="ir.ui.view">
             <field name="name">stock.inventory.purchase.inherit</field>
             <field name="model">stock.inventory</field>
             <field name="inherit_id" ref="stock.view_inventory_form"/>
             <field name="arch" type="xml">
                 <data>
+                
                 	<xpath expr="//button[@name='action_done']" position="attributes">
-                		<attribute name="groups">stock.group_stock_manager,green_erp_arulmani_purchase.group_vvti_purchase_store_mgr</attribute>
+                		<attribute name="groups">stock.group_stock_manager,green_erp_arulmani_purchase.group_vvti_purchase_store_mgr,green_erp_arulmani_production.group_vvti_production_user,green_erp_arulmani_production.group_vvti_production_admin</attribute>
                     </xpath>
+                    
+                    <xpath expr="//button[@name='action_confirm']" position="attributes">
+					<attribute name='groups'>green_erp_arulmani_production.group_vvti_production_user</attribute>
+					</xpath><!-- 
+				<xpath expr="//button[@name='action_done']" position="attributes">
+					<attribute name='groups'>green_erp_arulmani_production.group_vvti_production_user,green_erp_arulmani_production.group_vvti_production_admin</attribute>
+				</xpath> -->
+				<xpath expr="//button[@name='action_cancel_inventory']" position="attributes">
+					<attribute name='groups'>green_erp_arulmani_production.group_vvti_production_admin</attribute>
+				</xpath> 
+				
                 </data>
             </field>
         </record>
