@@ -256,6 +256,10 @@
 										on_change = "onchange_consignee_id(name_consignee_id)" options="{'create': false, 'create_edit': false}"/>
 										<field name="location" invisible='1'/>  
 										<field name="freight" />
+										<!-- TPT-By BalamuruganPurushothaman - ON 04/11/2015 - 
+										To Update BO Dispatch Date in Line Level from "Schedule Dispatch Date" Screen
+										- Ticket No: 2180
+										 -->
 										<field name="dispatch_date" />
 										
 									</tree>

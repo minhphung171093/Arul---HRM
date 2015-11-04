@@ -701,7 +701,12 @@
                 	<sheet>
                         <group>
                         	<field name="name"/>
-                        	<field name="lead_id" context="{'sample_request_lead':True,'lead_id':lead_id}" options="{'create': false, 'create_edit': false}" on_change="onchange_lead_id(lead_id, context)"/>
+                        	<!-- <field name="lead_id" context="{'sample_request_lead':True,'lead_id':lead_id}" 
+                        	options="{'create': false, 'create_edit': false}" 
+                        	on_change="onchange_lead_id(lead_id, context)"/> -->
+                        	<field name="lead_id" 
+                        	options="{'create': false, 'create_edit': false}" 
+                        	on_change="onchange_lead_id(lead_id, context)"/>
 		                    <field name="subject"/>
 		                    <field name="description"/>
 		                    <field name="sample_required"/>
