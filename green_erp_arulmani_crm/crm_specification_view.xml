@@ -9,7 +9,19 @@
                    <sheet>
                    		<group>
                         	<field name="name" />
-                    		<field name="lead_id" context="{'specification_lead':True,'lead_id':lead_id}" options="{'create': false, 'create_edit': false}" on_change="onchange_lead_id(lead_id, context)" attrs="{'readonly':[('states','in',('qc_test_completed','sample_received','sample_request','sample_acceptance','sample_matched','sample_mismatched','cancelled'))]}" />
+                        	<!-- TPT-By BalamuruganPurushothaman - ON 04/11/2015 - Ticket No:2416-->
+                    		<!-- <field name="lead_id" 
+                    		context="{'specification_lead':True,'lead_id':lead_id}" 
+                    		options="{'create': false, 'create_edit': false}" 
+                    		on_change="onchange_lead_id(lead_id, context)" 
+                    		attrs="{'readonly':[('states','in',('qc_test_completed','sample_received','sample_request','sample_acceptance','sample_matched','sample_mismatched','cancelled'))]}" />
+                    		 -->
+                    		<field name="lead_id" 
+                    		options="{'create': false, 'create_edit': false}" 
+                    		on_change="onchange_lead_id(lead_id, context)" 
+                    		attrs="{'readonly':[('states','in',('qc_test_completed','sample_received','sample_request','sample_acceptance','sample_matched','sample_mismatched','cancelled'))]}" />
+                    		
+                    		
                     		<field name="test_based_on" attrs="{'readonly':[('states','in',('qc_test_completed','sample_received','sample_request','sample_acceptance','sample_matched','sample_mismatched','cancelled'))]}"/>
                     		<field name="subject" attrs="{'readonly':[('states','in',('qc_test_completed','sample_received','sample_request','sample_acceptance','sample_matched','sample_mismatched','cancelled'))]}"/>
                     		<field name="description" attrs="{'readonly':[('states','in',('qc_test_completed','sample_received','sample_request','sample_acceptance','sample_matched','sample_mismatched','cancelled'))]}"/>

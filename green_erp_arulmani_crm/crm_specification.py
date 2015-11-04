@@ -169,9 +169,10 @@ class crm_specification(osv.osv):
     _defaults = {
         'name': lambda self, cr, uid, context: '/',
     }
-    _sql_constraints = [
-        ('lead_id_uniq', 'unique (lead_id)', 'The Lead must be unique !'),
-    ]
+    # TPT-By BalamuruganPurushothaman - ON 04/11/2015 - Ticket No:2416
+#     _sql_constraints = [
+#         ('lead_id_uniq', 'unique (lead_id)', 'The Lead must be unique !'),
+#     ]
     
     def name_get(self, cr, uid, ids, context=None):
         res = []

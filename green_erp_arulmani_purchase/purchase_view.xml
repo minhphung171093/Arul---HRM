@@ -2512,7 +2512,7 @@
             parent="purchase.menu_procurement_management" sequence="25"/>
 
          -->
-        <!--  TPT-BM-ON 03/11/2015-->
+        <!--  TPT-By BalamuruganPurushothaman - ON 03/11/2015 - Ticket No: 2072 -->
         
         <record id="tpt_view_stock_inv_form" model="ir.ui.view">
             <field name="name">tpt.stock.inventory.form</field>
