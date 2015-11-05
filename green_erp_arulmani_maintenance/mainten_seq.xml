@@ -80,6 +80,7 @@
             <field name="code">tpt.service.gpass.import</field>
         </record>
         
+        
         <record id="sequence_tpt_service_gpass_import_item" model="ir.sequence">
             <field name="name">Service Gate Pass Import</field>
             <field name="code">tpt.service.gpass.import</field>
