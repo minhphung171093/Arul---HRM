@@ -79,7 +79,8 @@
 	                    <!-- TPT - BalamuruganPurushothaman - ON 28/10/2015 - TO HIDE CANCEL BUTTON FOR PLANT MM USER -->
 	                    <!-- <button name="bt_cancel" states='draft, done' string="Cancel" type="object" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin,green_erp_arulmani_purchase.group_vvti_hrm_plant_mm_user"/> -->
 	                    <button name="bt_cancel" states='draft, done' string="Cancel" type="object" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin"/> 
-	                    <button name="bt_draft" states='done' string="Rollback" type="object" class="oe_highlight" />
+	                    <!-- TPT - BalamuruganPurushothaman - ON 04/11/2015 - TO ROLLBACK PR - TICKET NO: 2583 -->
+	                    <button name="bt_draft" states='done' string="Set to Draft" type="object" class="oe_highlight" />
 	                    <field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
 	            </header>    
 	            	<sheet>

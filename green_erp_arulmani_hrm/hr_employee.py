@@ -1685,7 +1685,8 @@ tpt_canteen_deduction()
 class tpt_emergency_res_team(osv.osv):
     _name = 'tpt.emergency.res.team'
     _order = 'create_date desc'
-
+    _rec_name = 'employee_id' 
+    
     _columns = {
         'employee_id': fields.many2one('hr.employee','Employee ID',required = False,ondelete='restrict'),
         'team_name':fields.selection([('fire_fight', 'Fire Fighting'),('first_aid', 'First Aid'),('rescue', 'Rescue'),('fire_hydrant', 'Fire Hydrant')],'Team Name'),
