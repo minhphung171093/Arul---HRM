@@ -1913,10 +1913,10 @@ class tpt_quality_verification(osv.osv):
             con_ids = []
             if not batch.batch_quality_line:
                 raise osv.except_osv(_('Warning!'),_('You can not save a Quality Verification without Lines!'))
-            if 'application_id' in vals: 
+            if 'applicable_id' in vals: 
                 default ={'history_id': batch.id,'history_line':[]}
-                self.copy(cr, uid, batch.id,default)        
-            
+                self.copy(cr, uid, batch.id,default)  
+
         return new_write#super(tpt_quality_verification, self).write(cr,1,ids,vals,context) 
 
 tpt_quality_verification()
