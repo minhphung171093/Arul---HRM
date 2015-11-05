@@ -82,12 +82,12 @@ class batch_wise_stock(osv.osv_memory):
                             (select st.product_id,st.product_qty
                                 from stock_move st 
                                 where st.state='done' and st.location_dest_id = %s
-                                    and st.prodlot_id in (select prod_batch_id from tpt_quality_verification where applicable_id = %s )
+                                    and st.prodlot_id in (select prod_batch_id from tpt_quality_verification where applicable_id = %s and history_id is null)
                             union all
                             select st.product_id,st.product_qty*-1
                                 from stock_move st 
                                 where st.state='done' and st.location_id = %s
-                                    and st.prodlot_id in (select prod_batch_id from tpt_quality_verification where applicable_id = %s )
+                                    and st.prodlot_id in (select prod_batch_id from tpt_quality_verification where applicable_id = %s and history_id is null)
                             )foo
                             group by foo.product_id
                     '''%(location_data.id,application_data.id,location_data.id,application_data.id)
@@ -130,7 +130,7 @@ class batch_wise_stock(osv.osv_memory):
                             from stock_move st 
                             where st.state='done' and st.product_id = %s and st.location_id = %s
                         )foo
-                        where foo.prodlot_id in (select prod_batch_id from tpt_quality_verification where applicable_id = %s )
+                        where foo.prodlot_id in (select prod_batch_id from tpt_quality_verification where applicable_id = %s and history_id is null)
                         group by foo.prodlot_id
                 '''%(product.id,location_data.id,product.id,location_data.id,application_data.id)
                 cr.execute(sql)
@@ -192,12 +192,12 @@ class batch_wise_stock(osv.osv_memory):
                         (select st.product_qty
                             from stock_move st 
                             where st.state='done' and st.product_id = %s and st.location_dest_id = %s
-                                and st.prodlot_id in (select prod_batch_id from tpt_quality_verification where applicable_id = %s )
+                                and st.prodlot_id in (select prod_batch_id from tpt_quality_verification where applicable_id = %s and history_id is null)
                         union all
                         select st.product_qty*-1
                             from stock_move st 
                             where st.state='done' and st.product_id = %s and st.location_id = %s
-                                and st.prodlot_id in (select prod_batch_id from tpt_quality_verification where applicable_id = %s )
+                                and st.prodlot_id in (select prod_batch_id from tpt_quality_verification where applicable_id = %s and history_id is null)
                         )foo
                 '''%(product.id,location_data.id,application_data.id,product.id,location_data.id,application_data.id)
                 cr.execute(sql)

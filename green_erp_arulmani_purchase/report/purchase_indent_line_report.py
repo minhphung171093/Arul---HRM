@@ -109,7 +109,7 @@ class Parser(report_sxw.rml_parse):
         #return res or ''
    
     def get_doc_type(self,type):
-        if type == 'draft':
+        if type == 'base':
             return 'VV Level Based PR'
         if type == 'capital':
             return 'VV Capital PR'
