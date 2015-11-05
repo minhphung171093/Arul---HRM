@@ -67,6 +67,8 @@
         'import_view.xml',
         'purchase_stock_data.xml',
         'wizard/stock_pur_view.xml',
+        'wizard/mateiral_purchase_value_month_view.xml',
+        'report/report_mateiral_purchase_value_month_view.xml',
     ],
     'css' : [
     ],
