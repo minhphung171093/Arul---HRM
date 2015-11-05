@@ -577,6 +577,7 @@ class hr_employee(osv.osv):
         'department_id':fields.many2one('hr.department', 'Department',ondelete='restrict'),
         'job_id': fields.many2one('hr.job', 'Designation',ondelete='restrict'),
         'bank_account': fields.char('Bank Account',size=1024),
+        'safety_line': fields.one2many('tpt.emergency.res.team','employee_id','Safety',readonly=True),#TPT
     }
     
     
@@ -1532,6 +1533,9 @@ class tpt_hr_training(osv.osv):
     #     new_write = super(tpt_hr_training, self).write(cr, uid,ids, vals, context)
     #     return new_write
     #===========================================================================
+    _sql_constraints = [
+        ('code_uniq', 'unique (code)', 'The Code must be unique !'),
+    ]
 tpt_hr_training()
 
 
@@ -1677,3 +1681,21 @@ class tpt_canteen_deduction(osv.osv):
     #_sql_constraints = [('emp_date_type_uniq', 'unique(employee_id, issue_date, book_type_id)', 'Already Entered!'),]
     
 tpt_canteen_deduction()
+
+class tpt_emergency_res_team(osv.osv):
+    _name = 'tpt.emergency.res.team'
+    _order = 'create_date desc'
+
+    _columns = {
+        'employee_id': fields.many2one('hr.employee','Employee ID',required = False,ondelete='restrict'),
+        'team_name':fields.selection([('fire_fight', 'Fire Fighting'),('first_aid', 'First Aid'),('rescue', 'Rescue'),('fire_hydrant', 'Fire Hydrant')],'Team Name'),
+        'date_join': fields.date('Date of Joining'),
+        'date_leave': fields.date('Date of Leaving'),
+        'is_active': fields.boolean('Active'),
+        'desc': fields.text('Description'),
+        'create_date': fields.datetime('Created Date',readonly = True),
+        'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
+        'write_date': fields.datetime('Modified Date',readonly = True),
+        'write_uid': fields.many2one('res.users','Modified By',ondelete='restrict',readonly = True),
+    }
+tpt_emergency_res_team()   
