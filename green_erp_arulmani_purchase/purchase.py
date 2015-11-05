@@ -100,6 +100,22 @@ class tpt_purchase_indent(osv.osv):
             if rfq_ids:
                 raise osv.except_osv(_('Warning!'),_('Purchase Indent was existed at the request for quotation.!'))
             self.write(cr, uid, ids,{'state':'cancel'})
+        return True 
+    # TPT-By BalamuruganPurushothaman - Ticket No: 2583-Reverse PR provision require after approval
+
+    def bt_draft(self, cr, uid, ids, context=None):
+        for line in self.browse(cr, uid, ids):
+            if line.department_id and line.department_id.primary_auditor_id and line.department_id.primary_auditor_id.id==uid:
+                rfq_ids = self.pool.get('tpt.rfq.line').search(cr,uid,[('po_indent_id','=',line.id), ('state','=','done')])
+                po_ids = self.pool.get('purchase.order.line').search(cr,uid,[('po_indent_no','=',line.id)])
+                if po_ids:
+                    raise osv.except_osv(_('Warning!'),_('Purchase Indent was existed at the Purchase Order.!'))
+                if rfq_ids:
+                    raise osv.except_osv(_('Warning!'),_('Purchase Indent was existed at the request for quotation.!'))
+                self.write(cr, uid, ids,{'state':'draft'})
+            else:
+                raise osv.except_osv(_('Warning!'),_('User does not have permission to approve!'))
+
         return True   
 
     def create(self, cr, uid, vals, context=None):
