@@ -23,18 +23,15 @@ class sql_mateiral_purchase_value_month(osv.osv):
         return cr.dictfetchall()
     
     def init(self, cr):
-        #TPT-Commented By BalamuruganPurushothaman - On 05/11/2015 - Due to Error while Upgrading Prod Server
-        #=======================================================================
-        # self.fin_mateiral_purchase_value_month_data(cr)
-        # self.fin_mateiral_purchase_value_month_report(cr)
-        # cr.commit() 
-        #=======================================================================
+        self.fin_mateiral_purchase_value_month_data(cr)
+        self.fin_mateiral_purchase_value_month_report(cr)
+        cr.commit()
         return True
 
     def fin_mateiral_purchase_value_month_data(self, cr):
 #         cr.execute("select exists (select 1 from pg_proc where proname = 'fin_mateiral_purchase_value_month_data')")
 #         res = cr.fetchone()
-#         if res and res[0]:       
+#         if res and res[0]:
         cr.execute('''delete from pg_type where typname = 'fin_mateiral_purchase_value_month_data';
                         delete from pg_class where relname='fin_mateiral_purchase_value_month_data';
                         commit;''')
