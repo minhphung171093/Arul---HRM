@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>   
+        <record id="pr_history_form" model="ir.ui.view">
+            <field name="name">pr.history.form</field>
+            <field name="model">pr.history.report</field>
+            <field name="arch" type="xml">
+                <form string="PR History Report" version="7.0">
+                	<group>	                
+	                <field name="ind_id" />	                                            
+                 	</group>
+                    <footer>
+                        <button name="print_report" string="Print" type="object" class="oe_highlight" context="{'type':'appointments'}"/>
+                        <button string="Cancel" class="oe_link" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>        
+        <record id="action_pr_history_form" model="ir.actions.act_window">            
+            <field name="name">PR History Report</field>         
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">pr.history.report</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="pr_history_form" />
+            <field name="target">new</field>
+        </record>
+        
+        <!-- <menuitem action="action_pr_history_form" 
+        id="menu_action_pr_history_form" 
+        parent="stock.menu_stock_warehouse_mgmt" sequence="17"/> -->
+    
+    </data>
+</openerp>

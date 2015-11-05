@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+    	<record id="tpt_pr_history_report_xls" model="ir.actions.report.xml">
+	        <field name="name">tpt_pr_history_report_xls</field>
+	        <field name="type">ir.actions.report.xml</field>
+	        <field name="model">tpt.pr.history.report</field>
+	        <field name="report_name">tpt_pr_history_report_xls</field>
+	        <field name="report_type">aeroo</field>
+	        <field name="in_format">oo-ods</field>
+	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-xls')]"/>
+	        <field name="parser_loc">green_erp_arulmani_purchase/report/pr_history.py</field>
+	        <field name="report_rml">green_erp_arulmani_purchase/report/pr_history.ods</field>
+	        <field name="parser_state">loc</field>
+	        <field name="tml_source">file</field>
+	        <field name="attachment_use" eval="0"/>
+    	</record>
+		
+		<report 
+			auto="True" 
+			menu="False"
+			id="tpt_pr_history_report_xls" 
+			model="tpt.pr.history.report" 
+			name="tpt_pr_history_report_xls"
+	        string="PR History Report"
+	        rml="green_erp_arulmani_purchase/report/pr_history.ods"/>
+	        
+	    <record id="tpt_pr_history_report_pdf" model="ir.actions.report.xml">
+	        <field name="name">tpt_pr_history_report_pdf</field>
+	        <field name="type">ir.actions.report.xml</field>
+	        <field name="model">tpt.pr.history.report</field>
+	        <field name="report_name">tpt_pr_history_report_pdf</field>
+	        <field name="report_type">aeroo</field>
+	        <field name="in_format">oo-ods</field>
+	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-pdf'),('compatible_types','=','oo-ods')]"/>
+	        <field name="parser_loc">green_erp_arulmani_purchase/report/pr_history.py</field>
+	        <field name="report_rml">green_erp_arulmani_purchase/report/pr_history.ods</field>
+	        <field name="parser_state">loc</field>
+	        <field name="tml_source">file</field>
+	        <field name="attachment_use" eval="0"/>
+    	</record>
+		
+		<report 
+			auto="True" 
+			menu="False"
+			id="tpt_pr_history_report_pdf" 
+			model="tpt.pr.history.report" 
+			name="tpt_pr_history_report_pdf"
+	        string="PR History Report"
+	        rml="green_erp_arulmani_purchase/report/pr_history.ods"/>
+		    
+		<record id="view_tpt_pr_history_report" model="ir.ui.view">
+	        <field name="name">tpt.pr.history.report</field>
+	        <field name="model">tpt.pr.history.report</field>
+	        <field name="arch" type="xml">
+	            <form version='7.0' string="PR History Report" create="false" edit="false" delete="false">
+	            	<header>
+	            		<button name="print_report_xls" string="Print (.xls)" type="object" class="oe_highlight" />
+	            		<button name="print_report_pdf" string="Print (.pdf)" type="object" class="oe_highlight" />
+	            	</header>
+	            	<sheet>
+	            	
+	            		<div class="oe_text_center">
+            			<b><field name="name" nolabel="1" class="oe_text_center oe_inline"/></b>
+            			</div>	            		
+            			<div class="oe_bold oe_text_left">            			        			
+            			<field name="ind_id" class="oe_text_left oe_inline"/>            			
+            			</div>		
+            			
+            			<group>
+		                	<field name="pr_hist_line_id" nolabel='1'>
+		                		<tree create="false" edit="false" delete="false">
+		                			<field name="pr_req_no"/>
+		                			<field name="pr_date"/>
+		                			<field name="pr_rel_date"/>
+		                			<field name="mat_code"/>
+		                			<field name="mat_name"/>
+		                			<field name="pr_qty"/>
+		                			<field name="uom"/>
+		                			<field name="rfq_date"/>
+		                			<field name="rfq_no"/>
+		                			<field name="rfq_qty"/>
+		                			<field name="po_date"/>
+		                			<field name="po_no"/>
+		                			<field name="ven_name"/>
+		                			<field name="po_qty"/>		                			
+		                			<field name="po_md_date"/>
+		                			<field name="grn_date"/>
+		                			<field name="grn_no"/>
+		                			<field name="grn_qty"/>
+		                			<field name="inv_date"/>
+		                			<field name="inv_no"/>
+		                			<field name="inv_tot_amt"/>            			
+		                		</tree>
+		                	</field>
+	                	</group>
+	               	</sheet>
+	           </form>
+	        </field>
+	    </record>        
+		        
+       <!-- <record id="material_request_line_report" model="ir.actions.report.xml">
+	        <field name="name">material_request_line_report</field>
+	        <field name="type">ir.actions.report.xml</field>
+	        <field name="model">material.request.line.report</field>
+	        <field name="report_name">material_request_line_report</field>
+	        <field name="report_type">aeroo</field>
+	        <field name="in_format">oo-ods</field>
+	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-xls')]"/>
+	        <field name="parser_loc">green_erp_arulmani_purchase/report/material_request_consumption_report.py</field>
+	        <field name="report_rml">green_erp_arulmani_purchase/report/material_request_consumption_report.ods</field>
+	        <field name="parser_state">loc</field>
+	        <field name="tml_source">file</field>
+	        <field name="attachment_use" eval="0"/>
+    	</record>		    
+		
+		<report 
+			auto="True"
+			menu="False"
+			id="material_request_line_report"
+			model="material.request.line.report" 
+			name="material_request_line_report"
+	        string="Goods Request Line Report"
+	        rml="green_erp_arulmani_purchase/report/material_request_consumption_report.ods"/>   -->
+             	
+    </data>
+</openerp>

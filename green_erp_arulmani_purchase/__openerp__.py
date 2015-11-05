@@ -41,6 +41,7 @@
         'report/tpt_raw_stock_statement_report_view.xml',
         'report/material_request_consumption_report_view.xml',
         'report/grn_line_details_report_view.xml',
+        'report/pr_history_report_view.xml',
         'wizard/tick_purchase_chart_view.xml',
         'wizard/alert_form_purchase_view.xml',
         'wizard/alert_form_line_view.xml',
@@ -53,6 +54,7 @@
         'wizard/material_request_line_view.xml',
         'wizard/grn_line_view.xml',
         'wizard/purchase_indent_line_view.xml',
+        'wizard/pr_history_view.xml',
         'report/purchase_indent_line_report_view.xml', 
         'report/print_gate_out_pass_view.xml',
 
