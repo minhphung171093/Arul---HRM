@@ -26,16 +26,20 @@ class sql_mateiral_purchase_value_day(osv.osv):
         self.fin_mateiral_purchase_value_day_data(cr)
         self.fin_mateiral_purchase_value_day_report(cr) 
         self.get_day_of_month(cr)
-        cr.commit()
+        #TPT-Commented By BalamuruganPurushothaman - On 05/11/2015 - Due to Error while Upgrading Prod Server
+        #cr.commit()
         return True
 
     def fin_mateiral_purchase_value_day_data(self, cr):
 #         cr.execute("select exists (select 1 from pg_proc where proname = 'fin_mateiral_purchase_value_month_data')")
 #         res = cr.fetchone()
 #         if res and res[0]:
-        cr.execute('''delete from pg_type where typname = 'fin_mateiral_purchase_value_day_data';
-                        delete from pg_class where relname='fin_mateiral_purchase_value_day_data';
-                        commit;''')
+        #TPT-Commented By BalamuruganPurushothaman - On 05/11/2015 - Due to Error while Upgrading Prod Server
+        #=======================================================================
+        # cr.execute('''delete from pg_type where typname = 'fin_mateiral_purchase_value_day_data';
+        #                 delete from pg_class where relname='fin_mateiral_purchase_value_day_data';
+        #                 commit;''')
+        #=======================================================================
         sql = '''
         CREATE TYPE fin_mateiral_purchase_value_day_data AS
            (product_name character varying(1024),
