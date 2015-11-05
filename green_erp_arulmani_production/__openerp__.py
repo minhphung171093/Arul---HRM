@@ -34,6 +34,8 @@
         'tpt_production_view.xml',
         'menu_inherit_view.xml',
         'import_view.xml',
+        'wizard/batch_wise_movement_analysis_view.xml',
+        'report/report_batch_wise_movement_analysis_view.xml',
     ],
     'css' : [
     ],
