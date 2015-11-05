@@ -586,9 +586,9 @@
 	            		<group col="4" colspan="2" >
 	            		<group>
 	            			<field name="prod_batch_id" on_change = "onchange_prod_batch_id(prod_batch_id)" options="{'create': false, 'create_edit': false}" context="{'search_batch_no_tio2':1}" />
-	            			<field name="product_id" domain="['|',('name','in',['TITANIUM DIOXIDE-ANATASE','TiO2','M0501010001']),('default_code','in',['TITANIUM DIOXIDE-ANATASE','TiO2','M0501010001'])]" options="{'create': false, 'create_edit': false}" />
-	            			<field name="product_type"/>
-	            			<field name="warehouse_id" domain="[('usage','=','internal'),('chained_location_type','&lt;&gt;','customer')]" options="{'create': false, 'create_edit': false}" />
+	            			<field name="product_id" readonly='1' domain="['|',('name','in',['TITANIUM DIOXIDE-ANATASE','TiO2','M0501010001']),('default_code','in',['TITANIUM DIOXIDE-ANATASE','TiO2','M0501010001'])]" options="{'create': false, 'create_edit': false}" />
+	            			<field name="product_type" readonly='1'/>
+	            			<field name="warehouse_id" readonly='1' domain="[('usage','=','internal'),('chained_location_type','&lt;&gt;','customer')]" options="{'create': false, 'create_edit': false}" />
 	            		</group>
 	            		<group>
 	            			<field name="phy_batch_no" required = '1'/>
@@ -609,6 +609,16 @@
 								</field>
 							</page>
 						</notebook>
+						<group string='History'>
+			                    <field name="history_line" nolabel='1'>
+			                    	<tree>
+			                    		<field name ="create_date"/>
+				                		<field name ="create_id"/>
+				                		<field name ="applicable_id"/>
+				                		<field name ="state" invisible='1'/>
+				                	</tree>		
+			                    </field>
+	                  		</group>
 				    </sheet>
 		         </form>
 			</field>

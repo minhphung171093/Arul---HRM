@@ -1829,6 +1829,10 @@ class tpt_quality_verification(osv.osv):
         'location': fields.char('Location', size=100, states={ 'done':[('readonly', True)]}),
         'weight': fields.char('Weight', size=100, states={ 'done':[('readonly', True)]}),
         'state':fields.selection([('draft', 'Draft'),('done', 'Updated')],'Status', readonly=True),
+        
+        'history_line': fields.one2many('tpt.quality.verification','history_id','Histories',readonly = True),
+        'history_id': fields.many2one('tpt.quality.verification','Histories Line', ondelete='cascade'),
+        
     }
     _defaults={
         'name':time.strftime('%Y-%m-%d %H:%M:%S'),
@@ -1904,7 +1908,11 @@ class tpt_quality_verification(osv.osv):
         for batch in self.browse(cr, uid, ids):
             con_ids = []
             if not batch.batch_quality_line:
-                raise osv.except_osv(_('Warning!'),_('You can not create a Quality Verification without Lines!'))
+                raise osv.except_osv(_('Warning!'),_('You can not save a Quality Verification without Lines!'))
+            if 'application_id' in vals: 
+                default ={'history_id': batch.id,'history_line':[]}
+                self.copy(cr, uid, batch.id,default)        
+            
         return new_write#super(tpt_quality_verification, self).write(cr,1,ids,vals,context) 
 
 tpt_quality_verification()

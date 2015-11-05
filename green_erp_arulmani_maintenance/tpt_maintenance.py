@@ -1234,8 +1234,8 @@ class tpt_service_gpass_req(osv.osv):
             'name': fields.char('Document No', size = 1024, readonly=True), 
             'maintenance_id': fields.many2one('tpt.maintenance.oder', 'Maintenance Order', states={'cancel': [('readonly', True)], 'approve':[('readonly', True)], 'done':[('readonly', True)], 'waiting':[('readonly', True)]}),
             'vendor_id': fields.many2one('res.partner', '3rd Party Service Vendor', states={'cancel': [('readonly', True)], 'approve':[('readonly', True)], 'done':[('readonly', True)], 'waiting':[('readonly', True)]}),
-            'equipment_id': fields.many2one('tpt.equipment', 'Equipement', states={'cancel': [('readonly', True)], 'approve':[('readonly', True)], 'done':[('readonly', True)], 'waiting':[('readonly', True)]}),
-            'sub_equipment_id': fields.many2one('tpt.machineries', 'Sub Equipement', states={'cancel': [('readonly', True)], 'approve':[('readonly', True)], 'done':[('readonly', True)], 'waiting':[('readonly', True)]}),
+            'equipment_id': fields.many2one('tpt.equipment', 'Equipment', states={'cancel': [('readonly', True)], 'approve':[('readonly', True)], 'done':[('readonly', True)], 'waiting':[('readonly', True)]}),
+            'sub_equipment_id': fields.many2one('tpt.machineries', 'Sub Equipment', states={'cancel': [('readonly', True)], 'approve':[('readonly', True)], 'done':[('readonly', True)], 'waiting':[('readonly', True)]}),
             'service_date': fields.date('Date', states={'cancel': [('readonly', True)], 'approve':[('readonly', True)], 'done':[('readonly', True)], 'waiting':[('readonly', True)]}),
             'carrier_name': fields.char('Carrier Name', size = 1024, states={'cancel': [('readonly', True)], 'approve':[('readonly', True)], 'done':[('readonly', True)], 'waiting':[('readonly', True)]}),
             'truck_no': fields.char('Truck No.', size = 1024, states={'cancel': [('readonly', True)], 'approve':[('readonly', True)], 'done':[('readonly', True)], 'waiting':[('readonly', True)]}),
@@ -1331,8 +1331,8 @@ class tpt_service_gpass(osv.osv):
             'maintenance_id': fields.many2one('tpt.maintenance.oder', 'Maintenance Order'),
             'vendor_id': fields.many2one('res.partner', '3rd Party Service Vendor'),
             'service_date': fields.date('Date', states={'close': [('readonly', True)], 'approve':[('readonly', True)], 'generate':[('readonly', True)]}),
-            'equipment_id': fields.many2one('tpt.equipment', 'Equipement'),
-            'sub_equipment_id': fields.many2one('tpt.machineries', 'Sub Equipement'),
+            'equipment_id': fields.many2one('tpt.equipment', 'Equipment'),
+            'sub_equipment_id': fields.many2one('tpt.machineries', 'Sub Equipment'),
             'carrier_name': fields.char('Carrier Name', size = 1024, ),
             'truck_no': fields.char('Truck No.', size = 1024, ),
             'purpose': fields.text('Purpose'),
@@ -1463,7 +1463,8 @@ class tpt_service_gpass(osv.osv):
     def bt_close(self, cr, uid, ids, context=None):
         for line in self.browse(cr, uid, ids):
             if not line.act_return_date:
-                raise osv.except_osv(_('Warning!'),_('Please fill the Actual Retutrn Date!'))
+                if line.gpass_req_id.gpass_type=='return':
+                    raise osv.except_osv(_('Warning!'),_('Please fill the Actual Retutrn Date!'))
             self.write(cr, uid, ids,{'state':'close'})
         return True 
     def bt_print(self, cr, uid, ids, context=None):
