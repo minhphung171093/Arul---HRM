@@ -371,5 +371,20 @@
             <field name="implementation">no_gap</field>
         </record>
         
+        <!-- Comparison Chart-->
+		<record id="sequence_tpt_comparison_chart_code" model="ir.sequence.type">
+            <field name="name">Comparison Chart</field>
+            <field name="code">tpt.comparison.chart.import</field>
+        </record>
+        
+        <record id="sequence_tpt_comparison_chart_item" model="ir.sequence">
+            <field name="name">Comparison Chart</field>
+            <field name="code">tpt.comparison.chart.import</field>
+            <field name="prefix">VVTI/CC/</field>
+            <field name="padding">6</field>
+            <field name="number_next_actual">000001</field>
+            <field name="implementation">no_gap</field>
+        </record>
+        
 	</data>
 </openerp>

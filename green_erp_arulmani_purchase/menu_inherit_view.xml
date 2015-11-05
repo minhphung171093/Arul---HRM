@@ -39,7 +39,11 @@
 		</record>
 		
 		<record model="ir.ui.menu" id="stock.menu_action_inventory_form">
-	    	<field name="groups_id" eval="[(6, 0,[ref('green_erp_arulmani_purchase.group_vvti_purchase_key_user'),ref('green_erp_arulmani_purchase.group_vvti_purchase_store_user'),ref('green_erp_arulmani_sale.group_vvti_sale_manager')])]"/>
+	    	<field name="groups_id" eval="[(6, 0,[ref('green_erp_arulmani_purchase.group_vvti_purchase_key_user'),
+	    	ref('green_erp_arulmani_purchase.group_vvti_purchase_store_user'),
+	    	ref('green_erp_arulmani_production.group_vvti_production_user'),
+	    	ref('green_erp_arulmani_production.group_vvti_production_admin'),
+	    	ref('green_erp_arulmani_sale.group_vvti_sale_manager')])]"/>
 		</record>
 		
 		<record model="ir.ui.menu" id="stock.menu_stock_configuration">

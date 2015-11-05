@@ -36,6 +36,10 @@ class stock_picking(osv.osv):
         'order_type':fields.selection([('domestic','Domestic'),('export','Export')],'Order Type' ),
         'description':fields.char('Description', size = 50, readonly = True),
         'item_text':fields.text('Item Text'),
+        'create_date': fields.datetime('Created Date',readonly = True),
+        'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),       
+        'write_date': fields.datetime('Updated Date',readonly = True),
+        'write_uid': fields.many2one('res.users','Updated By',ondelete='restrict',readonly = True),
                 }
     
     _defaults = {
@@ -1275,7 +1279,19 @@ class account_invoice(osv.osv):
                 'account.invoice.line': (_get_invoice_line, ['price_unit','invoice_line_tax_id','quantity','discount','invoice_id'], 20),
             },
             multi='sums', help="The total amount."),
-                }
+                
+        'create_date': fields.datetime('Created Date',readonly = True),
+        'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),       
+        'write_date': fields.datetime('Updated Date',readonly = True),
+        'write_uid': fields.many2one('res.users','Updated By',ondelete='restrict',readonly = True),      
+        'invoice_address': fields.char('Invoice Address', size = 1024,states={'draft':[('readonly',True)],'done':[('readonly',True)]}),
+        'street2': fields.char('', size = 1024,states={'draft':[('readonly',True)],'done':[('readonly',True)]}),
+        'street3': fields.char('', size = 1024,states={'draft':[('readonly',True)],'done':[('readonly',True)]}),
+        'city': fields.char('', size = 1024,states={'draft':[('readonly',True)],'done':[('readonly',True)]}),
+        'country_id': fields.many2one('res.country', '',states={'draft':[('readonly',True)],'done':[('readonly',True)]}),
+        'state_id': fields.many2one('res.country.state', '',states={'draft':[('readonly',True)],'done':[('readonly',True)]}),
+        'zip': fields.char('', size = 1024,states={'draft':[('readonly',True)],'done':[('readonly',True)]}),
+    }
     _defaults = {
         'vvt_number': '/',
         'form_type': 'tbc',
@@ -1343,7 +1359,46 @@ class account_invoice(osv.osv):
                     'invoice_line': invoice_lines or False
                     }
         return {'value': vals}
+    #TPT- By BalamuruganPurushothaman - Incident No: 2430 - ON 16/10/2015 
+    # Customer/Vendor Code with Description in All Screen
+    def name_get(self, cr, uid, ids, context=None):
+        """Overrides orm name_get method"""
+        res = []
+        if isinstance(ids, (int, long)):
+            ids = [ids]
+        if not ids:
+            return res
+        bp = self.pool.get('account.invoice').browse(cr, uid, ids[0])
+        reads = self.read(cr, uid, ids, ['vvt_number', 'number', 'name', 'partner_id', 'type'], context=context)
+        bp_name = ''
+        
+        for record in reads:
+            doc_no = ''             
+            if 'vvt_number' in record and record['vvt_number'] and 'type' in record and record['type']=='out_invoice':
+                doc_no = record['vvt_number']            
+            elif 'number' in record and record['number'] and 'type' in record and record['type']=='in_invoice':
+                doc_no = record['number']
+            else: 
+                doc_no = record['name']                   
+            
+            bp_name = record['partner_id']
+            bp_id = record['partner_id']
+            #--------------------------------------------------------- if bp_id:
+                # bp_name = self.pool.get('res.partner').browse(cr, uid, bp_id[0])
+            #name = doc_no + ' - ' + str(bp_name.name)
+            name = doc_no + ' - [' + bp_name[1] + ' ]'
+            
+            res.append((record['id'], name))
+  
+        return res
     
+    def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
+        if name:
+            ids = self.search(cr, user, ['|',('partner_id','like',name),('vvt_number','like',name),('number', 'like', name)]+args, context=context, limit=limit)
+        else:
+            ids = self.search(cr, user, args, context=context, limit=limit)
+        return self.name_get(cr, user, ids, context=context)   
+    #TPT END
     def create(self, cr, uid, vals, context=None):
         if vals.get('vvt_number','/')=='/' and 'type' in vals and vals['type']=='out_invoice':
             vals['vvt_number'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.customer.invoice.import') or '/'
@@ -1366,42 +1421,30 @@ class account_invoice(osv.osv):
                 return {
                 'type': 'ir.actions.report.xml',
                 'report_name': 'tpt_export_fob_account_invoice',
-#                 'datas': datas,
-#                 'nodestroy' : True
                 }
             if invoice_ids.sale_id.incoterms_id.code =='CFR':
                 return {
                 'type': 'ir.actions.report.xml',
                 'report_name': 'tpt_export_cfr_account_invoice',
-#                 'datas': datas,
-#                 'nodestroy' : True
                 }
             if invoice_ids.sale_id.incoterms_id.code =='CIF':
                 return {
                 'type': 'ir.actions.report.xml',
                 'report_name': 'tpt_export_cif_account_invoice',
-#                 'datas': datas,
-#                 'nodestroy' : True
                 }
             else:
                 return {
                 'type': 'ir.actions.report.xml',
                 'report_name': 'tpt_export_account_invoice',
-#                 'datas': datas,
-#                 'nodestroy' : True
                 }
             return {
                 'type': 'ir.actions.report.xml',
                 'report_name': 'tpt_export_account_invoice',
-#                 'datas': datas,
-#                 'nodestroy' : True
             }
         else:
             return {
                 'type': 'ir.actions.report.xml',
                 'report_name': 'tpt_domestic_account_invoice',
-#                 'datas': datas,
-#                 'nodestroy' : True
             }
     
     def write(self, cr, uid, ids, vals, context=None):

@@ -1840,7 +1840,6 @@ class tpt_update_stock_move_report(osv.osv):
                                 credit = amount_cer - (amount_cer*0)/100
                                 debit = amount_cer - (amount_cer*0)/100
                             if not p.product_id.product_asset_acc_id:
-                                print p.product_id.name
                                 raise osv.except_osv(_('Warning!'),_('You need to define Product Asset GL Account for this product'))
                             journal_line.append((0,0,{
                                 'name':line.name + ' - ' + p.product_id.name, 

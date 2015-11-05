@@ -27,7 +27,7 @@ class tpt_material_request_report(osv.osv_memory):
              'requisitioner':fields.many2one('hr.employee','Requisitioner'),
              'department_id':fields.many2one('hr.department','Department'),
              'section_id': fields.many2one('arul.hr.section','Section'),             
-             'state':fields.selection([('draft', 'Draft'),('done', 'Approve'),('partially', 'Partially Issued'),('closed', 'Closed')],'Status'),                 
+             'state':fields.selection([('draft', 'Draft'),('done', 'Approved'),('partially', 'Partially Issued'),('closed', 'Closed')],'Status'),                 
              'product_id': fields.many2one('product.product', 'Material Code'),
              #'pend_qty': fields.float('Pending Qty'),
              'project_id': fields.many2one('tpt.project','Project'),
@@ -96,7 +96,7 @@ class material_request_line_report(osv.osv_memory):
              'requisitioner':fields.many2one('hr.employee','Requisitioner'),
              'department_id':fields.many2one('hr.department','Department'),
              'section_id': fields.many2one('arul.hr.section','Section'),             
-             'state':fields.selection([('draft', 'Draft'),('done', 'Approve'),('partially', 'Partially Issued'),('closed', 'Closed')],'Status'),                 
+             'state':fields.selection([('draft', 'Draft'),('done', 'Approved'),('partially', 'Partially Issued'),('closed', 'Closed')],'Status'),                 
              'product_id': fields.many2one('product.product', 'Material Code'),  
              #'pend_qty': fields.float('Pending Qty'),
              'project_id': fields.many2one('tpt.project','Project'),
@@ -251,14 +251,14 @@ class material_request_line_report(osv.osv_memory):
              
             def get_status(type):
                 if type == 'draft':
-                    res = 'Draft'
+                    return 'Draft'
                 if type == 'done':
-                    res = 'Approve'
+                    return 'Approve'
                 if type == 'partially':
-                    res = 'Partially Issued'
+                    return 'Partially Issued'
                 if type == 'closed':
-                    res = 'Closed'
-                return res or ''
+                    return 'Closed'
+                
          
             def get_invoice(cb):
                 res = {}                

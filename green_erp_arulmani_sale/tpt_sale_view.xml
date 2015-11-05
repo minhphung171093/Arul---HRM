@@ -19,19 +19,16 @@
                 		<field name="state_id" readonly='1' placeholder="State" options="{'create': false, 'create_edit': false}"/>
                 		<field name="zip" readonly='1' placeholder="ZIP"/> 
                 		<field name="document_type"/>
-                		
                 		<field name="payment_term_id" readonly='1' options="{'create': false, 'create_edit': false}"/>
                 		<field name="incoterms_id" readonly='1' options="{'create': false, 'create_edit': false}" />
-                		<field name="excise_duty_id" readonly='1' options="{'create': false, 'create_edit': false}"/>
+	        			<field name="create_uid" />
+						<field name="create_date" />
 	        	</xpath>
 				<xpath expr="//field[@name='date_order']"  position="replace">
 					<!--<field name="date_order" string = "SO Date" on_change = "onchange_so_date(date_order, blanket_id)"/>-->
 					<field name="date_order" string = "SO Date" on_change = "onchange_date_order(date_order)"/>
                 	<field name="po_date" readonly='1' on_change="onchange_po_date(po_date)" />
                 	<field name="po_number" readonly='1'/>
-                	<!-- 
-                	<field name="expected_date" />
-                	 -->
                 	<field name="quotaion_no"/>
                 	<field name="distribution_channel" readonly='1' options="{'create': false, 'create_edit': false}" />
                 	<field name="sale_tax_id" readonly='1' options="{'create': false, 'create_edit': false}"/>
@@ -40,6 +37,11 @@
                 	 <field name="flag_t" invisible="1" />
                 	 <field name="flag_p" invisible="1" />
                 	 <field name="tpt_currency_id" invisible="1" />
+                	 <field name="excise_duty_id" readonly='1' options="{'create': false, 'create_edit': false}"/>
+                	 
+				</xpath>
+				<xpath expr="//field[@name='shop_id']"  position="attributes">
+					<attribute name='invisible'>1</attribute>	
 				</xpath>
 				<xpath expr="//field[@name='client_order_ref']"  position="replace">
 					<field name="client_order_ref" invisible="1" />
@@ -72,6 +74,8 @@
 					<field name="currency_id" invisible="0" readonly = "0" on_change="onchange_currency(currency_id)"
 					attrs="{'readonly': [('state','in',('draft','done','progress'))]}"
 					required = "0" options="{'create': false, 'create_edit': false}" />
+					<!-- <field name="create_date" />
+                	<field name="write_date" /> -->
 				</xpath>
 				<xpath expr="//field[@name='payment_term']"  position="replace">
 				</xpath>
@@ -184,8 +188,8 @@
 	            <form string="Blanket Order" version="7.0">
 	            <header>
 	            		<button name="bt_approve" states='draft' string="Confirm" type="object" class="oe_highlight" groups="green_erp_arulmani_sale.group_vvti_marketing_user"/>
-	                    <button name="bt_cancel" states='draft,approve' string="Cancel" type="object" class="oe_highlight" groups="green_erp_arulmani_sale.group_vvti_marketing_user"/>
-	                    <button name="bt_close" states='approve,cancel' string="Close" type="object" class="oe_highlight" groups="green_erp_arulmani_sale.group_vvti_marketing_user"/>
+	                    <button name="bt_cancel" states='draft,approve,done' string="Cancel" type="object" class="oe_highlight" groups="green_erp_arulmani_sale.group_vvti_marketing_user"/>
+	                    <button name="bt_close" states='approve,approve,done' string="Close" type="object" class="oe_highlight" groups="green_erp_arulmani_sale.group_vvti_marketing_user"/>
 	                    <field name="state" widget="statusbar" statusbar_visible="draft,approve,done,cancel,close" statusbar_colors='{"draft":"blue","cancel":"blue","done":"red"}'/>
 	            </header>    
 	            	<sheet>
@@ -216,15 +220,18 @@
 						<group>
 						<field name="bo_date" on_change="onchange_bo_date(bo_date)"/>
 						<field name="po_date" on_change="onchange_po_date(po_date)"/>
-						<field name="po_number" />
-						<!-- <field name="exp_delivery_date" on_change = "onchange_exp_delivery_date(exp_delivery_date)"/>  -->
-						<!--<field name="dispatch_date" on_change = "onchange_sche_dispatch_date(dispatch_date)"/>-->
+						<field name="po_number" />						
 						<field name="quotaion_no" invisible='1'/>
 						<field name="channel" readonly='1' options="{'create': false, 'create_edit': false}"/>
 						<field name="sale_tax_id" domain="[('type_tax_use','=','sale')]" options="{'create': false, 'create_edit': false}"/>
 						<field name="order_type" />
 						<field name="reason" />
-						
+						</group>
+						<group col='4' colspan='2'>		
+							<field name="create_uid" />
+							<field name="create_date" />
+							<field name="write_uid" />
+							<field name="write_date" />
 						</group>
 						
 					</group>
@@ -243,15 +250,18 @@
 										<field name="amount_basic"/>
 										<field name="amount_ed"/>
 										<field name="sub_total"/> 
-										
-										<field name="tpt_name_consignee_id" domain="[('tpt_consignee_header_id','=',parent.customer_id)]"  options="{'create': false, 'create_edit': false}"/>
-										 
-										<field name="name_consignee_id" invisible='1' domain="[('consignee_parent_id','=',parent.customer_id)]" on_change = "onchange_consignee_id(name_consignee_id)" options="{'create': false, 'create_edit': false}"/>
+										<field name="tpt_name_consignee_id" domain="[('tpt_consignee_header_id','=',parent.customer_id)]"  
+										options="{'create': false, 'create_edit': false}"/>										 
+										<field name="name_consignee_id" invisible='1' domain="[('consignee_parent_id','=',parent.customer_id)]" 
+										on_change = "onchange_consignee_id(name_consignee_id)" options="{'create': false, 'create_edit': false}"/>
 										<field name="location" invisible='1'/>  
 										<field name="freight" />
-										<!-- 
-										<field name="expected_date" />
+										<!-- TPT-By BalamuruganPurushothaman - ON 04/11/2015 - 
+										To Update BO Dispatch Date in Line Level from "Schedule Dispatch Date" Screen
+										- Ticket No: 2180
 										 -->
+										<field name="dispatch_date" />
+										
 									</tree>
 								</field>
 								<group class="oe_subtotal_footer oe_right" colspan="2" name="sale_total">
@@ -370,13 +380,18 @@
                     <field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
 	            </header>
 	            	<sheet>
-		                <group>    
+		                <group col='4' colspan='2'>    
 						<field name="name"/>
 						<field name="sale_order_id" domain="[('document_type','in',['scrap','saleorder']),('state','in',['progress']),('order_line','!=',False),('state','!=','cancel')]" on_change = "onchange_sale_order_id(sale_order_id)" options="{'create': false, 'create_edit': false}"/>
 						<!--<field name="sale_order_id" domain="[('document_type','in',['scrap','saleorder']),('state','in',['progress']),('order_line','!=',False),('state','!=','cancel'),('payment_term_id','not in',['Immediate Payment','Immediate'])]" on_change = "onchange_sale_order_id(sale_order_id)" options="{'create': false, 'create_edit': false}"/>-->
 						<field name="customer_id" domain="[('customer','=',1),('is_company','=',1)]" options="{'create': false, 'create_edit': false}"/>
 						<field name="request_date"/>
 						<field name="description"/>
+						<newline></newline>
+						<field name="create_uid" />
+						<field name="create_date" />
+						<field name="write_uid" />
+						<field name="write_date" />
 						</group>
 						<notebook>
 							<page string = "Product Information">
@@ -776,13 +791,17 @@
                      <field name="state" widget="statusbar" statusbar_colors='{"confirm":"blue","to_approve":"blue","refuse":"red"}'/>
                     </header>
                    <sheet>
-                   		<group>
+                   		<group col='4' colspan='2'>
                         	<field name="batch_request_id" context="{'search_default_batch_request_by_allot':1}" options="{'create': false, 'create_edit': false}" on_change="onchange_batch_request_id(batch_request_id)" attrs="{'readonly':[('state','in',('cancel','confirm'))]}"/>
                     		<field name="name" attrs="{'readonly':[('state','in',('cancel','confirm'))]}"/>
                     		<field name="sale_order_id" domain="[('state','=','progress')]" options="{'create': false, 'create_edit': false}" attrs="{'readonly':[('state','in',('cancel','confirm'))]}"/>
                     		<field name="customer_id" domain="[('customer','=',1),('is_company','=',1)]" options="{'create': false, 'create_edit': false}" attrs="{'readonly':[('state','in',('cancel','confirm'))]}"/>
                     		<field name="description" attrs="{'readonly':[('state','in',('cancel','confirm'))]}"/>
                     		<field name="requested_qty"/>
+                    		<field name="create_uid" />
+							<field name="create_date" />
+							<field name="write_uid" />
+							<field name="write_date" />
 	                    </group>
 	                    <notebook>
 		                    <page string="Product Information" autofocus="autofocus">

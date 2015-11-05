@@ -162,6 +162,41 @@ class res_partner(osv.osv):
         #tien
         'disapprove': False,
     }
+    #TPT- By BalamuruganPurushothaman - Incident No: 2430 - ON 16/10/2015 
+    # Customer/Vendor Code with Description in All Screen
+    def name_get(self, cr, uid, ids, context=None):
+        """Overrides orm name_get method"""
+        res = []
+        if isinstance(ids, (int, long)):
+            ids = [ids]
+        if not ids:
+            return res
+        bp = self.pool.get('res.partner').browse(cr, uid, ids[0])
+        reads = self.read(cr, uid, ids, ['name','customer_code', 'vendor_code'], context=context)
+        code = ''
+        bp_name = ''
+        
+        for record in reads:
+            if 'vendor_code' in record and record['vendor_code']:
+                code = record['vendor_code']                
+            if 'customer_code' in record and record['customer_code']:
+                code = record['customer_code']
+            bp_name = record['name']
+            name = code + ' - ' + bp_name
+            if bp.name=='VVTi Pigments':
+                name = bp_name
+            
+            res.append((record['id'], name))
+  
+        return res
+    
+    def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
+        if name:
+            ids = self.search(cr, user, ['|',('name','like',name),('customer_code','like',name),('vendor_code', 'like', name)]+args, context=context, limit=limit)
+        else:
+            ids = self.search(cr, user, args, context=context, limit=limit)
+        return self.name_get(cr, user, ids, context=context)   
+    #TPT END
     
     def init(self, cr):
         sql ='''

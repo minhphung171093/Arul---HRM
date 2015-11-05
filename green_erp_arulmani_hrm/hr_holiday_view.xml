@@ -108,7 +108,6 @@
 				</tree>
 			</field>
 		</record>
-		
 
 		<record id="view_arul_hr_leave_types_form_vew" model="ir.ui.view">
             <field name="name">arul.hr.leave.types.form</field>
@@ -154,7 +153,6 @@
 			</field>
 		</record>
 		
-
 		<record id="view_arul_hr_capture_work_shift_form_vew" model="ir.ui.view">
             <field name="name">arul.hr.capture.work.shift.form</field>
             <field name="model">arul.hr.capture.work.shift</field>
@@ -179,8 +177,6 @@
 							<field name="max_end_time" widget="float_time"/>
 							<field name="time_total" widget="float_time"/>
 							<newline/>
-
-							
 		                </group>  
 		                <group col='4' colspan='2' string="Half Shift">
 		                	<field name="min_half_start_time" widget="float_time"/>
@@ -297,7 +293,6 @@
             <field name="view_id" ref="view_arul_hr_employee_leave_details_tree_vew"/>
         </record>
         
-
         <menuitem action="action_arul_hr_employee_leave_details_form"
             id="menu_action_arul_hr_employee_leave_details_form"
             parent="menu_hr_leave_management" sequence="22"/>
@@ -398,6 +393,7 @@
 		         </form>
 			</field>
 		</record>
+		
 		<record id="action_arul_hr_permission_onduty_form" model="ir.actions.act_window">
             <field name="name">Permission and On Duty</field>
             <field name="type">ir.actions.act_window</field>
@@ -413,6 +409,7 @@
         <menuitem action="action_arul_hr_permission_onduty_form"
             id="menu_action_arul_hr_permission_onduty_form"
             parent="menu_hr_leave_management" sequence="23"/>
+		
 		
 		<record id="view_arul_hr_audit_shift_time_search_vew" model="ir.ui.view">
         	<field name="name">arul.hr.audit.shift.time.search</field>
@@ -435,8 +432,6 @@
                     <filter string="Approved" name="approved" domain="[('state','=','done')]"/>
                     <filter string="Rejected" name="rejected" domain="[('state','=','cancel')]"/>
                     <filter string="Draft" name="draft" domain="[('state','=','draft')]"/>
-                    
-                    
                 </search>
             </field>
         </record>
@@ -521,7 +516,7 @@
             parent="menu_hr_leave_management" sequence="20"
             groups="group_vvti_hrm_hr_key_user,group_vvti_hrm_time_user,group_vvti_hrm_hr_manager,group_vvti_hrm_payroll_controller,group_vvti_unit_user"/> 
 	
-	<record id="view_arul_hr_employee_attendence_details_search_vew" model="ir.ui.view">
+		<record id="view_arul_hr_employee_attendence_details_search_vew" model="ir.ui.view">
 			<field name="name">arul.hr.employee.attendence.details.search</field>
 			<field name="model">arul.hr.employee.attendence.details</field>
 			<field name="arch" type="xml">
@@ -529,8 +524,9 @@
 					<field name="employee_id"/>					
 				</search>
 			</field>
-	</record>
-	<record id="view_arul_hr_employee_attendence_details_tree_vew" model="ir.ui.view">
+		</record>
+		
+		<record id="view_arul_hr_employee_attendence_details_tree_vew" model="ir.ui.view">
 			<field name="name">arul.hr.employee.attendence.details.tree</field>
 			<field name="model">arul.hr.employee.attendence.details</field>
 			<field name="arch" type="xml">
@@ -546,7 +542,6 @@
 			</field>
 		</record>
 		
-
 		<record id="view_arul_hr_employee_attendence_details_form_vew" model="ir.ui.view">
             <field name="name">arul.hr.employee.attendence.details.form</field>
             <field name="model">arul.hr.employee.attendence.details</field>
@@ -579,9 +574,7 @@
 										<field name="b_shift_count1" />
 										<field name="c_shift_count1" /> 
 										<field name="total_shift_worked1"/>  
-										 
-										<!-- 
-										<field name="shift_worked"/>  -->
+										<!-- <field name="shift_worked"/>  -->
 										<!-- TPT: For Shift Adjustment -->
 										<field name="shift_plus"/>
 										<field name="shift_minus"/>
@@ -595,7 +588,6 @@
 							<page string = "Permission and On Duty Details">
 								<field name="permission_onduty_details_line" nolabel='1'>
 									<tree  create='false' edit='false'>
-										
 										<field name="non_availability_type_id" options="{'create': false, 'create_edit': false}"/>
 										<field name="date"/>										
 										<field name="duty_location"/>
@@ -608,9 +600,7 @@
 									</tree>
 								</field>
 							</page>
-							
 						</notebook>
-						
 		         	</sheet>
 		         </form>
 			</field>
@@ -723,7 +713,7 @@
 					<field name="section_id"/>				
 				</search>
 			</field>
-	</record>
+		</record>
 
         <record id="view_arul_hr_monthly_work_schedule_tree_vew" model="ir.ui.view">
 			<field name="name">arul.hr.monthly.work.schedule.tree</field>
@@ -839,9 +829,7 @@
 					            				<div>
 				                    				04. (<field name="name_of_day_4" class="oe_inline"/>):</div><div>
 				                    				<field name="day_4" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
-				                    			</div>
-				
-				
+				                    			</div>				
 					            				<div>
 				                    				05. (<field name="name_of_day_5" class="oe_inline"/>):</div><div>
 				                    				<field name="day_5" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
@@ -1005,7 +993,6 @@
 					<field name="shift_id"/>
 					<field name="create_date"/>
 					<field name="create_uid"/>
-					<!-- <field name="apply_weekly_off"/>  -->
 					<field name="type"/>
 					<field name="state"/>
 				</tree>
@@ -1038,10 +1025,7 @@
 							<field name="num_of_month" invisible='1'/>
 							<field name="create_date"/>
 							<field name="create_uid"/>
-						</group>
-						<!-- <group col='4' colspan='4'>
-							<field name="apply_weekly_off"/>
-						</group>  -->
+						</group>					
 		         	</sheet>
 		         </form>
 			</field>
@@ -1696,11 +1680,7 @@
                 		<field name ="leave_type_id" domain="[('code','in',('CL','C.Off','PL','SL'))]" options="{'create': false, 'create_edit': false}"/>
                 		<field name ="available_leave_count"/>
                 		<field name ="adj_type"/>
-                		<field name ="increase_count"/>
-                		<!--  
-                		<field name ="increase_count" attrs="{'invisible':[('adj_type','=','decrease')]}"/>
-                		<field name ="decrease_count" attrs="{'invisible':[('adj_type','=','increase')]}"/>
-                		-->
+                		<field name ="increase_count"/>               		
                 		<field name ="reason_for_adj" required='1'/>
                 		<field name ="reason_details" required='1'/>
                 		<field name="create_date"/>
@@ -1727,11 +1707,10 @@
             groups="group_vvti_hrm_hr_manager,group_vvti_hrm_payroll_controller,group_vvti_hrm_time_key_user"/>
          
          <!-- TPT END: LEAVE ADJUSTMENT -->
-         
                  
-<!-- TPT Start on 22/06/15 : for Work shift new master  !-->
+			<!-- TPT Start on 22/06/15 : for Work shift new master  !-->
 
-            <record id="view_tpt_hr_new_work_shift_master_tree_veiw" model="ir.ui.view">
+        <record id="view_tpt_hr_new_work_shift_master_tree_veiw" model="ir.ui.view">
 			<field name="name">tpt.work.shift.tree</field>
 			<field name="model">tpt.work.shift</field>
 			<field name="arch" type="xml">
@@ -1754,7 +1733,6 @@
 			</field>
 		</record>
 		
-
 		<record id="view_tpt_hr_new_work_shift_master_form_veiw" model="ir.ui.view">
             <field name="name">tpt.work.shift.form</field>
             <field name="model">tpt.work.shift</field>
@@ -1768,10 +1746,7 @@
 							<field name="description"/>
 							<newline/>
 							<field name ="create_date"/>
-                			<field name ="create_uid"/>
-                			<!-- 
-                			<field name="allowance"/>   -->
-			                
+                			<field name ="create_uid"/>                			
 						</group>
 						<group col='4' colspan='2' string="Shift">
 							<field name="min_start_time" widget="float_time"/>
@@ -1782,24 +1757,20 @@
 							<field name="max_end_time" widget="float_time"/>
 							<field name="time_total" widget="float_time"/>
 							</group>
-							
-							<group col='4' colspan='2' string="Shift Count">
+						<group col='4' colspan='2' string="Shift Count">
 							<newline/>
 							<field name="a_shift" />
 							<field name="g1_shift" />
 							<field name="g2_shift" />
 							<field name="b_shift" />
 							<field name="c_shift" />
-							
 							<newline/>
 							<field name="shift_count" />
-		                	</group>	
-		                	
-		                	<group col='4' colspan='2' string="For Daily Punch In/Out Report Purpose Only">							
+		                </group>	
+		                <group col='4' colspan='2' string="For Daily Punch In/Out Report Purpose Only">							
 								<field name="min_in_time" widget="float_time"/>
 								<field name="max_in_time" widget="float_time"/>							
-		                	</group>						
-		            	
+		                </group>						
 		         	</sheet>
 		         </form>
 			</field>
@@ -1813,12 +1784,14 @@
             <field name="view_mode">tree,form</field>
             <field name="view_id" ref="view_tpt_hr_new_work_shift_master_tree_veiw"/>
             </record>
+            
         <menuitem action="action_tpt_hr_new_work_shift_master_form"
             id="menu_action_tpt_hr_new_work_shift_master_form"
             parent="menu_hr_leave_management" sequence="35"
             
             groups="group_vvti_hrm_hr_manager,group_vvti_hrm_payroll_controller,group_vvti_hrm_time_key_user"
             />  
+            
         <!-- Coff Reg -->   
         <record id="view_tpt_coff_register_tree_veiw" model="ir.ui.view">
 			<field name="name">tpt.coff.register.tree</field>
@@ -1849,6 +1822,7 @@
                 </search>
             </field>
         </record>
+        
 		<record id="view_tpt_coff_register_form_veiw" model="ir.ui.view">
             <field name="name">tpt.coff.register.form</field>
             <field name="model">tpt.coff.register</field>
@@ -1879,6 +1853,7 @@
             parent="menu_hr_leave_management" sequence="36"
             /> 
         <!-- End -->
+        
         <!-- New Time Machine Attendance-->   
         <record id="view_tpt_hr_attendance_tree_veiw" model="ir.ui.view">
 			<field name="name">tpt.hr.attendance.tree</field>
@@ -1892,6 +1867,7 @@
 				</tree>
 			</field>
 		</record>
+		
 		<record id="view_tpt_hr_attendace_search_vew" model="ir.ui.view">
         	<field name="name">tpt.hr.attendance.search</field>
             <field name="model">tpt.hr.attendance</field>
@@ -1910,6 +1886,7 @@
                 </search>
             </field>
         </record>
+        
 		<record id="view_tpt_hr_attendace_form_veiw" model="ir.ui.view">
             <field name="name">tpt.hr.attendance.form</field>
             <field name="model">tpt.hr.attendance</field>
@@ -1940,6 +1917,7 @@
             parent="menu_hr_leave_management" sequence="37"
             /> 
         <!-- End -->
+        
         <!-- TPT -->
         <record id="view_tpt_time_data_move_tree_view" model="ir.ui.view">
 			<field name="name">tpt.time.data.move.tree</field>
@@ -1964,16 +1942,6 @@
 						<field name="from_db_username" />
 						<field name="from_db_password" password="True"/>
 	                </group>
-	                <!-- 
-	                <group string="To DB">
-	                    <field name="to_host" />
-	                    <field name="to_database" />
-						<field name="to_db_port" />
-						<field name="to_db_username" />
-						<field name="to_db_password" password="True"/>
-						<newline></newline>
-						<field name="result" />
-	                </group> -->
 	        	</form>
 			</field>
 		</record>

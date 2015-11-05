@@ -66,6 +66,7 @@
 										<field name="vpf_id" options="{'create': false, 'create_edit': false}"/>
 										<field name="esi_id" options="{'create': false, 'create_edit': false}"/>
 										<field name="staff_welfare_id" options="{'create': false, 'create_edit': false}"/>
+										<field name="canteen_expense_id" options="{'create': false, 'create_edit': false}"/>
 										<field name="lic_id" options="{'create': false, 'create_edit': false}"/>
 										<field name="profes_tax_id" options="{'create': false, 'create_edit': false}"/>
 										<field name="lwf_id" options="{'create': false, 'create_edit': false}"/>
@@ -3018,9 +3019,9 @@
 	                                    <field name="credit" readonly='1'/>
 	                                    <field name="doc_type" readonly='1'/>
 	                                    <field name="reconciliation_date" attrs="{'readonly': [('cheque_no','in',['Total','Net Balance'])]}"
-	                                    			required='1'/>
+	                                    			required='0'/>
 	                                    <field name="status"
-	                                    required='1' attrs="{'readonly': [('is_confirmed','=',True)]}"/>
+	                                    required='0' attrs="{'readonly': [('is_confirmed','=',True)]}"/>
 	                                    
 	                                    <field name="is_reconciled" invisible="1"/>
 	                                    <field name="is_unreconciled" invisible="1"/> 

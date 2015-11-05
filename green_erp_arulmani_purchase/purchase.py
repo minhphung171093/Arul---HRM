@@ -44,8 +44,8 @@ class tpt_purchase_indent(osv.osv):
         'header_text':fields.text('Header Text',states={'cancel': [('readonly', True)] }), #TPT
         'requisitioner':fields.many2one('hr.employee','Requisitioner',states={'cancel': [('readonly', True)] }),
         'purchase_product_line':fields.one2many('tpt.purchase.product','pur_product_id','Materials',states={'cancel': [('readonly', True)], 'done':[('readonly', True)] }),
-        'state':fields.selection([('draft', 'Draft'),('cancel', 'Closed'),
-                                  ('done', 'Approve'),('rfq_raised','RFQ Raised'),
+        'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancelled'),
+                                  ('done', 'Approved'),('rfq_raised','RFQ Raised'),
                                   ('quotation_raised','Quotation Raised'),
                                   ('po_raised','PO Raised')],'Status', readonly=True),
         'section_id': fields.many2one('arul.hr.section','Section',ondelete='restrict',states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
@@ -93,12 +93,29 @@ class tpt_purchase_indent(osv.osv):
     def bt_cancel(self, cr, uid, ids, context=None):
         for line in self.browse(cr, uid, ids):
             rfq_ids = self.pool.get('tpt.rfq.line').search(cr,uid,[('po_indent_id','=',line.id), ('state','=','done')])
-            po_ids = self.pool.get('purchase.order').search(cr,uid,[('po_indent_no','=',line.id),('state','=','approved')])
+            #po_ids = self.pool.get('purchase.order').search(cr,uid,[('po_indent_no','=',line.id),('state','=','approved')])
+            po_ids = self.pool.get('purchase.order.line').search(cr,uid,[('po_indent_no','=',line.id)])
             if po_ids:
                 raise osv.except_osv(_('Warning!'),_('Purchase Indent was existed at the Purchase Order.!'))
             if rfq_ids:
                 raise osv.except_osv(_('Warning!'),_('Purchase Indent was existed at the request for quotation.!'))
             self.write(cr, uid, ids,{'state':'cancel'})
+        return True 
+    # TPT-By BalamuruganPurushothaman - Ticket No: 2583-Reverse PR provision require after approval
+
+    def bt_draft(self, cr, uid, ids, context=None):
+        for line in self.browse(cr, uid, ids):
+            if line.department_id and line.department_id.primary_auditor_id and line.department_id.primary_auditor_id.id==uid:
+                rfq_ids = self.pool.get('tpt.rfq.line').search(cr,uid,[('po_indent_id','=',line.id), ('state','=','done')])
+                po_ids = self.pool.get('purchase.order.line').search(cr,uid,[('po_indent_no','=',line.id)])
+                if po_ids:
+                    raise osv.except_osv(_('Warning!'),_('Purchase Indent was existed at the Purchase Order.!'))
+                if rfq_ids:
+                    raise osv.except_osv(_('Warning!'),_('Purchase Indent was existed at the request for quotation.!'))
+                self.write(cr, uid, ids,{'state':'draft'})
+            else:
+                raise osv.except_osv(_('Warning!'),_('User does not have permission to approve!'))
+
         return True   
 
     def create(self, cr, uid, vals, context=None):
@@ -451,7 +468,7 @@ class tpt_purchase_product(osv.osv):
         'is_mrp': fields.boolean('Is MRP'),
         'intdent_cate':fields.selection([
                                 ('emergency','Emergency Indent'),
-                                ('normal','Normal Indent')],'Indent Category'),
+                                ('normal','Normal Indent')],'Indent Category'),        
         }  
 #     
     _defaults = {
@@ -572,6 +589,11 @@ class tpt_purchase_product(osv.osv):
             if product.categ_id.cate_name == 'consum' or product.categ_id.cate_name == 'service':
                 res['value'].update({
                     'flag':True,
+                    })
+            # TPT - By BalamuruganPurushothaman - ON 29/10/2015 - Avoid Auto load UOM for Consumable and Service Product
+            if product.categ_id.cate_name == 'consum':
+                res['value'].update({
+                    'uom_po_id':False,     
                     })
         return res
     
@@ -992,6 +1014,18 @@ class product_product(osv.osv):
                 cr.execute(sql)
                 product_ids = [row[0] for row in cr.fetchall()]
                 args += [('id','in',product_ids)]
+        #TPT BM
+        if context.get('search_spent_product_id'):
+            if uid!=1:
+                sql = '''
+                     select product_product.id 
+                        from product_product
+                        where default_code = 'M0501020028'
+                '''
+                cr.execute(sql)
+                product_ids = [row[0] for row in cr.fetchall()]
+                args += [('id','in',product_ids)]
+        #TPT BM 
         if context.get('search_indent_type_cate'):
             if context.get('document_type'):
                 if context.get('document_type')=='raw':
@@ -1193,7 +1227,7 @@ class tpt_gate_in_pass(osv.osv):
         'supplier_id': fields.many2one('res.partner', 'Supplier', required = True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'po_date': fields.datetime('PO Date', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'gate_date_time': fields.datetime('Gate In Pass Date & Time', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancel'),('done', 'Approve')],'Status', readonly=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancelled'),('done', 'Approved')],'Status', readonly=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'gate_in_pass_line': fields.one2many('tpt.gate.in.pass.line', 'gate_in_pass_id', 'Product Details', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'truck_no':fields.text('Truck Number'),
         'invoice_no':fields.text('DC/Invoice No'),
@@ -1431,7 +1465,7 @@ class tpt_purchase_quotation(osv.osv):
              states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         
         
-        'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancel'),('done', 'Approve')],'Status', readonly=True),
+        'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancelled'),('done', 'Approved')],'Status', readonly=True),
         'for_basis':fields.char('For Basis',size = 1024),
         'schedule':fields.date('Delivery Schedule'),
         'comparison_chart_id':fields.many2one('tpt.comparison.chart','Comparison Chart'),
@@ -1915,6 +1949,7 @@ class tpt_comparison_chart(osv.osv):
     _name = "tpt.comparison.chart"
     _order = 'name desc'  
     _columns = {
+        'doc_no':fields.char('Document No'),        
         'name':fields.many2one('tpt.request.for.quotation','RFQ No', required = True),
         'date':fields.date('Create Date', size = 1024,required=True),
         'quotation_cate':fields.selection([
@@ -1922,6 +1957,9 @@ class tpt_comparison_chart(osv.osv):
         'create_uid':fields.many2one('res.users','Created By'),
         'comparison_chart_line':fields.one2many('tpt.purchase.quotation','comparison_chart_id','Line')
                 }
+    _defaults={
+               'doc_no': '/',
+    }
     
     def onchange_request_quotation(self, cr, uid, ids,name=False, context=None):
         vals = {}
@@ -1931,6 +1969,8 @@ class tpt_comparison_chart(osv.osv):
         return {'value': vals}
 
     def create(self, cr, uid, vals, context=None):
+        if vals.get('doc_no','/')=='/':
+            vals['doc_no'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.comparison.chart.import') or '/'
         if vals.get('name',False):
 #             quotation_ids = self.pool.get('tpt.purchase.quotation').search(cr, uid, [('rfq_no_id','=',vals['name']),('state','=','draft')])
             sql = '''
@@ -3047,7 +3087,62 @@ class purchase_order_line(osv.osv):
             
             res[line.id]['amount_basic'] = amount_basic
         return res
-    
+    def get_pending_qty(self, cr, uid, ids, field_name, args, context=None):
+        res = {}
+        for line in self.browse(cr, uid, ids, context=context):
+            res[line.id] = {
+                'pending_qty': 0.0,
+            }
+            
+            res[line.id]['pending_qty'] = 0
+        return res
+    #===========================================================================
+    # def get_pending_qty(count,indent_id,prod_id,ind_qty,item_text,desc):                   
+    #         if count > 0:
+    #             sql = '''
+    #                     select pol.product_qty as rfq_qty
+    #                     from purchase_order_line pol
+    #                     join purchase_order po on (po.id = pol.order_id)
+    #                     join tpt_purchase_indent pi on (pi.id = pol.po_indent_no)
+    #                     where pol.po_indent_no = %s and pol.product_id = %s
+    #                   '''%(indent_id,prod_id)
+    #             if item_text:
+    #                 item_text = item_text.replace("'", "'||''''||'")
+    #                 str = " and pol.item_text = '%s'"%(item_text)
+    #                 sql = sql+str
+    #             if desc:
+    #                 desc = desc.replace("'", "'||''''||'")
+    #                 str = " and pol.description = '%s'"%(desc)
+    #                 sql = sql+str
+    #             cr.execute(sql)
+    #             for move in cr.dictfetchall():                      
+    #                     rfq_qty = move['rfq_qty']
+    #                     pen_qty = ind_qty - rfq_qty
+    #                     return pen_qty or 0.000
+    #         else:
+    #             return ind_qty or 0.000
+    # def get_issue_qty_count(indent_id,prod_id,item_text,desc):             
+    #             
+    #             sql = '''
+    #                     select count(*)
+    #                     from purchase_order_line pol
+    #                     join purchase_order po on (po.id = pol.order_id)
+    #                     join tpt_purchase_indent pi on (pi.id = pol.po_indent_no)
+    #                     where pol.po_indent_no = %s and pol.product_id = %s
+    #                 '''%(indent_id,prod_id)
+    #             if item_text:
+    #                 item_text = item_text.replace("'", "'||''''||'")
+    #                 str = " and pol.item_text = '%s'"%(item_text)
+    #                 sql = sql+str
+    #             if desc:
+    #                 desc = desc.replace("'", "'||''''||'")
+    #                 str = " and pol.description = '%s'"%(desc)
+    #                 sql = sql+str
+    #             cr.execute(sql)
+    #             for move in cr.dictfetchall():
+    #                 count = move['count']
+    #                 return count or 0.000  
+    #===========================================================================
     _columns = {
 #                 'purchase_tax_id': fields.many2one('account.tax', 'Taxes', domain="[('type_tax_use','=','purchase')]", required = True), 
                 
@@ -3098,6 +3193,7 @@ class purchase_order_line(osv.osv):
                                     ('cancel', 'Cancelled'),
                                    ], string='State'),
 #                 'po_document_type_relate':fields.selection([('raw','VV Raw material PO'),('asset','VV Capital PO'),('standard','VV Standard PO'),('local','VV Local PO'),('return','VV Return PO'),('service','VV Service PO'),('out','VV Out Service PO')],'PO Document Type'),
+                'pending_qty': fields.function(get_pending_qty, type='float', digits=(16,0), multi='sum', string='Pending Qty',),
                 }   
     
 
@@ -4466,7 +4562,6 @@ class tpt_rfq_supplier(osv.osv):
         'vendor_id':fields.many2one('res.partner','Vendor Name', required = True),
         'state_id': fields.many2one('res.country.state', 'Vendor Location'),
         'quotation_no_id': fields.many2one('tpt.purchase.quotation', 'Quotation No', readonly = True),
-#         'uom_po_id': fields.many2one('product.uom', 'UOM', readonly = True),
         }  
     
 
@@ -4596,7 +4691,7 @@ class tpt_material_request(osv.osv):
         'project_id': fields.many2one('tpt.project','Project', states={'done':[('readonly', True)], 'cancel':[('readonly', True)]}),
         'project_section_id': fields.many2one('tpt.project.section','Project Section',ondelete='restrict',states={'done':[('readonly', True)], 'cancel':[('readonly', True)]}),
         'material_request_line':fields.one2many('tpt.material.request.line','material_request_id','Vendor Group',states={'done':[('readonly', True)], 'cancel':[('readonly', True)]}),
-        'state':fields.selection([('draft', 'Draft'),('done', 'Approve'),('cancel', 'Cancelled'),('partially', 'Partially Issued'),('closed', 'Closed')],'Status', readonly=True),
+        'state':fields.selection([('draft', 'Draft'),('done', 'Approved'),('cancel', 'Cancelled'),('partially', 'Partially Issued'),('closed', 'Closed')],'Status', readonly=True),
         'cost_center_id': fields.many2one('tpt.cost.center','Cost center',states={'done':[('readonly', True)], 'cancel':[('readonly', True)]}),
         'request_type':fields.selection([('production', 'Production'),('normal', 'Normal'),('main', 'Maintenance')],'Request Type', states={'done':[('readonly', True)], 'cancel':[('readonly', True)]}),
                 }
@@ -5085,7 +5180,7 @@ class tpt_material_request_line(osv.osv):
         'section_relate': fields.related('material_request_id','section_id',type='many2one', relation='arul.hr.section',string='Section'),
         'requisitioner_relate': fields.related('material_request_id','requisitioner',type='many2one', relation='hr.employee',string='Requisitioner'),
         'raise_relate': fields.related('material_request_id','create_uid',type='many2one', relation='res.users',string='Request Raised By'),
-        'state_relate':fields.related('material_request_id', 'state' ,type = 'selection',selection=[('draft', 'Draft'),('done', 'Approve'),('partially', 'Partially Issued'),('closed', 'Closed')], string='State'),
+        'state_relate':fields.related('material_request_id', 'state' ,type = 'selection',selection=[('draft', 'Draft'),('done', 'Approved'),('partially', 'Partially Issued'),('closed', 'Closed')], string='State'),
         'pending_qty': fields.float('Pending Qty'),       
                 }
     
@@ -5134,7 +5229,7 @@ class tpt_material_issue(osv.osv):
         'department_id':fields.many2one('hr.department','Department',readonly=True),
         'request_type':fields.selection([('production', 'Production'),('normal', 'Normal'),('main', 'Maintenance')],'Request Type', states={'done':[('readonly', True)]}),
         'material_issue_line':fields.one2many('tpt.material.issue.line','material_issue_id','Vendor Group',states={'done':[('readonly', True)]}),
-        'state':fields.selection([('draft', 'Draft'),('done', 'Approve')],'Status', readonly=True),
+        'state':fields.selection([('draft', 'Draft'),('done', 'Approved')],'Status', readonly=True),
         'doc_no': fields.char('Document Number', size = 1024,readonly = True),
         'cost_center_id': fields.many2one('tpt.cost.center','Cost center',states={'done':[('readonly', True)]}),
         'flag': fields.boolean('Flag'),
@@ -5434,3 +5529,132 @@ class tpt_material_issue_line(osv.osv):
         return new_write
 tpt_material_issue_line()
 
+class tpt_spent_acid(osv.osv):
+    _name = "tpt.spent.acid"
+    _columns = {
+               'location_id': fields.many2one('stock.location', 'Location', required=True),
+                'product_id': fields.many2one('product.product', 'Product', required=True, select=True),
+                'product_uom': fields.many2one('product.uom', 'Product Unit of Measure', required=True),
+                'product_qty': fields.float('Quantity', digits_compute=dp.get_precision('Product Unit of Measure')),
+                'state':fields.selection([('draft', 'Draft'),('done', 'Approved')],'Status', readonly=True),
+                } 
+    _defaults = {
+                 'state': 'draft',
+                 'location_id': 23,
+                 'product_id': 10745,
+                 #'product_uom':7
+                 }  
+    def onchange_product_id(self, cr, uid, ids,product_id=False, context=None):
+        res = {'value':{
+                    'product_uom':False,
+                    }}
+        if product_id:
+            product = self.pool.get('product.product').browse(cr, uid, product_id)
+            res['value'].update({
+                    'product_uom':product.uom_id.id,
+                    })          
+        return res
+    
+tpt_spent_acid()
+
+class stock_inventory(osv.osv):
+    _inherit = "stock.inventory"
+    _columns = {
+                'create_uid': fields.many2one('res.users','Created By'),
+                }
+    def action_done(self, cr, uid, ids, context=None):
+        """ Finish the inventory
+        @return: True
+        """
+        if context is None:
+            context = {}
+        move_obj = self.pool.get('stock.move')
+        for inv in self.browse(cr, uid, ids, context=context):
+            move_obj.action_done(cr, uid, [x.id for x in inv.move_ids], context=context)
+            self.write(cr, uid, [inv.id], {'state':'done', 'date_done': time.strftime('%Y-%m-%d %H:%M:%S')}, context=context)
+        return True
+
+    def action_confirm(self, cr, uid, ids, context=None):
+        """ Confirm the inventory and writes its finished date
+        @return: True
+        """
+        if context is None:
+            context = {}
+        # to perform the correct inventory corrections we need analyze stock location by
+        # location, never recursively, so we use a special context
+        product_context = dict(context, compute_child=False)
+
+        location_obj = self.pool.get('stock.location')
+        for inv in self.browse(cr, uid, ids, context=context):
+            move_ids = []
+            for line in inv.inventory_line_id:
+                pid = line.product_id.id
+                product_context.update(uom=line.product_uom.id, to_date=inv.date, date=inv.date, prodlot_id=line.prod_lot_id.id)
+                amount = location_obj._product_get(cr, uid, line.location_id.id, [pid], product_context)[pid]
+                change = line.product_qty - amount
+                lot_id = line.prod_lot_id.id
+                if change:
+                    location_id = line.product_id.property_stock_inventory.id
+                    value = {
+                        'name': _('INV:') + (line.inventory_id.name or ''),
+                        'product_id': line.product_id.id,
+                        'product_uom': line.product_uom.id,
+                        'prodlot_id': lot_id,
+                        'date': inv.date,
+                    }
+
+                    if change > 0:
+                        value.update( {
+                            'product_qty': change,
+                            'location_id': location_id,
+                            'location_dest_id': line.location_id.id,
+                        })
+                    else:
+                        value.update( {
+                            'product_qty': -change,
+                            'location_id': line.location_id.id,
+                            'location_dest_id': location_id,
+                        })
+                    move_ids.append(self._inventory_line_hook(cr, uid, line, value))
+            self.write(cr, uid, [inv.id], {'state': 'confirm', 'move_ids': [(6, 0, move_ids)]})
+            self.pool.get('stock.move').action_confirm(cr, uid, move_ids, context=context)
+        return True
+
+    def action_cancel_draft(self, cr, uid, ids, context=None):
+        """ Cancels the stock move and change inventory state to draft.
+        @return: True
+        """
+        for inv in self.browse(cr, uid, ids, context=context):
+            self.pool.get('stock.move').action_cancel(cr, uid, [x.id for x in inv.move_ids], context=context)
+            self.write(cr, uid, [inv.id], {'state':'draft'}, context=context)
+        return True
+
+    def action_cancel_inventory(self, cr, uid, ids, context=None):
+        """ Cancels both stock move and inventory
+        @return: True
+        """
+        move_obj = self.pool.get('stock.move')
+        account_move_obj = self.pool.get('account.move')
+        for inv in self.browse(cr, uid, ids, context=context):
+            move_obj.action_cancel(cr, uid, [x.id for x in inv.move_ids], context=context)
+            for move in inv.move_ids:
+                 account_move_ids = account_move_obj.search(cr, uid, [('name', '=', move.name)])
+                 if account_move_ids:
+                     account_move_data_l = account_move_obj.read(cr, uid, account_move_ids, ['state'], context=context)
+                     for account_move in account_move_data_l:
+                         if account_move['state'] == 'posted':
+                             raise osv.except_osv(_('User Error!'),
+                                                  _('In order to cancel this inventory, you must first unpost related journal entries.'))
+                         account_move_obj.unlink(cr, uid, [account_move['id']], context=context)
+            self.write(cr, uid, [inv.id], {'state': 'cancel'}, context=context)
+        return True
+    
+stock_inventory()
+
+class stock_inventory_line(osv.osv):
+    _inherit = "stock.inventory.line"
+    _columns = {
+                'create_uid': fields.many2one('res.users','Created By'),
+                }
+    
+stock_inventory_line()

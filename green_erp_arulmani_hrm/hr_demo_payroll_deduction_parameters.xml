@@ -96,5 +96,10 @@
           <field name="code">TOTAL_DEDUCTION</field>
       </record>
       
+      <record id="deduction_parameters_21" model="arul.hr.payroll.deduction.parameters">
+          <field name="name">Canteen Deduction</field>
+          <field name="code">C.D</field>
+      </record>
+      
     </data>
 </openerp>

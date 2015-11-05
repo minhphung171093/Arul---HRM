@@ -43,6 +43,7 @@ class tpt_posting_configuration(osv.osv):
         'vpf_id': fields.many2one('account.account', 'VPF', states={ 'done':[('readonly', True)]}),
         'esi_id': fields.many2one('account.account', 'ESI Payable', states={ 'done':[('readonly', True)]}),
         'staff_welfare_id': fields.many2one('account.account', 'Staff Welfare Expenses', states={ 'done':[('readonly', True)]}),
+        'canteen_expense_id': fields.many2one('account.account', 'Canteen Expenses', states={ 'done':[('readonly', True)]}),#TPT-BM-ON 29/10/2015
         'lic_id': fields.many2one('account.account', 'LIC-Premium-Employee', states={ 'done':[('readonly', True)]}),
         'profes_tax_id': fields.many2one('account.account', 'Profession Tax Payable', states={ 'done':[('readonly', True)]}),
         'lwf_id': fields.many2one('account.account', 'Labour welfare Fund', states={ 'done':[('readonly', True)]}),
@@ -1423,7 +1424,7 @@ class account_invoice(osv.osv):
                 # sup inv without po
                     iml += invoice_line_obj.move_line_fright(cr, uid, inv.id)
                     iml += invoice_line_obj.move_line_amount_untaxed_without_po(cr, uid, inv.id) 
-                    iml += invoice_line_obj.move_line_amount_tax(cr, uid, inv.id)
+                    iml += invoice_line_obj.tpt_move_line_amount_tax(cr, uid, inv.id) # TPT-BalamuruganPurushothaman - ON 04/11/2015
 #                     iml += invoice_line_obj.move_line_amount_tax_without_po_deducte(cr, uid, inv.id)
                     iml += invoice_line_obj.move_line_tds_amount_without_po(cr, uid, inv.id) 
                     iml += invoice_line_obj.move_line_amount_round_off(cr, uid, inv.id)
@@ -2157,9 +2158,10 @@ class account_invoice_line(osv.osv):
                     ed = line.ed
                     ed = round(ed,2)                
                 tax_amounts = [r.amount for r in line.invoice_line_tax_id]
+                 
                 for tax_amount in tax_amounts:
                     tax_value += tax_amount/100
-                    
+                     
                 if line.aed_id_1:
                     tax = (basic + p_f + ed + line.aed_id_1)*(tax_value) * voucher_rate
                     tax = round(tax,2)      
@@ -2177,7 +2179,85 @@ class account_invoice_line(osv.osv):
                         'account_analytic_id': line.account_analytic_id.id,
                         })
         return res
-    
+    #TPT-BalamuruganPurushothaman - ON 04/11/2015 - TO CREATE POSTGING ENTRY FOR TAX AMOUNT
+    def tpt_move_line_amount_tax(self, cr, uid, invoice_id, context = None):
+        res = []
+        voucher_rate = 1
+        if context is None:
+            context = {}
+        ctx = context.copy()
+        inv_id = self.pool.get('account.invoice').browse(cr, uid, invoice_id)
+        if inv_id:
+            currency = inv_id.currency_id.name or False
+            currency_id = inv_id.currency_id.id or False
+            ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d')})
+        if currency != 'INR':
+            voucher_rate = self.pool.get('res.currency').read(cr, uid, currency_id, ['rate'], context=ctx)['rate']
+        for line in inv_id.invoice_line:
+            basic = 0.0
+            p_f = 0.0
+            ed = 0.0
+            tax_value = 0.0
+            #if line.invoice_line_tax_id:
+            if line.tax_id:
+                tax_gl_account_ids = [r.gl_account_id for r in line.invoice_line_tax_id]
+                #===============================================================
+                # for tax_gl_account_id in tax_gl_account_ids:
+                #     if tax_gl_account_id:
+                #         account = tax_gl_account_id.id
+                #     else:
+                #         raise osv.except_osv(_('Warning!'),_('Account is not null, please configure GL Account in Tax master !'))
+                #===============================================================
+                account = line.tax_id.gl_account_id and line.tax_id.gl_account_id.id or False
+                basic = (line.quantity * line.price_unit) - ( (line.quantity * line.price_unit)*line.disc/100)
+                basic = round(basic,2)
+                if line.p_f_type == '1' :
+                    p_f = basic * line.p_f/100
+                    p_f = round(p_f,2)
+                elif line.p_f_type == '2' :
+                    p_f = line.p_f
+                    p_f = round(p_f,2)
+                elif line.p_f_type == '3' :
+                    p_f = line.p_f * line.quantity
+                    p_f = round(p_f,2)
+                else:
+                    p_f = line.p_f
+                    p_f = round(p_f,2)
+                if line.ed_type == '1' :
+                    ed = (basic + p_f) * line.ed/100
+                    ed = round(ed,2)
+                elif line.ed_type == '2' :
+                    ed = line.ed
+                    ed = round(ed,2)
+                elif line.ed_type == '3' :
+                    ed = line.ed * line.quantity
+                    ed = round(ed,2)
+                else:
+                    ed = line.ed
+                    ed = round(ed,2)                
+                tax_amounts = [r.amount for r in line.invoice_line_tax_id]
+                
+                for tax_amount in tax_amounts:
+                    tax_value += tax_amount/100
+                    
+                if line.aed_id_1:
+                    tax = (basic + p_f + ed + line.aed_id_1)*(tax_value) * voucher_rate
+                    tax = round(tax,2)      
+                else:
+                    tax = (basic + p_f + ed)*(tax_value) * voucher_rate
+                    tax = round(tax,2)
+                tax = (basic +  ed)* (line.tax_id and line.tax_id.amount / 100 or 0)
+                if tax:    
+                    res.append({
+                        'type':'tax',
+                        'name':line.name,
+                        'price_unit': line.price_unit,
+                        'quantity': 1,
+                        'price': round(tax,2),
+                        'account_id': account,
+                        'account_analytic_id': line.account_analytic_id.id,
+                        })
+        return res
     def move_line_amount_tax_without_po_deducte(self, cr, uid, invoice_id, context = None):
         res = []
         sum_tax = 0.0
@@ -4663,7 +4743,7 @@ class tpt_material_issue(osv.osv):
                     for issue in cr.dictfetchall():
                         hand_quantity_issue = issue['ton_sl'] or 0
                         total_cost_issue = issue['total_cost'] or 0
-                    #TPT By BalamuruganPurushothaman on 14/10/2015 - To avoid throwing Warning - Physical Inventpries to Material Issue
+                    #TPT By BalamuruganPurushothaman on 14/10/2015 - To avoid throwing Warning - Physical Inventories to Material Issue
                     opening_stock_value = 0
                     if (hand_quantity-hand_quantity_issue)!=0:
                         opening_stock_value = (total_cost-total_cost_issue)/(hand_quantity-hand_quantity_issue)
@@ -4993,6 +5073,14 @@ class tpt_hr_payroll_approve_reject(osv.osv):
             cr.execute(sql_welfare)
             welfare = cr.dictfetchone()['tax'] or 0.0
             
+            #TPT - BM - ON 29/10/2015
+            sql_canteen = ''' 
+                select sum(float) as tax from arul_hr_payroll_other_deductions where deduction_parameters_id in (select id from arul_hr_payroll_deduction_parameters where code='C.D')
+                and executions_details_id in (select id from arul_hr_payroll_executions_details where payroll_executions_id = %s)
+            '''%(payroll_ids)
+            cr.execute(sql_canteen)
+            canteen = cr.dictfetchone()['tax'] or 0.0
+            
             sql_esi = '''
                 select sum(float) as tax from arul_hr_payroll_other_deductions where deduction_parameters_id in (select id from arul_hr_payroll_deduction_parameters where code='ESI.D')
                 and executions_details_id in (select id from arul_hr_payroll_executions_details where payroll_executions_id = %s)
@@ -5009,7 +5097,7 @@ class tpt_hr_payroll_approve_reject(osv.osv):
             
             ### END Excutive & Staff - Worker
             
-            sum_credit = (round(provident) + round(vpf) + round(tax) + round(lwf) + round(welfare) + round(lic_premium) +
+            sum_credit = (round(provident) + round(vpf) + round(tax) + round(lwf) + round(welfare) + round(canteen) + round(lic_premium) +
                            + round(ins_oth) + round(vvt_loan) + round(vvt_hdfc) + round(hfl) + round(tmb) + round(sbt) + round(other) + round(esi) + round(it))
             diff = round(gross) - sum_credit
             gross = round(gross) - round(shd)
@@ -5021,6 +5109,7 @@ class tpt_hr_payroll_approve_reject(osv.osv):
                    'lwf':round(lwf),
                    'lic_premium':round(lic_premium),
                    'welfare':round(welfare),
+                   'canteen':round(canteen),#TPT
                    'ins_oth':round(ins_oth),
                    'vvt_loan':round(vvt_loan),
                    'vvt_hdfc':round(vvt_hdfc),
@@ -5080,6 +5169,7 @@ class tpt_hr_payroll_approve_reject(osv.osv):
                 provident_acc = configuration.pfp_id and configuration.pfp_id.id or False
                 vpf_acc = configuration.vpf_id and configuration.vpf_id.id or False
                 welfare_acc = configuration.staff_welfare_id and configuration.staff_welfare_id.id or False
+                canteen_acc = configuration.canteen_expense_id and configuration.canteen_expense_id.id or False#TPT-BM-ON 29/10/2015
                 lic_premium_acc = configuration.lic_id and configuration.lic_id.id or False
                 pro_tax_acc = configuration.profes_tax_id and configuration.profes_tax_id.id or False
                 lwf_acc = configuration.lwf_id and configuration.lwf_id.id or False
@@ -5158,6 +5248,13 @@ class tpt_hr_payroll_approve_reject(osv.osv):
                                     'account_id': welfare_acc,
                                     'debit':0,
                                     'credit':res1['welfare'],
+                                   }))
+                    if res1['canteen'] > 0: #TPT-BM-ON 29/10/2015
+                        journal_s1_line.append((0,0,{
+                                    'name':line.year, 
+                                    'account_id': canteen_acc,
+                                    'debit':0,
+                                    'credit':res1['canteen'],
                                    }))
                     if res1['lic_premium'] > 0:
                         journal_s1_line.append((0,0,{
@@ -5322,6 +5419,13 @@ class tpt_hr_payroll_approve_reject(osv.osv):
                                     'debit':0,
                                     'credit':res2['welfare'],
                                    }))
+                    if res2['canteen'] > 0: #TPT-BM-ON 29/10/2015
+                        journal_s2_line.append((0,0,{
+                                    'name':line.year, 
+                                    'account_id': canteen_acc,
+                                    'debit':0,
+                                    'credit':res2['canteen'],
+                                   }))
                     if res2['lic_premium'] > 0:
                         journal_s2_line.append((0,0,{
                                     'name':line.year, 
@@ -5484,6 +5588,13 @@ class tpt_hr_payroll_approve_reject(osv.osv):
                                     'account_id': welfare_acc,
                                     'debit':0,
                                     'credit':res3['welfare'],
+                                   }))
+                    if res3['canteen'] > 0: #TPT-BM-ON 29/10/2015
+                        journal_s3_line.append((0,0,{
+                                    'name':line.year, 
+                                    'account_id': canteen_acc,
+                                    'debit':0,
+                                    'credit':res3['canteen'],
                                    }))
                     if res3['lic_premium'] > 0:
                         journal_s3_line.append((0,0,{
@@ -5831,6 +5942,8 @@ class mrp_production(osv.osv):
                             hand_quantity_out = hand_quantity_out - mat.product_qty
                             total_cost_out = inventory['total_cost'] or 0
                         price_unit = (hand_quantity_in-hand_quantity_out) and (total_cost_in-total_cost_out)/(hand_quantity_in-hand_quantity_out)
+                        if price_unit<0:
+                            price_unit = 0
                         stock_move_obj.write(cr, 1, [mat.id],{'price_unit':price_unit})
                         cost = price_unit*mat.product_qty or 0
                         debit += round(cost,2)
@@ -6123,7 +6236,8 @@ product_category()
 class res_partner(osv.osv):
     _inherit = 'res.partner'
     _description = 'Partner'
-    #TPT By BalamuruganPurushothaman ON 14/10/2015
+    #TPT By BalamuruganPurushothaman - Incident No: 2991 - ON 14/10/2015 
+    # Credit Used fields should take effective in the following entries: Cash, Bank, Journal Entries, Customer Invoice Posting, Customer Payment etc
     def _tpt_credit_debit_get(self, cr, uid, ids, field_names, arg, context=None):
         res = {}
         for partner in self.browse(cr, uid, ids, context=context):
@@ -6167,10 +6281,11 @@ class res_partner(osv.osv):
         if not res:
             return [('id','=','0')]
         return [('id','in',map(itemgetter(0), res))]
+    #TPT-END
     def _tpt_credit_search(self, cr, uid, obj, name, args, context=None):
         return self._asset_difference_search(cr, uid, obj, name, 'receivable', args, context=context)
     _columns = {
-        'tpt_credit': fields.function(_tpt_credit_debit_get,
+        'tpt_credit': fields.function(_tpt_credit_debit_get, #TPT
             string='Credit Used.', multi='sums'),
         'property_account_payable': fields.property(
             'account.account',
@@ -6330,6 +6445,7 @@ class account_tax(osv.osv):
     _columns = {
         'gl_account_id': fields.many2one('account.account', 'GL Account'),
         'section': fields.char('Section', size = 20),
+        'is_stax_report':fields.boolean('Is STax Report Applicable') #TPT-Y on 16/10/2015
         }
     
 account_tax()

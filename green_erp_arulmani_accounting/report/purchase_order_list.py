@@ -91,7 +91,7 @@ class purchase_order_list_wizard(osv.osv_memory):
         (_check_date, 'Identical Data', []),
     ]
     
-    #Code changed by TPT-Y on 21Spet2015, for add more filteration      
+    #Code changed by TPT-Y on 21Spet2015, for add more filtration      
     def view_report(self, cr, uid, ids, context=None):
         cr.execute('delete from purchase_order_list')
         purchase_order_list_obj = self.pool.get('purchase.order.list')
@@ -272,99 +272,42 @@ class purchase_order_list_wizard(osv.osv_memory):
          
         sql=sql+" order by id"       
                  
-                 
-                    
-                    
-        # if requ and not section and not dept and not indent_no and not date_to and not date_from:
-                    #------------- str = " pp.requisitioner_relate = %s "%(requ)
-                    #--------------------------------------------- sql = sql+str
-        #--- if requ and (date_to or date_from or indent_no or dept or section):
-                    #--------- str = " and pp.requisitioner_relate = %s "%(requ)
-                    #--------------------------------------------- sql = sql+str
-        # if project and not requ and not section and not dept and not indent_no and not date_to and not date_from:
-                    #-------------------- str = " pi.project_id = %s "%(project)
-                    #--------------------------------------------- sql = sql+str
-        # if project and (date_to or date_from or indent_no or dept or section or requ):
-                    #---------------- str = " and pi.project_id = %s "%(project)
-                    #--------------------------------------------- sql = sql+str
-        # if proj_sec and not project and not requ and not section and not dept and not indent_no and not date_to and not date_from:
-                    #------------ str = " pi.project_section_id = %s"%(proj_sec)
-                    #--------------------------------------------- sql = sql+str
-        # if proj_sec and (date_to or date_from or indent_no or dept or section or requ or project):
-                    #------- str = " and pi.project_section_id = %s "%(proj_sec)
-                    #--------------------------------------------- sql = sql+str
-        # if status and not proj_sec and not project and not requ and not section and not dept and not indent_no and not date_to and not date_from:
-                    #------------------------ str = " pp.state = '%s' "%(status)
-                    #--------------------------------------------- sql = sql+str
-        # if status and (date_to or date_from or indent_no or dept or section or requ or project or proj_sec):
-                    #-------------------- str = " and pp.state = '%s' "%(status)
-                    #--------------------------------------------- sql = sql+str
-                    
-                    
-        
-        #if po_no_from and po_no_to is False:
-        #    str = " and po.name <= '%s'"%(po_no_from)
-        #    sql = sql+str
-        #if po_no_to and po_no_from is False:
-        #    str = " and po.name >= '%s'"%(po_no_to)
-        #    sql = sql+str
-        #if po_no_from and po_no_to:
-         #   str = " and po.name between '%s' and '%s'"%(po_no_from,po_no_to)
-         #   sql = sql+str
-        #if sup_id:
-        #    str = " and pol.partner_id = %s"%(sup_id)
-        #    sql = sql+str
-        #if prod_id:
-        #    str = " and pol.product_id = %s"%(prod_id)
-         #   sql = sql+str
-        #if dept_id:
-        #    str = " and pi.department_id = %s"%(dept_id)
-        #    sql = sql+str            
-        #if po_indent_no_from and po_indent_no_to is False:
-        #    str = " and pi.name <= '%s'"%(po_indent_no_from)
-        #    sql = sql+str
-        #if po_indent_no_to and po_indent_no_from is False:
-        #    str = " and pi.name >= '%s'"%(po_indent_no_to)
-        #    sql = sql+str
-        #if po_indent_no_from and po_indent_no_to:
-        #    str = " and pi.name between '%s' and '%s'"%(po_indent_no_from,po_indent_no_to)
-        #    sql = sql+str            
-        #if ind_date_from and ind_date_to is False:
-        #    str = " and pi.date_indent <= '%s'"%(ind_date_from)
-        #    sql = sql+str
-        #if ind_date_to and ind_date_from is False:
-        #    str = " and pi.date_indent <= '%s'"%(ind_date_to)
-        #    sql = sql+str
-        #if ind_date_from and ind_date_to:
-        #    str = " and pi.date_indent between '%s' and '%s'"%(ind_date_from,ind_date_to)
-        #    sql = sql+str
-        #if indent_release_date_from and indent_release_date_to is False:
-        #    str = " and to_date(to_char(pp.hod_date, 'YYYY/MM/DD'), 'YYYY/MM/DD') <= %s"%(indent_release_date_from)
-        #    sql = sql+str
-        #if indent_release_date_to and indent_release_date_from is False:
-        #    str = " and to_date(to_char(pp.hod_date, 'YYYY/MM/DD'), 'YYYY/MM/DD') <= %s"%(indent_release_date_to)
-         #   sql = sql+str
-        #if indent_release_date_from and indent_release_date_to:
-         #   str = " and to_date(to_char(pp.hod_date, 'YYYY/MM/DD'), 'YYYY/MM/DD') between '%s' and '%s'"%(indent_release_date_from,indent_release_date_to)
-         #   sql = sql+str
-        #if type_pend_qty == 'with_zero':
-        #    str = " and pol.product_qty - (select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty from stock_move where purchase_line_id=pol.id and state='done') = '0.00'"
-         #   sql = sql+str
-        #if type_pend_qty == 'without_zero':
-        #    str = " and pol.product_qty - (select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty from stock_move where purchase_line_id=pol.id and state='done') <> '0.00'"
-        #    sql = sql+str        
-        #sql=sql+" order by id"
-        
+          
         
         cr.execute(sql)
         order_line_ids = [r[0] for r in cr.fetchall()]
-        for seq,order_line in enumerate(order_line_obj.browse(cr, uid, order_line_ids)):
+        for seq,order_line in enumerate(order_line_obj.browse(cr, uid, order_line_ids)):            
+            
+            grn_qty_1 = 0
+            grn_qty_2 = 0
+            grn_qty = 0
+            
             sql = '''
                 select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty
                     from stock_move where purchase_line_id=%s and state='done'
+                    and origin is not null
             '''%(order_line.id)
             cr.execute(sql)
-            grn_qty = cr.fetchone()[0]
+            grn_qty_1 = cr.fetchone()[0]
+            
+            sql = '''
+                select count(*) from tpt_gate_out_pass_line where gate_out_pass_id in (
+                    select id from tpt_gate_out_pass where po_id = %s)
+            '''%(order_line.order_id.id)
+            cr.execute(sql)           
+            count = cr.fetchone()[0]
+            
+            if count>0:
+                sql = '''
+                    select COALESCE(product_qty,0) as product_qty from tpt_gate_out_pass_line where gate_out_pass_id in (
+                        select id from tpt_gate_out_pass where po_id = %s)
+                '''%(order_line.order_id.id)
+                cr.execute(sql)           
+                grn_qty_2 = cr.fetchone()[0]
+            else:
+                grn_qty_2 = 0
+            
+            grn_qty = grn_qty_1 - grn_qty_2
             
             ##    
             indent_line_obj = self.pool.get('tpt.purchase.product') 
@@ -602,77 +545,44 @@ class Parser(report_sxw.rml_parse):
         if type_pend_qty == 'without_zero' and (indent_release_date_to or indent_release_date_from or ind_date_to or ind_date_from or po_indent_no_to or po_indent_no_from or dept_id or prod_id or sup_id or po_no_to or po_no_from or date_to or date_from):
                     str = " and pol.product_qty - (select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty from stock_move where purchase_line_id=pol.id and state='done') <> '0.00'"
                     sql = sql+str
-        
-        
-        
-        
-        
-        #=======================================================================
-        # if po_no_from and po_no_to is False:
-        #     str = " and po.name <= '%s'"%(po_no_from)
-        #     sql = sql+str
-        # if po_no_to and po_no_from is False:
-        #     str = " and po.name >= '%s'"%(po_no_to)
-        #     sql = sql+str
-        # if po_no_from and po_no_to:
-        #     str = " and po.name between '%s' and '%s'"%(po_no_from,po_no_to)
-        #     sql = sql+str
-        # if sup_id:
-        #     str = " and pol.partner_id = %s"%(sup_id[0])
-        #     sql = sql+str
-        # if prod_id:
-        #     str = " and pol.product_id = %s"%(prod_id[0])
-        #     sql = sql+str
-        # if dept_id:
-        #     str = " and pi.department_id = %s"%(dept_id[0])
-        #     sql = sql+str            
-        # if po_indent_no_from and po_indent_no_to is False:
-        #     str = " and pi.name <= '%s'"%(po_indent_no_from)
-        #     sql = sql+str
-        # if po_indent_no_to and po_indent_no_from is False:
-        #     str = " and pi.name >= '%s'"%(po_indent_no_to)
-        #     sql = sql+str
-        # if po_indent_no_from and po_indent_no_to:
-        #     str = " and pi.name between '%s' and '%s'"%(po_indent_no_from,po_indent_no_to)
-        #     sql = sql+str            
-        # if ind_date_from and ind_date_to is False:
-        #     str = " and pi.date_indent <= %s"%(ind_date_from)
-        #     sql = sql+str
-        # if ind_date_to and ind_date_from is False:
-        #     str = " and pi.date_indent <= %s"%(ind_date_to)
-        #     sql = sql+str
-        # if ind_date_from and ind_date_to:
-        #     str = " and pi.date_indent between '%s' and '%s'"%(ind_date_from,ind_date_to)
-        #     sql = sql+str
-        # if indent_release_date_from and indent_release_date_to is False:
-        #     str = " and to_date(to_char(pp.hod_date, 'YYYY/MM/DD'), 'YYYY/MM/DD') <= %s"%(indent_release_date_from)
-        #     sql = sql+str
-        # if indent_release_date_to and indent_release_date_from is False:
-        #     str = " and to_date(to_char(pp.hod_date, 'YYYY/MM/DD'), 'YYYY/MM/DD') <= %s"%(indent_release_date_to)
-        #     sql = sql+str
-        # if indent_release_date_from and indent_release_date_to:
-        #     str = " and to_date(to_char(pp.hod_date, 'YYYY/MM/DD'), 'YYYY/MM/DD') between '%s' and '%s'"%(indent_release_date_from,indent_release_date_to)
-        #     sql = sql+str
-        # if type_pend_qty == 'with_zero':
-        #     str = " and pol.product_qty - (select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty from stock_move where purchase_line_id=pol.id and state='done') = '0.00'"
-        #     sql = sql+str
-        # if type_pend_qty == 'without_zero':
-        #     str = " and pol.product_qty - (select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty from stock_move where purchase_line_id=pol.id and state='done') <> '0.00'"
-        #     sql = sql+str
-        #=======================================================================
-        
+
         sql=sql+" order by id"
                     
         
         self.cr.execute(sql)
         order_line_ids = [r[0] for r in self.cr.fetchall()]
         for seq,order_line in enumerate(order_line_obj.browse(self.cr, self.uid, order_line_ids)):
+            
+            grn_qty_1 = 0
+            grn_qty_2 = 0
+            grn_qty = 0            
+            
             sql = '''
                 select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty
                     from stock_move where purchase_line_id=%s and state='done'
+                    and origin is not null
             '''%(order_line.id)
             self.cr.execute(sql)
-            grn_qty = self.cr.fetchone()[0]
+            grn_qty_1 = self.cr.fetchone()[0]
+            
+            sql = '''
+                select count(*) from tpt_gate_out_pass_line where gate_out_pass_id in (
+                    select id from tpt_gate_out_pass where po_id = %s)
+            '''%(order_line.order_id.id)
+            self.cr.execute(sql)           
+            count = self.cr.fetchone()[0]
+            
+            if count>0:
+                sql = '''
+                    select COALESCE(product_qty,0) as product_qty from tpt_gate_out_pass_line where gate_out_pass_id in (
+                        select id from tpt_gate_out_pass where po_id = %s)
+                '''%(order_line.order_id.id)
+                self.cr.execute(sql)           
+                grn_qty_2 = self.cr.fetchone()[0]
+            else:
+                grn_qty_2 = 0
+                            
+            grn_qty = grn_qty_1 - grn_qty_2
             
             ##    
             indent_line_obj = self.pool.get('tpt.purchase.product') 

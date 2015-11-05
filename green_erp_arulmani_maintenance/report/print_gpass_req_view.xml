@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+    	<record id="service_gpass_req_report" model="ir.actions.report.xml">
+	        <field name="name">arul_payslip_report</field>
+	        <field name="type">ir.actions.report.xml</field>
+	        <field name="model">tpt.service.gpass.req</field>
+	        <field name="report_name">service_gpass_req_report</field>
+	        <field name="report_type">aeroo</field>
+	        <field name="in_format">oo-ods</field>
+	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-pdf')]"/>
+	        <field name="parser_loc">green_erp_arulmani_maintenance/report/print_gpass_req.py</field>
+	        <field name="report_rml">green_erp_arulmani_maintenance/report/print_gpass_req.odt</field>
+	        <field name="parser_state">loc</field>
+	        <field name="tml_source">file</field>
+	        <field name="attachment_use" eval="0"/>
+    	</record>		    
+		
+		<report 
+			auto="True" 
+			menu="False"
+			id="service_gpass_req_report" 
+			model="tpt.service.gpass.req" 
+			name="service_gpass_req_report"
+	        string="Service GPass"
+	        rml="green_erp_arulmani_maintenance/report/print_gpass_req.odt"/>	
+    </data>
+</openerp>

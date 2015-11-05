@@ -136,45 +136,15 @@ class Parser(report_sxw.rml_parse):
         self.cr.execute('''select date from stock_picking where id in (select grn_no from account_invoice where id = %s)''', (inv_id.id,))
         grndate = self.cr.fetchone()         
         date = datetime.strptime(str(grndate[0]), DATETIME_FORMAT)
-        temp=date.strftime('%d/%m/%Y')
-        #return grndate and grndate[0] or ''
+        temp=date.strftime('%d/%m/%Y')      
         return temp
-    
-#     def convert_datetime(self,date):
-#         #datercvd = '%Y%m%d'
-#         if date:
-#             #date = datetime.strptime(date, DATETIME_FORMAT)
-#             date = datetime.strptime(date, DATETIME_FORMAT)
-#             year = new.date_from[5:7]
-#             month = new.date_from[3:4]
-#             day = new.date_from[:2]
-#             
-#             #chop = len(date.split()[-1]) - 4
-#             #date = date[:-chop]
-#             
-#             #===================================================================
-#             # datercvd = datetime(
-#             #                   year=date.year, 
-#             #                   month=date.month,
-#             #                   day=date.day,
-#             #                   )
-#             #===================================================================
-#             datercvd = date.strptime(date.strftime('%d/%m/%Y'))
-#             #datetime.strptime(date.strftime('%Y%m%d'), '%Y%m%d')
-#             return datercvd
+
         
-    def get_total(self, value):
-        print value
+    def get_total(self, value):        
         sum = 0.0
         for line in value:
             sum += line.quantity*line.price_unit   
         return sum
-    
-     
-       
-    
-        
-        
-    
+ 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
 

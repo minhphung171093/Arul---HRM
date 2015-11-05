@@ -150,6 +150,7 @@ class service_tax_register(osv.osv_memory):
                     join account_move_line aml on (aml.move_id = am.id)
                     join res_partner rs on (rs.id = ai.partner_id)
                     where aml.name = ail.name and aml.id = %s
+                    and t.is_stax_report = 't'
                 '''%(moveid)
             cr.execute(sql)
             for move in cr.dictfetchall():
@@ -322,8 +323,8 @@ class service_tax_register(osv.osv_memory):
                     join account_invoice_line ail on (ail.invoice_id = ai.id)
                     join account_invoice_line_tax ailt on (ailt.invoice_line_id=ail.id)
                     join account_tax at on (at.id=ailt.tax_id)
-                    where at.description ~'STax' and at.amount>0 and aml.account_id = %s
-                    and am.date <= '%s'
+                    where at.amount>0 and aml.account_id = %s
+                    and am.date <= '%s' and is_stax_report = 't'
                     group by aml.id 
                     order by aml.id)a
                 '''%(accountid,date_to)            
@@ -478,13 +479,28 @@ class service_tax_register(osv.osv_memory):
         #=======================================================================
                 
                 
+            #===================================================================
+            # sql = '''
+            #         select sum(aml.credit) as debit 
+            #         from account_move_line aml
+            #         inner join account_move am on (am.id=aml.move_id)
+            #         inner join account_account aa on (aa.id=aml.account_id and aa.id = %s)
+            #         join account_invoice i on (i.move_id=am.id and i.type = 'in_invoice')
+            #         where aml.debit>0 and am.state in ('posted') and am.date between '%s' and '%s'
+            #         '''%(account_id,date_from,date_to)
+            #===================================================================
             sql = '''
                     select sum(aml.credit) as debit 
                     from account_move_line aml
                     inner join account_move am on (am.id=aml.move_id)
                     inner join account_account aa on (aa.id=aml.account_id and aa.id = %s)
                     join account_invoice i on (i.move_id=am.id and i.type = 'in_invoice')
-                    where aml.debit>0 and am.state in ('posted') and am.date between '%s' and '%s'
+                    join account_invoice_line ail on (ail.invoice_id = i.id and aml.name = ail.name)
+                    join account_invoice_line_tax ailt on (ailt.invoice_line_id=ail.id)
+                    join account_tax at on (at.id=ailt.tax_id)
+                    where aml.debit>0 and am.state in ('posted') and at.amount>0 
+                    and at.is_stax_report = 't'
+                    and am.date between '%s' and '%s'
                     '''%(account_id,date_from,date_to)
             cr.execute(sql)
             for move in cr.dictfetchall():
@@ -607,8 +623,8 @@ class service_tax_register(osv.osv_memory):
                     join account_invoice_line ail on (ail.invoice_id = ai.id and aml.name = ail.name)
                     join account_invoice_line_tax ailt on (ailt.invoice_line_id=ail.id)
                     join account_tax at on (at.id=ailt.tax_id)
-                    where at.description ~'STax' and at.amount>0 and aml.account_id = %s
-                    and am.date < '%s'
+                    where at.amount>0 and aml.account_id = %s
+                    and am.date < '%s' and at.is_stax_report = 't'
                     group by aml.id 
                     order by aml.id)a
                     '''%(account_id,date_from)
@@ -720,7 +736,7 @@ class service_tax_register(osv.osv_memory):
                     JOIN account_invoice_line_tax ailt on (ailt.invoice_line_id=ail.id)
                     Join account_tax at on (at.id=ailt.tax_id and at.gl_account_id = %s)
                     join account_move_line aml on (aml.move_id=ai.move_id and aml.account_id = %s)
-                    where at.description ~'STax' and at.amount>0
+                    where at.amount>0
                     and ai.date_invoice between '%s' and '%s'
                     group by ail.id 
                     order by ail.id)a
@@ -741,89 +757,7 @@ class service_tax_register(osv.osv_memory):
             invoice_obj = self.pool.get('account.move.line')
             
             
-            
-            #===================================================================
-            # sql = '''
-            #     select ail.id from account_invoice_line ail
-            #     join account_invoice ai on (ai.id=ail.invoice_id and ai.type = 'in_invoice')
-            #     JOIN account_invoice_line_tax ailt on (ailt.invoice_line_id=ail.id)
-            #     Join account_tax at on (at.id=ailt.tax_id and at.gl_account_id=%s)                              
-            #     where at.description ~'STax' and at.amount>0 and date_invoice between '%s' and '%s'
-            #     order by ail.id
-            #     --order by ai.date_invoice,ai.bill_number,ai.bill_date
-            #     '''%(account_id.id,date_from, date_to) 
-            #===================================================================
-            
-            
-            #===================================================================
-            # if code == '0000119905':
-            #        sql = '''
-            #             select aml.id
-            #             from account_move_line aml
-            #             inner join account_move am on (am.id=aml.move_id)
-            #             join account_invoice ai on (ai.move_id=am.id and ai.type = 'in_invoice')
-            #             join account_invoice_line ail on (ail.invoice_id = ai.id)
-            #             join account_invoice_line_tax ailt on (ailt.invoice_line_id=ail.id)
-            #             join account_tax at on (at.id=ailt.tax_id)
-            #             where at.description ~'STax' and at.amount>0 and aml.account_id in (402)
-            #             and am.date between '%s' and '%s'                
-            #         '''%(date_from, date_to)                   
-            #        cr.execute(sql)
-            #        invoice_ids = [r[0] for r in cr.fetchall()]
-            #        return invoice_obj.browse(cr,uid,invoice_ids)
-            #     
-            # 
-            # elif code == '0000119925':        
-            #        sql = '''
-            #             select aml.id
-            #             from account_move_line aml
-            #             inner join account_move am on (am.id=aml.move_id)
-            #             join account_invoice ai on (ai.move_id=am.id and ai.type = 'in_invoice')
-            #             join account_invoice_line ail on (ail.invoice_id = ai.id)
-            #             join account_invoice_line_tax ailt on (ailt.invoice_line_id=ail.id)
-            #             join account_tax at on (at.id=ailt.tax_id)
-            #             where at.description ~'STax' and at.amount>0 and aml.account_id in (506)
-            #             and am.date between '%s' and '%s'                
-            #         '''%(date_from, date_to)
-            #        
-            #        cr.execute(sql)
-            #        invoice_ids = [r[0] for r in cr.fetchall()]
-            #        return invoice_obj.browse(cr,uid,invoice_ids)
-            #    
-            # elif code == '0000119926':
-            #         sql = '''
-            #             select aml.id
-            #             from account_move_line aml
-            #             inner join account_move am on (am.id=aml.move_id)
-            #             join account_invoice ai on (ai.move_id=am.id and ai.type = 'in_invoice')
-            #             join account_invoice_line ail on (ail.invoice_id = ai.id)
-            #             join account_invoice_line_tax ailt on (ailt.invoice_line_id=ail.id)
-            #             join account_tax at on (at.id=ailt.tax_id)
-            #             where at.description ~'STax' and at.amount>0 and aml.account_id in (507)
-            #             and am.date between '%s' and '%s'                
-            #             '''%(date_from, date_to)
-            #         cr.execute(sql)
-            #         invoice_ids = [r[0] for r in cr.fetchall()]
-            #         return invoice_obj.browse(cr,uid,invoice_ids)                
-            # 
-            # else:
-            #===================================================================
-                
-            #===================================================================
-            # sql = '''
-            #             select aml.id
-            #             from account_move_line aml
-            #             inner join account_move am on (am.id=aml.move_id)
-            #             join account_invoice ai on (ai.move_id=am.id and ai.type = 'in_invoice')
-            #             join account_invoice_line ail on (ail.invoice_id = ai.id and aml.name = ail.name)
-            #             join account_invoice_line_tax ailt on (ailt.invoice_line_id=ail.id)
-            #             join account_tax at on (at.id=ailt.tax_id)
-            #             where at.description ~'STax' and at.amount>0 
-            #             and aml.account_id = %s
-            #             and am.date between '%s' and '%s'
-            #             order by aml.id                                
-            #             '''%(account_id,date_from, date_to)
-            #===================================================================
+           
             sql = '''
                         select aml.id
                         from account_move_line aml
@@ -832,7 +766,8 @@ class service_tax_register(osv.osv_memory):
                         join account_invoice_line ail on (ail.invoice_id = ai.id and aml.name = ail.name)
                         join account_invoice_line_tax ailt on (ailt.invoice_line_id=ail.id)
                         join account_tax at on (at.id=ailt.tax_id)
-                        where at.description ~'STax' and at.amount>0                                                       
+                        where at.amount>0
+                        and at.is_stax_report = 't'                                                   
                         '''
             if date_from and date_to is False:
                     str = " and am.date <= %s"%(date_from)

@@ -76,7 +76,10 @@
 	            <form string="Purchase Indent" version="7.0">   
 	             <header>
 	            		<button name="bt_approve" states='draft' string="Confirm" type="object" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin,green_erp_arulmani_purchase.group_vvti_hrm_plant_mm_user"/>
-	                    <button name="bt_cancel" states='draft, done' string="Cancel" type="object" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin,green_erp_arulmani_purchase.group_vvti_hrm_plant_mm_user"/> 
+	                    <!-- TPT - BalamuruganPurushothaman - ON 28/10/2015 - TO HIDE CANCEL BUTTON FOR PLANT MM USER -->
+	                    <!-- <button name="bt_cancel" states='draft, done' string="Cancel" type="object" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin,green_erp_arulmani_purchase.group_vvti_hrm_plant_mm_user"/> -->
+	                    <button name="bt_cancel" states='draft, done' string="Cancel" type="object" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin"/> 
+	                    <button name="bt_draft" states='done' string="Rollback" type="object" class="oe_highlight" />
 	                    <field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
 	            </header>    
 	            	<sheet>
@@ -583,6 +586,7 @@
 						<field name="po_date" />
 						<field name="state" required='1' />
 						<field name="item_text" />
+						<field name="pending_qty"/>
 					</group>
 				</sheet>  
 		       </form>
@@ -1280,6 +1284,7 @@
 			<field name="model">tpt.comparison.chart</field>
 			<field name="arch" type="xml">
 				<tree string="Comparison Chart" >
+						<field name="doc_no" />
 						<field name="name"/>
 						<field name="date" />
 						<field name="quotation_cate" />
@@ -1300,10 +1305,12 @@
 	            </header>    
 	            	<sheet>
 	                   	 <group col="4" colspan="2" >
+	                   	 	<field name="doc_no" readonly='1'/>
+	                   	 	<newline></newline>
 	                   	 	<field name="name" on_change="onchange_request_quotation(name)" options="{'create': false, 'create_edit': false}" context="{'search_rfq_id':True}" />
 							<field name="date" />
 							<field name="quotation_cate" />
-							<field name="create_uid" />
+							<field name="create_uid" readonly='1'/>
 	                    </group >
 	                    <notebook>
 						<page>
@@ -1945,7 +1952,7 @@
             <field name="arch" type="xml">
             	<field name="name" position="before">
             		
-            		<field name="vendor_code" string="Code"/>     
+            		<field name="vendor_code" string="Code" readonly="1"/>     
                     
                                  	
                 </field>
@@ -1975,10 +1982,13 @@
                     </xpath>
                     
                     <xpath expr="//field[@name='name']" position="before">
-                        <field name="vendor_code"  placeholder="Vendor Code" attrs="{'invisible': [('supplier','=',False)],'required':[('supplier','!=',False)]}" />
+                    
+                    	<!-- TPT-Vendor Code is freezed By BalamuruganPurushothaman - Incident No: 2964 - on 17/10/2015 - readonly='1' is added here-->
+                    
+                        <field name="vendor_code"  readonly='1' placeholder="Vendor Code" attrs="{'invisible': [('supplier','=',False)],'required':[('supplier','!=',False)]}" />
                     	<field name="title" placeholder="Title" domain="[('domain', '=', 'contact')]" options="{&quot;no_open&quot;: True,'create': false, 'create_edit': false}"/>
                     </xpath>
-                    <!-- TPT - Commented By BalamuruganPurushothaman as per customer Req No:3080 - ON 22/09/2015
+                    <!-- TPT - Commented By BalamuruganPurushothaman - Incident No: 3080 - ON 22/09/2015
                      <xpath expr="//field[@name='email']" position="after">
                         <field name="vendor_sub_group_id"  domain="[('vendor_group_id','=',vendor_group_id)]" attrs="{'invisible': [('supplier','=',False)],'required':[('supplier','!=',False)]}" options="{'create': false, 'create_edit': false}" />
                     </xpath>
@@ -2135,7 +2145,9 @@
 	            <form string="Material Issue" version="7.0">   
 	             <header>
 	            		<button name="bt_approve" states='draft' string="Issue Goods" type="object" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin,green_erp_arulmani_purchase.group_vvti_purchase_store_user"/>
+	            		<!-- 
 	            		<button name="bt_create_posting" attrs="{'invisible': ['|',('flag', '=', True), ('state', '!=', 'done')]}" string="Create Posting" type="object" class="oe_highlight" groups="base.user_root" confirm="Are you sure you want to posting this record?"/>
+	                     -->
 	                    <field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue"}'/>
 	            </header>    
 	            	<sheet>
@@ -2293,6 +2305,7 @@
 						<field name="state" invisible = '1'/>
 						<field name="state_relate"/>
 						<field name="taxes_id" widget = 'many2many_tags'/> 
+						<field name="pending_qty"/>
 					</group>
 				</sheet>  
 		       </form>
@@ -2443,5 +2456,110 @@
             id="menu_action_view_tpt_material_request_line_form"
             parent="purchase.menu_procurement_management" sequence="21"/>
         
+        <!-- 
+        <record id="view_tpt_spent_acid_tree" model="ir.ui.view">
+			<field name="name">tpt.spent.acid.tree</field>
+			<field name="model">tpt.spent.acid</field>
+			<field name="arch" type="xml">
+				<tree string="Material Request">
+						<field name="location_id"/>
+						<field name="product_id"/>		
+				</tree>
+			</field>
+		</record>
+		
+		<record id="view_tpt_spent_acid_form" model="ir.ui.view">
+            <field name="name">tpt.spent.acid.form</field>
+            <field name="model">tpt.spent.acid</field>
+            <field name="arch" type="xml">
+	            <form string="Material Request" version="7.0">   
+	             <header>
+	            		<button name="bt_approve"  string="Confirm Inventory" type="object" class="oe_highlight" />
+	            		<button name="bt_rollback" string="Rollback Inventory" type="object" class="oe_highlight" />                    
+	                    <field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue"}'/>
+	            </header>    
+	            	<sheet>
+		                <group col="4" colspan="2">    
+							<field name="location_id"/>
+
+						</group>
+						<group col="4" colspan="2" >    
+							
+							<field name="product_id" domain="[('id','=',10745)]" on_change="onchange_product_id(product_id)" 
+							context="{'search_spent_product_id':True, 'create_uid':create_uid}"
+							/>
+							<newline></newline>
+							<field name="product_qty"/>
+							<field name="product_uom"/> 
+						</group>
+						
+		         	</sheet>
+		         </form>
+			</field>
+		</record>
+          
+		<record id="action_view_tpt_spent_acid_form" model="ir.actions.act_window">
+            <field name="name">Spent Acid</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.spent.acid</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_tpt_spent_acid_tree"/>
+        </record>
+     
+        
+        <menuitem action="action_view_tpt_spent_acid_form"
+            id="menu_action_view_tpt_spent_acid_form"
+            parent="purchase.menu_procurement_management" sequence="25"/>
+
+         -->
+        <!--  TPT-By BalamuruganPurushothaman - ON 03/11/2015 - Ticket No: 2072 -->
+        
+        <record id="tpt_view_stock_inv_form" model="ir.ui.view">
+            <field name="name">tpt.stock.inventory.form</field>
+            <field name="model">stock.inventory</field>
+            <field name="inherit_id" ref="stock.view_inventory_form"/>
+            <field name="arch" type="xml">
+				<!--  
+				 <xpath expr="//button[@name='action_confirm']" position="attributes">
+					<attribute name='groups'>green_erp_arulmani_production.group_vvti_production_user</attribute>
+				</xpath>
+				<xpath expr="//button[@name='action_done']" position="attributes">
+					<attribute name='groups'>green_erp_arulmani_production.group_vvti_production_user,green_erp_arulmani_production.group_vvti_production_admin</attribute>
+				</xpath>
+				<xpath expr="//button[@name='action_cancel_inventory']" position="attributes">
+					<attribute name='groups'>green_erp_arulmani_production.group_vvti_production_admin</attribute>
+				</xpath> 
+				-->
+				<!-- 
+				 <xpath expr="//button[@name='action_confirm']" position="replace">
+            		<button name="action_confirm" states="draft" 
+            		groups="green_erp_arulmani_production.group_vvti_production_user"
+            		string="Confirm Inventory" type="object" class="oe_highlight"
+            		/>
+            	</xpath>
+            	<xpath expr="//button[@name='action_done']" position="replace">
+            		<button name="action_done" states="confirm" 
+            		groups="green_erp_arulmani_production.group_vvti_production_user,green_erp_arulmani_production.group_vvti_production_admin"
+            		string="Validate Inventory" type="object" class="oe_highlight"
+            		/>
+            	</xpath>
+            	<xpath expr="//button[@name='action_cancel_inventory']" position="replace">
+            		<button name="action_cancel_inventory" states="draft" 
+            		groups="green_erp_arulmani_production.group_vvti_production_admin"
+            		string="Cancel Inventory" type="object" class="oe_highlight"
+            		/>
+            	</xpath>
+            	  -->
+			    <xpath expr="//form/sheet/notebook/page[@string='General Information']/field/tree/field[@name='product_id']"  position="replace">
+					<field name="product_id" 
+					context="{'search_spent_product_id':True,'location':location_id, 'uom':product_uom, 'to_date':parent.date}" 
+					on_change="on_change_product_id(location_id,product_id,product_uom,parent.date)"  domain="[('type','&lt;&gt;','service')]"
+                    options="{'create': false, 'create_edit': false}"/> 
+				</xpath>
+
+	       	</field>
+        </record>
+ 
     </data>
 </openerp>
