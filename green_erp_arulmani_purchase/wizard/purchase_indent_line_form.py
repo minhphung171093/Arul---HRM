@@ -306,7 +306,7 @@ class purchase_indent_line_report(osv.osv_memory):
             #return res or ''
        
         def get_doc_type(type):
-            if type == 'draft':
+            if type == 'base':
                 return 'VV Level Based PR'
             if type == 'capital':
                 return 'VV Capital PR'
