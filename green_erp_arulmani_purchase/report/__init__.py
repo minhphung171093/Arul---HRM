@@ -12,3 +12,4 @@ import material_request_consumption_report
 import grn_line_details_report
 import purchase_indent_line_report
 import print_gate_out_pass
+import pr_history
