@@ -1832,6 +1832,10 @@ class tpt_quality_verification(osv.osv):
         
         'history_line': fields.one2many('tpt.quality.verification','history_id','Histories',readonly = True),
         'history_id': fields.many2one('tpt.quality.verification','Histories Line', ondelete='cascade'),
+        'create_date': fields.datetime('Created Date',readonly = True),
+        'write_date': fields.datetime('Updated Date',readonly = True),
+        'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
+        'write_uid': fields.many2one('res.users','Updated By',ondelete='restrict',readonly = True),
         
     }
     _defaults={
