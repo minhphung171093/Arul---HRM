@@ -27,14 +27,16 @@ class Parser(report_sxw.rml_parse):
             'get_date': self.get_date,
             'get_amt': self.get_amt,
             'get_type': self.get_type,
+            'get_txt': self.get_txt,
             
         })
     
     def get_date(self, date=False):
-        if not date:
-            date = time.strftime(DATETIME_FORMAT)
-        date = datetime.strptime(date, DATE_FORMAT)
-        return date.strftime('%d/%m/%Y')
+        if date:
+            if not date:
+                date = time.strftime(DATETIME_FORMAT)
+            date = datetime.strptime(date, DATE_FORMAT)
+            return date.strftime('%d/%m/%Y')
     def get_amt(self, amt):
         locale.setlocale(locale.LC_NUMERIC, "en_IN")
         inr_comma_format = locale.format("%.3f", amt, grouping=True)
@@ -44,6 +46,12 @@ class Parser(report_sxw.rml_parse):
             res = 'RETURNABLE'
         else:
             res = 'NON-RETURNABLE'
+        return res
+    def get_txt(self, type=False):
+        if type=='return':
+            res = 'Expected Date of Return:'
+        else:
+            res = ''
         return res
     
 

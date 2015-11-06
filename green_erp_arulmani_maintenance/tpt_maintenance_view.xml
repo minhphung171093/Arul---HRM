@@ -697,7 +697,7 @@
 							<field name="truck_no"/> 
 							<field name="employee_id" required="1" options="{'create': false, 'create_edit': false}"/> 
 							<field name="gpass_type" required="1"/>
-							<field name="exp_return_date"/> 
+							<field name="exp_return_date" attrs="{'invisible':[('gpass_type','=','non_return')]}"/> 
 							<field name="purpose"/> 
 							<newline/>	
 							<field name="create_uid"/>
