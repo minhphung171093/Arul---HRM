@@ -1417,7 +1417,7 @@ class tpt_service_gpass(osv.osv):
             if vals.get('name','/')=='/':
                 if gpass_req_obj.gpass_type=='return':
                     vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.service.gpass.import') or '/'
-                elif gpass_req_obj.gpass_req_id.gpass_type=='non_return':
+                elif gpass_req_obj.gpass_type=='non_return':
                     vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.service.gpass.nr.import') or '/'
                  
             vals.update( {
