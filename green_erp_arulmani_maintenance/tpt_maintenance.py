@@ -1285,7 +1285,10 @@ class tpt_service_gpass_req(osv.osv):
         return True 
     def create(self, cr, uid, vals, context=None):
         if vals.get('name','/')=='/':
-            vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.service.gpass.req.import') or '/'
+            if vals['gpass_type']=='return':
+                vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.service.gpass.req.import') or '/'
+            elif vals['gpass_type']=='non_return':
+                vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.service.gpass.nr.req.import') or '/'
             
         new_id = super(tpt_service_gpass_req, self).create(cr, uid, vals, context=context)
         return new_id
@@ -1389,9 +1392,7 @@ class tpt_service_gpass(osv.osv):
                     }
         return {'value': vals}  
     
-    def create(self, cr, uid, vals, context=None):
-        if vals.get('name','/')=='/':
-            vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.service.gpass.import') or '/'
+    def create(self, cr, uid, vals, context=None):      
         if 'gpass_req_id' in vals:
             gpass_req_obj = self.pool.get('tpt.service.gpass.req').browse(cr, uid, vals['gpass_req_id']) 
             service_gpass_line = []
@@ -1404,6 +1405,12 @@ class tpt_service_gpass(osv.osv):
                                   
                                   }
                 service_gpass_line.append((0,0,rs_service))
+            
+            if vals.get('name','/')=='/':
+                if gpass_req_obj.gpass_type=='return':
+                    vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.service.gpass.import') or '/'
+                elif gpass_req_obj.gpass_req_id.gpass_type=='non_return':
+                    vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.service.gpass.nr.import') or '/'
                  
             vals.update( {
                     'maintenance_id':gpass_req_obj.maintenance_id and gpass_req_obj.maintenance_id.id or False,
