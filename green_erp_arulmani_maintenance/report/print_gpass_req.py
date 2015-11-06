@@ -27,6 +27,7 @@ class Parser(report_sxw.rml_parse):
             'get_date': self.get_date,
             'get_amt': self.get_amt,
             'get_type': self.get_type,
+            'get_txt': self.get_txt,
             
         })
     
@@ -45,6 +46,12 @@ class Parser(report_sxw.rml_parse):
             res = 'RETURNABLE'
         else:
             res = 'NON-RETURNABLE'
+        return res
+    def get_txt(self, type=False):
+        if type=='return':
+            res = 'Expected Date of Return:'
+        else:
+            res = ''
         return res
     
 
