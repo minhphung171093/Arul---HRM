@@ -1273,7 +1273,13 @@ class tpt_service_gpass_req(osv.osv):
         for line in self.browse(cr, uid, ids):
             if not line.service_gpass_req_line:
                 raise osv.except_osv(_('Warning!'),_('You can not approve without lines!'))
-            self.write(cr, uid, ids,{'state':'waiting'})
+            name = '/'
+            if line.name=='/':
+                if line.gpass_type=='return':
+                    name = self.pool.get('ir.sequence').get(cr, uid, 'tpt.service.gpass.req.import') or '/'
+                elif line.gpass_type=='non_return':
+                    name = self.pool.get('ir.sequence').get(cr, uid, 'tpt.service.gpass.nr.req.import') or '/'
+            self.write(cr, uid, ids,{'name':name, 'state':'waiting'})
         return True 
     def bt_approve(self, cr, uid, ids, context=None):
         for line in self.browse(cr, uid, ids):
@@ -1284,12 +1290,14 @@ class tpt_service_gpass_req(osv.osv):
             self.write(cr, uid, ids,{'state':'cancel'})
         return True 
     def create(self, cr, uid, vals, context=None):
-        if vals.get('name','/')=='/':
-            if vals['gpass_type']=='return':
-                vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.service.gpass.req.import') or '/'
-            elif vals['gpass_type']=='non_return':
-                vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.service.gpass.nr.req.import') or '/'
-            
+        #=======================================================================
+        # if vals.get('name','/')=='/':
+        #     if vals['gpass_type']=='return':
+        #         vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.service.gpass.req.import') or '/'
+        #     elif vals['gpass_type']=='non_return':
+        #         vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.service.gpass.nr.req.import') or '/'
+        #     
+        #=======================================================================
         new_id = super(tpt_service_gpass_req, self).create(cr, uid, vals, context=context)
         return new_id
     def bt_print(self, cr, uid, ids, context=None):

@@ -31,10 +31,11 @@ class Parser(report_sxw.rml_parse):
         })
     
     def get_date(self, date=False):
-        if not date:
-            date = time.strftime(DATETIME_FORMAT)
-        date = datetime.strptime(date, DATE_FORMAT)
-        return date.strftime('%d/%m/%Y')
+        if date:
+            if not date:
+                date = time.strftime(DATETIME_FORMAT)
+            date = datetime.strptime(date, DATE_FORMAT)
+            return date.strftime('%d/%m/%Y')
     def get_amt(self, amt):
         locale.setlocale(locale.LC_NUMERIC, "en_IN")
         inr_comma_format = locale.format("%.3f", amt, grouping=True)
