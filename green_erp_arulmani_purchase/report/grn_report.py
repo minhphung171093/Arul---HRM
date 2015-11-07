@@ -47,7 +47,7 @@ class Parser(report_sxw.rml_parse):
             from stock_move sm
             inner join tpt_purchase_indent pi on sm.po_indent_id=pi.id
             inner join product_product pp on sm.product_id=pp.id
-            inner join product_template pt on pp.id=pt.id
+            --inner join product_template pt on pp.id=pt.id
             left join product_uom pu on (pu.id = sm.product_uom)
             left join hr_employee emp on pi.requisitioner=emp.id
             
