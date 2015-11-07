@@ -12,6 +12,10 @@ import calendar
 import openerp.addons.decimal_precision as dp
 from openerp import netsvc
 
+from array import array
+import xmlrpclib
+
+
 class tpt_equip_category(osv.osv):
     _name = "tpt.equip.category"
     _columns = {
@@ -1488,7 +1492,7 @@ class tpt_service_gpass(osv.osv):
         '''
         assert len(ids) == 1, 'This option should only be used for a single id at a time.'
         self.write(cr, uid, ids, {'sent': True}, context=context)
-        
+
         datas = {
              'ids': ids,
              'model': 'tpt.service.gpass',
