@@ -100,6 +100,7 @@ class Parser(report_sxw.rml_parse):
         
         res = []
         s_no = 1
+        shift_count = 0
         for line in shifts_ids:#self.cr.dictfetchall():
              ###
             shift_continue = ''
