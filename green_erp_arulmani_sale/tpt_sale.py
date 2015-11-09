@@ -2862,7 +2862,67 @@ class tpt_schedule_dispatch_update(osv.osv):
             else:
                 raise osv.except_osv(_('Warning!'),_('Please select Schedule Dispatch Date!')) 
         return self.write(cr, uid, ids,{'state':'done'})
-    
+    def bt_print(self, cr, uid, ids, context=None):
+        '''
+        This function prints the invoice and mark it as sent, so that we can see more easily the next step of the workflow
+        '''
+        assert len(ids) == 1, 'This option should only be used for a single id at a time.'
+        self.write(cr, uid, ids, {'sent': True}, context=context)
+        
+        prod_ids = self.browse(cr, uid, ids[0])
+        datas = {
+                 'ids': ids,
+                 'model': 'tpt.schedule.dispatch.update',
+                 'form': self.read(cr, uid, ids[0], context=context)
+            }
+        if prod_ids.product_id and prod_ids.product_id.id==2: 
+            return {
+                    'type': 'ir.actions.report.xml',
+                    'report_name': 'fsh_stock_advise_report',
+                } 
+        else:
+            return {
+                    'type': 'ir.actions.report.xml',
+                    'report_name': 'tio2_stock_advise_report',
+                } 
 tpt_schedule_dispatch_update()
+
+#TPT - By BalamuruganPurushothaman - ON 09/11/2015
+class tpt_stock_trans_advise(osv.osv):
+    _name = "tpt.stock.trans.advise"
+    _rec_name = "product_id"
+    _columns = {
+        'product_id': fields.many2one('product.product', 'Product',  states={'done':[('readonly', True)], 'cancel':[('readonly', True)]}),
+        'date': fields.date('Schedule Dispatch Date', states={'done':[('readonly', True)], 'cancel':[('readonly', True)]}),
+        'warehouse_from': fields.many2one('stock.location', 'Warehouse From',  states={'done':[('readonly', True)], 'cancel':[('readonly', True)]}),
+        'warehouse_to': fields.many2one('stock.location', 'Warehouse To',  states={'done':[('readonly', True)], 'cancel':[('readonly', True)]}),
+        'truck_no': fields.char('Truck No.', states={'done':[('readonly', True)], 'cancel':[('readonly', True)]}),
+        'state':fields.selection([('draft', 'Draft'),('done', 'Approved'),('cancel', 'Cancelled'),],'Status', readonly=True, states={'done':[('readonly', True)]}),
+        'batch_line': fields.one2many('tpt.move.batch', 'stock_trans_id', 'Stock Transfer Advise', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+                }
+    _defaults = {
+        'state': 'draft',
+    }
+    
+    def bt_approve(self, cr, uid, ids, context=None):
+        return self.write(cr, uid, ids,{'state':'done'})
+    def bt_cancel(self, cr, uid, ids, context=None):
+        return self.write(cr, uid, ids,{'state':'cancel'})
+    
+tpt_stock_trans_advise()
+
+class tpt_move_batch(osv.osv):
+    _name = "tpt.move.batch"
+    
+    _columns = {
+        'stock_trans_id': fields.many2one('tpt.stock.trans.advise', 'Stock Transfer Advise', ondelete = 'cascade'),        
+        'batch_id': fields.many2one('stock.production.lot', 'Batch No.'),
+        'bags': fields.char('Bags', ),
+        'qty': fields.float('MT', digits=(16,3)),
+        'remarks': fields.char('Remarks'),
+       
+                }
+    
+tpt_move_batch()
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

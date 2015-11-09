@@ -952,5 +952,85 @@
             id="menu_action_tpt_schedule_dispatch_update_form"
             parent="menu_hr_sale_management" sequence="50"/>
  
+ <!-- TPT-Start -->
+ 		<record id="view_tpt_stock_trans_advise_tree_vew" model="ir.ui.view">
+			<field name="name">tpt.stock.trans.advise.tree</field>
+			<field name="model">tpt.stock.trans.advise</field>
+			<field name="arch" type="xml">
+				<tree string="Stock Transfer Advise">
+					<field name="product_id"/>
+					<field name="warehouse_from"/>
+					<field name="warehouse_to"/>
+					<field name="date"/>
+					<field name="state"/>
+				</tree>
+			</field>
+		</record>
+
+		<record id="view_tpt_stock_trans_advise_form_vew" model="ir.ui.view">
+            <field name="name">tpt.stock.trans.advise.form</field>
+            <field name="model">tpt.stock.trans.advise</field>
+            <field name="arch" type="xml">
+	            <form string="Stock Transfer Advise" version="7.0">
+	            	<header>
+	            		<button name="bt_print" states="draft,done,cancel" class="oe_highlight" string="Print" type="object"/>
+	            		<button name="bt_approve" states="draft" class="oe_highlight" string="Approve" type="object"/>
+	            		<button name="bt_cancel" states="done" class="oe_highlight" string="Cancel" type="object"/>
+	            	</header>
+	            	<sheet>
+		                <group col='4' colspan='2'> 
+		                	<field name="product_id" 
+		                	
+		                	domain="[('default_code','in',['M0501010001', 'M0501010002', 'M0501010008'])]"
+		                	required='1' options="{'create': false, 'create_edit': false}"/>
+		                	<field name="date"/>
+							<field name="warehouse_from" required='1' options="{'create': false, 'create_edit': false}"/>
+							<field name="warehouse_to" required='1' options="{'create': false, 'create_edit': false}"/>
+							<field name="truck_no"/>
+							<field name="state" invisible='1'/>
+							
+						</group>
+						
+						<notebook>
+                			<page string="Batches">
+							<field name="batch_line" nolabel='1' attrs="{'invisible':[('product_id','=',2)]}">
+								<tree editable='top'>
+									<field name="batch_id"  required='1' 									
+									options="{'create': false, 'create_edit': false}"/>
+									<field name="bags"/>
+									<field name="qty"/>
+									<field name="remarks"/>
+								</tree>
+							</field>						
+						
+							<field name="batch_line" nolabel='1' attrs="{'invisible':[('product_id','!=',2)]}">
+								<tree editable='top'>
+									<field name="bags"/>
+									<field name="qty"/>
+									<field name="remarks"/>
+								</tree>
+							</field>						
+						
+						</page>
+                		</notebook>
+				    </sheet>
+		         </form>
+			</field>
+		</record>
+          
+		<record id="action_view_tpt_stock_trans_advise_form" model="ir.actions.act_window">
+            <field name="name">Stock Transfer Advise</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.stock.trans.advise</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_tpt_stock_trans_advise_tree_vew"/>
+        </record>
+        
+        <menuitem action="action_view_tpt_stock_trans_advise_form"
+            id="menu_action_view_tpt_stock_trans_advise_form"
+            parent="menu_hr_sale_management" sequence="51"/>						
+ 
+ <!-- TPT-END -->
     </data>
 </openerp>
