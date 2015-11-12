@@ -2893,12 +2893,12 @@ class tpt_stock_trans_advise(osv.osv):
     _rec_name = "product_id"
     _columns = {
         'product_id': fields.many2one('product.product', 'Product',  states={'done':[('readonly', True)], 'cancel':[('readonly', True)]}),
-        'date': fields.date('Schedule Dispatch Date', states={'done':[('readonly', True)], 'cancel':[('readonly', True)]}),
+        'date': fields.date('Date', states={'done':[('readonly', True)], 'cancel':[('readonly', True)]}),
         'warehouse_from': fields.many2one('stock.location', 'Warehouse From',  states={'done':[('readonly', True)], 'cancel':[('readonly', True)]}),
         'warehouse_to': fields.many2one('stock.location', 'Warehouse To',  states={'done':[('readonly', True)], 'cancel':[('readonly', True)]}),
         'truck_no': fields.char('Truck No.', states={'done':[('readonly', True)], 'cancel':[('readonly', True)]}),
         'state':fields.selection([('draft', 'Draft'),('done', 'Approved'),('cancel', 'Cancelled'),],'Status', readonly=True, states={'done':[('readonly', True)]}),
-        'batch_line': fields.one2many('tpt.move.batch', 'stock_trans_id', 'Stock Transfer Advise', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'batch_line': fields.one2many('tpt.move.batch', 'stock_trans_id', 'Stock Transfer Advise', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),    
                 }
     _defaults = {
         'state': 'draft',
@@ -2908,6 +2908,19 @@ class tpt_stock_trans_advise(osv.osv):
         return self.write(cr, uid, ids,{'state':'done'})
     def bt_cancel(self, cr, uid, ids, context=None):
         return self.write(cr, uid, ids,{'state':'cancel'})
+    #===========================================================================
+    # def onchange_product_id(self, cr, uid, ids, product_id, context=None):
+    #     vals = {}
+    #     rs = {}
+    #     meals_details_order_ids=[]
+    #     if product_id:
+    #         for master in self.browse(cr, uid, ids):
+    #             for line in master.meals_details_order_ids:
+    #                 rs = {'product_id':product_id}
+    #                 meals_details_order_ids.append((1,line.id,rs))
+    #                 vals = {'batch_line':meals_details_order_ids}
+    #     return {'value': vals}
+    #===========================================================================
     
 tpt_stock_trans_advise()
 
@@ -2920,8 +2933,7 @@ class tpt_move_batch(osv.osv):
         'bags': fields.char('Bags', ),
         'qty': fields.float('MT', digits=(16,3)),
         'remarks': fields.char('Remarks'),
-       
-                }
+     }
     
 tpt_move_batch()
 

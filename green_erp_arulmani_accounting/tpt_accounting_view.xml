@@ -1461,7 +1461,7 @@
                     <xpath expr="//form[@string='Accounting Voucher']/sheet[@string='Accounting Voucher']/group/field[@name='name']" position="replace">
                        <field name="memo"  />
                        <field name="employee_id" options="{'create': false, 'create_edit': false}" />
-                       <field name="cost_center_id" required="1" options="{'create': false, 'create_edit': false}" />
+                       <field name="cost_center_id" required="0" options="{'create': false, 'create_edit': false}" />
                     </xpath>
               		<xpath expr="//form[@string='Accounting Voucher']/sheet[@string='Accounting Voucher']/group/field[@name='partner_id']" position="before">
                        <field name="name" readonly = "1" />
@@ -1582,7 +1582,8 @@
                     	<attribute name='on_change'>onchange_tpt_currency_amount(tpt_currency_id,tpt_currency_amount,type,date,context)</attribute>
                     </xpath>
                     <xpath expr="//field[@name='account_id']" position="after">
-                    	<field name="cost_center_id" required="1" options="{'create': false, 'create_edit': false}"/>
+                    <!-- TPT-BM-12/11/2015 -->
+                    	<field name="cost_center_id" required="0" options="{'create': false, 'create_edit': false}"/>
                     </xpath>
                     
                     <xpath expr="//button[@string='Unreconcile']" position="attributes">
@@ -1667,7 +1668,8 @@
                     	<attribute name='on_change'>onchange_tpt_currency_amount(tpt_currency_id,tpt_currency_amount,type,date,context)</attribute>
                     </xpath>
                     <xpath expr="//field[@name='account_id']" position="after">
-                    	<field name="cost_center_id" required="1" options="{'create': false, 'create_edit': false}"/>
+                    	<!-- TPT-BM-ON 12/11/2015 - non mandatory -->
+                    	<field name="cost_center_id" required="0" options="{'create': false, 'create_edit': false}"/>
                     </xpath>
                     
                     <xpath expr="//button[@string='Unreconcile']" position="attributes">
