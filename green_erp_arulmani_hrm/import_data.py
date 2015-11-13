@@ -1595,59 +1595,86 @@ class tpt_import_canteen_details(osv.osv):
                     if not employee_ids:
                         raise osv.except_osv(_('Warning!'), ' Line: '+str(dem+1))
                     emp_id = employee_ids[0]
-
-                    bfast = sh.cell(row, 2).value
-                    if bfast:
-                        if bfast=='Y':
-                            m_bfast = True
-                        else:
-                            m_bfast = False
-                    else:
-                        m_bfast = False
-                    lunch = sh.cell(row, 3).value
-                    if lunch:
-                        if lunch=='Y':
-                            m_lunch = True
-                        else:
-                            m_lunch = False
-                    else:
-                        m_lunch = False
-                    dinner = sh.cell(row, 4).value
-                    if dinner:
-                        if dinner=='Y':
-                            m_dinner = True
-                        else:
-                            m_dinner = False
-                    else:
-                        m_dinner = False
-                    midtiffen = sh.cell(row, 5).value
-                    if midtiffen:
-                        if midtiffen=='Y':
-                            m_midtiffen = True
-                        else:
-                            m_midtiffen = False
-                    else:
-                        m_midtiffen = False
                     
-                    sql1 = '''select id from meals_deduction where meals_date ='%s' '''%mealsdate
-                    sql2 = '''select meals_date from meals_deduction where meals_date ='%s' '''%mealsdate
-                    cr.execute(sql1)
-                    melasid= cr.fetchone()
-                    cr.execute(sql2)
-                    melas_date= cr.fetchone()
-                    if melas_date != mealsdate:    
-                    #Create Meals Dedution            
+                    bfast_count = 0
+                    lunch_count = 0
+                    dinner_count = 0
+                    night_tiffin_count = 0
+                    non_veg_count = 0
+                    omlette_count = 0
+                    
+                    book_obj = self.pool.get('tpt.canteen.book.type')
+                      
+            
+                    bfast = sh.cell(row, 1).value 
+                    if len(str(bfast))>=1:                       
+                        no_of_book = 1
+                        type_id = book_obj.search(cr, uid, [('name','=','Breakfast')])
+                        breakfast_id = book_obj.browse(cr,uid,type_id[0])
+                        book_type_id = breakfast_id.id 
+                        
                         details_obj.create(cr, uid, {
-                        'break_fast':m_bfast,
-                        'lunch':m_lunch,
-                        'dinner':m_dinner,
-                        'midnight_tiffin':m_midtiffen,
-                        'emp_id':emp_id,
-                        'meals_id':melasid
-                  
+                        'employee_id':emp_id,
+                        'book_type_id':book_type_id,
+                        'no_of_book':no_of_book,
+
+                        }) 
+                   
+                    lunch = sh.cell(row, 2).value
+                    if len(str(lunch))>=1:
+                        #print "TEST:",len(str(lunch))
+                        no_of_book = 1
+                        type_id = book_obj.search(cr, uid, [('name','=','Lunch')])
+                        breakfast_id = book_obj.browse(cr,uid,type_id[0])
+                        book_type_id = breakfast_id.id 
+                        details_obj.create(cr, uid, {
+                        'employee_id':emp_id,
+                        'book_type_id':book_type_id,
+                        'no_of_book':no_of_book,
+
                         }) 
 
+                    night_tiffin = sh.cell(row, 3).value
+                    if len(str(night_tiffin))>=1:
+                        no_of_book = 1
+                        type_id = book_obj.search(cr, uid, [('name','=','Night tiffin')])
+                        breakfast_id = book_obj.browse(cr,uid,type_id[0])
+                        book_type_id = breakfast_id.id 
+                        details_obj.create(cr, uid, {
+                        'employee_id':emp_id,
+                        'book_type_id':book_type_id,
+                        'no_of_book':no_of_book,
+
+                        }) 
                       
+                    nonveg = sh.cell(row, 4).value
+                    if len(str(nonveg))>=1:
+                        non_veg_count = 1
+                        type_id = book_obj.search(cr, uid, [('name','=','Non Veg')])
+                        breakfast_id = book_obj.browse(cr,uid,type_id[0])
+                        book_type_id = breakfast_id.id 
+                        details_obj.create(cr, uid, {
+                        'employee_id':emp_id,
+                        'book_type_id':book_type_id,
+                        'no_of_book':no_of_book,
+
+                        }) 
+                        
+                    omlette = sh.cell(row, 5).value
+                    if len(str(omlette))>=1:
+                        no_of_book = 1
+                        type_id = book_obj.search(cr, uid, [('name','=','Omlette')])
+                        breakfast_id = book_obj.browse(cr,uid,type_id[0])
+                        book_type_id = breakfast_id.id 
+                        details_obj.create(cr, uid, {
+                        'employee_id':emp_id,
+                        'book_type_id':book_type_id,
+                        'no_of_book':no_of_book,
+
+                        }) 
+                    ###
+                       
+   
             except Exception, e:
                 raise osv.except_osv(_('Warning!'), str(e)+ ' Line: '+str(dem+1))
         return self.write(cr, uid, ids, {'state':'done'})
