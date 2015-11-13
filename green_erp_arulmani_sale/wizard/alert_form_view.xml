@@ -100,9 +100,12 @@
             <field name="view_mode">form</field>
             <field name="target">new</field>
         </record>
+        <!-- TPT-BM-COMMENTED TEMPORARILY-ON 13/11/2015 -->
+        <!-- 
         <menuitem action="action_do_adj_process"
             id="menu_action_do_adj_process"
             parent="menu_hr_sale_management" sequence="36"/>
+             -->
     </data>
 </openerp>
 
