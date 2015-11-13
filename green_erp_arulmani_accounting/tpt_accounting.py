@@ -3575,6 +3575,27 @@ class account_voucher(osv.osv):
             currency = voucher.currency_id or voucher.company_id.currency_id
             res[voucher.id] =  credit
         return res
+    def _amount_all_credit_debit(self, cr, uid, ids, field_name, args, context=None):
+        res = {}
+        for line in self.browse(cr,uid,ids,context=context):
+            res[line.id] = {
+                'credit_total': 0.0,
+                'debit_total': 0.0,
+                'total_diff': 0.0,
+            }
+            val1 = 0.0
+            val2 = 0.0
+            val3 = 0.0
+            for line1 in line.line_cr_ids:
+                #val1 += line.amount_original 
+                val1 += line1.amount_unreconciled
+            for line2 in line.line_dr_ids:
+                val2 += line2.amount_unreconciled
+            res[line.id]['credit_total'] = val1
+            res[line.id]['debit_total'] = val2
+            val3 = val1 - val2 
+            res[line.id]['total_diff'] = val3
+        return res
     ###
     _columns = {
         'name': fields.char( 'Journal no.',size = 256),
@@ -3623,6 +3644,10 @@ class account_voucher(osv.osv):
         
         'status': fields.selection([('reconcile', 'Reconciled'), ('unreconcile', 'Un-Reconciled'), 
                                     ('confirmed', 'Confirmed')],'Reconcile-Status'),  #TPT
+        'credit_total':fields.function(_amount_all_credit_debit, type='float', string='Credit'),
+        'debit_total':fields.function(_amount_all_credit_debit, type='float', string='Debit'),
+        'total_diff':fields.function(_amount_all_credit_debit, type='float', string='Diff: Cr-Db'),
+       
         }
     
     def voucher_print_button(self, cr, uid, ids, context={}):
@@ -3651,7 +3676,7 @@ class account_voucher(osv.osv):
                 'type': 'ir.actions.report.xml',
                 'report_name': 'account_voucher_report',
             }     
-        
+    #TPT-By BalamuruganPurushothaman - ON 12/11/2015 - TO AVOID LOADING DEFAULT CUSTOMER(VVTi Pigments) IN VOUCHER SCREENS    
     def default_get(self, cr, uid, fields, context=None):
         if context is None:
             context = {}
@@ -3664,7 +3689,7 @@ class account_voucher(osv.osv):
         user = self.pool.get('res.users').browse(cr, uid, uid)
         partner_id = user.company_id.partner_id.id
         res.update({'partner_id': partner_id})
-        
+         
         return res
     
     def _default_journal_id(self, cr, uid, context=None):

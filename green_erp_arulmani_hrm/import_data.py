@@ -1519,4 +1519,142 @@ tpt_import_meals_details()
 
 #End:TPT
 
+###TPT-CANTEEN
+
+class tpt_import_canteen_details(osv.osv):
+    _name = 'tpt.import.canteen.details'    
+    
+    def _data_get(self, cr, uid, ids, name, arg, context=None):
+        if context is None:
+            context = {}
+        result = {}
+        location = self.pool.get('ir.config_parameter').get_param(cr, uid, 'hr_identities_attachment.location')
+        bin_size = context.get('bin_size')
+        for attach in self.browse(cr, uid, ids, context=context):
+            if location and attach.store_fname:
+                result[attach.id] = self._file_read(cr, uid, location, attach.store_fname, bin_size)
+            else:
+                result[attach.id] = attach.db_datas
+        return result
+    def _data_set(self, cr, uid, id, name, value, arg, context=None):
+        # We dont handle setting data to null
+        if not value:
+            return True
+        if context is None:
+            context = {}
+        location = self.pool.get('ir.config_parameter').get_param(cr, uid, 'hr_identities_attachment.location')
+        file_size = len(value.decode('base64'))
+        if location:
+            attach = self.browse(cr, uid, id, context=context)
+            if attach.store_fname:
+                self._file_delete(cr, uid, location, attach.store_fname)
+            fname = self._file_write(cr, uid, location, value)
+            # SUPERUSER_ID as probably don't have write access, trigger during create
+            super(tpt_import_canteen_details, self).write(cr, SUPERUSER_ID, [id], {'store_fname': fname, 'file_size': file_size}, context=context)
+        else:
+            super(tpt_import_canteen_details, self).write(cr, SUPERUSER_ID, [id], {'db_datas': value, 'file_size': file_size}, context=context)
+        return True    
+
+
+    _columns = {
+        'name': fields.date('Date Import', required=True,states={'done': [('readonly', True)]}),
+        'datas_fname': fields.char('File Name',size=256),
+        'datas': fields.function(_data_get, fnct_inv=_data_set, string='Data Employee', type="binary", nodrop=True,states={'done': [('readonly', True)]}),
+        'store_fname': fields.char('Stored Filename', size=256),
+        'db_datas': fields.binary('Database Data'),
+        'file_size': fields.integer('File Size'),
+        'state':fields.selection([('draft', 'Draft'),('done', 'Done')],'Status', readonly=True)
+    }
+    
+    _defaults = {
+        'state':'draft',
+        'name': time.strftime('%Y-%m-%d'),
+        
+    }
+
+    def import_canteen_details(self, cr, uid, ids, context=None):
+        this = self.browse(cr, uid, ids[0])
+        try:
+            recordlist = base64.decodestring(this.datas)
+            excel = xlrd.open_workbook(file_contents = recordlist)
+            sh = excel.sheet_by_index(0)
+        except Exception, e:
+            raise osv.except_osv(_('Warning!'), str(e))
+        if sh:
+            details_obj = self.pool.get('tpt.canteen.deduction')
+            try:
+                dem = 1
+                for row in range(1,sh.nrows):
+                    emp_code = sh.cell(row, 0).value
+                    emp_code_char = str(int(emp_code))
+                    sql = '''
+                        select id from hr_employee where employee_id = '%s'
+                    '''%(emp_code_char)
+                    cr.execute(sql)
+                    employee_ids = [r[0] for r in cr.fetchall()]
+                    if not employee_ids:
+                        raise osv.except_osv(_('Warning!'), ' Line: '+str(dem+1))
+                    emp_id = employee_ids[0]
+
+                    bfast = sh.cell(row, 2).value
+                    if bfast:
+                        if bfast=='Y':
+                            m_bfast = True
+                        else:
+                            m_bfast = False
+                    else:
+                        m_bfast = False
+                    lunch = sh.cell(row, 3).value
+                    if lunch:
+                        if lunch=='Y':
+                            m_lunch = True
+                        else:
+                            m_lunch = False
+                    else:
+                        m_lunch = False
+                    dinner = sh.cell(row, 4).value
+                    if dinner:
+                        if dinner=='Y':
+                            m_dinner = True
+                        else:
+                            m_dinner = False
+                    else:
+                        m_dinner = False
+                    midtiffen = sh.cell(row, 5).value
+                    if midtiffen:
+                        if midtiffen=='Y':
+                            m_midtiffen = True
+                        else:
+                            m_midtiffen = False
+                    else:
+                        m_midtiffen = False
+                    
+                    sql1 = '''select id from meals_deduction where meals_date ='%s' '''%mealsdate
+                    sql2 = '''select meals_date from meals_deduction where meals_date ='%s' '''%mealsdate
+                    cr.execute(sql1)
+                    melasid= cr.fetchone()
+                    cr.execute(sql2)
+                    melas_date= cr.fetchone()
+                    if melas_date != mealsdate:    
+                    #Create Meals Dedution            
+                        details_obj.create(cr, uid, {
+                        'break_fast':m_bfast,
+                        'lunch':m_lunch,
+                        'dinner':m_dinner,
+                        'midnight_tiffin':m_midtiffen,
+                        'emp_id':emp_id,
+                        'meals_id':melasid
+                  
+                        }) 
+
+                      
+            except Exception, e:
+                raise osv.except_osv(_('Warning!'), str(e)+ ' Line: '+str(dem+1))
+        return self.write(cr, uid, ids, {'state':'done'})
+
+
+tpt_import_canteen_details()
+
+
+###TPT-CANTEEN
 
