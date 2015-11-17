@@ -58,19 +58,21 @@ class Parser(report_sxw.rml_parse):
         sql = '''
             select b.inv_doc as inv_doc,b.date_invoice,b.bill_number,b.bill_date,b.tax_name,
             b.partnername,b.tin,
-            b.productname,b.vatbased_qty,b.vatbased_amt,(b.taxamt*b.vatbased_amt)/100 as paid_amt,b.uom from (
+            b.productname,b.vatbased_qty,b.vatbased_amt,(b.taxamt*b.vatbased_amt)/100 as paid_amt_1,b.amount_tax as paid_amt,
+            b.uom from (
             select 
             rank() Over (Partition BY a.invoice_id,a.tax_id order by a.line_net desc) as productrank,
             a.inv_doc,a.date_invoice,a.bill_number,a.bill_date,a.taxamt,a.tax_name,
             a.partnername,a.tin,
-            a.productname,a.vatbased_qty,a.vatbased_amt,a.uom
+            a.productname,a.vatbased_qty,a.vatbased_amt,a.amount_tax,a.uom
             from (
             select ail.invoice_id,i.name as inv_doc,i.date_invoice,i.bill_number,i.bill_date,at.name as tax_name,
             rp.name as partnername,rp.tin, 
             ail.name as productname,
             ail.quantity  as vatbased_qty,
             --sum(ail.quantity) over (partition by ail.invoice_id,ailt.tax_id) as vatbased_qty,
-            sum(ail.line_net-ail.fright) over (partition by ail.invoice_id,ailt.tax_id) as vatbased_amt,
+            (i.amount_untaxed+i.excise_duty+i.p_f_charge + COALESCE(i.aed,0) + COALESCE(i.amount_round_off,0)) as vatbased_amt,i.amount_tax,
+            --sum(ail.line_net-ail.fright) over (partition by ail.invoice_id,ailt.tax_id) as vatbased_amt,
             ailt.tax_id,at.amount as taxamt,
             pu.name as uom,ail.line_net-ail.fright as line_net
             from account_invoice_line ail
