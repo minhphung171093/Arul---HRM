@@ -66,7 +66,7 @@
 			<field name="name">tpt.commisionarate.tree</field>
 			<field name="model">tpt.commisionarate</field>
 			<field name="arch" type="xml">
-				<tree string="Commisionarate">
+				<tree string="Commissionerate">
 						<field name="name"/>
 						<field name="nature"/>
 						<field name="code1"/>
@@ -80,7 +80,7 @@
             <field name="name">tpt.commisionarate.form</field>
             <field name="model">tpt.commisionarate</field>
             <field name="arch" type="xml">
-	            <form string="Commisionarate" version="7.0">   
+	            <form string="Commissionerate" version="7.0">   
 	            	<sheet>
 	            		<group col="4" colspan="2">
 	            			<field name="name"/>
@@ -95,18 +95,18 @@
 	    </record>
 	            		
 	    <record id="action_tpt_commisionarate_form_vew" model="ir.actions.act_window">
-            <field name="name">Commisionarate</field>
+            <field name="name">Commissionerate</field>
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">tpt.commisionarate</field>
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
             <field name="view_id" ref="tpt_commisionarate_tree_vew"/>
         </record>
-        
+        <!-- TPT-By BalamuruganPurushothaman-ON 17/11/12015 - To Hide Obsolete Screen
         <menuitem action="action_tpt_commisionarate_form_vew"
             id="menu_action_tpt_commisionarate_form_vew"
             parent="menu_hr_sale_management" sequence="15"/>          		
-	            		
+	      -->       		
        	<record id="tpt_form_are_3_tree_vew" model="ir.ui.view">
 			<field name="name">tpt.form.are.3.tree</field>
 			<field name="model">tpt.form.are.3</field>

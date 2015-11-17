@@ -31,7 +31,6 @@
         <menuitem action="crm.crm_case_channel_action" id="crm.menu_crm_case_channel" parent="menu_vvti_master" sequence="10" groups="base.group_no_one"/>        
         <menuitem action="crm.crm_case_section_act" id="vsis_menu_crm_case_section_act" sequence="11" parent="menu_vvti_master" groups="base.group_erp_manager,group_readonly"/>        
         <menuitem action="base.res_lang_act_window" id="vsis_menu_res_lang_act_window" parent="menu_vvti_master"  sequence="12" groups="base.group_erp_manager,group_readonly"/>
-        <menuitem action="vsis_action_sales_organization_code" id="vsis_menu_sales_organization_code" sequence="13" parent="menu_vvti_master" groups="base.group_erp_manager,group_readonly"/>
         <menuitem action="vsis_action_customer_account_group" id="vsis_menu_customer_account_group" sequence="14" parent="menu_vvti_master" groups="base.group_erp_manager,group_readonly"/>
         <!--<menuitem action="vsis_action_sort_key" id="vsis_menu_sort_key" sequence="15" parent="menu_vvti_master" groups="base.group_erp_manager,group_readonly"/>-->
         <!--<menuitem action="vsis_action_tax_classification" id="vsis_menu_tax_classification" sequence="16" parent="menu_vvti_master" groups="base.group_erp_manager,group_readonly"/>-->
@@ -39,10 +38,15 @@
         <!--<menuitem action="vsis_action_account_assign_group" id="vsis_menu_account_assign_group" sequence="19" parent="menu_vvti_master" groups="base.group_erp_manager,group_readonly"/>--> 
         <!--<menuitem action="vsis_action_customer_statistics_group" id="vsis_menu_customer_statistics_group" sequence="20" parent="menu_vvti_master" groups="base.group_erp_manager,group_readonly"/>--> 
         <!--<menuitem action="vsis_action_price_group" id="vsis_menu_price_group" sequence="21" parent="menu_vvti_master" groups="base.group_erp_manager,group_readonly"/>--> 
-        <menuitem action="vsis_action_division_code" id="vsis_menu_division_code" sequence="23" parent="menu_vvti_master" groups="base.group_erp_manager,group_readonly"/> 
         <menuitem action="vsis_action_tax_category" id="vsis_menu_tax_category" sequence="24" parent="menu_vvti_master" groups="base.group_erp_manager,group_readonly"/> 
         <!--<menuitem action="vsis_action_tax_number_1" id="vsis_menu_tax_number_1" sequence="25" parent="menu_vvti_master" groups="base.group_erp_manager,group_readonly"/>-->
+        
+        <!--  TPT-By BalamuruganPurushothaman-ON 17/11/12015 - To Hide Obsolete Screens
+        <menuitem action="vsis_action_sales_organization_code" id="vsis_menu_sales_organization_code" sequence="13" parent="menu_vvti_master" groups="base.group_erp_manager,group_readonly"/>
+        <menuitem action="vsis_action_division_code" id="vsis_menu_division_code" sequence="23" parent="menu_vvti_master" groups="base.group_erp_manager,group_readonly"/>
         <menuitem action="vsis_action_credit_control_area" id="vsis_menu_credit_control_area" sequence="26" parent="menu_vvti_master" groups="base.group_erp_manager,group_readonly"/>
+        -->
+        
         <!--<menuitem action="vsis_action_shipping_conditions" id="vsis_menu_shipping_conditions" sequence="27" parent="menu_vvti_master" groups="base.group_erp_manager,group_readonly"/>--> 
         <!--<menuitem action="vsis_action_cust_pric_procedure" id="vsis_menu_cust_pric_procedure" sequence="28" parent="menu_vvti_master" groups="base.group_erp_manager,group_readonly"/>-->
         <menuitem action="vsis_action_customer_group" id="vsis_menu_customer_group" sequence="29" parent="menu_vvti_master" groups="base.group_erp_manager,group_readonly"/>

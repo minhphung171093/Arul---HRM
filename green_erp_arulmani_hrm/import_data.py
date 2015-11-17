@@ -1604,8 +1604,7 @@ class tpt_import_canteen_details(osv.osv):
                     omlette_count = 0
                     
                     book_obj = self.pool.get('tpt.canteen.book.type')
-                      
-            
+
                     bfast = sh.cell(row, 1).value 
                     if len(str(bfast))>=1:                       
                         no_of_book = 1
@@ -1622,7 +1621,6 @@ class tpt_import_canteen_details(osv.osv):
                    
                     lunch = sh.cell(row, 2).value
                     if len(str(lunch))>=1:
-                        #print "TEST:",len(str(lunch))
                         no_of_book = 1
                         type_id = book_obj.search(cr, uid, [('name','=','Lunch')])
                         breakfast_id = book_obj.browse(cr,uid,type_id[0])
