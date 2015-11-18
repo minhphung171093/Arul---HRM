@@ -2943,6 +2943,7 @@ class tpt_stock_trans_advise(osv.osv):
                     'type': 'ir.actions.report.xml',
                     'report_name': 'form_stock_trans_fsh_advise_report',
                 } 
+    
 tpt_stock_trans_advise()
 
 class tpt_move_batch(osv.osv):
@@ -2955,7 +2956,12 @@ class tpt_move_batch(osv.osv):
         'qty': fields.float('MT', digits=(16,3)),
         'remarks': fields.char('Remarks'),
      }
-    
+    def onchange_sys_batch(self, cr, uid, ids,sys_batch=False,context=None):
+        vals = {}
+        if sys_batch:
+            batch = self.pool.get('stock.production.lot').browse(cr, uid, sys_batch)
+            vals['qty']= batch.stock_available or 0
+        return {'value': vals}
 tpt_move_batch()
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
