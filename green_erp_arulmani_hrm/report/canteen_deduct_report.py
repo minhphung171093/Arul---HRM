@@ -33,10 +33,8 @@ from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 
 """ 
-TPT - By BalamuruganPurushothaman - Incident No: 3269 - on 05/10/2015
-Daily Punch in Report : Display the Punch IN records based on selected Shift Type
-Timing is Configure in "Work Shift" Screen for this Report
-
+TPT - By BalamuruganPurushothaman - Incident No: 3269 - on 17/11/2015
+Canteen Deduction Report : Display the Canteen Deduction Amt for the Month given
 """
 
 class Parser(report_sxw.rml_parse):
@@ -45,119 +43,116 @@ class Parser(report_sxw.rml_parse):
         super(Parser, self).__init__(cr, uid, name, context=context)
         pool = pooler.get_pool(self.cr.dbname)
         self.localcontext.update({
-            'get_InOut':self.get_InOut,
             'get_workdate':self.get_workdate,
-            'float_time_convert':self.float_time_convert,
             'get_date':self.get_date,
-            'get_shift_type':self.get_shift_type,
+            'get_emp':self.get_emp,
         })
+    def get_emp(self):
+        wizard_data = self.localcontext['data']['form']
+        date_from = wizard_data['date_from']
+        date_to = wizard_data['date_to']
         
+        sql = '''
+        select distinct employee_id from tpt_canteen_deduction where issue_date between '%s' and '%s'
+        and state='approve'
+        '''%(date_from, date_to)
+        self.cr.execute(sql)     
+        res = []   
+        emp_obj = self.pool.get('hr.employee') 
+        sl_no = 1
+        for line in self.cr.dictfetchall():
+            emp_id = line['employee_id'] or False
+            emp_ids = emp_obj.browse(self.cr,self.uid,emp_id)
+            emp_code = emp_ids.employee_id
+            emp_name = emp_ids.name_related
+            emp_categ = emp_ids.employee_category_id
+            sql = '''
+            select case when sum(no_of_book)>0 then sum(no_of_book) else 0 end count from tpt_canteen_deduction where issue_date between '%s' and '%s'
+            and employee_id=%s and state='approve' and book_type_id=(select id from tpt_canteen_book_type where name='Breakfast')
+            '''%(date_from, date_to,emp_id)
+            self.cr.execute(sql) 
+            bf = self.cr.fetchall()
+            bf = bf[0]
+            
+            sql = '''
+            select case when sum(no_of_book)>0 then sum(no_of_book) else 0 end count from tpt_canteen_deduction where issue_date between '%s' and '%s'
+            and employee_id=%s and state='approve' and book_type_id=(select id from tpt_canteen_book_type where name='Lunch')
+            '''%(date_from, date_to,emp_id)
+            self.cr.execute(sql) 
+            lunch = self.cr.fetchall()
+            lunch = lunch[0]
+            
+            sql = '''
+            select case when sum(no_of_book)>0 then sum(no_of_book) else 0 end count from tpt_canteen_deduction where issue_date between '%s' and '%s'
+            and employee_id=%s and state='approve' and book_type_id=(select id from tpt_canteen_book_type where name='Dinner')
+            '''%(date_from, date_to,emp_id)
+            self.cr.execute(sql) 
+            dinner = self.cr.fetchall()
+            dinner = dinner[0]
+            
+            sql = '''
+            select case when sum(no_of_book)>0 then sum(no_of_book) else 0 end count from tpt_canteen_deduction where issue_date between '%s' and '%s'
+            and employee_id=%s and state='approve' and book_type_id=(select id from tpt_canteen_book_type where name='Night tiffin')
+            '''%(date_from, date_to,emp_id)
+            self.cr.execute(sql) 
+            night_tiffin = self.cr.fetchall()
+            night_tiffin = night_tiffin[0]
+            
+            sql = '''
+            select case when sum(no_of_book)>0 then sum(no_of_book) else 0 end count from tpt_canteen_deduction where issue_date between '%s' and '%s'
+            and employee_id=%s and state='approve' and book_type_id=(select id from tpt_canteen_book_type where name='Non Veg')
+            '''%(date_from, date_to,emp_id)
+            self.cr.execute(sql) 
+            non_veg = self.cr.fetchall()
+            non_veg = non_veg[0]
+            
+            sql = '''
+            select case when sum(no_of_book)>0 then sum(no_of_book) else 0 end count from tpt_canteen_deduction where issue_date between '%s' and '%s'
+            and employee_id=%s and state='approve' and book_type_id=(select id from tpt_canteen_book_type where name='Omlette')
+            '''%(date_from, date_to,emp_id)
+            self.cr.execute(sql) 
+            omlette = self.cr.fetchall()
+            omlette = omlette[0]
+            
+            sql = '''   
+                 
+            select case when sum(net_value)>0 then sum(net_value) else 0 end count from tpt_canteen_deduction 
+            where issue_date between '%s' and '%s'
+            and employee_id=%s
+            and state='approve'
+            '''%(date_from, date_to,emp_id)
+            self.cr.execute(sql) 
+            emp_dec_amt = self.cr.fetchall()
+            emp_dec_amt = emp_dec_amt[0]
+            
+            res.append({
+                's_no' : sl_no  ,
+                'employee_code' : emp_code or False,
+                'employee_name' : emp_name or False,
+                'employee_categ' : emp_categ or False,
+                'bf_count' : bf or 0,
+                'lunch_count' : lunch or 0,
+                'dinner' : dinner or 0,
+                'night_tiffin' : night_tiffin or 0,
+                'non_veg' : non_veg or 0,
+                'omlette' : omlette or 0, 
+                'emp_dec_amt' : emp_dec_amt or 0,
+            })
+            sl_no += 1
+        return res      
     def get_date(self, date=False):
         if not date:
             date = time.strftime(DATE_FORMAT)
         date = datetime.strptime(date, DATE_FORMAT)
         return date.strftime('%d/%m/%Y')     
     
-    def float_time_convert(self, float_val):
-        if float_val:
-            float_val = float(float_val)
-            factor = float_val < 0 and -1 or 1
-            val = abs(float_val)
-            a = str(factor * int(math.floor(val)) )
-            b = str(int(round((val % 1) * 60)))
-            
-            
-            if len(str(factor * int(math.floor(val)) ))==1:
-                a = '0'+str(factor * int(math.floor(val)) )
-            if len(str(int(round((val % 1) * 60))))==1:
-                b = '0'+str(int(round((val % 1) * 60)))
-            if b==60:
-                a = int(a)
-                a += 1
-                a = str(a)
-                b = '00'
-            time =  a+ ':' + b
-            return time
-        else:
-            return ''
     
-    def get_InOut(self):
-        wizard_data = self.localcontext['data']['form']
-        workdate=wizard_data['workdate']
-        shift_type=wizard_data['shift_type']
-        if shift_type=='a_shift':
-            shift_type='A'
-        if shift_type=='g1_shift':
-            shift_type='G1'
-        if shift_type=='g2_shift':
-            shift_type='G2'
-        if shift_type=='b_shift':
-            shift_type='B'
-        if shift_type=='c_shift':
-            shift_type='C'
-       
-        shifts_ids = []
-        c_earlier_entries_ids = []  
-        if shift_type=='C': # to fetch C Shift earlier entries
-            sql = '''
-              select emp.employee_id, emp.name_related employeename, COALESCE(ast.ref_in_time,0.0) as ref_in_time, 
-              COALESCE(ast.ref_out_time,0.0) as ref_out_time
-                from arul_hr_audit_shift_time ast
-             inner join hr_employee emp on ast.employee_id=emp.id
-             where ref_in_time between (select min_in_time from tpt_work_shift where 
-             code='B+C HALF') and (select max_in_time from tpt_work_shift where
-             code='B+C HALF') and ast.work_date='%s'
-             order by emp.employee_id
-            '''%(workdate)               
-            self.cr.execute(sql)
-            c_earlier_entries_ids = self.cr.dictfetchall()  
-        sql = '''
-          select emp.employee_id, emp.name_related employeename, COALESCE(ast.ref_in_time,0.0) as ref_in_time, 
-          COALESCE(ast.ref_out_time,0.0) as ref_out_time
-            from arul_hr_audit_shift_time ast
-         inner join hr_employee emp on ast.employee_id=emp.id
-         where ref_in_time between (select min_in_time from tpt_work_shift where 
-         code='%s') and (select max_in_time from tpt_work_shift where
-         code='%s') and ast.work_date='%s'
-         order by emp.employee_id
-        '''%(shift_type, shift_type, workdate)               
-        self.cr.execute(sql)
-        shifts_ids = self.cr.dictfetchall()
-        
-        if shift_type=='C':
-            c_earlier_entries_ids += shifts_ids   
-            shifts_ids = c_earlier_entries_ids     
-        
-        res = []
-        s_no = 1
-        for line in shifts_ids: #self.cr.dictfetchall():
-            res.append({
-                        's_no':s_no,
-                        'employee_id': line['employee_id'] or '',
-                        'employeename': line['employeename'] or '',
-                        'ref_in_time': line['ref_in_time'] or '',                  
-                        })
-            s_no += 1
-        return res     
     
     def get_workdate(self):
         wizard_data = self.localcontext['data']['form']
         workdate=wizard_data['workdate']
         return   workdate   
-    def get_shift_type(self):
-        wizard_data = self.localcontext['data']['form']
-        shift_type=wizard_data['shift_type']
-        if shift_type=='a_shift':
-            shift_type='A'
-        if shift_type=='g1_shift':
-            shift_type='G1'
-        if shift_type=='g2_shift':
-            shift_type='G2'
-        if shift_type=='b_shift':
-            shift_type='B'
-        if shift_type=='c_shift':
-            shift_type='C'
-        return   shift_type   
+   
          
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
 

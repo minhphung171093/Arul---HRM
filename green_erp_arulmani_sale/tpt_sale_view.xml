@@ -996,6 +996,7 @@
 								<tree editable='top'>
 									<field name="batch_id"  required='1' 
 									domain="[('product_id.default_code','=','M0501010001'),('stock_available','>',0.0)]"									
+									on_change="onchange_sys_batch(sys_batch)"
 									options="{'create': false, 'create_edit': false}"/>
 									<field name="bags"/>
 									<field name="qty"/>
@@ -1019,12 +1020,13 @@
             <field name="view_mode">tree,form</field>
             <field name="view_id" ref="view_tpt_stock_trans_advise_form_vew"/>
         </record>
+        <!-- 
         <record id="action_view_tpt_stock_trans_advise_form1" model="ir.actions.act_window.view">
             <field eval="8" name="sequence"/>
             <field name="res_model">tpt.stock.trans.advise</field>
             <field name="view_mode">form</field>
             <field name="view_id" ref="view_tpt_stock_trans_advise_form_vew"/>
-        </record>
+        </record> -->
         <menuitem action="action_view_tpt_stock_trans_advise_form"
             id="menu_action_view_tpt_stock_trans_advise_form"
             parent="menu_hr_sale_management" sequence="51"/>						
