@@ -14,3 +14,4 @@ import amount_to_text_vn
 import print_form_are_1
 import packing_list_report
 import proforma_invoice_report
+import print_stock_transfer_advice

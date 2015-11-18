@@ -2921,7 +2921,28 @@ class tpt_stock_trans_advise(osv.osv):
     #                 vals = {'batch_line':meals_details_order_ids}
     #     return {'value': vals}
     #===========================================================================
-    
+    def bt_print(self, cr, uid, ids, context=None):
+        '''
+        This function prints the stock transfers
+        '''
+        assert len(ids) == 1, 'This option should only be used for a single id at a time.'
+        self.write(cr, uid, ids, {'sent': True}, context=context)
+        st_ids = self.browse(cr, uid, ids[0])
+        datas = {
+             'ids': ids,
+             'model': 'tpt.stock.trans.advise',
+             'form': self.read(cr, uid, ids[0], context=context)
+        }
+        if st_ids.product_id.default_code=='M0501010001':
+            return {
+                    'type': 'ir.actions.report.xml',
+                    'report_name': 'form_stock_trans_advise_report',
+                } 
+        else:
+            return {
+                    'type': 'ir.actions.report.xml',
+                    'report_name': 'form_stock_trans_fsh_advise_report',
+                } 
 tpt_stock_trans_advise()
 
 class tpt_move_batch(osv.osv):

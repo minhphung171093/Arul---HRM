@@ -1627,10 +1627,11 @@
 						<filter string="Employee" icon="terp-personal" domain="[]" context="{'group_by':'employee_id'}"/>   
                         <filter string="issue Date" name="group_issue_date" icon="terp-personal" domain="[]" context="{'group_by':'issue_date'}"/>   
                         <filter string="Book Type" name="group_book_type" icon="terp-personal" domain="[]" context="{'group_by':'book_type_id'}"/>            
-	                    <filter string="Approved" name="approved" domain="[('state','=','approve')]"/>
-	                    <filter string="Rejected" name="rejected" domain="[('state','=','cancel')]"/>
-	                    <filter string="Draft" name="draft" domain="[('state','=','draft')]"/>
                     </group> 
+                    <filter string="Approved" name="approved" domain="[('state','=','approve')]"/>
+                    <filter string="Done" name="approved" domain="[('state','=','done')]"/>
+                    <filter string="Cancelled" name="rejected" domain="[('state','=','cancel')]"/>
+                    <filter string="Draft" name="draft" domain="[('state','=','draft')]"/>
                 </search>
             </field>
         </record>
@@ -1670,6 +1671,8 @@
             <field name="res_model">tpt.canteen.deduction</field>
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
+            <field name="domain">[('state','in',['draft','done','approve','cancel'])]</field> 
+            <field name="context">{'search_for_audit_shift_pri_auditor':1,'search_default_draft':1}</field>
             <field name="view_id" ref="tpt_canteen_deduction_tree_view"/>
         </record>
         
