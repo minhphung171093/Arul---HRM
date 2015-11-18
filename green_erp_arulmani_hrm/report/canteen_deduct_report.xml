@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>    
+ <data>
+	      <!-- For Punch IN Report -->
+	      <record id="rpt_canteen_deduct" model="ir.actions.report.xml">
+	        <field name="name">canteen_deduct_report</field>
+	        <field name="type">ir.actions.report.xml</field>
+	        <field name="model">tpt.canteen.report</field>
+	        <field name="report_name">rpt_canteen_deduct</field>
+	        <field name="report_type">aeroo</field>
+	        <field name="in_format">oo-ods</field>
+	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-xls'),('compatible_types','=','oo-ods')]"/>
+	        <field name="parser_loc">green_erp_arulmani_hrm/report/canteen_deduct_report.py</field>
+	        <field name="report_rml">green_erp_arulmani_hrm/report/canteen_deduct_report.ods</field>
+	        <field name="parser_state">loc</field>
+	        <field name="tml_source">file</field>
+	        <field name="attachment_use" eval="0"/>
+    	</record>		    
+		
+		<report 
+			auto="True" 
+			menu="False"
+			id="rpt_canteen_deduct" 
+			model="tpt.canteen.report" 
+			name="rpt_canteen_deduct"
+	        string="Canteen Deduction Report"
+	        rml="green_erp_arulmani_hrm/report/canteen_deduct_report.ods"/>
+    </data>
+</openerp>

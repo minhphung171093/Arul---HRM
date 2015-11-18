@@ -64,6 +64,8 @@
         'wizard/DailyInOut_view.xml', ##
         'report/DailyIn_report_view.xml', ##  
         'wizard/DailyIn_view.xml', ##
+        'report/canteen_deduct_report.xml', ##  
+        'wizard/canteen_deduct_report.xml', ##
 #         'data_category.xml', 
         'import_view.xml',
         'green_erp_arulmani_sequence.xml',

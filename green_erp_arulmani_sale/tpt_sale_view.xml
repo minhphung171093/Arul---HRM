@@ -994,7 +994,8 @@
                 			<page string="Batches">
 							<field name="batch_line" nolabel='1'>
 								<tree editable='top'>
-									<field name="batch_id"  required='1' 									
+									<field name="batch_id"  required='1' 
+									domain="[('product_id.default_code','=','M0501010001'),('stock_available','>',0.0)]"									
 									options="{'create': false, 'create_edit': false}"/>
 									<field name="bags"/>
 									<field name="qty"/>

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>   
+        <record id="view_tpt_canteen_deduct_report" model="ir.ui.view">
+            <field name="name">tpt.canteen.report.report</field>
+            <field name="model">tpt.canteen.report</field>
+            <field name="arch" type="xml">
+                <form string="Canteen Deduction Report" version="7.0">
+                	<group col='4' colspan='2'>
+	                    <field name='date_from'/>   
+	                    <field name='date_to'/>                 
+                 	</group>
+                    <footer>
+                        <button name="print_report" string="Print" type="object" class="oe_highlight" />                    
+                        <button string="Cancel" class="oe_link" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>        
+        <record id="action_canteen_deduct_report" model="ir.actions.act_window">
+            <field name="name">Canteen Deduction Report</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.canteen.report</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+        </record>
+        
+        <menuitem action="action_canteen_deduct_report"
+            id="menu_action_canteen_deduct_report"
+            parent="hr.menu_hr_main" sequence="36"/>
+    </data>
+</openerp>
+

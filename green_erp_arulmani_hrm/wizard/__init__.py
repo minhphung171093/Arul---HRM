@@ -11,4 +11,5 @@ import emp_attendance_details
 import daily_filo_time_form
 import DailyInOut_form 
 import DailyIn_form 
+import canteen_deduct_report
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
