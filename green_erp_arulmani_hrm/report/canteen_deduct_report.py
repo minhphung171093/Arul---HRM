@@ -33,7 +33,7 @@ from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 
 """ 
-TPT - By BalamuruganPurushothaman - Incident No: 3269 - on 17/11/2015
+TPT - By BalamuruganPurushothaman - Incident No: 3323 - on 17/11/2015
 Canteen Deduction Report : Display the Canteen Deduction Amt for the Month given
 """
 
@@ -58,19 +58,21 @@ class Parser(report_sxw.rml_parse):
         sl_no = 1
         
         sql = '''
-        select distinct employee_id from tpt_canteen_deduction where issue_date between '%s' and '%s'
-        and state='approve'
+        select distinct emp.id as employee_id,emp.employee_id as null from hr_employee emp 
+         inner join tpt_canteen_deduction cd on emp.id=cd.employee_id
+         where cd.issue_date between '%s' and '%s' and cd.state='approve'
         '''%(date_from, date_to)
         
         if category[1]=='Executives(S1)':
-            sql += "and employee_id in (select id from hr_employee where employee_category_id=%s)"%category[0]
+            sql += "and emp.employee_category_id =%s"%category[0]
         elif category[1]=='Staff(S2)':
-            sql += "and employee_id in (select id from hr_employee where employee_category_id=%s)"%category[0]
+            sql += "and emp.employee_category_id =%s"%category[0]
         elif category[1]=='Workers(S3)':
-            sql += "and employee_id in (select id from hr_employee where employee_category_id=%s)"%category[0]
+            sql += "and emp.employee_category_id =%s"%category[0]
         
+        sql += " order by emp.employee_id asc"
         self.cr.execute(sql)     
-        
+        print sql
         for line in self.cr.dictfetchall():
             emp_id = line['employee_id'] or False
             emp_ids = emp_obj.browse(self.cr,self.uid,emp_id)
