@@ -8,7 +8,8 @@
                 <form string="Canteen Deduction Report" version="7.0">
                 	<group col='4' colspan='2'>
 	                    <field name='date_from'/>   
-	                    <field name='date_to'/>                 
+	                    <field name='date_to'/>          
+	                    <field name='employee_category' options="{'create': false, 'create_edit': false}"/>       
                  	</group>
                     <footer>
                         <button name="print_report" string="Print" type="object" class="oe_highlight" />                    

@@ -13,6 +13,7 @@ class tpt_canteen_report(osv.osv_memory):
     _columns = {
             'date_from': fields.date('From Date', required = True),
             'date_to': fields.date('To Date', required = True),   
+            'employee_category' : fields.many2one('vsis.hr.employee.category', 'Employee Category'),
     }
 
     def print_report(self, cr, uid, ids, context=None):

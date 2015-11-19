@@ -43,23 +43,34 @@ class Parser(report_sxw.rml_parse):
         super(Parser, self).__init__(cr, uid, name, context=context)
         pool = pooler.get_pool(self.cr.dbname)
         self.localcontext.update({
-            'get_workdate':self.get_workdate,
-            'get_date':self.get_date,
             'get_emp':self.get_emp,
+            'get_date_from':self.get_date_from,
+            'get_date_to':self.get_date_to,
         })
     def get_emp(self):
         wizard_data = self.localcontext['data']['form']
         date_from = wizard_data['date_from']
         date_to = wizard_data['date_to']
+        category = wizard_data['employee_category']
+        
+        res = []   
+        emp_obj = self.pool.get('hr.employee') 
+        sl_no = 1
         
         sql = '''
         select distinct employee_id from tpt_canteen_deduction where issue_date between '%s' and '%s'
         and state='approve'
         '''%(date_from, date_to)
+        
+        if category[1]=='Executives(S1)':
+            sql += "and employee_id in (select id from hr_employee where employee_category_id=%s)"%category[0]
+        elif category[1]=='Staff(S2)':
+            sql += "and employee_id in (select id from hr_employee where employee_category_id=%s)"%category[0]
+        elif category[1]=='Workers(S3)':
+            sql += "and employee_id in (select id from hr_employee where employee_category_id=%s)"%category[0]
+        
         self.cr.execute(sql)     
-        res = []   
-        emp_obj = self.pool.get('hr.employee') 
-        sl_no = 1
+        
         for line in self.cr.dictfetchall():
             emp_id = line['employee_id'] or False
             emp_ids = emp_obj.browse(self.cr,self.uid,emp_id)
@@ -140,19 +151,14 @@ class Parser(report_sxw.rml_parse):
             })
             sl_no += 1
         return res      
-    def get_date(self, date=False):
-        if not date:
-            date = time.strftime(DATE_FORMAT)
-        date = datetime.strptime(date, DATE_FORMAT)
-        return date.strftime('%d/%m/%Y')     
-    
-    
-    
-    def get_workdate(self):
+    def get_date_from(self):
         wizard_data = self.localcontext['data']['form']
-        workdate=wizard_data['workdate']
-        return   workdate   
-   
-         
+        date = datetime.strptime(wizard_data['date_from'], DATE_FORMAT)        
+        return date.strftime('%d/%m/%Y')
+    
+    def get_date_to(self):
+        wizard_data = self.localcontext['data']['form']
+        date = datetime.strptime(wizard_data['date_to'], DATE_FORMAT)
+        return date.strftime('%d/%m/%Y') 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
 
