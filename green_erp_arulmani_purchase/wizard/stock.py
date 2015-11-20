@@ -274,6 +274,28 @@ class stock_invoice_onshipping(osv.osv_memory):
                 abc = cr.fetchone()[0]
                 if abc:
                     raise osv.except_osv(_('Warning!'),_('You should check Quality Inspection before the Create Invoice !'))
+                ###TPT-START-By TPT-R - ON 20/11/2015 - TO DO NOT ALLOW BLANK INVOICE LINE CREATED IN SYSEM - REF INCIDENT NO: 3095
+                grn_qty = 0
+                qty = 0
+                remaining_qty = 0
+                qty_approve = 0
+                sql = '''
+                select case when sum(qty)>0 then sum(qty) else 0 end qty, 
+                case when sum(remaining_qty)>0 then sum(remaining_qty) else 0 end remaining_qty,
+                case when sum(qty_approve)>0 then sum(qty_approve) else 0 end qty_approve
+                from tpt_quanlity_inspection where state in ('done')and name=%s
+                '''%(pick.id)
+                cr.execute(sql)
+                for inspec in cr.fetchall():
+                    qty = inspec[0]
+                    remaining_qty = inspec[1]
+                    qty_approve = inspec[2]               
+                for line in pick.move_lines:    
+                    if line.action_taken=='need':
+                        grn_qty += line.product_uos_qty
+                if grn_qty==qty and remaining_qty ==0 and qty_approve==0:
+                    raise osv.except_osv(_('Warning!'),_('should not allow to Create Invoice ! The Quality Inspection has been rejected !'))
+                ###TPT-END
                 
         return res
     def open_invoice(self, cr, uid, ids, context=None):

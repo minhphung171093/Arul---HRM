@@ -996,7 +996,7 @@
 								<tree editable='top'>
 									<field name="batch_id"  required='1' 
 									domain="[('product_id.default_code','=','M0501010001'),('stock_available','>',0.0)]"									
-									on_change="onchange_sys_batch(sys_batch)"
+									on_change="onchange_sys_batch(batch_id)"
 									options="{'create': false, 'create_edit': false}"/>
 									<field name="bags"/>
 									<field name="qty"/>
@@ -1018,7 +1018,7 @@
             <field name="domain">[('product_id.default_code', 'in', ['M0501010001','M0501010008'])]</field>
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
-            <field name="view_id" ref="view_tpt_stock_trans_advise_form_vew"/>
+            <field name="view_id" ref="view_tpt_stock_trans_advise_tree_vew"/>
         </record>
         <!-- 
         <record id="action_view_tpt_stock_trans_advise_form1" model="ir.actions.act_window.view">

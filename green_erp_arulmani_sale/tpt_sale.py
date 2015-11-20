@@ -2933,10 +2933,10 @@ class tpt_stock_trans_advise(osv.osv):
              'model': 'tpt.stock.trans.advise',
              'form': self.read(cr, uid, ids[0], context=context)
         }
-        if st_ids.product_id.default_code=='M0501010001':
+        if st_ids.product_id.default_code=='M0501010001' or st_ids.product_id.default_code=='M0501010008':
             return {
                     'type': 'ir.actions.report.xml',
-                    'report_name': 'form_stock_trans_advise_report',
+                    'report_name': 'form_stock_trans_titanium_advise_report',
                 } 
         else:
             return {
