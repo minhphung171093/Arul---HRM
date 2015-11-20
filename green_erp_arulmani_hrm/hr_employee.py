@@ -316,7 +316,7 @@ class arul_hr_employee_action_history(osv.osv):
             emp = self.pool.get('hr.employee').browse(cr, uid, employee_id)
             vals = {
                     'department_from_id':emp.department_id.id,
-                    'section_from_id':emp.job_id.id,#TPT
+                    'section_from_id':emp.section_id.id,#TPT
                     }
         return {'value': vals}
 
@@ -396,6 +396,12 @@ class arul_hr_employee_action_history(osv.osv):
         return self.write(cr, uid, ids, {'block_list':False}, context)
     
     def create(self, cr, uid, vals, context=None):
+        if context.get('create_section_transfer_employee'):
+            emp = self.pool.get('hr.employee').browse(cr, uid, vals['employee_id'])
+            vals.update({
+                        'section_from_id':emp.section_id and emp.section_id.id or False,
+                         })
+       
         new_id = super(arul_hr_employee_action_history, self).create(cr, uid, vals, context)
         if context.get('create_leaving_employee'):
             #TPT System Date
@@ -462,7 +468,8 @@ class arul_hr_employee_action_history(osv.osv):
                                                           }) 
         if context.get('create_section_transfer_employee'):
             action_history = self.browse(cr, uid, new_id)
-            self.pool.get('hr.employee').write(cr, uid, [action_history.employee_id.id], {'section_id': action_history.section_to_id.id and action_history.section_to_id.id or action_history.section_from_id.id, 
+            self.pool.get('hr.employee').write(cr, uid, [action_history.employee_id.id], {
+                                                                                          'section_id': action_history.section_to_id.id and action_history.section_to_id.id or action_history.section_from_id.id, 
                                                                                           'department_id': action_history.department_to_id.id and action_history.department_to_id.id or action_history.department_from_id.id})    
             
         return new_id

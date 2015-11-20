@@ -47,7 +47,8 @@
         'report/print_form_are_3_view_duplicate.xml',
         'report/print_form_are_3_view_triplicate.xml',
         'report/print_form_are_3_view_quadruplicate.xml',
-        'report/print_stock_transfer_advice_view.xml',
+        'report/print_stock_transfer_advice_view.xml', 
+        'report/print_stock_transfer_fsh_advice_view.xml',
         
         'report/domestic_invoice_report_view.xml',
         'report/packing_list_report_view.xml',

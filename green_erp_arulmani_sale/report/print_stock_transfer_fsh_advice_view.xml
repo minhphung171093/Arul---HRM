@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <openerp>
 	<data>
-    	<record id="form_stock_trans_titanium_advise_report" model="ir.actions.report.xml">
+	       <record id="form_stock_trans_fsh_advise_report" model="ir.actions.report.xml">
 	        <field name="name">form.stock.trans.advise.report</field>
 	        <field name="type">ir.actions.report.xml</field>
 	        <field name="model">tpt.stock.trans.advise</field>
-	        <field name="report_name">Print Stock Transfer Advice</field>
+	        <field name="report_name">Print Stock Transfer Advice-FSH</field>
 	        <field name="report_type">aeroo</field>
 	        <field name="in_format">oo-odt</field>
 	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-pdf'),('compatible_types','=','oo-odt')]"/>
 	        <field name="parser_loc">green_erp_arulmani_sale/report/print_stock_transfer_advice.py</field>
-	        <field name="report_rml">green_erp_arulmani_sale/report/print_stock_transfer_advice.odt</field>
+	        <field name="report_rml">green_erp_arulmani_sale/report/print_stock_transfer_advice_fsh.odt</field>
 	        <field name="parser_state">loc</field>
 	        <field name="tml_source">file</field>
 	        <field name="attachment_use" eval="0"/>
@@ -19,11 +19,11 @@
     	<report 
 			auto="False" 
 			menu="True"
-			id="form_stock_trans_titanium_advise_report" 
+			id="form_stock_trans_fsh_advise_report" 
 			model="tpt.stock.trans.advise" 
-			name="form_stock_trans_titanium_advise_report"
-	        string="Print Stock Transfer Advice-TiO2"
+			name="form_stock_trans_fsh_advise_report"
+	        string="Print Stock Transfer Advice-FSH"
 	        groups="green_erp_arulmani_sale.group_vvti_sale_user"
-	        rml="green_erp_arulmani_sale/report/print_stock_transfer_advice.odt"/>
+	        rml="green_erp_arulmani_sale/report/print_stock_transfer_advice_fsh.odt"/>
 	</data>
 </openerp>

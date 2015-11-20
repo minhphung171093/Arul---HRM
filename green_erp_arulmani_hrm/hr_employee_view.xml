@@ -501,19 +501,19 @@
 							 on_change="onchange_section_transfer_employee_id(employee_id)"/>
 							<field name ="department_from_id" readonly='0' options="{'create': false, 'create_edit': false}"/>
 							<newline/>
-							<field name ="section_from_id" options="{'create': false, 'create_edit': false}"/>
+							<field name ="section_from_id" options="{'create': false, 'create_edit': false}" readonly="1"/>
 							<field name ="section_to_id" options="{'create': false, 'create_edit': false}"/>
 							
 							<newline/>
-							<field name ="action_date" string = "Date of Order Issued"/>
-							<field name ="period_from"/>						
+							<field name ="action_date" string = "Date of Order Issued" invisible="1"/>
+							<field name ="period_from" invisible="1"/>						
 							<field name ="date_from" string = 'Period From'/>
 							<field name ="date_to" string ='Period To'/>
 							<field name ="create_date"/>
                 			<field name ="create_uid"/>
 						</group>
 						<group>
-							<field name ="note"/>
+							<field name ="note" string="Reason" required='1'/>
 						</group>
 					</sheet>
 				</form>
