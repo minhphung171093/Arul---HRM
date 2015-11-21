@@ -93,12 +93,16 @@ class Parser(report_sxw.rml_parse):
             freight = format(freight, '.2f')           
             return freight  
         
-    def get_item_txt(self, indent_id,productid):
+    def get_item_txt(self, indent_id,productid, quote, line_no):
         if indent_id:  
             txt=""       
+#             sql = '''
+#             SELECT item_text FROM tpt_rfq_line WHERE po_indent_id=%s and product_id=%s
+#             '''%(indent_id,productid.id)
             sql = '''
-            SELECT item_text FROM tpt_rfq_line WHERE po_indent_id=%s and product_id=%s
-            '''%(indent_id,productid.id)
+             SELECT item_text FROM tpt_purchase_quotation_line WHERE po_indent_id=%s and product_id=%s
+             and line_no=%s
+             '''%(indent_id, productid.id, line_no)
             self.cr.execute(sql)
             txt = self.cr.fetchone()
             temp_item_text = txt[0]
