@@ -2964,4 +2964,31 @@ class tpt_move_batch(osv.osv):
         return {'value': vals}
 tpt_move_batch()
 
+##TPT - Customer credit Limit Group
+
+class tpt_credit_limit_group(osv.osv):
+    _name = "tpt.credit.limit.group"
+    
+    _columns = {
+        'code' : fields.char('Code'),       
+        'name' : fields.char('Name'),
+        'credit_limit': fields.float('Credit Limit'),
+        'description': fields.text('Description'),
+        'state':fields.selection([('draft', 'Draft'),
+                                  ('done', 'Approved'),
+                                  ('cancel', 'Cancelled'),
+                                  ],'Status'),
+     }
+    _defaults = {
+        'state': 'draft'
+    }
+    
+    def bt_approve(self, cr, uid, ids, context=None):
+        return self.write(cr, uid, ids,{'state':'done'})
+    def bt_cancel(self, cr, uid, ids, context=None):
+        return self.write(cr, uid, ids,{'state':'cancel'})
+    
+tpt_credit_limit_group()
+
+
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

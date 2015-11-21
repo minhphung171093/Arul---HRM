@@ -1099,5 +1099,58 @@
             id="menu_action_view_tpt_stock_trans_advise_fsh_form"
             parent="menu_hr_sale_management" sequence="52"/>	
  <!-- TPT-END -->
+ 
+ <!-- Customer Credit Limit Group Screen - Start -->    
+        
+        <record id="view_tpt_credit_limit_group_tree_vew" model="ir.ui.view">
+			<field name="name">tpt.credit.limit.group.tree</field>
+			<field name="model">tpt.credit.limit.group</field>
+			<field name="arch" type="xml">
+				<tree string="Credit Limit Group">
+					<field name="code"/>
+					<field name="name"/>
+					<field name="credit_limit"/>
+					<field name="state" invisible='1'/>
+				</tree>
+			</field>
+		</record>
+
+		<record id="view_tpt_credit_limit_group_form_vew" model="ir.ui.view">
+            <field name="name">tpt.credit.limit.group.form</field>
+            <field name="model">tpt.credit.limit.group</field>
+            <field name="arch" type="xml">
+	            <form string="Credit Limit Group" version="7.0">
+	            	<header>	            		
+	            		<button name="bt_approve" states="draft" class="oe_highlight" string="Approve" type="object"/>
+	            		<button name="bt_cancel" states="done" class="oe_highlight" string="Cancel" type="object"/>
+	            		<field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
+	            	</header>
+	            	<sheet>
+		                <group col='4' colspan='2'> 
+		                	<field name="code" required='1' />
+							<field name="name" required='1' />
+							<field name="credit_limit" required='1'/>
+							<field name="description" />
+						</group>
+                		
+				    </sheet>
+		         </form>
+			</field>
+		</record>
+		
+        <record id="action_tpt_credit_limit_group" model="ir.actions.act_window">
+            <field name="name">Credit Limit Group</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.credit.limit.group</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_tpt_credit_limit_group_tree_vew"/>
+        </record>
+        
+        <menuitem action="action_tpt_credit_limit_group"
+            id="menu_action_tpt_credit_limit_group"
+            parent="menu_hr_sale_management" sequence="53"/>	
+            
+        <!-- Customer Credit Limit Group Screen - END -->
     </data>
 </openerp>
