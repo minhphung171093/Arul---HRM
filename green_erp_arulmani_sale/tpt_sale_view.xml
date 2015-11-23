@@ -317,12 +317,15 @@
             <field name="arch" type="xml">
 	            <form string="Test Report" version="7.0">
 	            	<header>
-	            		<button name="test_report_print" class="oe_highlight" string="Pint" type="object"/>
+	            		<button name="test_report_print" class="oe_highlight" string="Print" type="object"/>
 	            	</header>
 	            	<sheet>
-		                <group> 
+		                <group col='4' colspan='2'> 
+							<field name="customer_id" required='1' domain="[('customer','=',1),('is_company','=',1),('disapprove','=',1),('customer_account_group_id','=','VVTI Sold to Party')]" options="{'create': false, 'create_edit': false}"/>
+							<field name="date" required='1'/> 
 							<field name="name" on_change="onchange_product(name)" options="{'create': false, 'create_edit': false}" domain="['|',('name','in',['TITANIUM DIOXIDE-ANATASE','FERROUS SULPHATE','M0501010001','M0501010002']),('default_code','in',['FSH','TiO2','M0501010001','M0501010002'])]"/>
 							<field name="is_tio2" invisible='1'/>
+							
 						</group>
 						<group col='4' colspan='2' attrs="{'invisible':[('is_tio2','=',False)]}">
 							<field name="date_of_manufacture"/>
