@@ -3028,7 +3028,7 @@ class tpt_hr_ptax_line(osv.osv):
     _order = "ptax_amt asc"
     _columns = {   
         'ptax_id': fields.many2one('tpt.hr.ptax', 'PTax'),
-        'slab_id':fields.many2one('tpt.hr.ptax.slab','Gross Salary'),
+        'slab_id':fields.many2one('tpt.hr.ptax.slab','Gross Salary', ondelete='restrict'),
         'from_range': fields.float('Salary Amt From'),
         'to_range': fields.float('Salary Amt To'),   
         'ptax_amt': fields.float('PTax Amount'),  

@@ -540,6 +540,7 @@ class tpt_purchase_product(osv.osv):
                     'uom_po_id':False,
                     'price_unit':False,
                     'description': False,
+                    'item_text': False,
                     'flag': False,
                     'mrs_qty':0.0,
                     }}
@@ -584,6 +585,7 @@ class tpt_purchase_product(osv.osv):
                     'uom_po_id':product.uom_id.id,
                     #'price_unit':product.list_price,
                     'description': product.name,
+                    'item_text': product.name,
                     'mrs_qty':float(product_mrs_qty),
                     })
             if product.categ_id.cate_name == 'consum' or product.categ_id.cate_name == 'service':

@@ -1604,7 +1604,7 @@ class stock_production_lot(osv.osv):
     
     _columns = {
         'location_id':fields.many2one('stock.location','Location'),
-        'application_id':fields.many2one('crm.application','Application')
+        'application_id':fields.many2one('crm.application','Application', ondelete='restrict')
     }
     def write(self, cr, uid, ids, vals, context=None):
         batch = self.pool.get('stock.production.lot').browse(cr, uid, ids[0])
@@ -1824,7 +1824,7 @@ class tpt_quality_verification(osv.osv):
         'phy_batch_no': fields.char('Physical Batch No', size=100, states={ 'done':[('readonly', True)]}),
         'name':fields.datetime('Created Date',readonly=True),
         'batch_quality_line':fields.one2many('crm.application.line', 'batch_verifi_id','Batch Quality', states={ 'done':[('readonly', True)]}),
-        'applicable_id':fields.many2one('crm.application','Applicable for', states={ 'done':[('readonly', True)]}),
+        'applicable_id':fields.many2one('crm.application','Applicable for', states={ 'done':[('readonly', True)]}, ondelete='restrict'),
         'phy_batch_no': fields.char('Physical Batch No', size=100, states={ 'done':[('readonly', True)]}),
         'location': fields.char('Location', size=100, states={ 'done':[('readonly', True)]}),
         'weight': fields.char('Weight', size=100, states={ 'done':[('readonly', True)]}),

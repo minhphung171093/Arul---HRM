@@ -420,7 +420,7 @@ class crm_lead_line(osv.osv):
         'product_type':fields.selection([('rutile','Rutile'),('anatase','Anatase')],'Product Type'),
         'quantity': fields.integer('Quantity'),
         'uom_id': fields.many2one('product.uom','UOM'),
-        'application_id': fields.many2one('crm.application','Application'),
+        'application_id': fields.many2one('crm.application','Application', ondelete='restrict'),
         'month': fields.char('Monthly Req. Qty',size=128),
         'year': fields.char('Yearly Req. Qty',size=128),
     }
@@ -584,7 +584,7 @@ class crm_sample_request_line(osv.osv):
         'quantity': fields.integer('Quantity',required=True),
         'product_type':fields.selection([('rutile','Rutile'),('anatase','Anatase')],'Product Type',required=True),
         'uom_id': fields.many2one('product.uom','UOM'),
-        'application_id': fields.many2one('crm.application','Application'),
+        'application_id': fields.many2one('crm.application','Application', ondelete='restrict'),
             }
     _defaults = {
         'quantity':1,
@@ -638,7 +638,7 @@ class crm_sample_sending (osv.osv):
         'name': fields.char('Document No',size=256, required=True,readonly=True),
         'sample_request_id':fields.many2one('crm.sample.request','Sample Request No',required=True),
         'lead_id': fields.many2one('crm.lead','Lead'),
-        'application_id': fields.many2one('crm.application','Application'),
+        'application_id': fields.many2one('crm.application','Application', ondelete='restrict'),
         'odour':fields.selection([('odour','Odour'),('odour_less','Odour Less')],'Odour'),
         'texture': fields.char('Texture'),
         'color_in_oil': fields.char('Color in Oil'),
@@ -707,7 +707,7 @@ class crm_sample_sending_line(osv.osv):
         'quantity': fields.integer('Quantity',required=True),
         'product_type':fields.selection([('rutile','Rutile'),('anatase','Anatase')],'Product Type',required=True),
         'uom_id': fields.many2one('product.uom','UOM'),
-        'application_id': fields.many2one('crm.application','Application'),
+        'application_id': fields.many2one('crm.application','Application', ondelete='restrict'),
             }
     _defaults = {
         'quantity':1,

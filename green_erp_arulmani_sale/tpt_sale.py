@@ -974,7 +974,7 @@ class sale_order_line(osv.osv):
     _columns = {
         'product_id': fields.many2one('product.product', 'Product', required = True),
         'product_type':fields.selection([('rutile','Rutile'),('anatase','Anatase')],'Prod Type'),
-        'application_id': fields.many2one('crm.application', 'Application'),
+        'application_id': fields.many2one('crm.application', 'Application', ondelete='restrict'),
         'freight': fields.float('Frt/Qty'),
         'price_subtotal': fields.function(_amount_line, string='Subtotal', digits_compute= dp.get_precision('Account')),
         'name_consignee_id': fields.many2one('res.partner', 'Consignee', required = False), #TPT - modified required true to false
@@ -1534,7 +1534,7 @@ class tpt_blank_order_line(osv.osv):
         'product_id': fields.many2one('product.product', 'Product', required = True),
         'description': fields.text('Description', required = True),
         'product_type': fields.selection([('rutile', 'Rutile'),('anatase', 'Anatase')],'Product Type'),
-        'application_id': fields.many2one('crm.application', 'Application'),
+        'application_id': fields.many2one('crm.application', 'Application', ondelete='restrict'),
         'product_uom_qty': fields.float('Quantity', digits=(16,3)),
         'uom_po_id': fields.many2one('product.uom', 'UOM', readonly = False),
         'price_unit': fields.float('Unit Price'),
@@ -1957,7 +1957,7 @@ class tpt_product_information(osv.osv):
         'product_information_id': fields.many2one('tpt.batch.request', 'Batch Request'),          
         'product_id': fields.many2one('product.product', 'Product',required = True),     
         'product_type':fields.selection([('rutile','Rutile'),('anatase','Anatase')],'Product Type'),   
-        'application_id': fields.many2one('crm.application', 'Application'),    
+        'application_id': fields.many2one('crm.application', 'Application', ondelete='restrict'),    
         'product_uom_qty': fields.float('Quantity', digits=(16,3)),   
         'uom_po_id': fields.many2one('product.uom', 'UOM'),     
                 }
@@ -2629,7 +2629,7 @@ class tpt_batch_allotment_line(osv.osv):
         'batch_allotment_id':fields.many2one('tpt.batch.allotment','Batch Allotment',ondelete='cascade'), 
         'product_id': fields.many2one('product.product','Product'),     
         'product_type':fields.selection([('rutile','Rutile'),('anatase','Anatase')],'Product Type'),   
-        'application_id': fields.many2one('crm.application','Application'),    
+        'application_id': fields.many2one('crm.application','Application', ondelete='restrict'),    
         'product_uom_qty': fields.float('Allotted Qty', digits=(16,3)),   
         'uom_po_id': fields.many2one('product.uom','UOM'),   
         'sys_batch':fields.many2one('stock.production.lot','System Batch Number',required=True), 

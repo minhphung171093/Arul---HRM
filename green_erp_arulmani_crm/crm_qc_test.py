@@ -85,7 +85,7 @@ class crm_qc_test_line(osv.osv):
         'quantity': fields.integer('Quantity'),
         'product_type':fields.selection([('rutile','Rutile'),('anatase','Anatase')],'Product Type'),
         'uom_id': fields.many2one('product.uom','UOM'),
-        'application_id': fields.many2one('crm.application','Application'),
+        'application_id': fields.many2one('crm.application','Application', ondelete='restrict'),
             }
     _defaults = {
         'quantity':1,
