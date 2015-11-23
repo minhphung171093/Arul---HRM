@@ -166,6 +166,7 @@
 			<field name="model">tpt.purchase.product</field>
 			<field name="arch" type="xml">
 				<tree string="Indent Release - By Store" edit = 'false' delete = 'false' create = 'false' >
+						<field name="on_hand_qty"/>
 						<field name="doc_type_relate"/> 
 						<field name="pur_product_id"/> 
 						<field name="intdent_cate"/>
@@ -178,7 +179,6 @@
 						<field name="recom_vendor" />
 						<field name="mrs_qty" />
 						<field name="uom_po_id" />
-						<field name="on_hand_qty"/>
 						<field name="section_id_relate"/> 
 						<field name="department_id_relate"/> 
 						<field name="date_indent_relate"/> 
@@ -394,6 +394,7 @@
 			<field name="model">tpt.purchase.product</field>
 			<field name="arch" type="xml">
 				<tree string="Indent Release - By HOD" edit = 'false' delete = 'false' create = 'false' >
+						<field name="on_hand_qty"/>
 						<field name="doc_type_relate"/> 
 						<field name="pur_product_id"/> 
 						<field name="intdent_cate"/>
@@ -406,7 +407,6 @@
 						<field name="recom_vendor" />
 						<field name="mrs_qty" />
 						<field name="uom_po_id" />
-						<field name="on_hand_qty"/>
 						<field name="section_id_relate"/> 
 						<field name="department_id_relate"/> 
 						<field name="date_indent_relate"/> 

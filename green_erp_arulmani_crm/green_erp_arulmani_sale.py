@@ -337,7 +337,7 @@ class crm_sale_order_line(osv.osv):
         'order_id': fields.many2one('crm.sale.order', 'Order Reference', required=True, ondelete='cascade', select=True, readonly=True, states={'draft':[('readonly',False)]}),
         'product_id': fields.many2one('product.product', 'Product', domain=[('sale_ok', '=', True)], change_default=True),
         'name': fields.text('Description', required=True, readonly=True, states={'draft': [('readonly', False)]}),
-        'application_id': fields.many2one('crm.application','Application'),
+        'application_id': fields.many2one('crm.application','Application', ondelete='restrict'),
         'product_uom_qty': fields.float('Quantity', digits_compute= dp.get_precision('Product UoS'), required=True, readonly=True, states={'draft': [('readonly', False)]}),
         'price_unit': fields.float('Unit Price', required=True, digits_compute= dp.get_precision('Product Price'), readonly=True, states={'draft': [('readonly', False)]}),
         'ex_duty': fields.many2one('account.tax', 'Ex.Duty', domain="[('type_tax_use','=','excise_duty')]"),
