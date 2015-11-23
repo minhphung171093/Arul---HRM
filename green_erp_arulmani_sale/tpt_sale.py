@@ -1744,6 +1744,8 @@ class tpt_test_report(osv.osv):
         'date_of_manufacture': fields.date('Date of Manufacture'),
         'date_of_expiry': fields.date('Date of Expiry'),
         'is_tio2': fields.boolean('Is TiO2'),
+        'date': fields.date('Date'),
+        'customer_id': fields.many2one('res.partner', 'Customer', required = True),
                 }
     
     def onchange_product(self, cr, uid, ids,product_id=False, context=None):
