@@ -423,8 +423,9 @@ class sale_order(osv.osv):
         '''%(sale.blanket_line_id.id,sale.id)
         cr.execute(sql)
         product_uom_qty = cr.dictfetchone()['product_uom_qty']
+        
         for line in sale.order_line:
-            if line.product_uom_qty > sale.blanket_line_id.product_uom_qty-product_uom_qty:
+            if round(line.product_uom_qty,3) > round(sale.blanket_line_id.product_uom_qty-product_uom_qty,3): #TPT-By BalamuruganPurushothaman - ON 23/11/2015
                 raise osv.except_osv(_('Warning!'),_('Quantity must be less than blanket order line quantity!'))
         
         sql = '''
