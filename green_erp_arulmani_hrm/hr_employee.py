@@ -1613,7 +1613,7 @@ class tpt_canteen_deduction(osv.osv):
               'issue_date':fields.date('Issue Date',required=True, states={'approve': [('readonly', True)], 'cancel': [('readonly', True)]},
                                        help="The date in which the Booklet is issued to Employee"),
               'book_type_id':fields.many2one('tpt.canteen.book.type','Book Type',required=True, states={'approve': [('readonly', True)], 'cancel': [('readonly', True)]},
-                                             help="Type of Book"),
+                                             help="Type of Book", ondelete='restrict'),
               'no_of_book': fields.float('No.of Book Issued', states={'approve': [('readonly', True)], 'cancel': [('readonly', True)]},
                                             help="Number of Booklet issued to Employee"),
               'net_value': fields.function(_net_value, string='Total Value', store=True, multi='sums', 
