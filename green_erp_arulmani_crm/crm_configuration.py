@@ -126,7 +126,7 @@ class res_partner(osv.osv):
         'create_date': fields.datetime('Create on'),
         'language_id': fields.many2one('res.lang','Language'),
         'sales_organization_code_id': fields.many2one('sales.organization.code','Sales Organization Code'),
-        'customer_account_group_id': fields.many2one('customer.account.group','Customer Account Group'),
+        'customer_account_group_id': fields.many2one('customer.account.group','Customer Account Group', ondelete='restrict'),
         'sort_key_id': fields.many2one('sort.key','Sort Key'),
         'tax_classification_id': fields.many2one('tax.classification','Tax Classification'),
         'tax_number_2_id': fields.many2one('tax.number.2','Tax Number 2'),    
