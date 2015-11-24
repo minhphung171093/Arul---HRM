@@ -5029,7 +5029,10 @@ class tpt_material_request(osv.osv):
                         cr.execute(sql)
                         onhand_qty = cr.dictfetchone()['onhand_qty']
                         if (mrs_qty >  onhand_qty-pre_mrs_qty):
-                            raise osv.except_osv(_('Warning!'),_("Already MRS Confirmed with equalant of On-Hand Qty for the Product: %s"%order_line.product_id.default_code))
+                            if onhand_qty-pre_mrs_qty==0:
+                                raise osv.except_osv(_('Warning!'),_("You can't Request for the Product %s as available On-Hand quantities are reserved for other MRS"%(order_line.product_id.default_code)))
+                            elif onhand_qty-pre_mrs_qty>0:
+                                raise osv.except_osv(_('Warning!'),_("You can Request Only %s Qty for the Product %s as remaining On-Hand quantities are reserved for other MRS"%(onhand_qty-pre_mrs_qty,order_line.product_id.default_code)))
                 if cate_name == 'raw':
                         parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
                         if parent_ids:
@@ -5060,8 +5063,11 @@ class tpt_material_request(osv.osv):
                     cr.execute(sql)
                     onhand_qty = cr.dictfetchone()['onhand_qty']                    
                     if mrs_qty >  onhand_qty-pre_mrs_qty:
-                        raise osv.except_osv(_('Warning!'),_("Already MRS Confirmed with equalant of On-Hand Qty for the Product: %s"%order_line.product_id.default_code))
-            ###
+                        if onhand_qty-pre_mrs_qty==0:
+                            raise osv.except_osv(_('Warning!'),_("You can't Request for the Product %s as available On-Hand quantities are reserved for other MRS"%(order_line.product_id.default_code)))
+                        elif onhand_qty-pre_mrs_qty>0:
+                            raise osv.except_osv(_('Warning!'),_("You can Request Only %s Qty for the Product %s as remaining On-Hand quantities are reserved for other MRS"%(onhand_qty-pre_mrs_qty,order_line.product_id.default_code)))
+            ###    
             self.write(cr, uid, ids,{'state':'done'})
         return True   
     def bt_cancel(self, cr, uid, ids, context=None):
