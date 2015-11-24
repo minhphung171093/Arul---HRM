@@ -1452,7 +1452,7 @@ class tpt_hr_training_header(osv.osv):
         'name': fields.char('Document No.'), 
         'training_name': fields.char('Training Name'), 
         'training_line': fields.one2many('tpt.hr.training.line', 'training_id', 'Employee Training'),
-        'training_master_id':fields.many2one('tpt.hr.training','Name of Training'),
+        'training_master_id':fields.many2one('tpt.hr.training','Name of Training', ondelete='restrict'),
         'deliver_date': fields.date('Date Of Delivery'),
         'effective_date': fields.date('Effective Date'),
         'to_date': fields.date('To Date'),    

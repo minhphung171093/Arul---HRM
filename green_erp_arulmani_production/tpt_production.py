@@ -294,7 +294,7 @@ class tpt_batch_split_line(osv.osv):
         'sequence': fields.integer('S.No'),
         'product_id': fields.many2one('product.product', 'Product'),
         'qty': fields.float('Quantity'),
-        'uom_id': fields.many2one('product.uom', 'UOM'),
+        'uom_id': fields.many2one('product.uom', 'UOM', ondelete='restrict'),
         'prodlot_id': fields.many2one('stock.production.lot', 'System Batch No'),
     }
     _defaults = {
