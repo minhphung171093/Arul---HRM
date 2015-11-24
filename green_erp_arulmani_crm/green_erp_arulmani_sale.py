@@ -353,7 +353,7 @@ class crm_sale_order_line(osv.osv):
                     \n* The \'Cancelled\' status is set when a user cancel the sales order related.'),
         'product_uos_qty': fields.float('Quantity (UoS)' ,digits_compute= dp.get_precision('Product UoS'), readonly=True, states={'draft': [('readonly', False)]}),
         'product_uom': fields.many2one('product.uom', 'Unit of Measure ', required=True, readonly=True, states={'draft': [('readonly', False)]}),
-        'product_uos': fields.many2one('product.uom', 'Product UoS'),
+        'product_uos': fields.many2one('product.uom', 'Product UoS', ondelete='restrict'),
         'type': fields.selection([('make_to_stock', 'from stock'), ('make_to_order', 'on order')], 'Procurement Method', required=True, readonly=True, states={'draft': [('readonly', False)]},
          help="From stock: When needed, the product is taken from the stock or we wait for replenishment.\nOn order: When needed, the product is purchased or produced."),
         'th_weight': fields.float('Weight', readonly=True, states={'draft': [('readonly', False)]}),

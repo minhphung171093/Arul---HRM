@@ -783,7 +783,7 @@ class tpt_service_entry_line(osv.osv):
         'work_day': fields.date('Work Day',required=True),
         'parti':fields.char('Particulars', size = 1024),
         'po_line_id':fields.many2one('purchase.order.line','Particulars', ondelete = 'restrict'),
-        'uom_id': fields.many2one('product.uom', 'UOM'),
+        'uom_id': fields.many2one('product.uom', 'UOM', ondelete='restrict'),
         'product_uom_qty': fields.float('Quantity',digits=(16,3)),   
         'price_unit': fields.float('Unit Price',digits=(16,3)),
 #         'price_unit': fields.related('po_line_id','price_unit',type='float', relation='purchase.order.line',string='Unit Price', readonly = True),

@@ -4124,7 +4124,7 @@ class tpt_vendor_group(osv.osv):
         'name': fields.char('Name', size = 1024, required=True),
         'code':fields.char('Code',size = 256,required = True),
         'active':fields.boolean('Active'),
-        'vendor_sub_line':fields.one2many('tpt.vendor.sub.group','vendor_group_id','Vendor Sub Group'),
+        'vendor_sub_line':fields.one2many('tpt.vendor.sub.group','vendor_group_id','Vendor Sub Group', ondelete='restrict'),
                 }
     
     _defaults = {
