@@ -31,8 +31,8 @@ class Parser(report_sxw.rml_parse):
     def get_app(self,prod):
         if prod.default_code=='M0501010001': 
             return "Anatase"
-        #elif prod.default_code=='M0501010008':
-         #   return "Rutile"
+        elif prod.default_code=='M0501010008':
+            return "Rutile"
         else:
             return "Rutile"    
     def get_date(self, date=False):

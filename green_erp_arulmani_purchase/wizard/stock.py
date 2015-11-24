@@ -293,8 +293,8 @@ class stock_invoice_onshipping(osv.osv_memory):
                 for line in pick.move_lines:    
                     if line.action_taken=='need':
                         grn_qty += line.product_uos_qty
-                if grn_qty==qty and remaining_qty ==0 and qty_approve==0:
-                    raise osv.except_osv(_('Warning!'),_('should not allow to Create Invoice ! The Quality Inspection has been rejected !'))
+                if grn_qty==qty and remaining_qty ==0 and qty_approve==0 and line.action_taken=='need':
+                    raise osv.except_osv(_('Warning!'),_('Should not allow to Create Invoice. The Quality Inspection has been rejected !'))
                 ###TPT-END
                 
         return res
