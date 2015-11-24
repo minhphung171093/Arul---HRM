@@ -211,7 +211,7 @@ class Parser(report_sxw.rml_parse):
                     'department': emp.department_id.name,
                     'section': emp.section_id.name,
                     'email': emp.work_email,
-                    'mobile': emp.work_phone,
+                    'mobile': emp.personal_contact or '',
                     'communication_address': comu_add,
                     'permanent_address': permanent_add,
                     'blood_group': emp.blood_group,
