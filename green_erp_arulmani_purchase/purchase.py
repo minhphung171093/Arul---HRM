@@ -5072,11 +5072,21 @@ class tpt_material_request(osv.osv):
         return True   
     def bt_cancel(self, cr, uid, ids, context=None):
         for line in self.browse(cr, uid, ids):
-            self.write(cr, uid, ids,{'state':'cancel'})
+            #TPT-By BalamuruganPurushothaman-ON 25/11/2015-To avoid throwing write method warning during cancel
+            #self.write(cr, uid, ids,{'state':'cancel'})
+            sql = '''
+            update tpt_material_request set state='cancel' where id=%s
+            '''%line.id
+            cr.execute(sql)
         return True 
     def bt_draft(self, cr, uid, ids, context=None):
         for line in self.browse(cr, uid, ids):
-            self.write(cr, uid, ids,{'state':'draft'})
+            #TPT-By BalamuruganPurushothaman-ON 25/11/2015-To avoid throwing write method warning during set to draft
+            #self.write(cr, uid, ids,{'state':'draft'})
+            sql = '''
+            update tpt_material_request set state='draft' where id=%s
+            '''%line.id
+            cr.execute(sql)
         return True 
 
     def onchange_date_expect(self, cr, uid, ids,date_request=False, context=None):
