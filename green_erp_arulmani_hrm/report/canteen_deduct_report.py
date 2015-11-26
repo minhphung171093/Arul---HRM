@@ -63,12 +63,13 @@ class Parser(report_sxw.rml_parse):
          where cd.issue_date between '%s' and '%s' and cd.state='approve'
         '''%(date_from, date_to)
         
-        if category[1]=='Executives(S1)':
-            sql += "and emp.employee_category_id =%s"%category[0]
-        elif category[1]=='Staff(S2)':
-            sql += "and emp.employee_category_id =%s"%category[0]
-        elif category[1]=='Workers(S3)':
-            sql += "and emp.employee_category_id =%s"%category[0]
+        if category:
+            if category[1]=='Executives(S1)':
+                sql += "and emp.employee_category_id =%s"%category[0]
+            elif category[1]=='Staff(S2)':
+                sql += "and emp.employee_category_id =%s"%category[0]
+            elif category[1]=='Workers(S3)':
+                sql += "and emp.employee_category_id =%s"%category[0]
         
         sql += " order by emp.employee_id asc"
         self.cr.execute(sql)     
