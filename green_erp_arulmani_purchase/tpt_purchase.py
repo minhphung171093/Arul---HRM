@@ -206,6 +206,31 @@ class tpt_mrp_process(osv.osv):
                         if not m_ids:
                             mrp_product_ids.append({'product_id':line[1],'indent_line_id':line[2]})
                             mrp_prod_ids.append(line[1])
+                        else:#TPT-BG START - ON 25/11/2015
+                            sql = '''
+                            select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end ton_sl from 
+                                    (select st.product_qty
+                                        from stock_move st 
+                                            inner join stock_location l2 on st.location_dest_id= l2.id
+                                            inner join product_uom pu on st.product_uom = pu.id
+                                        where st.state='done' and st.product_id = %s and l2.usage = 'internal'
+                                    union all
+                                    select st.product_qty*-1
+                                        from stock_move st 
+                                            inner join stock_location l1 on st.location_id= l1.id
+                                            inner join product_uom pu on st.product_uom = pu.id
+                                        where st.state='done' and st.product_id = %s and l1.usage = 'internal'
+                                    )foo
+                            '''%(line[1],line[1])
+                            cr.execute(sql)
+                            out = cr.dictfetchone()
+                            if out:
+                                hand_quantity = float(out['ton_sl'])
+                                prod = product_obj.browse(cr, uid, line[1])
+                                if hand_quantity < prod.re_stock:
+                                    mrp_product_ids.append({'product_id':line[1],'indent_line_id':line[2]})
+                                    mrp_prod_ids.append(line[1])
+                    #TPT-END
 #                             indent_line_ids.append(line[3])
                 
                 sql='''
@@ -235,6 +260,14 @@ class tpt_mrp_process(osv.osv):
                         prod = product_obj.browse(cr, uid, product['product_id'])
                         quantity = 1.00
                         hand_quantity = 0
+                        ### TPT-BG - ON 25/11/2015
+                        sql = '''
+                        select case when sum(primary_qty)>0 then sum(primary_qty) else 0 end  primary_qty from stock_move where product_id=%s and state in ('assigned') and picking_id is not null
+                        '''%(prod.id)
+                        cr.execute(sql)
+                        pending_receipt_qty = cr.fetchone()
+                        pending_receipt_qty = pending_receipt_qty[0]
+                        ###
                         sql = '''
                             select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end ton_sl from 
                                     (select st.product_qty
@@ -256,7 +289,8 @@ class tpt_mrp_process(osv.osv):
                             hand_quantity = hand_quantity+float(out['ton_sl'])
     #                     maximum = line.product_id.max_stock or 0.0
                         if prod.max_stock > 0:
-                            quantity =  prod.max_stock - hand_quantity
+                            quantity =  prod.max_stock - hand_quantity - pending_receipt_qty #TPT-BG
+                            #quantity =  prod.max_stock - hand_quantity 
                         mrp_process_line.append((0,0,{'product_id':prod.id,
                                                       'uom_po_id':prod.uom_po_id.id,
                                                       'product_uom_qty':quantity,
