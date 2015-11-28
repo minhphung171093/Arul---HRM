@@ -1304,9 +1304,9 @@
             <field name="arch" type="xml">
 	            <form string="Comparison Chart" version="7.0" >
 	            <header>
-	            		<button name="bt_print" string="View/Print Comparison Chart" type="object" class="oe_highlight" />
-	            		<button name="bt_print_pdf" string="Print.Pdf" type="object" class="oe_highlight" />
 	            		<button name="bt_load" string="Load Comparison Chart" type="object" class="oe_highlight" />
+	            		<button name="bt_print" string="Print .xls" type="object" class="oe_highlight" />
+	            		<button name="bt_print_pdf" string="Print .pdf" type="object" class="oe_highlight" />
 	            </header>    
 	            	<sheet>
 	                   	 <group col="4" colspan="2" >
