@@ -971,7 +971,7 @@ class product_product(osv.osv):
         'onhand_qty_store': fields.function(_onhand_qty_store, string='Store On-Hand Qty', multi='test_qty1'),
         
         'tolerance_qty': fields.float('Tolerance'), #TPT
-        
+        'warehouse_id':fields.many2one('stock.location', 'Sale Warehouse'), 
         }
     
     _defaults = {
@@ -2046,6 +2046,24 @@ class tpt_comparison_chart(osv.osv):
         return {
             'type': 'ir.actions.report.xml',
             'report_name': 'tpt_comparison_chart',
+        }
+    def bt_print_pdf(self, cr, uid, ids, context=None):
+        assert len(ids) == 1, 'This option should only be used for a single id at a time.'
+        sql = '''
+            select case when count(*)!=0 then count(*) else 0 end total_select from tpt_purchase_quotation where comparison_chart_id = %s and tpt_purchase_quotation.select = 'True'
+        '''%(ids[0])
+        cr.execute(sql)
+        total_select=cr.dictfetchone()['total_select']
+        if total_select > 4:
+            raise osv.except_osv(_('Warning!'),_('Should not choose more than 4 lines from Quotation !'))
+        datas = {
+             'ids': ids,
+             'model': 'tpt.comparison.chart',
+             'form': self.read(cr, uid, ids[0], context=context)
+        }
+        return {
+            'type': 'ir.actions.report.xml',
+            'report_name': 'tpt_comparison_chart_pdf',
         }
 
 tpt_comparison_chart()
