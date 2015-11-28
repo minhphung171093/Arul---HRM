@@ -291,14 +291,15 @@ class tpt_mrp_process(osv.osv):
                         if prod.max_stock > 0:
                             quantity =  prod.max_stock - hand_quantity - pending_receipt_qty #TPT-BG
                             #quantity =  prod.max_stock - hand_quantity 
-                        mrp_process_line.append((0,0,{'product_id':prod.id,
-                                                      'uom_po_id':prod.uom_po_id.id,
-                                                      'product_uom_qty':quantity,
-                                                      'min_stock': prod.min_stock,  
-                                                      'max_stock': prod.max_stock,  
-                                                      're_stock': prod.re_stock,
-                                                      'indent_line_id': product['indent_line_id'],
-                                                      }))
+                        if quantity>0:
+                            mrp_process_line.append((0,0,{'product_id':prod.id,
+                                                          'uom_po_id':prod.uom_po_id.id,
+                                                          'product_uom_qty':quantity,
+                                                          'min_stock': prod.min_stock,  
+                                                          'max_stock': prod.max_stock,  
+                                                          're_stock': prod.re_stock,
+                                                          'indent_line_id': product['indent_line_id'],
+                                                          }))
         vals = {'mrp_process_line':mrp_process_line, 'state':'approve'}
         return self.write(cr,1,ids,vals)
     
