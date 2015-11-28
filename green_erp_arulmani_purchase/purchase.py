@@ -971,7 +971,7 @@ class product_product(osv.osv):
         'onhand_qty_store': fields.function(_onhand_qty_store, string='Store On-Hand Qty', multi='test_qty1'),
         
         'tolerance_qty': fields.float('Tolerance'), #TPT
-        'warehouse_id':fields.many2one('stock.location', 'Sale Warehouse'), 
+        'warehouse_id':fields.many2one('stock.location', 'Sale Warehouse'), ###TPT-BM-28/11/2015-TO OVERWRITE DUMMY FUNCTION OF THIS WAREHOUSE ID
         }
     
     _defaults = {

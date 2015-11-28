@@ -920,6 +920,9 @@
 						<field name="max_stock" attrs="{'readonly': [('mrp_control','=',False)]}"/>
 						<field name="re_stock" attrs="{'readonly': [('mrp_control','=',False)]}"/>
 						<field name="po_text"/>
+						<!-- 
+						<field name="warehouse_id" domain="[('usage','=','internal'),('chained_location_type','&lt;&gt;','customer')]" options="{'create': false, 'create_edit': false}" groups="base.user_root" />
+	                 	-->
 	                </group>
 				</xpath>
 				<xpath expr="//group[@string='Stock and Expected Variations']" position="replace"/>
@@ -1302,6 +1305,7 @@
 	            <form string="Comparison Chart" version="7.0" >
 	            <header>
 	            		<button name="bt_print" string="View/Print Comparison Chart" type="object" class="oe_highlight" />
+	            		<button name="bt_print_pdf" string="Print.Pdf" type="object" class="oe_highlight" />
 	            		<button name="bt_load" string="Load Comparison Chart" type="object" class="oe_highlight" />
 	            </header>    
 	            	<sheet>
