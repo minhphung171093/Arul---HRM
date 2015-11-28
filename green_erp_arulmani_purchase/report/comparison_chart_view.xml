@@ -24,5 +24,30 @@
 			name="tpt_comparison_chart"
 	        string="Print Comparison Chart"
 	        rml="green_erp_arulmani_purchase/report/comparison_chart.ods"/> 	
+	<!-- TPT-R - ON 26/11/2015 - TO PRINT REPORT IN PDF FORMAT -->       
+	<record id="tpt_comparison_chart_pdf" model="ir.actions.report.xml">
+	        <field name="name">tpt.comparison.chart</field>
+	        <field name="type">ir.actions.report.xml</field>
+	        <field name="model">tpt.comparison.chart</field>
+	        <field name="report_name">RFQ_${object.name.name}</field>
+	        <field name="report_type">aeroo</field>
+	        <field name="in_format">oo-ods</field>
+	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-pdf'),('compatible_types','=','oo-odt')]"/>
+	        <field name="parser_loc">green_erp_arulmani_purchase/report/comparison_chart.py</field>
+	        <field name="report_rml">green_erp_arulmani_purchase/report/comparison_chart.odt</field>
+	        <field name="parser_state">loc</field>
+	        <field name="tml_source">file</field>
+	        <field name="attachment_use" eval="0"/>
+    	</record> 
+    	   
+    	<report 
+			auto="False" 
+			menu="True"
+			id="tpt_comparison_chart_pdf" 
+			model="tpt.comparison.chart" 
+			name="tpt_comparison_chart_pdf"
+	        string="Print Comparison Chart Pdf"
+	        rml="green_erp_arulmani_purchase/report/comparison_chart.odt"/> 	
+
 	</data>
 </openerp>

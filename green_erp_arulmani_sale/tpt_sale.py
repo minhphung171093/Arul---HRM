@@ -15,7 +15,8 @@ class product_product(osv.osv):
     _inherit = "product.product"
     
     _columns = {
-                'cate_name': fields.char('Cate Name',size=64),       
+                'cate_name': fields.char('Cate Name',size=64),    
+                'warehouse_id':fields.many2one('stock.location', 'Sale Warehouse'),   ###TPT-BM-28/11/2015-TO OVERWRITE DUMMY FUNCTION OF THIS WAREHOUSE ID
     }
     
     def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
