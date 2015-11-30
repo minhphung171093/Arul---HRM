@@ -678,10 +678,16 @@
                         <group>
                         	<field name="name" string="Document No" readonly="1"/>
                         	<field name="purchase_id" context="{'search_po_document':True, 'purchase_id':purchase_id}" on_change = 'onchange_purchase_id(purchase_id)' string = 'Service PO' domain="[('po_document_type','=','service'), ('state','=','done')]" required = '1' readonly="0" options="{'create': false, 'create_edit': false}"/>
-                        	<field string="Vendor" name="partner_id"
+                        	<!-- TPT-BM
+                        	<field string="Vendor" name="partner_id" 
+                              context="{'default_customer': 0, 'search_default_supplier': 1, 'default_supplier': 1}"
+                              domain="[('supplier', '=', True)]" options="{'create': false, 'create_edit': false}"/>
+                            -->
+                            <field string="Vendor" name="partner_id"
                               on_change="onchange_partner_id(type,partner_id,date_invoice,payment_term, partner_bank_id,company_id)"
                               context="{'default_customer': 0, 'search_default_supplier': 1, 'default_supplier': 1}"
                               domain="[('supplier', '=', True)]" options="{'create': false, 'create_edit': false}"/>
+                             
                             <field name="vendor_ref" required='1'/>
                             <field name="is_tds_applicable" on_change="onchange_service_tds(is_tds_applicable, purchase_id)" invisible = '1'/>
                             <field name="tds_id" attrs="{'invisible': [('is_tds_applicable','=',False)]}" options="{'create': false, 'create_edit': false}" invisible = '1'/>
@@ -831,7 +837,7 @@
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
             <field eval="False" name="view_id" ref="view_tpt_service_invoice_tree"/>
-            <field name="domain">[('type','=','in_invoice'), ('purchase_id.po_document_type','=', 'service')]</field>
+            <field name="domain">[('type','=','in_invoice'), ('purchase_id.po_document_type','=', 'service'), ('doc_type','=', 'service_invoice')]</field>
             <field name="context">{'default_type': 'in_invoice', 'type': 'in_invoice', 'journal_type': 'purchase'}</field>
             <field name="search_view_id" ref="view_account_invoice_filter"/>
         </record>
@@ -1060,7 +1066,7 @@
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
             <field eval="False" name="view_id" ref="view_tpt_freight_invoice_tree"/>
-            <field name="domain">[('type','=','in_invoice'), ('sup_inv_id','!=',False)]</field>
+            <field name="domain">[('type','=','in_invoice'), ('sup_inv_id','!=',False), ('doc_type','=', 'freight_invoice')]</field>
             <field name="context">{'default_type': 'in_invoice', 'type': 'in_invoice', 'journal_type': 'purchase'}</field>
             <field name="search_view_id" ref="view_account_invoice_filter"/>
         </record>
