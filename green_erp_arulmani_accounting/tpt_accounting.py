@@ -739,6 +739,11 @@ class account_invoice(osv.osv):
         'cost_center_id':fields.many2one('tpt.cost.center','Cost Center'),
 #         'flag_bt_ed': fields.boolean('button ed'),
         'flag_bt_ed': fields.function(get_button_ed, string='button ed', type='boolean'),
+        'doc_type':fields.selection([('supplier_invoice','Supplier Invoice'),
+                                     ('supplier_invoice_without','Supplier Invoice (Without PO)'),
+                                     ('service_invoice','Service Invoice'),
+                                     ('freight_invoice','Freight Invoice')
+                                     ],('Doc Type')),
     }
     
     def bt_post_ed(self, cr, uid, ids, context=None):
@@ -1112,17 +1117,22 @@ class account_invoice(osv.osv):
     def create(self, cr, uid, vals, context=None):
         if vals.get('type','')=='in_invoice' and 'purchase_id' in vals and 'sup_inv_id' not in vals:
             vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.supplier.invoice.sequence') or '/'
+            vals['doc_type']='service_invoice'
         if vals.get('type','')=='in_invoice' and 'purchase_id' not in vals and 'sup_inv_id' not in vals:
             vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.supplier.invoice.sequence') or '/'
+            vals['doc_type']='supplier_invoice'
         if vals.get('type','')=='in_invoice' and 'sup_inv_id' in vals and vals['sup_inv_id']:
             vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.si.freight.sequence') or '/'
+            vals['doc_type']='freight_invoice'
             for seq,line in enumerate(self.browse(cr, uid, vals['sup_inv_id']).invoice_line):
+                bp_obj = self.pool.get('res.partner').browse(cr, uid, vals['partner_id'])
                 vals['invoice_line'][seq][2].update({
                     'product_id': line.product_id.id,
                     'name': line.name,
                     'quantity': line.quantity,
                     'uos_id': line.uos_id.id,
                     'price_unit': line.price_unit,
+                    'tds_id_2': bp_obj and bp_obj.tds_id and  bp_obj.tds_id.id or False #TPT-BalamuruganPurushothaman-30/11/2015 - Ticket No: 3151
                 })
                     
         new_id = super(account_invoice, self).create(cr, uid, vals, context=context)

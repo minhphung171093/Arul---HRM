@@ -10989,3 +10989,12 @@ class tpt_time_data_move(osv.osv):
             print "EMPLOYEE DATA MOVED"
             return True
 tpt_time_data_move()
+
+class tpt_leave_rule(osv.osv):
+    _name = "tpt.leave.rule"
+    _rec_name = 'rule_no'
+    _columns = {
+        'rule_no': fields.char('Rule No', size=64),
+        'desc': fields.text('Description', size=64),
+    }
+tpt_leave_rule()    
