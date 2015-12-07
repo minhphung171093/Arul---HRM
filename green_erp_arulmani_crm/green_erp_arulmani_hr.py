@@ -40,7 +40,7 @@ class hr_employee(osv.osv):
         ids = []
         
         if name:
-            ids = self.search(cr, user, ['|',('last_name', operator, name),('name', operator, name+"%")]+ args, limit=limit)
+            ids = self.search(cr, user, ['|',('last_name', operator, name),('name', operator, name)]+ args, limit=limit)
         else:
             ids = self.search(cr, user, args, context=context, limit=limit)     
         return self.name_get(cr, user, ids, context=context)
