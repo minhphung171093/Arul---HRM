@@ -613,8 +613,9 @@
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
             <field eval="False" name="view_id" ref="view_tpt_supplier_invoice_without_po_tree"/>
-            <field name="domain">[('type','=','in_invoice'),('purchase_id','=',False)]</field>
-            <field name="context">{'default_type': 'in_invoice', 'type': 'in_invoice', 'journal_type': 'purchase'}</field>
+            <!-- <field name="domain">[('type','=','in_invoice'),('purchase_id','=',False)]</field>  -->
+            <field name="domain">[('doc_type','=','supplier_invoice_without'),('purchase_id','=',False)]</field>
+            <field name="context">{'default_doc_type': 'supplier_invoice_without','default_type': 'in_invoice', 'type': 'in_invoice', 'journal_type': 'purchase'}</field>
             <field name="search_view_id" ref="view_account_invoice_filter"/>
         </record>
         <record id="action_invoice_supplier_without_po1" model="ir.actions.act_window.view">
@@ -846,7 +847,7 @@
             <field name="view_mode">tree,form</field>
             <field eval="False" name="view_id" ref="view_tpt_service_invoice_tree"/>
             <field name="domain">[('type','=','in_invoice'), ('purchase_id.po_document_type','=', 'service'), ('doc_type','=', 'service_invoice')]</field>
-            <field name="context">{'default_type': 'in_invoice', 'type': 'in_invoice', 'journal_type': 'purchase'}</field>
+            <field name="context">{'default_doc_type': 'service_invoice','default_type': 'in_invoice', 'type': 'in_invoice', 'journal_type': 'purchase'}</field>
             <field name="search_view_id" ref="view_account_invoice_filter"/>
         </record>
         <record id="action_invoice_service1" model="ir.actions.act_window.view">
@@ -1412,7 +1413,8 @@
             <field name="view_type">form</field>
             <field name="view_mode">tree,form,calendar,graph</field>
             <field eval="False" name="view_id"/>
-            <field name="domain">[('type','=','in_invoice'),('purchase_id','!=',False)]</field>
+            <!-- <field name="domain">[('type','=','in_invoice'),('purchase_id','!=',False)]</field> --> 
+            <field name="domain">[('doc_type','=','supplier_invoice'),('purchase_id','!=',False)]</field>
             <field name="context">{'default_type': 'in_invoice', 'type': 'in_invoice', 'journal_type': 'purchase'}</field>
             <field name="search_view_id" ref="view_account_invoice_filter"/>
             <field name="help" type="html">
