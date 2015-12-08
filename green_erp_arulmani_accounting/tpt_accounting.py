@@ -3650,6 +3650,7 @@ class account_voucher(osv.osv):
         'tpt_exchange_rate':fields.float('Realization Rate', digits=(12,14),),#TPT
         'tpt_sub_total_amt':fields.float('Total'),#TPT
         'tpt_amount_total': fields.function(_tpt_sub_total, type='float', readonly=True, string='Total' ),#TPT
+        'purchase_id':fields.many2one('purchase.order','PO Number'),
         'tpt_bank_re':fields.boolean('Bank Reconciliation Updated'),
         
         'status': fields.selection([('reconcile', 'Reconciled'), ('unreconcile', 'Un-Reconciled'), 
