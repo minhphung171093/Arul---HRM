@@ -630,6 +630,7 @@
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
             <field name="context">{'search_default_draft':1}</field>
+            <field name="domain">[('history_id','=',False)]</field>
             <field name="search_view_id" ref="tpt_quality_verification_search_view"/>
             <field name="view_id" ref="tpt_quality_verification_tree_view"/>
         </record>
