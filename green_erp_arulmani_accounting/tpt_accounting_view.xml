@@ -1661,6 +1661,7 @@
 					</xpath>
 					
 					<xpath expr="//field[@name='amount']" position="replace">
+                    	<field name="purchase_id" domain="[('state','=','md'),('partner_id','=',partner_id)]" options="{'create': false, 'create_edit': false}"/>
                     	<field name="tpt_currency_id" required="1" on_change="onchange_tpt_currency(tpt_currency_id,currency_id,type)"/>
                     	<field name="is_tpt_currency" invisible='1'/>
                     	<field name="amount" attrs="{'invisible':[('is_tpt_currency','=',False)]}" class="oe_inline" string="Paid Amount" widget="monetary" options="{'currency_field': 'currency_id'}" on_change="onchange_amount(amount, payment_rate, partner_id, journal_id, currency_id, type, date, payment_rate_currency_id, company_id, context)"/>	
@@ -2292,7 +2293,7 @@
                     <field name="type" invisible="True"/>
                     <group>
                         <group>
-                            <field name="partner_id" domain="[('supplier','=',True)]" required="1" invisible="context.get('line_type', False)" on_change="onchange_partner_id(partner_id, journal_id, amount, currency_id, type, date, context)" context="{'invoice_currency':currency_id, 'default_customer': 0, 'search_default_supplier': 1, 'default_supplier': 1}"  string="Supplier" options="{'create': false, 'create_edit': false}"/>
+                            <field name="partner_id" domain="[('supplier','=',True)]" required="1" invisible="context.get('line_type', False)" on_change="onchange_partner_id(partner_id, journal_id, amount, currency_id, type, date, context)" context="{'invoice_currency':currency_id, 'default_customer': 0, 'search_default_supplier': 1, 'default_supplier': 1}"  string="Supplier" options="{'create': false, 'create_edit': false}"/>                        
                             <field name="currency_id" invisible="1"/>
                             <field name="amount" invisible="1" on_change="onchange_amount(amount, payment_rate, partner_id, journal_id, currency_id, type, date, payment_rate_currency_id, company_id, context)" class="oe_inline" widget='monetary' options='{"currency_field": "currency_id"}'/>
                             <field name="journal_id"
