@@ -1437,6 +1437,11 @@ class account_invoice(osv.osv):
                 'type': 'ir.actions.report.xml',
                 'report_name': 'tpt_export_cfr_account_invoice',
                 }
+            if invoice_ids.sale_id.incoterms_id.code =='CIP':
+                return {
+                'type': 'ir.actions.report.xml',
+                'report_name': 'tpt_export_cif_account_invoice',
+                }
             else:
                 return {
                 'type': 'ir.actions.report.xml',
