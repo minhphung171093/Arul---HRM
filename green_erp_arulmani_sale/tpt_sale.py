@@ -1234,6 +1234,8 @@ class tpt_blanket_order(osv.osv):
         'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),       
         'write_date': fields.datetime('Updated Date',readonly = True),
         'write_uid': fields.many2one('res.users','Updated By',ondelete='restrict',readonly = True),
+        'amendment_reason': fields.char('Reason for Amendment', size = 1024, ),
+        'amendment_flag':fields.boolean('Is Amended'),
     }
     
     
@@ -1243,6 +1245,7 @@ class tpt_blanket_order(osv.osv):
         'document_type': 'blankedorder',
         'bo_date': time.strftime('%Y-%m-%d'),
         'flag2':False,
+        'amendment_flag':False,
     }
     
     def onchange_exp_delivery_date(self, cr, uid, ids, exp_delivery_date=False, context=None):
@@ -1345,7 +1348,12 @@ class tpt_blanket_order(osv.osv):
                 raise osv.except_osv(_('Warning!'),_('Sales Order not raised for this BO'))
             self.write(cr, uid, ids,{'state':'close'})
         return True   
-    
+    ###TPT-
+    def bt_draft(self, cr, uid, ids, context=None):
+        for line in self.browse(cr, uid, ids):           
+            self.write(cr, uid, ids,{'state':'draft', 'amendment_flag':True})
+        return True 
+    #TPT
     def create(self, cr, uid, vals, context=None):
         if vals.get('name','/')=='/':
             vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.blanked.order.import') or '/'
