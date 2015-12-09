@@ -69,6 +69,8 @@
         'wizard/stock_pur_view.xml',
         'wizard/mateiral_purchase_value_month_view.xml',
         'report/report_mateiral_purchase_value_month_view.xml',
+        'report/tpt_material_issue.xml',
+        
     ],
     'css' : [
     ],
