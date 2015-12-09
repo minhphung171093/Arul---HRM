@@ -180,7 +180,37 @@
 			</field>
 		</record>
 		
-
+	<record id="view_tpt_blanket_order_search_vew" model="ir.ui.view">
+			<field name="name">tpt.blanket.order.search</field>
+			<field name="model">tpt.blanket.order</field>
+			<field name="arch" type="xml">
+				<search string="Material Issue">
+					<field name="name"/>
+					<field name="customer_id"/>
+					<field name="bo_date"/>
+					<field name="state"/>
+					<field name="currency_id"/>
+					<filter string="Draft" name="draft" icon="terp-personal" domain="[('state','=','draft')]" context="{}"/>
+					<filter string="Confirmed" name="approve" icon="terp-personal" domain="[('state','=','approve')]" context="{}"/>
+					<filter string="Done" name="done" icon="terp-personal" domain="[('state','=','done')]" context="{}"/>
+					<filter string="Closed" name="close" icon="terp-personal" domain="[('state','=','close')]" context="{}"/>	
+					<filter string="Cancelled" name="cancel" icon="terp-personal" domain="[('state','=','cancel')]" context="{}"/>				
+					<group expand="0" string="Group By...">
+						<filter string="Status" icon="terp-partner" domain="[]" context="{'group_by':'state'}"/>
+						<filter string="BO Date" icon="terp-partner" domain="[]" context="{'group_by':'bo_date'}"/>
+                        <filter string="Customer" icon="terp-partner" domain="[]" context="{'group_by':'customer_id'}"/>                        
+                        <filter string="Currency" icon="terp-go-month" domain="[]"  context="{'group_by':'currency_id'}"/>
+                        <filter string="Order Type" icon="terp-go-month" domain="[]"  context="{'group_by':'order_type'}"/>
+                        <filter string="Distribution Channel" icon="terp-go-month" domain="[]"  context="{'group_by':'channel'}"/>
+                        <filter string="Incoterms" icon="terp-go-month" domain="[]"  context="{'group_by':'incoterm_id'}"/>
+                        <filter string="Payment Terms" icon="terp-go-month" domain="[]"  context="{'group_by':'payment_term_id'}"/>
+                        <filter string="Sales Tax" icon="terp-go-month" domain="[]"  context="{'group_by':'sale_tax_id'}"/>
+                        <filter string="Ex.Duty" icon="terp-go-month" domain="[]"  context="{'group_by':'excise_duty_id'}"/>
+                        <filter string="Created By" icon="terp-go-month" domain="[]"  context="{'group_by':'create_uid'}"/>
+                    </group>
+				</search>
+			</field>
+		</record>
 		<record id="view_tpt_blanket_order_form_vew" model="ir.ui.view">
             <field name="name">tpt.blanket.order.form</field>
             <field name="model">tpt.blanket.order</field>

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+	<data>
+    	<record id="tpt_material_issue_report" model="ir.actions.report.xml">
+	        <field name="name">tpt.material.issue</field>
+	        <field name="type">ir.actions.report.xml</field>
+	        <field name="model">tpt.material.issue</field>
+	        <field name="report_name">material_issue</field>
+	        <field name="report_type">aeroo</field>
+	        <field name="in_format">oo-odt</field>
+	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-pdf'),('compatible_types','=','oo-odt')]"/>
+	        <field name="parser_loc">green_erp_arulmani_purchase/report/tpt_material_issue.py</field>
+	        <field name="report_rml">green_erp_arulmani_purchase/report/tpt_material_issue.odt</field>
+	        <field name="parser_state">loc</field>
+	        <field name="tml_source">file</field>
+	        <field name="attachment_use" eval="0"/>
+    	</record> 
+    	
+    	<report 
+			auto="False" 
+			menu="True"
+			id="tpt_material_issue_report" 
+			model="tpt.material.issue" 
+			name="tpt_material_issue_report"
+	        string="Print"
+	        rml="green_erp_arulmani_purchase/report/tpt_material_issue.odt"
+		/>  	
+	</data>
+</openerp>

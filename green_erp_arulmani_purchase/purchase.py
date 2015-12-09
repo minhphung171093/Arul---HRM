@@ -5595,6 +5595,19 @@ class tpt_material_issue(osv.osv):
                 'message': _('Material Issue Date: Not allow future date!')
             }
         return {'value':vals,'warning':warning}
+    #TPT-RK-START- ON 09/12/2015 - Goods Reservation Report - INCIDENT NO:2479
+    def bt_print(self, cr, uid, ids, context=None):
+        assert len(ids) == 1, 'This option should only be used for a single id at a time.'
+        datas = {
+             'ids': ids,
+             'model': 'tpt.material.issue',
+             'form': self.read(cr, uid, ids[0], context=context)
+        }
+        return {
+            'type': 'ir.actions.report.xml',
+            'report_name': 'tpt_material_issue_report',
+        }
+    #TPT-END
     
 tpt_material_issue()
 
