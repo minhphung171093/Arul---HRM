@@ -2728,7 +2728,16 @@ class purchase_order(osv.osv):
                     sql = '''
                         update tpt_purchase_product set state='close' where pur_product_id=%s and product_id=%s and description='%s'
                     '''%(line.po_indent_no.id,line.product_id.id,line.description)
-                    cr.execute(sql)
+                    #cr.execute(sql)
+                    ###TPT-By BalamuruganPurushtohaman-ON 10/12/2015 - TO AVOID THROWING ERROR FOR SINGLE QUOTE IN PROD DESC
+                    pr_line_obj = self.pool.get('tpt.purchase.product')
+                    pr_line_obj_ids = pr_line_obj.search(cr, uid, [('pur_product_id','=',line.po_indent_no.id),
+                                                                                 ('product_id','=',line.product_id.id),
+                                                                                 ('description','=',line.description)])
+                    for pr in pr_line_obj_ids:
+                        sql = '''update tpt_purchase_product set state='close' where id=%s
+                        '''%pr
+                        cr.execute(sql)
                 if 'state' in vals and vals['state']=='cancel':
                     sql = '''
                         update tpt_purchase_product set state='cancel' where pur_product_id=%s and product_id=%s
