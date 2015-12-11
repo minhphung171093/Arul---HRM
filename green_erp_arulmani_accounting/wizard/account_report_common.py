@@ -7,6 +7,19 @@ from openerp.tools.translate import _
 import openerp.tools
 from openerp.tools import DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_DATETIME_FORMAT, float_compare
 
+#TPT-Y 05Nov2015
+class account_balance_report(osv.osv_memory):
+    _inherit = "account.balance.report"
+    _columns = {
+            'display_account': fields.selection([('all','All'),
+            ('movement','All without zero balance'),
+            ],'Display Accounts'),
+            }
+    _defaults = {
+            'display_account':'all'
+            }
+account_balance_report()
+
 
 class tpt_account_balance_report(osv.osv_memory):
     _name = "tpt.account.balance.report"
@@ -18,9 +31,15 @@ class tpt_account_balance_report(osv.osv_memory):
         'date_to': fields.date('End Date'),
         'chart_account_id':fields.many2one('account.account','Chart of Account'),
         'fiscalyear_id':fields.many2one('account.fiscalyear','Fiscal Year'),
-        'display_account': fields.selection([('all','All'), ('movement','With movements'),
-                                            ('not_zero','With balance is not equal to 0'),
-                                            ],'Display Accounts'),
+        #=======================================================================
+        # 'display_account': fields.selection([('all','All'), ('movement','With movements'),
+        #                                     ('not_zero','With balance is not equal to 0'),
+        #                                     ],'Display Accounts'),
+        #=======================================================================
+                
+         'display_account': fields.selection([('all','All'),
+                                              ('movement','All without zero balance'),
+                                              ],'Display Accounts'), #TPT-Y on 05Nov2015
         'target_move': fields.selection([('posted', 'All Posted Entries'),
                                          ('all', 'All Entries'),
                                         ], 'Target Moves'),
@@ -60,7 +79,9 @@ class tpt_account_balance_report_line(osv.osv_memory):
         'open_credit': fields.float('Opening Credit'),
         'debit': fields.float('Debit'),
         'credit': fields.float('Credit'),
-        'close_bal': fields.float('Close'),
+        #'close_bal': fields.float('Close'), #TPT-Y on 05Nov2015
+        'close_debit': fields.float('Closing Debit'), #TPT-Y on 05Nov2015
+        'close_credit': fields.float('Closing Credit'), #TPT-Y on 05Nov2015
     }
     
 tpt_account_balance_report_line()
@@ -108,6 +129,25 @@ class account_balance_report(osv.osv_memory):
 #                             'WHERE period_id IN %s AND journal_id IN %s '+ self.query_get_clause+'',
 #                             (tuple(period_id), tuple(journal_id)))
 #             return self.cr.fetchone()[0] or 0.0
+        
+        
+        #TPT-Y on 05Nov2015
+        def get_total(cash,type):
+            sum = 0.00
+            for line in cash:
+                if type == 'open_debit':
+                    sum += line['open_debit']
+                if type == 'open_credit':
+                    sum += line['open_credit']
+                if type == 'debit':
+                    sum += line['debit']
+                if type == 'credit':
+                    sum += line['credit']
+                if type == 'close_debit':
+                    sum += line['balance_debit']
+                if type == 'close_credit':
+                    sum += line['balance_credit']
+            return round(sum,2) or 0.00
         
         def get_account(o):
             acc = o.chart_account_id.id
@@ -272,7 +312,10 @@ class account_balance_report(osv.osv_memory):
                     'open_credit': open_sumcredit, # YuVi
                     'debit': sumdebit,  # YuVi
                     'credit': sumcredit, # YuVi
-                    'balance': (open_sumdebit+sumdebit)-(open_sumcredit+sumcredit), # YuVi
+                    #'balance': (open_sumdebit+sumdebit)-(open_sumcredit+sumcredit), # YuVi
+                     #TPT-Y on 05Nov2015
+                    'balance_debit': (open_sumdebit+sumdebit), #TPT-Y on 05Nov2015
+                    'balance_credit': (open_sumcredit+sumcredit), #TPT-Y on 05Nov2015     
                     'parent_id': account_rec['parent_id'],
                     'bal_type': '',
                     'parent_left': account_rec['parent_left'],
@@ -280,16 +323,19 @@ class account_balance_report(osv.osv_memory):
 #                 self.sum_debit += account_rec['debit']
 #                 self.sum_credit += account_rec['credit']
                 if disp_acc == 'movement':
-                    if not currency_obj.is_zero(cr, uid, currency, res['credit']) or not currency_obj.is_zero(cr, uid, currency, res['debit']) or not currency_obj.is_zero(cr, uid, currency, res['balance']):
+#                     if not currency_obj.is_zero(cr, uid, currency, res['credit']) or not currency_obj.is_zero(cr, uid, currency, res['debit']) or not currency_obj.is_zero(cr, uid, currency, res['balance']):
+                      if not currency_obj.is_zero(cr, uid, currency, res['credit']) or not currency_obj.is_zero(cr, uid, currency, res['debit']) or not currency_obj.is_zero(cr, uid, currency, res['balance_debit']) or not currency_obj.is_zero(cr, uid, currency, res['balance_credit']):
                         result_acc.append(res)
                 elif disp_acc == 'not_zero':
-                    if not currency_obj.is_zero(cr, uid, currency, res['balance']):
+                     #if not currency_obj.is_zero(cr, uid, currency, res['balance']): #TPT-Y on 05Nov2015
+                     if not currency_obj.is_zero(cr, uid, currency, res['balance_debit']) or not currency_obj.is_zero(cr, uid, currency, res['balance_credit']): #TPT-Y on 05Nov2015
                         result_acc.append(res)
                 else:
                     result_acc.append(res)
                 if account_rec['child_id']:
                     for child in account_rec['child_id']:
-                        _process_child(accounts,disp_acc,child,from_date,to_date,state,context=context) #YuVi
+                        #_process_child(accounts,disp_acc,child,from_date,to_date,state,context=context) #TPT-Y on 05Nov2015
+                        _process_child(accounts,disp_acc,child,from_date,to_date,state,context=context) #TPT-Y on 05Nov2015
     
             obj_account = self.pool.get('account.account')
 #             if not ids:
@@ -320,7 +366,8 @@ class account_balance_report(osv.osv_memory):
             child_ids = obj_account._get_children_and_consol(cr, uid, [ids], ctx)
             if child_ids:
                 ids = child_ids
-            accounts = obj_account.read(cr, uid, ids, ['type','code','name','debit','credit','balance','parent_id','level','child_id','parent_left'], ctx)
+            #accounts = obj_account.read(cr, uid, ids, ['type','code','name','debit','credit','balance','parent_id','level','child_id','parent_left'], ctx)
+            accounts = obj_account.read(cr, uid, ids, ['type','code','name','debit','credit','balance_debit','balance_credit','parent_id','level','child_id','parent_left'], ctx) #TPT-Y on 05Nov2015
     
             for parent in [parents]:
                     if parent in done:
@@ -347,20 +394,29 @@ class account_balance_report(osv.osv_memory):
                 'open_credit': line['open_credit'],
                 'debit': line['debit'],
                 'credit': line['credit'],
-                'close_bal': line['balance'],
-                
+                #'close_bal': line['balance'],
+                'close_debit': line['balance_debit'], #TPT-Y on 05Nov2015
+                'close_credit': line['balance_credit'], #TPT-Y on 05Nov2015                
             }))
-        vals = {
-            'name': 'Trial Balance',
-            'date_from': balance.date_from,
-            'date_to': balance.date_to,
-            'chart_account_id':balance.chart_account_id and balance.chart_account_id.id or False,
-            'fiscalyear_id':balance.fiscalyear_id and balance.fiscalyear_id.id or False,
-            'display_account': balance.display_account,
-            'target_move': balance.target_move,
-            'filter': balance.filter,
-            'balance_report_line': balance_line,
-        }
+            balance_line.append((0,0,{
+                'open_debit': get_total(lines(balance,get_account(balance),context),'open_debit'),
+                'open_credit': get_total(lines(balance,get_account(balance),context),'open_credit'),
+                'debit': get_total(lines(balance,get_account(balance),context),'debit'),
+                'credit': get_total(lines(balance,get_account(balance),context),'credit'),
+                'close_debit': get_total(lines(balance,get_account(balance),context),'close_debit'), #TPT-Y on 22/09/2015
+                'close_credit': get_total(lines(balance,get_account(balance),context),'close_credit'), #TPT-Y on 22/09/2015
+                }))
+            vals = {
+                    'name': 'Trial Balance',
+                    'date_from': balance.date_from,
+                    'date_to': balance.date_to,
+                    'chart_account_id':balance.chart_account_id and balance.chart_account_id.id or False,
+                    'fiscalyear_id':balance.fiscalyear_id and balance.fiscalyear_id.id or False,
+                    'display_account': balance.display_account,
+                    'target_move': balance.target_move,
+                    'filter': balance.filter,
+                    'balance_report_line': balance_line,
+            }
         balance_id = balance_obj.create(cr, uid, vals)
         res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
                                         'green_erp_arulmani_accounting', 'tpt_account_report_balance_form_view')
