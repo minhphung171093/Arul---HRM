@@ -3561,62 +3561,74 @@ class tpt_update_stock_move_report(osv.osv):
             except Exception, e:
                 raise osv.except_osv(_('Warning!'), str(e)+ ' Line: '+str(dem+1))
         return self.write(cr, uid, ids, {'result':'update date grn negative stock file done'})
-    
     def config_GRN_3451_3883(self, cr, uid, ids, context=None):
-        invoice_obj = self.pool.get('account.invoice')
-        inspec_obj = self.pool.get('tpt.quanlity.inspection')
-        picking_obj = self.pool.get('stock.picking')
         move_obj = self.pool.get('account.move')
-        for grn in ['VVTi/GRN/00006706']:#['VVTi/GRN/00004321']:  #['VVTi/GRN/00003451','VVTi/GRN/00003883']
-            sql = '''
-                select id from stock_picking where name = '%s'
-            '''%(grn)
-            cr.execute(sql)
-            num = cr.fetchone()[0]
-            if num:
-                sql='''
-                    select id from account_invoice where grn_no = %s
-                '''%(num)
-                cr.execute(sql)
-                inv_id = cr.fetchone()
-                if inv_id:
-                    invoice_id = invoice_obj.browse(cr, uid, inv_id[0])
-                    if invoice_id.move_id and invoice_id.move_id.id:
-                        move_obj.button_cancel(cr, uid, [invoice_id.move_id.id])
-                        cr.execute(''' delete from account_move_line where move_id = %s''',(invoice_id.move_id.id,))
-                    cr.execute(''' delete from account_invoice_line where invoice_id = %s''',(invoice_id.id,))
-                    cr.execute(''' delete from account_invoice where id = %s''',(invoice_id.id,))
-                    if invoice_id.move_id and invoice_id.move_id.id:
-                        cr.execute(''' delete from account_move where id = %s''',(invoice_id.move_id.id,))
-                    
-                    sql = '''
-                        delete from account_move_line where left(name,17)=(select name from stock_picking where id = %s)
-                    '''%(num)
-                    cr.execute(sql)
-                    sql = '''
-                        delete from account_move where ref = '%s'
-                    '''%(grn)
-                    cr.execute(sql)
-                sql='''
-                    select id from tpt_quanlity_inspection where need_inspec_id in (select id from stock_move where picking_id = %s)
-                '''%(num)
-                cr.execute(sql)
-                inspec_ids = [row[0] for row in cr.fetchall()]
-                if inspec_ids:
-                    for move in inspec_ids:
-                        sql='''
-                            select id from stock_move where inspec_id = %s
-                        '''%(move)
-                        cr.execute(sql)
-                        move_ids = [row[0] for row in cr.fetchall()]
-                        if move_ids:
-                            cr.execute('delete from stock_move where id in %s',(tuple(move_ids),))
-                    cr.execute('delete from tpt_quanlity_inspection where id in %s',(tuple(inspec_ids),))
-                cr.execute(''' update stock_picking set invoice_state ='2binvoiced' where id = %s''',(num,))
-                picking_obj.action_revert_done(cr, uid, [num], context)
-
-        
-        return self.write(cr, uid, ids, {'result':'config GRN 3451 3883 Done'})   
+        partner_obj = self.pool.get('res.partner')
+        partner_ids = partner_obj.search(cr, uid, [('vendor_code','in',['1200001218','1200001037','1200000581','1100000137','1200000946','1200000790',
+                                                                        '1200001230','1200001132','1200000680','1200000668','1100000277'])])
+   
+        for partner_id in partner_ids:
+            move_ids = move_obj.search(cr, uid, [('partner_id','in',[partner_id]), ('state','=','draft'),('doc_type','=','grn')])
+            for move_id in move_ids:           
+                move_obj.button_validate(cr,uid, [move_id], context)
+        return self.write(cr, uid, ids, {'result':'GRN Auto Posting Done'})   
+#===============================================================================
+#     def config_GRN_3451_3883(self, cr, uid, ids, context=None):
+#         invoice_obj = self.pool.get('account.invoice')
+#         inspec_obj = self.pool.get('tpt.quanlity.inspection')
+#         picking_obj = self.pool.get('stock.picking')
+#         move_obj = self.pool.get('account.move')
+#         for grn in ['VVTi/GRN/00006706']:#['VVTi/GRN/00004321']:  #['VVTi/GRN/00003451','VVTi/GRN/00003883']
+#             sql = '''
+#                 select id from stock_picking where name = '%s'
+#             '''%(grn)
+#             cr.execute(sql)
+#             num = cr.fetchone()[0]
+#             if num:
+#                 sql='''
+#                     select id from account_invoice where grn_no = %s
+#                 '''%(num)
+#                 cr.execute(sql)
+#                 inv_id = cr.fetchone()
+#                 if inv_id:
+#                     invoice_id = invoice_obj.browse(cr, uid, inv_id[0])
+#                     if invoice_id.move_id and invoice_id.move_id.id:
+#                         move_obj.button_cancel(cr, uid, [invoice_id.move_id.id])
+#                         cr.execute(''' delete from account_move_line where move_id = %s''',(invoice_id.move_id.id,))
+#                     cr.execute(''' delete from account_invoice_line where invoice_id = %s''',(invoice_id.id,))
+#                     cr.execute(''' delete from account_invoice where id = %s''',(invoice_id.id,))
+#                     if invoice_id.move_id and invoice_id.move_id.id:
+#                         cr.execute(''' delete from account_move where id = %s''',(invoice_id.move_id.id,))
+#                     
+#                     sql = '''
+#                         delete from account_move_line where left(name,17)=(select name from stock_picking where id = %s)
+#                     '''%(num)
+#                     cr.execute(sql)
+#                     sql = '''
+#                         delete from account_move where ref = '%s'
+#                     '''%(grn)
+#                     cr.execute(sql)
+#                 sql='''
+#                     select id from tpt_quanlity_inspection where need_inspec_id in (select id from stock_move where picking_id = %s)
+#                 '''%(num)
+#                 cr.execute(sql)
+#                 inspec_ids = [row[0] for row in cr.fetchall()]
+#                 if inspec_ids:
+#                     for move in inspec_ids:
+#                         sql='''
+#                             select id from stock_move where inspec_id = %s
+#                         '''%(move)
+#                         cr.execute(sql)
+#                         move_ids = [row[0] for row in cr.fetchall()]
+#                         if move_ids:
+#                             cr.execute('delete from stock_move where id in %s',(tuple(move_ids),))
+#                     cr.execute('delete from tpt_quanlity_inspection where id in %s',(tuple(inspec_ids),))
+#                 cr.execute(''' update stock_picking set invoice_state ='2binvoiced' where id = %s''',(num,))
+#                 picking_obj.action_revert_done(cr, uid, [num], context)
+# 
+#         
+#         return self.write(cr, uid, ids, {'result':'config GRN 3451 3883 Done'})   
+#===============================================================================
     
     def update_price_unit_for_production_declaration(self, cr, uid, ids, context=None):
         if context is None:
