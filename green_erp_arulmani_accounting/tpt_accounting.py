@@ -1426,7 +1426,7 @@ class account_invoice(osv.osv):
                         iml += invoice_line_obj.move_line_fright(cr, uid, inv.id)
                         iml += invoice_line_obj.move_line_amount_untaxed(cr, uid, inv.id) 
                         #iml += invoice_line_obj.move_line_amount_tax(cr, uid, inv.id) #TPT-COMMENTED
-                        ###TPT-START
+                        ###TPT-START-By BalamuruganPurushothaman-TO POST SWACHH BHARAT CESS %
                         description = ''
                         flag = False
                         
