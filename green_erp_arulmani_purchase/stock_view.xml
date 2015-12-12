@@ -48,6 +48,9 @@
             <field name="arch" type="xml">
 				<xpath expr="//field[@name='product_id']" position="after">
 					<field name="action_taken"/>
+				</xpath> <!-- TPT-BM-TO HAVE PARTNER ID AS FILTER -->
+				<xpath expr="//field[@name='partner_id']" position="replace">
+					<field name="partner_id"/>
 				</xpath>
             </field>
         </record>
