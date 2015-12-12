@@ -1464,9 +1464,32 @@ class account_invoice(osv.osv):
             if (inv.type == 'in_invoice' and inv.sup_inv_id):
                 # freight invoice 
                 iml = invoice_line_obj.move_line_fi_base(cr, uid, inv.id)
-                iml += invoice_line_obj.move_line_fi_debit(cr, uid, inv.id) 
+                #iml += invoice_line_obj.move_line_fi_debit(cr, uid, inv.id) #TPT-COMMENTED
+                ###
+                flag = False         
+                inv_id = self.pool.get('account.invoice').browse(cr, uid, inv.id)
+                for line in inv_id.invoice_line:                            
+                    if line.tax_id and line.tax_id.description=='STax 30% of Freight 14.5% (Dr)':
+                        flag=True
+                if flag is True:
+                    iml += invoice_line_obj.move_line_fi_debit_14(cr, uid, inv.id)
+                    iml += invoice_line_obj.move_line_fi_debit_5(cr, uid, inv.id)
+                else:
+                    iml += invoice_line_obj.move_line_fi_debit(cr, uid, inv.id)
+                ###
 #                 iml += invoice_line_obj.move_line_fi_debit_deducte(cr, uid, inv.id) 
-                iml += invoice_line_obj.move_line_fi_credit(cr, uid, inv.id)
+                #iml += invoice_line_obj.move_line_fi_credit(cr, uid, inv.id) #TPT-COMMENTED
+                ###
+                flag1 = False
+                for line in inv_id.invoice_line:                            
+                    if line.tax_credit and line.tax_credit.description=='STax 30% of Freight 14.5% (Cr)':
+                        flag1=True
+                if flag1 is True:
+                    iml += invoice_line_obj.move_line_fi_credit_14(cr, uid, inv.id)
+                    iml += invoice_line_obj.move_line_fi_credit_5(cr, uid, inv.id)
+                else:
+                    iml += invoice_line_obj.move_line_fi_credit(cr, uid, inv.id)
+                ###
 #                 iml += invoice_line_obj.move_line_fi_credit_deducte(cr, uid, inv.id) 
                 iml += invoice_line_obj.move_line_tds_amount_freight(cr, uid, inv.id) 
                 iml += invoice_line_obj.move_line_amount_round_off(cr, uid, inv.id)
@@ -3238,7 +3261,64 @@ class account_invoice_line(osv.osv):
                     'account_analytic_id': line.account_analytic_id.id,
                 })
         return res
-    
+    def move_line_fi_debit_14(self, cr, uid, invoice_id):
+        res = []
+        invoice = self.pool.get('account.invoice').browse(cr, uid, invoice_id)
+        for line in invoice.invoice_line:
+            if line.tax_id and not line.tax_id.gl_account_id:
+                raise osv.except_osv(_('Warning!'),_('GL Account is not null, please configure it in Tax Master!'))
+            tax = 0
+            #tax = 
+            if line.fright_fi_type == '2':
+                base_amount = round(line.fright,2)
+                tax_debit_amount = base_amount*(14.00/100 or 0)
+                tax_debit_amount = tax_debit_amount*30/100
+                tax_debit_amount = round(tax_debit_amount,2)
+            else:
+                base_amount = round(line.fright*line.quantity,2)
+                tax_debit_amount = base_amount*(14.00/100 or 0)
+                tax_debit_amount = tax_debit_amount*30/100
+                tax_debit_amount = round(tax_debit_amount,2)
+            
+            if tax_debit_amount:
+                res.append({
+                    'type':'tax',
+                    'name':line.name,
+                    'price_unit': line.price_unit,
+                    'quantity': 1,
+                    'price': tax_debit_amount,
+                    'account_id': line.tax_id and line.tax_id.gl_account_id and line.tax_id.gl_account_id.id or False,
+                    'account_analytic_id': line.account_analytic_id.id,
+                })
+        return res
+    def move_line_fi_debit_5(self, cr, uid, invoice_id):
+        res = []
+        invoice = self.pool.get('account.invoice').browse(cr, uid, invoice_id)
+        for line in invoice.invoice_line:
+            if line.tax_id and not line.tax_id.gl_account_id:
+                raise osv.except_osv(_('Warning!'),_('GL Account is not null, please configure it in Tax Master!'))
+            if line.fright_fi_type == '2':
+                base_amount = round(line.fright,2)
+                tax_debit_amount = base_amount*(0.5/100 or 0)
+                tax_debit_amount = tax_debit_amount*30/100
+                tax_debit_amount = round(tax_debit_amount,2)
+            else:
+                base_amount = round(line.fright*line.quantity,2)
+                tax_debit_amount = base_amount*(0.5/100 or 0)
+                tax_debit_amount = tax_debit_amount*30/100
+                tax_debit_amount = round(tax_debit_amount,2)
+            
+            if tax_debit_amount:
+                res.append({
+                    'type':'tax',
+                    'name':line.name,
+                    'price_unit': line.price_unit,
+                    'quantity': 1,
+                    'price': tax_debit_amount,
+                    'account_id': 4871,
+                    'account_analytic_id': line.account_analytic_id.id,
+                })
+        return res
     def move_line_fi_debit_deducte(self, cr, uid, invoice_id):
         res = []
         sum_deducte = 0.0
@@ -3308,6 +3388,62 @@ class account_invoice_line(osv.osv):
                     'account_analytic_id': line.account_analytic_id.id,
                 })
         return res
+    ###
+    def move_line_fi_credit_14(self, cr, uid, invoice_id):
+        res = []
+        invoice = self.pool.get('account.invoice').browse(cr, uid, invoice_id)
+        for line in invoice.invoice_line:
+            if line.tax_credit and not line.tax_credit.gl_account_id:
+                raise osv.except_osv(_('Warning!'),_('GL Account is not null, please configure it in Tax Master!'))
+            if line.fright_fi_type == '2':
+                base_amount = round(line.fright,2)
+                tax_credit_amount = base_amount*(14.00/100 or 0)
+                tax_credit_amount = tax_credit_amount*30/100
+                tax_credit_amount = round(tax_credit_amount,2)
+            else:
+                base_amount = round(line.fright*line.quantity,2)
+                tax_credit_amount = base_amount*(14.00/100 or 0)
+                tax_credit_amount = tax_credit_amount*30/100
+                tax_credit_amount = round(tax_credit_amount,2)
+            if tax_credit_amount:
+                res.append({
+                    'type':'tax',
+                    'name':line.name,
+                    'price_unit': line.price_unit,
+                    'quantity': 1,
+                    'price': -tax_credit_amount,
+                    'account_id': line.tax_credit and line.tax_credit.gl_account_id and line.tax_credit.gl_account_id.id or False,
+                    'account_analytic_id': line.account_analytic_id.id,
+                })
+        return res
+    def move_line_fi_credit_5(self, cr, uid, invoice_id):
+        res = []
+        invoice = self.pool.get('account.invoice').browse(cr, uid, invoice_id)
+        for line in invoice.invoice_line:
+            if line.tax_credit and not line.tax_credit.gl_account_id:
+                raise osv.except_osv(_('Warning!'),_('GL Account is not null, please configure it in Tax Master!'))
+            if line.fright_fi_type == '2':
+                base_amount = round(line.fright,2)
+                tax_credit_amount = base_amount*(0.5/100 or 0)
+                tax_credit_amount = tax_credit_amount*30/100
+                tax_credit_amount = round(tax_credit_amount,2)
+            else:
+                base_amount = round(line.fright*line.quantity,2)
+                tax_credit_amount = base_amount*(0.5/100 or 0)
+                tax_credit_amount = tax_credit_amount*30/100
+                tax_credit_amount = round(tax_credit_amount,2)
+            if tax_credit_amount:
+                res.append({
+                    'type':'tax',
+                    'name':line.name,
+                    'price_unit': line.price_unit,
+                    'quantity': 1,
+                    'price': -tax_credit_amount,
+                    'account_id': 4871,
+                    'account_analytic_id': line.account_analytic_id.id,
+                })
+        return res
+    ###
     
     def move_line_fi_credit_deducte(self, cr, uid, invoice_id):
         res = []
