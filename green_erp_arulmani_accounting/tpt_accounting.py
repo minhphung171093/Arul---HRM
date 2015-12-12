@@ -1464,31 +1464,29 @@ class account_invoice(osv.osv):
             if (inv.type == 'in_invoice' and inv.sup_inv_id):
                 # freight invoice 
                 iml = invoice_line_obj.move_line_fi_base(cr, uid, inv.id)
-                iml += invoice_line_obj.move_line_fi_debit(cr, uid, inv.id) #TPT-COMMENTED
-                iml += invoice_line_obj.move_line_fi_credit(cr, uid, inv.id) #TPT-COMMENTED
+                #iml += invoice_line_obj.move_line_fi_debit(cr, uid, inv.id) #TPT-COMMENTED
+                #iml += invoice_line_obj.move_line_fi_credit(cr, uid, inv.id) #TPT-COMMENTED
                 ###
-#===============================================================================
-#                 flag = False         
-#                 inv_id = self.pool.get('account.invoice').browse(cr, uid, inv.id)
-#                 for line in inv_id.invoice_line:                            
-#                     if line.tax_id and line.tax_id.description=='STax 30% of Freight 14.5% (Dr)':
-#                         flag=True
-#                 if flag is True:
-#                     iml += invoice_line_obj.move_line_fi_debit_14(cr, uid, inv.id)
-#                     iml += invoice_line_obj.move_line_fi_debit_5(cr, uid, inv.id)
-#                 else:
-#                     iml += invoice_line_obj.move_line_fi_debit(cr, uid, inv.id)
-# 
-#                 flag1 = False
-#                 for line in inv_id.invoice_line:                            
-#                     if line.tax_credit and line.tax_credit.description=='STax 30% of Freight 14.5% (Cr)':
-#                         flag1=True
-#                 if flag1 is True:
-#                     iml += invoice_line_obj.move_line_fi_credit_14(cr, uid, inv.id)
-#                     iml += invoice_line_obj.move_line_fi_credit_5(cr, uid, inv.id)
-#                 else:
-#                     iml += invoice_line_obj.move_line_fi_credit(cr, uid, inv.id)
-#===============================================================================
+                flag = False         
+                inv_id = self.pool.get('account.invoice').browse(cr, uid, inv.id)
+                for line in inv_id.invoice_line:                            
+                    if line.tax_id and line.tax_id.description=='STax 30% of Freight 14.5% (Dr)':
+                        flag=True
+                if flag is True:
+                    iml += invoice_line_obj.move_line_fi_debit_14(cr, uid, inv.id)
+                    iml += invoice_line_obj.move_line_fi_debit_5(cr, uid, inv.id)
+                else:
+                    iml += invoice_line_obj.move_line_fi_debit(cr, uid, inv.id)
+ 
+                flag1 = False
+                for line in inv_id.invoice_line:                            
+                    if line.tax_credit and line.tax_credit.description=='STax 30% of Freight 14.5% (Cr)':
+                        flag1=True
+                if flag1 is True:
+                    iml += invoice_line_obj.move_line_fi_credit_14(cr, uid, inv.id)
+                    iml += invoice_line_obj.move_line_fi_credit_5(cr, uid, inv.id)
+                else:
+                    iml += invoice_line_obj.move_line_fi_credit(cr, uid, inv.id)
                 ###
 #                 iml += invoice_line_obj.move_line_fi_credit_deducte(cr, uid, inv.id) 
                 iml += invoice_line_obj.move_line_tds_amount_freight(cr, uid, inv.id) 
