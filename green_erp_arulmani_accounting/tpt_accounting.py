@@ -1433,6 +1433,10 @@ class account_invoice(osv.osv):
                         for line in inv_id.invoice_line:                            
                             if line.tax_id and line.tax_id.description=='STax 14.5%':
                                 flag=True
+                            elif line.tax_id and line.tax_id.description=='STax 30% of Freight 14.5% (Dr)':
+                                flag=True
+                            elif line.tax_credit and line.tax_credit.description=='STax 30% of Freight 14.5% (Cr)':
+                                flag1=True
                         if flag is True:
                             iml += invoice_line_obj.move_line_amount_tax_sbc_14(cr, uid, inv.id)
                             iml += invoice_line_obj.move_line_amount_tax_swachh_bharat_cess_5(cr, uid, inv.id)
@@ -1465,27 +1469,30 @@ class account_invoice(osv.osv):
                 iml = invoice_line_obj.move_line_fi_base(cr, uid, inv.id)
                 #iml += invoice_line_obj.move_line_fi_debit(cr, uid, inv.id) #TPT-COMMENTED
                 #iml += invoice_line_obj.move_line_fi_credit(cr, uid, inv.id) #TPT-COMMENTED
-                ###
-                flag = False         
+                ### TPT-By BalamuruganPurushothaman - ON 13/12/2015 - Updated on 15/12/2015
+                flag = False 
+                flag1 = False        
                 inv_id = self.pool.get('account.invoice').browse(cr, uid, inv.id)
                 for line in inv_id.invoice_line:                            
                     if line.tax_id and line.tax_id.description=='STax 30% of Freight 14.5% (Dr)':
                         flag=True
+                    elif line.tax_id and line.tax_id.description=='STax 14.5%':
+                        flag=True
+                    elif line.tax_credit and line.tax_credit.description=='STax 30% of Freight 14.5% (Cr)':
+                        flag1=True
                 if flag is True:
                     iml += invoice_line_obj.move_line_fi_debit_14(cr, uid, inv.id)
                     iml += invoice_line_obj.move_line_fi_debit_5(cr, uid, inv.id)
                 else:
                     iml += invoice_line_obj.move_line_fi_debit(cr, uid, inv.id)
  
-                flag1 = False
-                for line in inv_id.invoice_line:                            
-                    if line.tax_credit and line.tax_credit.description=='STax 30% of Freight 14.5% (Cr)':
-                        flag1=True
                 if flag1 is True:
                     iml += invoice_line_obj.move_line_fi_credit_14(cr, uid, inv.id)
                     iml += invoice_line_obj.move_line_fi_credit_5(cr, uid, inv.id)
                 else:
                     iml += invoice_line_obj.move_line_fi_credit(cr, uid, inv.id)
+                
+                     
                 ###
 #                 iml += invoice_line_obj.move_line_fi_credit_deducte(cr, uid, inv.id) 
                 iml += invoice_line_obj.move_line_tds_amount_freight(cr, uid, inv.id) 
@@ -2282,7 +2289,9 @@ class account_invoice_line(osv.osv):
                 # for tax_amount in tax_amounts:
                 #     tax_value += tax_amount/100
                 #===============================================================
-                tax_value += 14.00/100     
+                tax_value += 14.00/100    
+                if line.tax_id and line.tax_id.description=='STax 30% of Freight 14.5% (Dr)':
+                    tax_value = tax_value*30/100  
                 if line.aed_id_1:
                     tax = (basic + p_f + ed + line.aed_id_1)*(tax_value) * voucher_rate
                     tax = round(tax,2)      
@@ -2359,7 +2368,8 @@ class account_invoice_line(osv.osv):
                 #     tax_value += tax_amount/100
                 #===============================================================
                 tax_value += 0.5/100
-                     
+                if line.tax_id and line.tax_id.description=='STax 30% of Freight 14.5% (Dr)':
+                    tax_value = tax_value*30/100     
                 if line.aed_id_1:
                     tax = (basic + p_f + ed + line.aed_id_1)*(tax_value) * voucher_rate
                     tax = round(tax,2)      
@@ -3244,12 +3254,14 @@ class account_invoice_line(osv.osv):
             if line.fright_fi_type == '2':
                 base_amount = round(line.fright,2)
                 tax_debit_amount = base_amount*(14.00/100 or 0)
-                tax_debit_amount = tax_debit_amount*30/100
+                if line.tax_id and line.tax_id.description=='STax 30% of Freight 14.5% (Dr)':
+                    tax_debit_amount = tax_debit_amount*30/100
                 tax_debit_amount = round(tax_debit_amount,2)
             else:
                 base_amount = round(line.fright*line.quantity,2)
                 tax_debit_amount = base_amount*(14.00/100 or 0)
-                tax_debit_amount = tax_debit_amount*30/100
+                if line.tax_id and line.tax_id.description=='STax 30% of Freight 14.5% (Dr)':
+                    tax_debit_amount = tax_debit_amount*30/100
                 tax_debit_amount = round(tax_debit_amount,2)
             
             if tax_debit_amount:
@@ -3272,12 +3284,14 @@ class account_invoice_line(osv.osv):
             if line.fright_fi_type == '2':
                 base_amount = round(line.fright,2)
                 tax_debit_amount = base_amount*(0.5/100 or 0)
-                tax_debit_amount = tax_debit_amount*30/100
+                if line.tax_id and line.tax_id.description=='STax 30% of Freight 14.5% (Dr)':
+                    tax_debit_amount = tax_debit_amount*30/100
                 tax_debit_amount = round(tax_debit_amount,2)
             else:
                 base_amount = round(line.fright*line.quantity,2)
                 tax_debit_amount = base_amount*(0.5/100 or 0)
-                tax_debit_amount = tax_debit_amount*30/100
+                if line.tax_id and line.tax_id.description=='STax 30% of Freight 14.5% (Dr)':
+                    tax_debit_amount = tax_debit_amount*30/100
                 tax_debit_amount = round(tax_debit_amount,2)
             
             if tax_debit_amount:
