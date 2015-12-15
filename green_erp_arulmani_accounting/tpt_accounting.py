@@ -1433,10 +1433,12 @@ class account_invoice(osv.osv):
                         for line in inv_id.invoice_line:                            
                             if line.tax_id and line.tax_id.description=='STax 14.5%':
                                 flag=True
-                            elif line.tax_id and line.tax_id.description=='STax 30% of Freight 14.5% (Dr)':
-                                flag=True
-                            elif line.tax_credit and line.tax_credit.description=='STax 30% of Freight 14.5% (Cr)':
-                                flag1=True
+                            #===================================================
+                            # elif line.tax_id and line.tax_id.description=='STax 30% of Freight 14.5% (Dr)':
+                            #     flag=True
+                            # elif line.tax_credit and line.tax_credit.description=='STax 30% of Freight 14.5% (Cr)':
+                            #     flag1=True
+                            #===================================================
                         if flag is True:
                             iml += invoice_line_obj.move_line_amount_tax_sbc_14(cr, uid, inv.id)
                             iml += invoice_line_obj.move_line_amount_tax_swachh_bharat_cess_5(cr, uid, inv.id)
