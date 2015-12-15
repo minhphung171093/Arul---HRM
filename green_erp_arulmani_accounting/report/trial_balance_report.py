@@ -88,23 +88,29 @@ class Parser(report_sxw.rml_parse):
         return self.cr.fetchone()[0] or 0.0
     
     
-    #TPT-Y on 05Nov2015        
-    def get_total(self,cash,type):        
-        sum = 0.0        
-        for line in cash:        
-            if type == 'open_debit':        
-                sum += line['open_debit']        
-            if type == 'open_credit':        
-                sum += line['open_credit']        
-            if type == 'debit':        
-                sum += line['debit']        
-            if type == 'credit':        
-                sum += line['credit']        
-            if type == 'close_debit':        
-                sum += line['balance_debit']        
-            if type == 'close_credit':        
-                sum += line['balance_credit']        
-        return sum
+    #===========================================================================
+    # #TPT-Y on 05Nov2015        
+    # def get_total(self,cash,type):        
+    #     sum = 0.0        
+    #     for line in cash:        
+    #         if type == 'open_debit':        
+    #             sum += line['open_debit']        
+    #         if type == 'open_credit':        
+    #             sum += line['open_credit']        
+    #         if type == 'debit':        
+    #             sum += line['debit']        
+    #         if type == 'credit':        
+    #             sum += line['credit']
+    #         if type == 'close_bal':
+    #             sum += line['close_bal']      
+    #         #===================================================================
+    #         # if type == 'close_debit':        
+    #         #     sum += line['balance_debit']        
+    #         # if type == 'close_credit':        
+    #         #     sum += line['balance_credit']        
+    #         #===================================================================
+    #     return sum
+    #===========================================================================
 
     
     def get_account(self):
@@ -170,7 +176,7 @@ class Parser(report_sxw.rml_parse):
     def lines(self,ids):
         done = {}
         state = ''
-        disp_acc = 'all'
+       # disp_acc = 'all'
         def _process_child(accounts, disp_acc, parent, from_date, to_date, state, context=None):
             open_sumdebit = 0 #YuVi
             open_sumcredit = 0 #YuVi
@@ -264,21 +270,21 @@ class Parser(report_sxw.rml_parse):
                 #'credit': account_rec['credit'],
                 'credit': sumcredit, #YuVi
                 #'balance': account_rec['balance'],
-                #'balance': (open_sumdebit+sumdebit)-(open_sumcredit+sumcredit), #YuVi
-                'balance_debit': (open_sumdebit+sumdebit) or 0.00, #TPT-Y on 05Nov2015
-                'balance_credit': (open_sumcredit+sumcredit) or 0.00, #TPT-Y on 05Nov2015
+                'balance': (open_sumdebit+sumdebit)-(open_sumcredit+sumcredit), #YuVi
+                #'balance_debit': (open_sumdebit+sumdebit) or 0.00, #TPT-Y on 05Nov2015
+                #'balance_credit': (open_sumcredit+sumcredit) or 0.00, #TPT-Y on 05Nov2015
                 'parent_id': account_rec['parent_id'],
                 'bal_type': '',
             }
             #self.sum_debit += account_rec['debit'] #YuVi
             #self.sum_credit += account_rec['credit'] #YuVi
             if disp_acc == 'movement':
-                #if not currency_obj.is_zero(self.cr, self.uid, currency, res['credit']) or not currency_obj.is_zero(self.cr, self.uid, currency, res['debit']) or not currency_obj.is_zero(self.cr, self.uid, currency, res['balance']):
-                if not currency_obj.is_zero(self.cr, self.uid, currency, res['credit']) or not currency_obj.is_zero(self.cr, self.uid, currency, res['debit']) or not currency_obj.is_zero(self.cr, self.uid, currency, res['balance_debit']) or not currency_obj.is_zero(self.cr, self.uid, currency, res['balance_credit']): #TPT-Y on 05Nov2015
+                if not currency_obj.is_zero(self.cr, self.uid, currency, res['credit']) or not currency_obj.is_zero(self.cr, self.uid, currency, res['debit']) or not currency_obj.is_zero(self.cr, self.uid, currency, res['balance']):
+                #if not currency_obj.is_zero(self.cr, self.uid, currency, res['credit']) or not currency_obj.is_zero(self.cr, self.uid, currency, res['debit']) or not currency_obj.is_zero(self.cr, self.uid, currency, res['balance_debit']) or not currency_obj.is_zero(self.cr, self.uid, currency, res['balance_credit']): #TPT-Y on 05Nov2015
                     self.result_acc.append(res)
             elif disp_acc == 'not_zero':
-                #if not currency_obj.is_zero(self.cr, self.uid, currency, res['balance']):
-                if not currency_obj.is_zero(self.cr, self.uid, currency, res['balance_debit']) or not currency_obj.is_zero(self.cr, self.uid, currency, res['balance_credit']): #TPT-Y on 05Nov2015
+                if not currency_obj.is_zero(self.cr, self.uid, currency, res['balance']):
+                #if not currency_obj.is_zero(self.cr, self.uid, currency, res['balance_debit']) or not currency_obj.is_zero(self.cr, self.uid, currency, res['balance_credit']): #TPT-Y on 05Nov2015
                     self.result_acc.append(res)
             else:
                 self.result_acc.append(res)
@@ -315,8 +321,8 @@ class Parser(report_sxw.rml_parse):
         child_ids = obj_account._get_children_and_consol(self.cr, self.uid, [ids], ctx)
         if child_ids:
             ids = child_ids
-        #accounts = obj_account.read(self.cr, self.uid, ids, ['type','code','name','debit','credit','balance','parent_id','level','child_id'], ctx)
-        accounts = obj_account.read(self.cr, self.uid, ids, ['type','code','name','debit','credit','balance_debit','balance_credit','parent_id','level','child_id'], ctx) #TPT-Y on 2/09/2015
+        accounts = obj_account.read(self.cr, self.uid, ids, ['type','code','name','debit','credit','balance','parent_id','level','child_id'], ctx)
+        #accounts = obj_account.read(self.cr, self.uid, ids, ['type','code','name','debit','credit','balance_debit','balance_credit','parent_id','level','child_id'], ctx) #TPT-Y on 2/09/2015
 
         for parent in [parents]:
                 if parent in done:
@@ -325,37 +331,41 @@ class Parser(report_sxw.rml_parse):
                 _process_child(accounts,form['display_account'],parent,ctx['date_from'],ctx['date_to'], state, ctx) #YuVi
         return self.result_acc
     
-        def get_lines(self,header_id):        
-            rs = []        
-            if header_id:        
-                trail_obj = self.pool.get('tpt.account.balance.report').browse(self.cr, self.uid, header_id)        
-                for account_rec in trail_obj.balance_report_line:        
-            #===========================================================        
-            # rs.append({        
-            # 'code': account_rec['code'] or '',        
-            # 'account': account_rec['account'] or '',        
-            # 'open_debit': long(account_rec['open_debit']) or 0,         
-            # 'open_credit': long(account_rec['open_credit']) or 0,         
-            # 'debit': long(account_rec['debit']) or 0, #YuVi         
-            # 'credit': long(account_rec['credit']) or 0, #YuVi         
-            # #'balance': long(account_rec['close_bal']) or 0, #TPT-Y on 05Nov2015        
-            # 'close_debit': long(account_rec['balance_debit']) or 0, #TPT-Y on 05Nov2015         
-            # 'close_credit': long(account_rec['balance_credit']) or 0, #TPT-Y on 05Nov2015        
-            # })        
-            #===========================================================        
-                    
-                    rs.append({        
-                                'code': account_rec['code'] or '',        
-                                'account': account_rec['account'] or '',        
-                                'open_debit': round(account_rec['open_debit'],0) or 0.00,         
-                                'open_credit': round(account_rec['open_credit'],0) or 0.00,        
-                                'debit': round(account_rec['debit'],0) or 0.00, #YuVi         
-                                'credit': round(account_rec['credit'],0) or 0.00, #YuVi         
-                                #'balance': long(account_rec['close_bal']) or 0, #TPT-Y on 05Nov2015        
-                                'close_debit': round(account_rec['balance_debit'],0) or 0.00, #TPT-Y on 05Nov2015         
-                                'close_credit': round(account_rec['balance_credit'],0) or 0.00, #TPT-Y on 05Nov2015        
-                                })        
-                    return rs
+        #=======================================================================
+        # def get_lines(self,header_id):        
+        #     rs = []        
+        #     if header_id:        
+        #         trail_obj = self.pool.get('tpt.account.balance.report').browse(self.cr, self.uid, header_id)        
+        #         for account_rec in trail_obj.balance_report_line:        
+        #     #===========================================================        
+        #     # rs.append({        
+        #     # 'code': account_rec['code'] or '',        
+        #     # 'account': account_rec['account'] or '',        
+        #     # 'open_debit': long(account_rec['open_debit']) or 0,         
+        #     # 'open_credit': long(account_rec['open_credit']) or 0,         
+        #     # 'debit': long(account_rec['debit']) or 0, #YuVi         
+        #     # 'credit': long(account_rec['credit']) or 0, #YuVi         
+        #     # #'balance': long(account_rec['close_bal']) or 0, #TPT-Y on 05Nov2015        
+        #     # 'close_debit': long(account_rec['balance_debit']) or 0, #TPT-Y on 05Nov2015         
+        #     # 'close_credit': long(account_rec['balance_credit']) or 0, #TPT-Y on 05Nov2015        
+        #     # })        
+        #     #===========================================================        
+        #             
+        #             rs.append({        
+        #                         'code': account_rec['code'] or '',        
+        #                         'account': account_rec['account'] or '',        
+        #                         'open_debit': round(account_rec['open_debit'],0) or 0.00,         
+        #                         'open_credit': round(account_rec['open_credit'],0) or 0.00,        
+        #                         'debit': round(account_rec['debit'],0) or 0.00, #YuVi         
+        #                         'credit': round(account_rec['credit'],0) or 0.00, #YuVi         
+        #                         'balance': long(account_rec['close_bal']) or 0, #TPT-Y on 05Nov2015        
+        #                         #===============================================
+        #                         # 'close_debit': round(account_rec['balance_debit'],0) or 0.00, #TPT-Y on 05Nov2015         
+        #                         # 'close_credit': round(account_rec['balance_credit'],0) or 0.00, #TPT-Y on 05Nov2015        
+        #                         #===============================================
+        #                         })        
+        #             return rs
+        #=======================================================================
     
     
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
