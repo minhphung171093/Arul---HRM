@@ -3610,7 +3610,7 @@ class arul_hr_audit_shift_time(osv.osv):
                             start_time = max(shifts_in_time)
                             end_time = max(shifts_out_time)
                     ## Punch In Out is same Date - Permission is another Day
-                if line.punch_in_date==line.punch_out_date and perm_out_date and perm_in_date!=perm_out_date:
+                if line.punch_in_date==line.punch_out_date and perm_out_date and perm_in_date!=perm_out_date: 
                         if line.actual_work_shift_id.code=='G1':                       
                             if perm_in>0 and perm_in>=8 and perm_out > 0:
                                 shifts_in_time = [shift_in,perm_in]
@@ -3622,6 +3622,20 @@ class arul_hr_audit_shift_time(osv.osv):
                                 shifts_out_time = [shift_out,od_out]
                                 start_time = min(shifts_in_time)
                                 end_time = min(shifts_out_time)
+                ### TPT-By BalamuruganPurushothaman ON 15/12/2015 - G1(1)+B(0.5)+C(0.5) Permission Out on Different Day
+                if line.punch_in_date!=line.punch_out_date and perm_out_date and perm_in_date!=perm_out_date: 
+                        if line.actual_work_shift_id.code=='G1':                       
+                            if perm_in>0 and perm_in<=1 and perm_out > 0:
+                                shifts_in_time = [shift_in,perm_in]
+                                shifts_out_time = [shift_out,perm_out]
+                                start_time = max(shifts_in_time)
+                                end_time = max(shifts_out_time)
+                            elif od_in>0 and od_in >=8:
+                                shifts_in_time = [shift_in,od_in]
+                                shifts_out_time = [shift_out,od_out]
+                                start_time = min(shifts_in_time)
+                                end_time = min(shifts_out_time)
+                ###
                     ##
                 ###
                 recording_hrs = 0     
