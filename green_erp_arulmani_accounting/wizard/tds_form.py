@@ -258,10 +258,10 @@ class tds_form_report(osv.osv_memory):
                         
             '''%(date_from,date_to)            
             if vendor:
-                str1 = "and bp.id = '%s'"%(vendor)     
+                str1 = "and bp.id = %s"%(vendor)     
                 sql = sql+str1       
             if gl_accnt:
-                str1 = "aa.id = '%s'"%(gl_accnt) 
+                str1 = " and aa.id = %s"%(gl_accnt) 
                 sql = sql+str1
                      
             cr.execute(sql)
