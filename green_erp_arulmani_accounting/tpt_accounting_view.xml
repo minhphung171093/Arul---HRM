@@ -461,7 +461,7 @@
                             <field name="tds_id" attrs="{'invisible': [('is_tds_applicable','=',False)]}" options="{'create': false, 'create_edit': false}" invisible = '1'/>
                             <field name="create_uid" options="{'create': false, 'create_edit': false}"/>
                             <field name="cost_center_id" required='1' options="{'create': false, 'create_edit': false}"/>
-                            <filed name="doc_type"/>
+                            
                             <field name="fiscal_position" widget="selection" invisible = '1'/>
                             <field name="origin" invisible = '1'/>
                             <field name="supplier_invoice_number" invisible = '1'/>
@@ -483,7 +483,7 @@
                                 on_change="onchange_journal_id(journal_id, context)" widget="selection" invisible = '1'/>
                             <field name="currency_id" options="{'create': false, 'create_edit': false}"/>
                             <field name="check_total" groups="account.group_supplier_inv_check_total" invisible = '1'/>
-                       		<filed name="doc_type"/>
+                       		
                         </group>
                     </group>
                     <notebook>
