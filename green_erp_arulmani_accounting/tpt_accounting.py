@@ -1428,25 +1428,31 @@ class account_invoice(osv.osv):
                         ###TPT-START-By BalamuruganPurushothaman-TO POST SWACHH BHARAT CESS %
                         description = ''
                         flag = False
+                        flag1 = False
                         
                         inv_id = self.pool.get('account.invoice').browse(cr, uid, inv.id)
                         for line in inv_id.invoice_line:                            
                             if line.tax_id and line.tax_id.description=='STax 14.5%':
                                 flag=True
-                            #===================================================
-                            # elif line.tax_id and line.tax_id.description=='STax 30% of Freight 14.5% (Dr)':
-                            #     flag=True
-                            # elif line.tax_credit and line.tax_credit.description=='STax 30% of Freight 14.5% (Cr)':
-                            #     flag1=True
-                            #===================================================
+                            if line.tax_id and line.tax_id.description=='STax 30% of Freight 14.5% (Dr)':
+                                flag=True
+                                print line.tax_service_credit.description
+                            if line.tax_service_credit and line.tax_service_credit.description=='STax 30% of Freight 14.5% (Cr)':
+                                flag1=True
                         if flag is True:
                             iml += invoice_line_obj.move_line_amount_tax_sbc_14(cr, uid, inv.id)
                             iml += invoice_line_obj.move_line_amount_tax_swachh_bharat_cess_5(cr, uid, inv.id)
                         else:
                             iml += invoice_line_obj.move_line_amount_tax(cr, uid, inv.id)
+                            
+                        if flag1 is True:
+                            iml += invoice_line_obj.move_line_amount_tax_credit_14(cr, uid, inv.id) 
+                            iml += invoice_line_obj.move_line_amount_tax_credit_5(cr, uid, inv.id) 
+                        else:
+                            iml += invoice_line_obj.move_line_amount_tax_credit(cr, uid, inv.id)
                         ###TPT-END
 #                         iml += invoice_line_obj.move_line_amount_tax_without_po_deducte(cr, uid, inv.id)
-                        iml += invoice_line_obj.move_line_amount_tax_credit(cr, uid, inv.id) 
+                        #iml += invoice_line_obj.move_line_amount_tax_credit(cr, uid, inv.id) TPT-COMMENTED - BM
 #                         iml += invoice_line_obj.move_line_amount_tax_deducte_credit(cr, uid, inv.id) 
                         iml += invoice_line_obj.move_line_tds_amount_without_po(cr, uid, inv.id) 
                         iml += invoice_line_obj.move_line_amount_round_off(cr, uid, inv.id)
@@ -2076,6 +2082,149 @@ class account_invoice_line(osv.osv):
                         })
         return res
     
+    ###
+    def move_line_amount_tax_credit_14(self, cr, uid, invoice_id, context = None):
+        res = []
+        voucher_rate = 1
+        if context is None:
+            context = {}
+        ctx = context.copy()
+        inv_id = self.pool.get('account.invoice').browse(cr, uid, invoice_id)
+        if inv_id:
+            currency = inv_id.currency_id.name or False
+            currency_id = inv_id.currency_id.id or False
+            ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d')})
+        if currency != 'INR':
+            voucher_rate = self.pool.get('res.currency').read(cr, uid, currency_id, ['rate'], context=ctx)['rate']
+        for line in inv_id.invoice_line:
+            basic = 0.0
+            p_f = 0.0
+            ed = 0.0
+            tax_value = 0.0
+            if line.tax_service_credit:
+                if line.tax_service_credit.gl_account_id:
+                    account = line.tax_service_credit.gl_account_id.id
+                else:
+                    raise osv.except_osv(_('Warning!'),_('Account is not null, please configure GL Account in Tax master !'))
+                basic = (line.quantity * line.price_unit) - ( (line.quantity * line.price_unit)*line.disc/100)
+                basic = round(basic,2)
+                if line.p_f_type == '1' :
+                    p_f = basic * line.p_f/100
+                    p_f = round(p_f,2)
+                elif line.p_f_type == '2' :
+                    p_f = line.p_f
+                    p_f = round(p_f,2)
+                elif line.p_f_type == '3' :
+                    p_f = line.p_f * line.quantity
+                    p_f = round(p_f,2)
+                else:
+                    p_f = line.p_f
+                    p_f = round(p_f,2)
+                if line.ed_type == '1' :
+                    ed = (basic + p_f) * line.ed/100
+                    ed = round(ed,2)
+                elif line.ed_type == '2' :
+                    ed = line.ed
+                    ed = round(ed,2)
+                elif line.ed_type == '3' :
+                    ed = line.ed * line.quantity
+                    ed = round(ed,2)
+                else:
+                    ed = line.ed
+                    ed = round(ed,2)                
+                
+                #tax_value = line.tax_service_credit.amount/100
+                tax_value = 14.00/100
+                tax_value = tax_value*30/100  
+                if line.aed_id_1:
+                    tax = (basic + p_f + ed + line.aed_id_1)*(tax_value) * voucher_rate
+                    tax = round(tax,2)
+                else:
+                    tax = (basic + p_f + ed)*(tax_value) * voucher_rate
+                    tax = round(tax,2)
+                if tax:    
+                    res.append({
+                        'type':'tax',
+                        'name':line.name,
+                        'price_unit': line.price_unit,
+                        'quantity': 1,
+                        'price': -tax,
+                        'account_id': account,
+                        'account_analytic_id': line.account_analytic_id.id,
+                        })
+        return res
+    def move_line_amount_tax_credit_5(self, cr, uid, invoice_id, context = None):
+        res = []
+        voucher_rate = 1
+        if context is None:
+            context = {}
+        ctx = context.copy()
+        inv_id = self.pool.get('account.invoice').browse(cr, uid, invoice_id)
+        if inv_id:
+            currency = inv_id.currency_id.name or False
+            currency_id = inv_id.currency_id.id or False
+            ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d')})
+        if currency != 'INR':
+            voucher_rate = self.pool.get('res.currency').read(cr, uid, currency_id, ['rate'], context=ctx)['rate']
+        for line in inv_id.invoice_line:
+            basic = 0.0
+            p_f = 0.0
+            ed = 0.0
+            tax_value = 0.0
+            if line.tax_service_credit:
+                if line.tax_service_credit.gl_account_id:
+                    account = line.tax_service_credit.gl_account_id.id
+                else:
+                    raise osv.except_osv(_('Warning!'),_('Account is not null, please configure GL Account in Tax master !'))
+                basic = (line.quantity * line.price_unit) - ( (line.quantity * line.price_unit)*line.disc/100)
+                basic = round(basic,2)
+                if line.p_f_type == '1' :
+                    p_f = basic * line.p_f/100
+                    p_f = round(p_f,2)
+                elif line.p_f_type == '2' :
+                    p_f = line.p_f
+                    p_f = round(p_f,2)
+                elif line.p_f_type == '3' :
+                    p_f = line.p_f * line.quantity
+                    p_f = round(p_f,2)
+                else:
+                    p_f = line.p_f
+                    p_f = round(p_f,2)
+                if line.ed_type == '1' :
+                    ed = (basic + p_f) * line.ed/100
+                    ed = round(ed,2)
+                elif line.ed_type == '2' :
+                    ed = line.ed
+                    ed = round(ed,2)
+                elif line.ed_type == '3' :
+                    ed = line.ed * line.quantity
+                    ed = round(ed,2)
+                else:
+                    ed = line.ed
+                    ed = round(ed,2)                
+                
+                #tax_value = line.tax_service_credit.amount/100
+                tax_value = 0.5/100
+                tax_value = tax_value*30/100  
+                if line.aed_id_1:
+                    tax = (basic + p_f + ed + line.aed_id_1)*(tax_value) * voucher_rate
+                    tax = round(tax,2)
+                else:
+                    tax = (basic + p_f + ed)*(tax_value) * voucher_rate
+                    tax = round(tax,2)
+                if tax:    
+                    res.append({
+                        'type':'tax',
+                        'name':line.name,
+                        'price_unit': line.price_unit,
+                        'quantity': 1,
+                        'price': -tax,
+                        'account_id': 4871, #account, #SWACHH BHARAT CESS ACCOUNT - CODE: 0000450036
+                        'account_analytic_id': line.account_analytic_id.id,
+                        })
+        return res
+    ###
+    
     def move_line_amount_tax_deducte_credit(self, cr, uid, invoice_id, context = None):
         res = []
         sum_tax = 0
@@ -2160,6 +2309,178 @@ class account_invoice_line(osv.osv):
                     })
         return res
     
+    ###TPT-ON 16/12/2015
+    def move_line_amount_tax_deducte_credit_14(self, cr, uid, invoice_id, context = None):
+        res = []
+        sum_tax = 0
+        sum_tax_round = 0
+        voucher_rate = 1
+        if context is None:
+            context = {}
+        ctx = context.copy()
+        inv_id = self.pool.get('account.invoice').browse(cr, uid, invoice_id)
+        if inv_id:
+            currency = inv_id.currency_id.name or False
+            currency_id = inv_id.currency_id.id or False
+            ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d')})
+        if currency != 'INR':
+            voucher_rate = self.pool.get('res.currency').read(cr, uid, currency_id, ['rate'], context=ctx)['rate']
+        account_ids = self.pool.get('account.account').search(cr, uid, [('code','in',['0000484008'])])
+        if not account_ids:
+            raise osv.except_osv(_('Warning!'),_('Account is not null, please configure Account with code is 0000484008 and name is PRICE DIFF/ROUNDING in Account master !'))
+        for account in self.browse(cr,uid,account_ids):
+            for line in inv_id.invoice_line:
+                basic = 0.0
+                p_f = 0.0
+                ed = 0.0
+                tax_value = 0.0
+                if line.tax_service_credit:
+                    basic = (line.quantity * line.price_unit) - ( (line.quantity * line.price_unit)*line.disc/100)
+                    basic = round(basic)
+                    if line.p_f_type == '1' :
+                        p_f = basic * line.p_f/100
+                        p_f = round(p_f)
+                    elif line.p_f_type == '2' :
+                        p_f = line.p_f
+                        p_f = round(p_f)
+                    elif line.p_f_type == '3' :
+                        p_f = line.p_f * line.quantity
+                        p_f = round(p_f)
+                    else:
+                        p_f = line.p_f
+                        p_f = round(p_f)
+                    if line.ed_type == '1' :
+                        ed = (basic + p_f) * line.ed/100
+                        ed = round(ed)
+                    elif line.ed_type == '2' :
+                        ed = line.ed
+                        ed = round(ed)
+                    elif line.ed_type == '3' :
+                        ed = line.ed * line.quantity
+                        ed = round(ed)
+                    else:
+                        ed = line.ed
+                        ed = round(ed)                
+                    
+                    #tax_value = line.tax_service_credit.amount/100
+                    tax_value += 14.00/100
+                    tax_value = tax_value*30/100
+    
+                    if line.aed_id_1:
+                        tax = (basic + p_f + ed + line.aed_id_1)*(tax_value) * voucher_rate
+                    else:
+                        tax = (basic + p_f + ed)*(tax_value) * voucher_rate
+                    sum_tax += round(tax,2)
+            sum_tax_round = round(sum_tax)
+            deducte = sum_tax_round - round(sum_tax,2)
+            if deducte > 0:
+                res.append({
+                    'type':'tax',
+                    'name':'',
+                    'price_unit': 0,
+                    'quantity': 1,
+                    'price': -deducte,
+                    'account_id': account.id,
+                    'account_analytic_id': False,
+                    })
+       
+            if deducte < 0:
+                res.append({
+                    'type':'tax',
+                    'name':'',
+                    'price_unit': 0,
+                    'quantity': 1,
+                    'price': -deducte,
+                    'account_id': account.id,
+                    'account_analytic_id': False,
+                    })
+        return res
+    def move_line_amount_tax_deducte_credit_5(self, cr, uid, invoice_id, context = None):
+        res = []
+        sum_tax = 0
+        sum_tax_round = 0
+        voucher_rate = 1
+        if context is None:
+            context = {}
+        ctx = context.copy()
+        inv_id = self.pool.get('account.invoice').browse(cr, uid, invoice_id)
+        if inv_id:
+            currency = inv_id.currency_id.name or False
+            currency_id = inv_id.currency_id.id or False
+            ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d')})
+        if currency != 'INR':
+            voucher_rate = self.pool.get('res.currency').read(cr, uid, currency_id, ['rate'], context=ctx)['rate']
+        account_ids = self.pool.get('account.account').search(cr, uid, [('code','in',['0000484008'])])
+        if not account_ids:
+            raise osv.except_osv(_('Warning!'),_('Account is not null, please configure Account with code is 0000484008 and name is PRICE DIFF/ROUNDING in Account master !'))
+        for account in self.browse(cr,uid,account_ids):
+            for line in inv_id.invoice_line:
+                basic = 0.0
+                p_f = 0.0
+                ed = 0.0
+                tax_value = 0.0
+                if line.tax_service_credit:
+                    basic = (line.quantity * line.price_unit) - ( (line.quantity * line.price_unit)*line.disc/100)
+                    basic = round(basic)
+                    if line.p_f_type == '1' :
+                        p_f = basic * line.p_f/100
+                        p_f = round(p_f)
+                    elif line.p_f_type == '2' :
+                        p_f = line.p_f
+                        p_f = round(p_f)
+                    elif line.p_f_type == '3' :
+                        p_f = line.p_f * line.quantity
+                        p_f = round(p_f)
+                    else:
+                        p_f = line.p_f
+                        p_f = round(p_f)
+                    if line.ed_type == '1' :
+                        ed = (basic + p_f) * line.ed/100
+                        ed = round(ed)
+                    elif line.ed_type == '2' :
+                        ed = line.ed
+                        ed = round(ed)
+                    elif line.ed_type == '3' :
+                        ed = line.ed * line.quantity
+                        ed = round(ed)
+                    else:
+                        ed = line.ed
+                        ed = round(ed)                
+                    
+                    #tax_value = line.tax_service_credit.amount/100
+                    tax_value += 0.5/100
+                    tax_value = tax_value*30/100
+    
+                    if line.aed_id_1:
+                        tax = (basic + p_f + ed + line.aed_id_1)*(tax_value) * voucher_rate
+                    else:
+                        tax = (basic + p_f + ed)*(tax_value) * voucher_rate
+                    sum_tax += round(tax,2)
+            sum_tax_round = round(sum_tax)
+            deducte = sum_tax_round - round(sum_tax,2)
+            if deducte > 0:
+                res.append({
+                    'type':'tax',
+                    'name':'',
+                    'price_unit': 0,
+                    'quantity': 1,
+                    'price': -deducte,
+                    'account_id': 4871, #account, #SWACHH BHARAT CESS ACCOUNT - CODE: 0000450036
+                    'account_analytic_id': False,
+                    })
+       
+            if deducte < 0:
+                res.append({
+                    'type':'tax',
+                    'name':'',
+                    'price_unit': 0,
+                    'quantity': 1,
+                    'price': -deducte,
+                    'account_id': 4871, #account, #SWACHH BHARAT CESS ACCOUNT - CODE: 0000450036
+                    'account_analytic_id': False,
+                    })
+        return res
+    ###
     def move_line_amount_tax(self, cr, uid, invoice_id, context = None):
         res = []
         voucher_rate = 1
@@ -2369,7 +2690,7 @@ class account_invoice_line(osv.osv):
                 # for tax_amount in tax_amounts:
                 #     tax_value += tax_amount/100
                 #===============================================================
-                tax_value += 0.5/100
+                tax_value = 0.5/100
                 if line.tax_id and line.tax_id.description=='STax 30% of Freight 14.5% (Dr)':
                     tax_value = tax_value*30/100     
                 if line.aed_id_1:
@@ -2377,22 +2698,17 @@ class account_invoice_line(osv.osv):
                     tax = round(tax,2)      
                 else:
                     tax = (basic + p_f + ed)*(tax_value) * voucher_rate
-                    tax = round(tax,2)
-                 
-                flag = False                        
-                if line.tax_id and line.tax_id.description=='STax 14.5%':
-                    flag=True
-                if flag is True:        
-                    if tax:    
-                        res.append({
-                            'type':'tax',
-                            'name':line.name,
-                            'price_unit': line.price_unit,
-                            'quantity': 1,
-                            'price': round(tax,2),
-                            'account_id': 4871, #account, #SWACHH BHARAT CESS ACCOUNT - CODE: 0000450036
-                            'account_analytic_id': line.account_analytic_id.id,
-                            })
+                    tax = round(tax,2)                     
+                if tax:    
+                    res.append({
+                        'type':'tax',
+                        'name':line.name,
+                        'price_unit': line.price_unit,
+                        'quantity': 1,
+                        'price': round(tax,2),
+                        'account_id': 4871, #account, #SWACHH BHARAT CESS ACCOUNT - CODE: 0000450036
+                        'account_analytic_id': line.account_analytic_id.id,
+                        })
         return res
     ###
     #TPT-BalamuruganPurushothaman - ON 04/11/2015 - TO CREATE POSTGING ENTRY FOR TAX AMOUNT
