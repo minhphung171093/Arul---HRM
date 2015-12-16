@@ -256,10 +256,10 @@ class Parser(report_sxw.rml_parse):
                         
         '''%(date_from,date_to)            
         if vendor:
-            str1 = "and bp.id = '%s'"%(vendor[0])
+            str1 = " and bp.id = %s"%(vendor[0])
             sql = sql+str1          
         if gl_accnt:
-            str1 = "aa.id = '%s'"%(gl_accnt[0])
+            str1 = " and aa.id = %s"%(gl_accnt[0])
             sql = sql+str1
                   
         self.cr.execute(sql)
