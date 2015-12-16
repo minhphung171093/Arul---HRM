@@ -447,6 +447,7 @@ class tpt_purchase_product(osv.osv):
                                           ('quotation_raised','Quotation Raised'),
                                           ('po_raised','PO Raised'),
                                           ('quotation_cancel','Quotation Cancelled'),
+                                          ('cancel_by_purchase','Cancelled By Purchase'),
                                           ],'Indent Status', readonly=True),
 #Hung moi them 2 Qty theo yeu casu bala
         'po_doc_no':fields.many2one('purchase.order','PO Document Number'),
