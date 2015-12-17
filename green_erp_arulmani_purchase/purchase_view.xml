@@ -562,6 +562,11 @@
             <field name="model">tpt.purchase.product</field>
             <field name="arch" type="xml">
 	            <form string="Pending PR List" version="7.0" delete = 'false' create = 'false' edit = 'false' >   
+	            <header>
+	            		<button name="bt_cancel" string="Cancel PR" states='++,xx,rfq_raised,
+	            		quotation_raised,po_raised,cancel,quotation_cancel' type="object" class="oe_highlight"
+	            		groups="green_erp_arulmani_purchase.group_vvti_purchase_user,green_erp_arulmani_purchase.group_vvti_purchase_admin"/>	                               	            		 	                  
+	            </header>
 	            <sheet> 
 	            	<group col="4" colspan="2"> 
 	            		<field name="doc_type_relate" />
