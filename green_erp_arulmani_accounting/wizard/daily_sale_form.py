@@ -249,7 +249,7 @@ class daily_sale_form(osv.osv_memory):
                     'date_invoice':line.invoice_id.date_invoice or False,
                     'order_type':get_order_type(line.invoice_id.sale_id and line.invoice_id.sale_id.order_type or ''),
                     #'distribution':line.invoice_id.sale_id and line.invoice_id.sale_id.distribution_channel.name or '',
-                    'distribution':line.invoice_id.partner_id and line.invoice_id.partner_id.distribution_channel.name or '',
+                    'distribution':line.invoice_id.sale_id and line.invoice_id.sale_id.distribution_channel.name or '',
                     'country':line.invoice_id.partner_id and line.invoice_id.partner_id.country_id.name or '',
                     'state':line.invoice_id.partner_id and line.invoice_id.partner_id.state_id.name or '',
                     'city':line.invoice_id.partner_id and line.invoice_id.partner_id.city or '',
