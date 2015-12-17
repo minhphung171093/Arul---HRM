@@ -178,6 +178,7 @@
 							<field name="name"/>
 							<field name="code"/>
 							<field name="equip_id" on_change="onchange_equip_id(equip_id)" options="{'create': false, 'create_edit': false}"/>
+							<field name="sub_equip_categ_id" options="{'create': false, 'create_edit': false}"/>
 							<field name="cost_id" options="{'create': false, 'create_edit': false}"/>
 							<field name="department_id" options="{'create': false, 'create_edit': false}"/>
 							<field name="section_id" options="{'create': false, 'create_edit': false}"/>

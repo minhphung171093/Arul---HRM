@@ -172,6 +172,7 @@ class tpt_machineries(osv.osv):
         'code':fields.char('Sub Equipment Code', size = 1024,required=True),
         'equip_id': fields.many2one('tpt.equipment', 'Equipment',required=True),
         'cost_id': fields.many2one('tpt.cost.center', 'Cost Center',required=True),
+        'sub_equip_categ_id': fields.many2one('tpt.equip.category', 'Sub Equipment Category',required=True),#TPT-17/12/2015
 #         'department_id': fields.many2one('hr.department', 'Department',required=True),
 #         'section_id': fields.many2one('arul.hr.section', 'Section',required=True),
         'start_date': fields.date('Installation Start Date',required=True),
