@@ -1436,22 +1436,22 @@ class account_invoice(osv.osv):
                                 flag=True
                             if line.tax_id and line.tax_id.description=='STax 30% of Freight 14.5% (Dr)':
                                 flag=True         
-                            if line.tax_service_credit and line.tax_service_credit.description=='STax 30% of Freight 14.5% (Cr)':
-                                flag1=True
+#                             if line.tax_service_credit and line.tax_service_credit.description=='STax 30% of Freight 14.5% (Cr)':
+#                                 flag1=True
                         if flag is True:
                             iml += invoice_line_obj.move_line_amount_tax_sbc_14(cr, uid, inv.id)
                             iml += invoice_line_obj.move_line_amount_tax_swachh_bharat_cess_5(cr, uid, inv.id)
                         else:
                             iml += invoice_line_obj.move_line_amount_tax(cr, uid, inv.id)
                             
-                        if flag1 is True:
-                            iml += invoice_line_obj.move_line_amount_tax_credit_14(cr, uid, inv.id) 
-                            iml += invoice_line_obj.move_line_amount_tax_credit_5(cr, uid, inv.id) 
-                        else:
-                            iml += invoice_line_obj.move_line_amount_tax_credit(cr, uid, inv.id)
+#                         if flag1 is True:
+#                             iml += invoice_line_obj.move_line_amount_tax_credit_14(cr, uid, inv.id) 
+#                             iml += invoice_line_obj.move_line_amount_tax_credit_5(cr, uid, inv.id) 
+#                         else:
+#                             iml += invoice_line_obj.move_line_amount_tax_credit(cr, uid, inv.id)
                         ###TPT-END
 #                         iml += invoice_line_obj.move_line_amount_tax_without_po_deducte(cr, uid, inv.id)
-                        #iml += invoice_line_obj.move_line_amount_tax_credit(cr, uid, inv.id) TPT-COMMENTED - BM
+                        iml += invoice_line_obj.move_line_amount_tax_credit(cr, uid, inv.id) #TPT-COMMENTED - BM
 #                         iml += invoice_line_obj.move_line_amount_tax_deducte_credit(cr, uid, inv.id) 
                         iml += invoice_line_obj.move_line_tds_amount_without_po(cr, uid, inv.id) 
                         iml += invoice_line_obj.move_line_amount_round_off(cr, uid, inv.id)
@@ -1465,8 +1465,8 @@ class account_invoice(osv.osv):
                             flag=True
                         if line.tax_id and line.tax_id.description=='STax 30% of Freight 14.5% (Dr)':
                             flag=True                                
-                        if line.tax_id and line.tax_id.description=='STax 30% of Freight 14.5% (Cr)':
-                            flag=True
+#                         if line.tax_id and line.tax_id.description=='STax 30% of Freight 14.5% (Cr)':
+#                             flag=True
                     iml += invoice_line_obj.move_line_fright(cr, uid, inv.id)
                     iml += invoice_line_obj.move_line_amount_untaxed_without_po(cr, uid, inv.id) 
                     #iml += invoice_line_obj.tpt_move_line_amount_tax(cr, uid, inv.id) # TPT-BalamuruganPurushothaman - ON 04/11/2015
@@ -1491,7 +1491,7 @@ class account_invoice(osv.osv):
                 # freight invoice 
                 iml = invoice_line_obj.move_line_fi_base(cr, uid, inv.id)
                 #iml += invoice_line_obj.move_line_fi_debit(cr, uid, inv.id) #TPT-COMMENTED
-                #iml += invoice_line_obj.move_line_fi_credit(cr, uid, inv.id) #TPT-COMMENTED
+                
                 ### TPT-By BalamuruganPurushothaman - ON 13/12/2015 - Updated on 15/12/2015
                 flag = False 
                 flag1 = False        
@@ -1501,23 +1501,24 @@ class account_invoice(osv.osv):
                         flag=True
                     elif line.tax_id and line.tax_id.description=='STax 14.5%':
                         flag=True
-                    elif line.tax_credit and line.tax_credit.description=='STax 30% of Freight 14.5% (Cr)':
-                        flag1=True
+#                     elif line.tax_credit and line.tax_credit.description=='STax 30% of Freight 14.5% (Cr)':
+#                         flag1=True
                 if flag is True:
                     iml += invoice_line_obj.move_line_fi_debit_14(cr, uid, inv.id)
                     iml += invoice_line_obj.move_line_fi_debit_5(cr, uid, inv.id)
                 else:
                     iml += invoice_line_obj.move_line_fi_debit(cr, uid, inv.id)
  
-                if flag1 is True:
-                    iml += invoice_line_obj.move_line_fi_credit_14(cr, uid, inv.id)
-                    iml += invoice_line_obj.move_line_fi_credit_5(cr, uid, inv.id)
-                else:
-                    iml += invoice_line_obj.move_line_fi_credit(cr, uid, inv.id)
+#                 if flag1 is True:
+#                     iml += invoice_line_obj.move_line_fi_credit_14(cr, uid, inv.id)
+#                     iml += invoice_line_obj.move_line_fi_credit_5(cr, uid, inv.id)
+#                 else:
+#                     iml += invoice_line_obj.move_line_fi_credit(cr, uid, inv.id)
                 
                      
                 ###
 #                 iml += invoice_line_obj.move_line_fi_credit_deducte(cr, uid, inv.id) 
+                iml += invoice_line_obj.move_line_fi_credit(cr, uid, inv.id) #TPT-COMMENTED
                 iml += invoice_line_obj.move_line_tds_amount_freight(cr, uid, inv.id) 
                 iml += invoice_line_obj.move_line_amount_round_off(cr, uid, inv.id)
                 name = inv['name'] or inv['supplier_invoice_number'] or '/'
@@ -2873,9 +2874,10 @@ class account_invoice_line(osv.osv):
                 if line.tax_id and line.tax_id.description=='STax 30% of Freight 14.5% (Dr)':
                     tax_value += 14.00/100
                     tax_value += tax_value*30/100
-                if line.tax_id and line.tax_id.description=='STax 30% of Freight 14.5% (Cr)':
-                    tax_value += 14.00/100
-                    tax_value += tax_value*30/100
+#                 if line.tax_id and line.tax_id.description=='STax 30% of Freight 14.5% (Cr)':
+#                     tax_value += 14.00/100
+#                     tax_value += tax_value*30/100
+
                     
                 if line.aed_id_1:
                     tax = (basic + p_f + ed + line.aed_id_1)*(tax_value) * voucher_rate
@@ -2961,9 +2963,9 @@ class account_invoice_line(osv.osv):
                 if line.tax_id and line.tax_id.description=='STax 30% of Freight 14.5% (Dr)':
                     tax_value += 0.5/100
                     tax_value += tax_value*30/100
-                if line.tax_id and line.tax_id.description=='STax 30% of Freight 14.5% (Cr)':
-                    tax_value += 0.5/100
-                    tax_value += tax_value*30/100
+#                 if line.tax_id and line.tax_id.description=='STax 30% of Freight 14.5% (Cr)':
+#                     tax_value += 0.5/100
+#                     tax_value += tax_value*30/100
                     
                 if line.aed_id_1:
                     tax = (basic + p_f + ed + line.aed_id_1)*(tax_value) * voucher_rate
