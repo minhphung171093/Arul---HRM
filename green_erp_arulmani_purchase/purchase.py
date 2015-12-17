@@ -444,8 +444,7 @@ class tpt_purchase_product(osv.osv):
                                           ('x', 'Store Rejected'),('xx', 'Store & HOD Rejected'),
                                           ('rfq_raised','RFQ Raised'),
                                           ('cancel','PO Cancelled'),
-                                          ('quotation_raised','Quotation Raised'),
-                                          ('po_raised','PO Raised'),
+                                          ('quotation_raised','Quotation Raised'), #TPT BM to maintain the status,PO Cancel Provision                                          ('po_raised','PO Raised'),
                                           ('quotation_cancel','Quotation Cancelled'),
                                           ('cancel_by_purchase','Cancelled By Purchase'),
                                           ],'Indent Status', readonly=True),
@@ -490,7 +489,10 @@ class tpt_purchase_product(osv.osv):
 #     _constraints = [
 #         (_check_product_id, 'Identical Data', ['pur_product_id', 'product_id']),
 #     ]   
-    
+    def bt_cancel(self, cr, uid, ids, context=None):
+        for line in self.browse(cr,uid,ids):
+            return self.write(cr, uid, ids,{'state':'cancel_by_purchase'})
+               
     def bt_approve(self, cr, uid, ids, context=None):
         for line in self.browse(cr,uid,ids):
 #             father = self.pool.get('tpt.purchase.indent').browse(cr,uid,line.pur_product_id.id)
