@@ -1875,8 +1875,10 @@ class tpt_quality_verification(osv.osv):
                 '''%(line.product_id.id,line.warehouse_id.id,line.prod_batch_id.id,line.product_id.id,line.warehouse_id.id,line.prod_batch_id.id)
             cr.execute(sql)
             ton_sl = cr.dictfetchone()['ton_sl']
-            if ton_sl <= 0 or ton_sl < 1:#TPT-BalamuruganPurushothaman-ON 08/11/2015- Incident No: 2623
+            if ton_sl <= 0:#TPT-BalamuruganPurushothaman-ON 08/11/2015- Incident No: 2623
                 raise osv.except_osv(_('Warning!'),_('Stock Already sold out for this Batch. You cannot modify this Batch further!')) 
+            if ton_sl > 0 or ton_sl < 1:#TPT-BalamuruganPurushothaman-ON 18/12/2015- To give alert for partially sold out Batch
+                raise osv.except_osv(_('Warning!'),_('Stock Partially sold out for this Batch. You cannot modify this Batch further!')) 
             self.write(cr, uid, ids, {'state':'draft'})
         return True
     

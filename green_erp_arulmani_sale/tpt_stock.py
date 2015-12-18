@@ -460,11 +460,16 @@ class stock_picking(osv.osv):
                     if move_line.scrapped:
                         # do no invoice scrapped products
                         continue
+                    #invoice_vals.update({'doc_type':'supplier_invoice'})
                     vals = self._prepare_invoice_line(cr, uid, group, picking, move_line,
                                     invoice_id, invoice_vals, context=context)
                     if vals:
                         invoice_line_id = invoice_line_obj.create(cr, uid, vals, context=context)
                         self._invoice_line_hook(cr, uid, move_line, invoice_line_id)
+                        sql = '''
+                        update account_invoice set doc_type='supplier_invoice' where id=%s 
+                        '''%invoice_id
+                        cr.execute(sql)
             ### VSIS end fix
 
             invoice_obj.button_compute(cr, uid, [invoice_id], context=context,
