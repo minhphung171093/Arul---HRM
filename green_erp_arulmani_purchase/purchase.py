@@ -468,7 +468,8 @@ class tpt_purchase_product(osv.osv):
         'is_mrp': fields.boolean('Is MRP'),
         'intdent_cate':fields.selection([
                                 ('emergency','Emergency Indent'),
-                                ('normal','Normal Indent')],'Indent Category'),        
+                                ('normal','Normal Indent')],'Indent Category'),     
+        'reason_for_cancel':fields.text('Reason for Cancellation' ),   
         }  
 #     
     _defaults = {
@@ -491,6 +492,19 @@ class tpt_purchase_product(osv.osv):
 #     ]   
     def bt_cancel(self, cr, uid, ids, context=None):
         for line in self.browse(cr,uid,ids):
+            res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
+                                            'green_erp_arulmani_purchase', 'alert_pr_cancel_warning_form_view')
+            return {
+                                    'name': 'Cancel PR',
+                                    'view_type': 'form',
+                                    'view_mode': 'form',
+                                    'view_id': res[1],
+                                    'res_model': 'pr.cancel',
+                                    'domain': [],
+                                    'context': {'default_message':'Are you sure want to Cancel this PR?','audit_id':line.id},
+                                    'type': 'ir.actions.act_window',
+                                    'target': 'new',
+                                }
             return self.write(cr, uid, ids,{'state':'cancel_by_purchase'})
                
     def bt_approve(self, cr, uid, ids, context=None):

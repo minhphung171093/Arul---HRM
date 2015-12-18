@@ -187,5 +187,29 @@ class approve_reject_quanlity_inspection(osv.osv_memory):
     
 approve_reject_quanlity_inspection()
 
-
+class pr_cancel(osv.osv_memory):
+    _name = "pr.cancel"
+    _columns = {    
+                'name': fields.char(string="Title", size=1024, readonly=True),
+                'reason': fields.char('Reason', size=1024, ),
+                }
+    
+    def action_confirm(self, cr, uid, ids, context=None): 
+        audit_id = context.get('audit_id')
+        do_obj = self.pool.get('tpt.purchase.product').browse(cr, uid, audit_id)
+        popup_id = self.pool.get('pr.cancel').browse(cr, uid, ids[0])
+        reason = popup_id.reason
+        
+        space_removed = reason.replace(" ", "")
+        if space_removed == '':
+            raise osv.except_osv(_('Warning!'),_('Please Provide the Reason!'))
+        
+        sql = ''' update tpt_purchase_product set reason_for_cancel='%s',state='cancel_by_purchase' where id=%s
+        '''%(reason,audit_id)
+        cr.execute(sql) 
+        
+        return {'type': 'ir.actions.act_window_close'}   
+    
+    
+pr_cancel()
 

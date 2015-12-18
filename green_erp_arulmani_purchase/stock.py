@@ -159,6 +159,7 @@ class stock_picking(osv.osv):
                                  'grn_no':picking.id,
                                  'purchase_id':picking.purchase_id and picking.purchase_id.id or False,
                                  'currency_id':picking.purchase_id and picking.purchase_id.currency_id and picking.purchase_id.currency_id.id or False,
+                                 #'doc_type':'supplier_invoice' or False,
 #                                  'amount_untaxed': picking.purchase_id and picking.purchase_id.amount_untaxed or False,
 #                                  'p_f_charge': picking.purchase_id and picking.purchase_id.p_f_charge or False,
 #                                  'excise_duty': picking.purchase_id and picking.purchase_id.excise_duty or False,
@@ -1131,6 +1132,11 @@ class account_invoice(osv.osv):
                 'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 10),   
                 'account.invoice.line': (_get_invoice_line, ['quantity', 'uos_id', 'price_unit','discount','p_f','p_f_type',   
                                                                 'ed', 'ed_type','invoice_line_tax_id','fright','fright_type', 'tds_id','aed_id_1'], 10)}),
+        'doc_type':fields.selection([('supplier_invoice','Supplier Invoice'),
+                                     ('supplier_invoice_without','Supplier Invoice (Without PO)'),
+                                     ('service_invoice','Service Invoice'),
+                                     ('freight_invoice','Freight Invoice')
+                                     ],('Doc Type')),
         }
     _defaults = {
         'created_on': time.strftime('%Y-%m-%d %H:%M:%S'),

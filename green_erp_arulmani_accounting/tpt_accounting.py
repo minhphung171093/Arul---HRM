@@ -738,11 +738,11 @@ class account_invoice(osv.osv):
         'cost_center_id':fields.many2one('tpt.cost.center','Cost Center'),
 #         'flag_bt_ed': fields.boolean('button ed'),
         'flag_bt_ed': fields.function(get_button_ed, string='button ed', type='boolean'),
-        'doc_type':fields.selection([('supplier_invoice','Supplier Invoice'),
-                                     ('supplier_invoice_without','Supplier Invoice (Without PO)'),
-                                     ('service_invoice','Service Invoice'),
-                                     ('freight_invoice','Freight Invoice')
-                                     ],('Doc Type')),
+#         'doc_type':fields.selection([('supplier_invoice','Supplier Invoice'),
+#                                      ('supplier_invoice_without','Supplier Invoice (Without PO)'),
+#                                      ('service_invoice','Service Invoice'),
+#                                      ('freight_invoice','Freight Invoice')
+#                                      ],('Doc Type')),
     }
     
     def bt_post_ed(self, cr, uid, ids, context=None):
