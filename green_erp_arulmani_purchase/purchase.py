@@ -442,7 +442,7 @@ class tpt_purchase_product(osv.osv):
         'state':fields.selection([('draft', 'Draft'),('confirm', 'Confirmed'),('close', 'Closed'),
                                           ('+', 'Store Approved'),('++', 'Store & HOD Approved'),
                                           ('x', 'Store Rejected'),('xx', 'Store & HOD Rejected'),
-                                          ('rfq_raised','RFQ Raised'),
+                                          ('rfq_raised','RFQ Raised'),('po_raised','PO Raised'),
                                           ('cancel','PO Cancelled'),
                                           ('quotation_raised','Quotation Raised'), #TPT BM to maintain the status,PO Cancel Provision                                          ('po_raised','PO Raised'),
                                           ('quotation_cancel','Quotation Cancelled'),
