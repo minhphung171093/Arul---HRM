@@ -57,36 +57,72 @@ class Parser(report_sxw.rml_parse):
         
         sql = '''
             select b.inv_doc as inv_doc,b.date_invoice,b.bill_number,b.bill_date,b.tax_name,
-            b.partnername,b.tin,
-            b.productname,b.vatbased_qty,b.vatbased_amt,(b.taxamt*b.vatbased_amt)/100 as paid_amt_1,b.amount_tax as paid_amt,
-            b.uom from (
-            select 
-            rank() Over (Partition BY a.invoice_id,a.tax_id order by a.line_net desc) as productrank,
-            a.inv_doc,a.date_invoice,a.bill_number,a.bill_date,a.taxamt,a.tax_name,
-            a.partnername,a.tin,
-            a.productname,a.vatbased_qty,a.vatbased_amt,a.amount_tax,a.uom
-            from (
-            select ail.invoice_id,i.name as inv_doc,i.date_invoice,i.bill_number,i.bill_date,at.name as tax_name,
-            rp.name as partnername,rp.tin, 
-            ail.name as productname,
-            ail.quantity  as vatbased_qty,
-            --sum(ail.quantity) over (partition by ail.invoice_id,ailt.tax_id) as vatbased_qty,
-            (i.amount_untaxed+i.excise_duty+i.p_f_charge + COALESCE(i.aed,0) + COALESCE(i.amount_round_off,0)) as vatbased_amt,i.amount_tax,
-            --sum(ail.line_net-ail.fright) over (partition by ail.invoice_id,ailt.tax_id) as vatbased_amt,
-            ailt.tax_id,at.amount as taxamt,
-            pu.name as uom,ail.line_net-ail.fright as line_net
-            from account_invoice_line ail
-            JOIN account_invoice_line_tax ailt on (ailt.invoice_line_id=ail.id)
-            join account_invoice i on (i.id=ail.invoice_id and type = 'in_invoice')
-            join res_partner rp on (rp.id=i.partner_id)
-            Join account_tax at on (at.id=ailt.tax_id)
-            join product_product p on (p.id=ail.product_id)
-            join product_uom pu on (pu.id=ail.uos_id)
-            join account_move am on (am.id=i.move_id)
-            where date_invoice between '%s' and '%s' and 
-            at.description ~'VAT' and at.amount>0 and i.move_id>0 and am.state='posted' and am.doc_type<>'freight'
-            )a 
-            )b where b.productrank=1
+                b.partnername,b.tin,
+                b.productname,b.vatbased_qty,b.vatbased_amt,(b.taxamt*b.vatbased_amt)/100 as paid_amt_1,b.amount_tax as paid_amt,
+                b.uom from (
+                select 
+                rank() Over (Partition BY a.invoice_id,a.tax_id order by a.line_net desc) as productrank,
+                a.inv_doc,a.date_invoice,a.bill_number,a.bill_date,a.taxamt,a.tax_name,
+                a.partnername,a.tin,
+                a.productname,a.vatbased_qty,a.vatbased_amt,a.amount_tax,a.uom
+                from (
+                select ail.invoice_id,i.name as inv_doc,i.date_invoice,i.bill_number,i.bill_date,at.name as tax_name,
+                rp.name as partnername,rp.tin, 
+                ail.name as productname,
+                sum(ail.quantity) over (partition by ail.invoice_id,ailt.tax_id) as vatbased_qty,
+            case when ed_type='1' or ed_type is null then 
+            case when p_f_type='1' or p_f_type is null then
+                sum((ail.quantity*ail.price_unit)+((ail.quantity*ail.price_unit)*ail.ed/100)
+                +coalesce(ail.aed_id_1,0)+((ail.quantity*ail.price_unit)*ail.p_f/100)) over (partition by ail.invoice_id,ailt.tax_id) 
+                 when p_f_type='2' then
+                sum((ail.quantity*ail.price_unit)+((ail.quantity*ail.price_unit)*ail.ed/100)
+                +coalesce(ail.aed_id_1,0)+coalesce(ail.p_f,0)) over (partition by ail.invoice_id,ailt.tax_id) 
+                 when p_f_type='3' then
+                sum((ail.quantity*ail.price_unit)+((ail.quantity*ail.price_unit)*ail.ed/100)
+                +coalesce(ail.aed_id_1,0)+(ail.p_f*ail.quantity)) over (partition by ail.invoice_id,ailt.tax_id)  
+                 else 0 
+            end
+            when ed_type='2' then
+            case when p_f_type='1' or p_f_type is null then
+                sum((ail.quantity*ail.price_unit)+coalesce(ail.ed,0)
+                +coalesce(ail.aed_id_1,0)+((ail.quantity*ail.price_unit)*coalesce(ail.p_f,0)/100)) over (partition by ail.invoice_id,ailt.tax_id) 
+                when p_f_type='2' then
+                sum((ail.quantity*ail.price_unit)+coalesce(ail.ed,0)
+                +coalesce(ail.aed_id_1,0)+coalesce(ail.p_f,0)) over (partition by ail.invoice_id,ailt.tax_id)
+                when p_f_type='3' then
+                sum((ail.quantity*ail.price_unit)+coalesce(ail.ed,0)
+                +coalesce(ail.aed_id_1,0)+(ail.p_f*ail.quantity)) over (partition by ail.invoice_id,ailt.tax_id) 
+                else 0
+             end
+            when ed_type='3' then
+            case when p_f_type='1' or p_f_type is null then
+                sum((ail.quantity*ail.price_unit)+(ail.ed*ail.quantity)+coalesce(ail.aed_id_1,0)
+                +(ail.quantity*ail.price_unit)*ail.p_f/100) over (partition by ail.invoice_id,ailt.tax_id) 
+                when p_f_type='2' then
+                sum((ail.quantity*ail.price_unit)+(ail.ed*ail.quantity)+coalesce(ail.aed_id_1,0)
+                +coalesce(ail.p_f,0)) over (partition by ail.invoice_id,ailt.tax_id) 
+                when p_f_type='3' then
+                    sum((ail.quantity*ail.price_unit)+(ail.ed*ail.quantity)+coalesce(ail.aed_id_1,0)
+                +(ail.p_f*ail.quantity)) over (partition by ail.invoice_id,ailt.tax_id) 
+               else 0
+             end
+            else 0
+            end as vatbased_amt,
+            i.amount_tax,
+                ailt.tax_id,at.amount as taxamt,
+                pu.name as uom,ail.line_net-ail.fright as line_net
+                from account_invoice_line ail
+                JOIN account_invoice_line_tax ailt on (ailt.invoice_line_id=ail.id)
+                join account_invoice i on (i.id=ail.invoice_id and type = 'in_invoice')
+                join res_partner rp on (rp.id=i.partner_id)
+                Join account_tax at on (at.id=ailt.tax_id)
+                join product_product p on (p.id=ail.product_id)
+                join product_uom pu on (pu.id=ail.uos_id)
+                join account_move am on (am.id=i.move_id)
+                where date_invoice between '%s' and '%s' and 
+                at.description ~'VAT' and at.amount>0 and i.move_id>0 and am.state='posted' and am.doc_type<>'freight'
+                )a 
+                )b where b.productrank=1
             '''%(date_from, date_to)
         self.cr.execute(sql)
         return self.cr.dictfetchall()
