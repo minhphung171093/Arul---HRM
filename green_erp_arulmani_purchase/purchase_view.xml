@@ -593,6 +593,7 @@
 						<field name="state" required='1' />
 						<field name="item_text" />
 						<field name="pending_qty"/>
+						<field name="reason_for_cancel"/>		
 					</group>
 				</sheet>  
 		       </form>
