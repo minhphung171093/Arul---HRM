@@ -1119,7 +1119,7 @@ class account_invoice(osv.osv):
             vals['doc_type']='service_invoice'
         if vals.get('type','')=='in_invoice' and 'purchase_id' not in vals and 'sup_inv_id' not in vals:
             vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.supplier.invoice.sequence') or '/'
-            vals['doc_type']='supplier_invoice'
+            vals['doc_type']='supplier_invoice_without'
         if vals.get('type','')=='in_invoice' and 'sup_inv_id' in vals and vals['sup_inv_id']:
             vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.si.freight.sequence') or '/'
             vals['doc_type']='freight_invoice'
