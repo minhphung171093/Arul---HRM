@@ -213,3 +213,13 @@ class pr_cancel(osv.osv_memory):
     
 pr_cancel()
 
+
+class pr_copy(osv.osv_memory):
+    _name = "pr.copy"
+    _columns = { 
+                'message': fields.text(string="Message ", readonly=True),       
+                'copied_pr_id': fields.many2one('tpt.purchase.indent','Newly Copied PR', ondelete='cascade'),                
+                }
+    
+pr_copy()
+

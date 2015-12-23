@@ -38,6 +38,8 @@
 						<field name="project_id"/>
 						<field name="project_section_id"/>
 						<field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
+						<field name="is_copied_pr" invisible="1"/>
+						<field name="is_ref_pr" invisible="1"/>
 				</tree>
 			</field>
 		</record>
@@ -46,6 +48,7 @@
 			<field name="model">tpt.purchase.indent</field>
 			<field name="arch" type="xml">
 				<search string="Purchase Indent">
+					<field name="name"/>	
 					<field name="department_id"/>	
 					<field name="requisitioner"/>
 					<field name="document_type"/>
@@ -81,6 +84,7 @@
 	                    <button name="bt_cancel" states='draft, done' string="Cancel" type="object" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin"/> 
 	                    <!-- TPT - BalamuruganPurushothaman - ON 04/11/2015 - TO ROLLBACK PR - TICKET NO: 2583 -->
 	                    <button name="bt_draft" states='done' string="Set to Draft" type="object" class="oe_highlight" />
+	                    <button name="bt_copy" states='draft, done' string="Copy PR" type="object" class="oe_highlight" />
 	                    <field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
 	            </header>    
 	            	<sheet>
@@ -106,6 +110,11 @@
 							
 							<field name="header_text" attrs="{'readonly': [('document_type', 'not in', ('service','consumable','capital')),('state', '=', 'done')]}"/>
 							<field name="cost_center_id" required='1' options="{'create': false, 'create_edit': false}" />
+							<!-- TPT-By BalamuruganPurushothaman -->
+							<!-- <field name="copied_pr_id" attrs="{'invisible': [('is_copied_pr', '=', False)]}"/>  -->
+							<field name="ref_pr_id" attrs="{'invisible': [('is_ref_pr', '=', False)]}"/>
+							<field name="is_copied_pr" invisible="1"/>
+							<field name="is_ref_pr" invisible="1"/>
 						</group>
 						<group >
 							<field name="select_normal" invisible = '1' widget = "radio" attrs="{'invisible': [('intdent_cate', '!=', 'normal')]}" />

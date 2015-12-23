@@ -54,24 +54,39 @@
 	        <field name="target">new</field>
 	    </record>
 	    
-	    
-	    <record id="alert_pr_cancel_warning_form_view" model="ir.ui.view">
-	        <field name="name">pr.cancel</field>
-	        <field name="model">pr.cancel</field>
+	    <!-- 
+	    <record id="alert_pr_copy_warning_form_view" model="ir.ui.view">
+	        <field name="name">pr.copy</field>
+	        <field name="model">pr.copy</field>
 	        <field eval="20" name="priority"/>
 	        <field name="arch" type="xml">
 	            <form string="Alert" version="7.0">
-	            	<field name="reason"  required='1' nolabel="1" placeholder="Please Provide the reason for Cancelling this PR"/>
-	                <footer>
-	                <button name="action_confirm" type='object' string="Yes" class="oe_highlight"/>
-	                    or
-	                <button string="No" class="oe_highlight" special="cancel" />
-	                
-	                </footer>
+		            <group >
+		            	<field name="copied_pr_id" />
+		            </group>
+		            <footer>            
+		                <button string="Cancel" class="oe_highlight" special="cancel" />  
+		            </footer>
 	            </form>
 	        </field>
     	</record>
-    	
+    	 -->
+    	<record id="alert_pr_copy_warning_form_view" model="ir.ui.view">
+	        <field name="name">tpt.purchase.indent.form</field>
+	        <field name="model">tpt.purchase.indent</field>
+	        <field eval="20" name="priority"/>
+	        <field name="arch" type="xml">
+	            <form string="Alert" version="7.0">
+	            	<field name="message"  nolabel="1" readonly='1'/>
+		            <group >		            	
+		            	<field name="copied_pr_id" readonly='1' />
+		            </group>
+		            <footer>            
+		                <button string="Cancel" class="oe_highlight" special="cancel" />  
+		            </footer>
+	            </form>
+	        </field>
+    	</record>
     	
     </data>
 </openerp>
