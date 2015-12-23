@@ -181,7 +181,7 @@ class tpt_purchase_indent(osv.osv):
                 'view_id': res[1],
                 'res_model': 'tpt.purchase.indent',
                 'domain': [],
-                'context': {'default_message':'Please Click this PR to Navigate Newly Copied PR','default_copied_pr_id':pr_ids[0]},
+                'context': {'default_message':'Copied Successfully!. Please Click this PR to Navigate Newly Copied PR','default_copied_pr_id':pr_ids[0]},
                 'type': 'ir.actions.act_window',
                 'target': 'new',
                 }
