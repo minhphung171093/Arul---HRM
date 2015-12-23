@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+		<record id="customer_ageing_report_vw" model="ir.ui.view">
+	        <field name="name">customer.ageing.report</field>
+	        <field name="model">customer.ageing.report</field>
+	        <field name="arch" type="xml">
+	            <form string="Customer Ageing Report" version="7.0">
+	            	<group>
+	                <field name="date_from" required='1' />
+	                <field name="customer_id" domain="[('customer','=',True),('is_company','=',True),('customer_account_group_id','=','VVTI Sold to Party')]" options="{'create': false, 'create_edit': false}" />
+	                <field name="customer_group" />
+	                </group>
+	                <footer>
+	                     <button name="print_report" type='object' string="OK" class="oe_highlight"/>
+	                    or
+	                     <button string="Cancel" class="oe_highlight" special="cancel" />
+	                </footer>
+	            </form>
+	        </field>
+    	</record>
+
+	    <record model="ir.actions.act_window" id="action_customer_ageing_report">
+	        <field name="name">Customer Ageing Report</field>
+	        <field name="type">ir.actions.act_window</field>
+	        <field name="res_model">customer.ageing.report</field>
+	        <field name="view_type">form</field>
+	        <field name="view_mode">form</field>
+	        <field name="view_id" ref="customer_ageing_report_vw" />
+	        <field name="target">new</field>
+	    </record>
+	    
+	    
+        <menuitem action="action_customer_ageing_report"
+            id="menu_action_customer_ageing_report"
+            parent="account.menu_finance_reporting" sequence="106"/>
+	 
+	    
+    </data>
+</openerp>

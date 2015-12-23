@@ -67,6 +67,10 @@
         'tpt_accounting_view.xml',
         'menu_inherit_view.xml',
         'wizard/alert_form_view.xml',
+        'wizard/customer_ageing_report.xml',
+        'report/customer_ageing_report.xml',
+        'wizard/customer_ageing_group.xml',
+        'report/customer_ageing_group.xml',
     ],
     'css' : [
         "static/src/css/base.css",

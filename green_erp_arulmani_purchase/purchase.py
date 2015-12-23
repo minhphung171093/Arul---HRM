@@ -52,6 +52,12 @@ class tpt_purchase_indent(osv.osv):
         'project_id': fields.many2one('tpt.project','Project', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'project_section_id': fields.many2one('tpt.project.section','Project Section',ondelete='restrict',states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'cost_center_id': fields.many2one('tpt.cost.center','Cost center',states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+               
+        'copied_pr_id': fields.many2one('tpt.purchase.indent','Copied PR', ondelete='cascade'),
+        'ref_pr_id': fields.many2one('tpt.purchase.indent','Ref PR', ondelete='cascade'),
+        'is_copied_pr': fields.boolean('Is this Copied PR ?'),
+        'is_ref_pr': fields.boolean('Is this Copied PR ?'),
+        'message': fields.char('Message', size=1024,),
     }
     
     def _get_department_id(self,cr,uid,context=None):
@@ -68,6 +74,8 @@ class tpt_purchase_indent(osv.osv):
 #         'date_indent': fields.datetime.now,
         'name': '/',
         'intdent_cate':'normal',
+        'is_copied_pr':False,
+        'is_ref_pr':False,
 #         'department_id': _get_department_id,
 #         'section_id':_get_section_id,
 #         'create_uid': lambda self,cr,uid,c:uid,
@@ -117,7 +125,69 @@ class tpt_purchase_indent(osv.osv):
                 raise osv.except_osv(_('Warning!'),_('User does not have permission to approve!'))
 
         return True   
-
+    ###TPT - By BalamuruganPurushothaman - ON 23/12/2015 - Redmine Ticket No: 2397
+    def bt_copy(self, cr, uid, ids, context=None): 
+        for line in self.browse(cr, uid, ids):
+            sql = '''
+                select code from account_fiscalyear where '%s' between date_start and date_stop
+            '''%(time.strftime('%Y-%m-%d'))
+            cr.execute(sql)
+            fiscalyear = cr.dictfetchone()
+            if not fiscalyear:
+                raise osv.except_osv(_('Warning!'),_('Financial year has not been configured. !'))
+            else:
+                if (line.document_type=='base'):                
+                    sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.based')
+                    name =  sequence and sequence+'/'+fiscalyear['code'] or '/'
+                if (line.document_type=='capital'):               
+                    sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.capital')
+                    name =  sequence and sequence +'/'+fiscalyear['code']or '/'
+                if (line.document_type=='local'):     
+                    sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.local')
+                    name =  sequence and sequence +'/'+fiscalyear['code']or '/'
+                if (line.document_type=='maintenance'):
+                    sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.maintenance')
+                    name =  sequence and sequence +'/'+fiscalyear['code']or '/'
+                if (line.document_type=='consumable'):
+                    sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.consumable')
+                    name =  sequence and sequence +'/'+fiscalyear['code']or '/'
+                if (line.document_type=='outside'):
+                    sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.outside')
+                    name =  sequence and sequence +'/'+fiscalyear['code']or '/'
+                if (line.document_type=='spare'):
+                    sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.spare')
+                    name =  sequence and sequence +'/'+fiscalyear['code']or '/'
+                if (line.document_type=='service'):
+                    sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.service')
+                    name =  sequence and sequence +'/'+fiscalyear['code']or '/'
+                if (line.document_type=='normal'):
+                    sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.normal')
+                    name =  sequence and sequence +'/'+fiscalyear['code']or '/'
+                if (line.document_type=='raw'):
+                    sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.raw')
+                    name =  sequence and sequence +'/'+fiscalyear['code']or '/'
+            default ={'ref_pr_id': line.id, 'name':name, 'is_ref_pr':True, 'date_indent':time.strftime('%Y-%m-%d')}
+            self.copy(cr, uid, line.id,default)
+            pr_ids = self.pool.get('tpt.purchase.indent').search(cr,uid,[('name','=',name)])
+            if pr_ids:
+                self.write(cr, uid, ids,{'copied_pr_id': pr_ids[0], 'is_copied_pr':True})           
+            ###
+            res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
+                                            'green_erp_arulmani_purchase', 'alert_pr_copy_warning_form_view')
+            return {
+                'name': 'Copied PR',
+                'view_type': 'form',
+                'view_mode': 'form',
+                'view_id': res[1],
+                'res_model': 'tpt.purchase.indent',
+                'domain': [],
+                'context': {'default_message':'Please Click this PR to Navigate Newly Copied PR','default_copied_pr_id':pr_ids[0]},
+                'type': 'ir.actions.act_window',
+                'target': 'new',
+                }
+            ###
+        return self.write(cr, uid, ids,{'copied_pr_id': copied_pr_id})
+    ###TPT-END 
     def create(self, cr, uid, vals, context=None):
         user = self.pool.get('res.users').browse(cr,uid,uid)
 #         vals['department_id'] = user.employee_id and user.employee_id.department_id and user.employee_id.department_id.id or False

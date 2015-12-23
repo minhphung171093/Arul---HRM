@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+    	<record id="customer_ageing_group" model="ir.actions.report.xml">
+	        <field name="name">customer_ageing_group</field>
+	        <field name="type">ir.actions.report.xml</field>
+	        <field name="model">customer.ageing.group</field>
+	        <field name="report_name">customer_ageing_group</field>
+	        <field name="report_type">aeroo</field>
+	        <field name="in_format">oo-ods</field>
+	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-xls')]"/>
+	        <field name="parser_loc">green_erp_arulmani_accounting/report/customer_ageing_group.py</field>
+	        <field name="report_rml">green_erp_arulmani_accounting/report/customer_ageing_group.ods</field>
+	        <field name="parser_state">loc</field>
+	        <field name="tml_source">file</field>
+	        <field name="attachment_use" eval="0"/>
+    	</record>		    
+		
+		<report 
+			auto="True" 
+			menu="False"
+			id="customer_ageing_group" 
+			model="customer.ageing.group" 
+			name="customer_ageing_group"
+	        string="Customer Ageing Group"
+	        rml="green_erp_arulmani_accounting/report/customer_ageing_group.ods"/>	
+	        
+	    <record id="customer_ageing_group_pdf" model="ir.actions.report.xml">
+	        <field name="name">customer_ageing_group_pdf</field>
+	        <field name="type">ir.actions.group.xml</field>
+	        <field name="model">customer.ageing.group</field>
+	        <field name="report_name">customer_ageing_group</field>
+	        <field name="report_type">aeroo</field>
+	        <field name="in_format">oo-ods</field>
+	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-pdf')]"/>
+	        <field name="parser_loc">green_erp_arulmani_accounting/report/customer_ageing_group.py</field>
+	        <field name="report_rml">green_erp_arulmani_accounting/report/customer_ageing_group.ods</field>
+	        <field name="parser_state">loc</field>
+	        <field name="tml_source">file</field>
+	        <field name="attachment_use" eval="0"/>
+    	</record>		    
+		
+		<report 
+			auto="True" 
+			menu="False"
+			id="customer_ageing_group_pdf" 
+			model="customer.ageing.group" 
+			name="customer_ageing_group_pdf"
+	        string="Customer Ageing Group"
+	        rml="green_erp_arulmani_accounting/report/customer_ageing_group.ods"/>	
+	        
+	    <record id="customer_ageing_group_form" model="ir.ui.view">
+	        <field name="name">customer.ageing.group.form</field>
+	        <field name="model">customer.ageing.group</field>
+	        <field name="arch" type="xml">
+	            <form version='7.0' string="Customer Ageing Group" create="false" edit="false" delete="false">
+	            	<sheet>
+            			<div class="oe_bold oe_text_left">            				 
+            				<field name="date_from" class="oe_text_left oe_inline"/>
+            			</div>
+            			<div class="oe_bold oe_text_left">            				 
+            				<field name="date_from" class="oe_text_left oe_inline"/>
+            			</div>
+            			</sheet>	
+	            </form>
+	        </field>
+	    </record>
+	   </data>
+</openerp>
