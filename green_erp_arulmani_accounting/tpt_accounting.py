@@ -542,7 +542,20 @@ class stock_picking(osv.osv):
                 for p in line.move_lines:
                     amount_cer = p.purchase_line_id.price_unit * p.product_qty
                     credit = amount_cer - (amount_cer*p.purchase_line_id.discount)/100
-                    debit = amount_cer - (amount_cer*p.purchase_line_id.discount)/100
+                    debit = amount_cer - (amount_cer*p.purchase_line_id.discount)/100                    
+                    #TPT-Start:  By BalamuruganPurushothaman - ON 24/12/2015
+                    if p.purchase_line_id and p.purchase_line_id.taxes_id:
+                        description = [r.description for r in p.purchase_line_id.taxes_id]
+                        tax_amounts = [r.amount for r in p.purchase_line_id.taxes_id]
+                        tax_amt = 0
+                        if description:
+                            description = description[0]
+                            if 'CST' in description :
+                                for tax in tax_amounts:
+                                    tax_amt = tax
+                                credit += credit*tax_amt/100
+                                debit += debit*tax_amt/100
+                    #TPT-End
                     if not p.product_id.product_asset_acc_id:
                         raise osv.except_osv(_('Warning!'),_('You need to define Product Asset GL Account for this product'))
                     journal_line.append((0,0,{
@@ -864,8 +877,6 @@ class account_invoice(osv.osv):
                 '''%(purchase_id, line.id)
                 cr.execute(sql)
                 quantity = cr.dictfetchone()['quantity']
-                print [(6,0,taxes_ids)]
-                print taxes_ids[0]
                 if line.product_qty > quantity:
                     rs = {
                           'product_id': line.product_id and line.product_id.id or False,
