@@ -58,19 +58,21 @@
             <field name="prefix">QO/</field>
             <field name="padding">4</field>
         </record>
-        
-        <record id="seq_crm_credit_limit_name" model="ir.sequence.type">
+ 
+ 		<!--  -->
+       <record id="seq_crm_credit_limit_name" model="ir.sequence.type">
             <field name="name">Credit Limit Group</field>
             <field name="code">credit.limit.group.import</field>
         </record>
         
-        <record id="seq_crm_credit_limit_name" model="ir.sequence">
+        <record id="seq_crm_credit_limit_name_item" model="ir.sequence">
             <field name="name">Credit Limit Group</field>
             <field name="code">credit.limit.group.import</field>
-            <field name="prefix">QO/</field>
+            <field name="prefix">VVTI/</field>
             <field name="padding">4</field>
+            <field name="number_next_actual">000001</field>
+            <field name="implementation">no_gap</field>
         </record>
-       
-        
+
 	</data>
 </openerp>
