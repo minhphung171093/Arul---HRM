@@ -59,6 +59,17 @@
             <field name="padding">4</field>
         </record>
         
+        <record id="seq_crm_credit_limit_name" model="ir.sequence.type">
+            <field name="name">Credit Limit Group</field>
+            <field name="code">credit.limit.group.import</field>
+        </record>
+        
+        <record id="seq_crm_credit_limit_name" model="ir.sequence">
+            <field name="name">Credit Limit Group</field>
+            <field name="code">credit.limit.group.import</field>
+            <field name="prefix">QO/</field>
+            <field name="padding">4</field>
+        </record>
        
         
 	</data>

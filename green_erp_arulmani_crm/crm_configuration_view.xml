@@ -946,7 +946,7 @@
             <field name="model">credit.control.area</field>
             <field name="type">form</field>
             <field name="arch" type="xml">
-                <form version="7.0" string="Credit Control Area">
+                <form version="7.0" string="Credit Control Area">	                
                 	<sheet>
                 		<group>
                 			<field name="code"/>
@@ -1168,6 +1168,11 @@
             <field name="type">form</field>
             <field name="arch" type="xml">
                 <form version="7.0" string="Customer Group">
+	                <header>	            		
+	            		<button name="bt_approve" states="draft" class="oe_highlight" string="Approve" type="object"/>
+	            		<button name="bt_cancel" states="done" class="oe_highlight" string="Cancel" type="object"/>
+	            		<field name="state" widget="statusbar" statusbar_visible="draft,approve,cancel" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
+			        </header>
                 	<sheet>
                 		<group>
                 			<field name="code"/>
