@@ -722,17 +722,25 @@ class credit_limit_group(osv.osv):
         'name': fields.char('Group Name', size=128,required=True),
         'amount': fields.float('Amount', required=True),
         'desc': fields.text('Group Name', size=1024),
-        'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancel'), ('approve', 'Confirmed')],'Status', readonly=True),
+        'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancel'), ('approve', 'Approved')],'Status', readonly=True),
     }
     _defaults = {
         'state': 'draft',
-        'name': '/',
+        'code': '/',
     }
     def create(self, cr, uid, vals, context=None):
-        if vals.get('name','/')=='/':
-            vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'credit.limit.group.import') or '/'
+        if vals.get('code','/')=='/':
+            vals['code'] = self.pool.get('ir.sequence').get(cr, uid, 'credit.limit.group.import') or '/'
         new_id = super(credit_limit_group, self).create(cr, uid, vals, context=context)
-        return new_id    
+        return new_id   
+    def bt_approve(self, cr, uid, ids, context=None):
+        for line in self.browse(cr, uid, ids):
+            self.write(cr, uid, ids,{'state':'approve'})
+        return True  
+    def bt_cancel(self, cr, uid, ids, context=None):
+        for line in self.browse(cr, uid, ids):
+            self.write(cr, uid, ids,{'state':'cancel'})
+        return True   
     def _check_name(self,cr,uid,ids):
         obj = self.browse(cr,uid,ids[0])
         if obj and obj.code:
