@@ -3561,6 +3561,20 @@ class tpt_update_stock_move_report(osv.osv):
             except Exception, e:
                 raise osv.except_osv(_('Warning!'), str(e)+ ' Line: '+str(dem+1))
         return self.write(cr, uid, ids, {'result':'update date grn negative stock file done'})
+    
+    def grn_auto_posting(self, cr, uid, ids, context=None):
+        move_obj = self.pool.get('account.move')
+        move_ids = move_obj.search(cr, uid, [('state','=','draft'),('doc_type','=','good')])
+        for move_id in move_ids:           
+            move_obj.button_validate(cr,uid, [move_id], context)
+        return self.write(cr, uid, ids, {'result':'Goods Issue Auto Posting Done'})  
+    def prd_auto_posting(self, cr, uid, ids, context=None):
+        move_obj = self.pool.get('account.move')
+        move_ids = move_obj.search(cr, uid, [('state','=','draft'),('doc_type','=','product')])
+        for move_id in move_ids:           
+            move_obj.button_validate(cr,uid, [move_id], context)
+        return self.write(cr, uid, ids, {'result':'Production Auto Posting Done'})  
+     
     def config_GRN_3451_3883(self, cr, uid, ids, context=None):
         move_obj = self.pool.get('account.move')
         partner_obj = self.pool.get('res.partner')
@@ -3568,14 +3582,15 @@ class tpt_update_stock_move_report(osv.osv):
         # partner_ids = partner_obj.search(cr, uid, [('vendor_code','in',['1200001218','1200001037','1200000581','1100000137','1200000946','1200000790',
         #                                                                 '1200001230','1200001132','1200000680','1200000668','1100000277'])])
         #=======================================================================
-        
+         
         partner_ids = partner_obj.search(cr, uid, [('vendor_code','in',['1200001260'])])
-   
+    
         for partner_id in partner_ids:
             move_ids = move_obj.search(cr, uid, [('partner_id','in',[partner_id]), ('state','=','draft'),('doc_type','=','grn')])
             for move_id in move_ids:           
                 move_obj.button_validate(cr,uid, [move_id], context)
         return self.write(cr, uid, ids, {'result':'GRN Auto Posting Done'})   
+   
 #===============================================================================
 #     def config_GRN_3451_3883(self, cr, uid, ids, context=None):
 #         invoice_obj = self.pool.get('account.invoice')

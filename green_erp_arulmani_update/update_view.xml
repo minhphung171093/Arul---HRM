@@ -86,6 +86,8 @@
 		            	<button name="config_GRN_3451_3883" string="update GRN 3451 3883" type="object" class="oe_highlight"/>
 		            	<button name="update_price_unit_for_production_declaration" string="update price unit for production declaration" type="object" class="oe_highlight"/>
 		            	<button name="create_one_production_declaration_one_posting" string="create one posting for production declaration (New)" type="object" class="oe_highlight"/>
+		            	<button name="grn_auto_posting" string="GRN Auto Posting" type="object" class="oe_highlight"/>
+		            	<button name="prd_auto_posting" string="Production Auto Posting" type="object" class="oe_highlight"/>
 		            </header>    
 	            	<group>
 	            		<field name="product_id"/>
