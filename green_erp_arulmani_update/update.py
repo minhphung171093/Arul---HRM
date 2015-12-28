@@ -3687,7 +3687,7 @@ class tpt_update_stock_move_report(osv.osv):
                 raise osv.except_osv(_('Warning!'), str(e)+ ' Line: '+str(dem+1))
         return self.write(cr, uid, ids, {'result':'update date grn negative stock file done'})
     
-    def grn_auto_posting(self, cr, uid, ids, context=None):
+    def goods_auto_posting(self, cr, uid, ids, context=None):
         move_obj = self.pool.get('account.move')
         move_ids = move_obj.search(cr, uid, [('state','=','draft'),('doc_type','=','good')])
         for move_id in move_ids:           
