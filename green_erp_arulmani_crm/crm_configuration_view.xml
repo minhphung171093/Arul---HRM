@@ -160,6 +160,7 @@
                         <field name="tin" required="1"/>                        
                         <field name="service_reg_no" />                                            
                         <field name="excise_reg_no" />
+                        <field name="credit_limit_group_id" options="{'create': false, 'create_edit': false}"/>
                         <!--  TPT
                         <field name="sin"/>
                         
@@ -1148,5 +1149,45 @@
             <field name="view_id" ref="reconciliation_acct_tree_view"/>
             <field name="search_view_id" eval="False"/>
         </record> 
+        
+        <!--  -->
+        <record model="ir.ui.view" id="credit_limit_group_tree_view">
+            <field name="name">credit.limit.group.tree</field>
+            <field name="model">credit.limit.group</field>
+            <field name="arch" type="xml">
+                <tree string="Customer Group">
+                    <field name="code"/>
+                    <field name="name"/>
+                </tree>
+            </field>
+        </record>
+        
+        <record id="credit_limit_group_form_view" model="ir.ui.view" >
+            <field name="name">credit.limit.group.form</field>
+            <field name="model">credit.limit.group</field>
+            <field name="type">form</field>
+            <field name="arch" type="xml">
+                <form version="7.0" string="Customer Group">
+                	<sheet>
+                		<group>
+                			<field name="code"/>
+	                        <field name="name"/>
+	                        <field name="amount"/>
+	                        <field name="desc"/>
+                    	</group>
+            		</sheet>
+                </form>
+            </field>
+        </record>
+        
+        <record id="vsis_action_credit_limit_group" model="ir.actions.act_window">
+            <field name="name">Customer Credit Limit Group</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">credit.limit.group</field>
+            <field name="view_type">form</field>
+            <field name="view_id" ref="credit_limit_group_tree_view"/>
+            <field name="search_view_id" eval="False"/>
+        </record> 
+        <!-- -->
     </data>
 </openerp>

@@ -52,7 +52,8 @@
         <menuitem action="vsis_action_customer_group" id="vsis_menu_customer_group" sequence="29" parent="menu_vvti_master" groups="base.group_erp_manager,group_readonly"/>
         <!--<menuitem action="vsis_action_order_probability" id="vsis_menu_order_probability" sequence="30" parent="menu_vvti_master" groups="base.group_erp_manager,group_readonly"/>--> 
         <!--<menuitem action="vsis_action_reconciliation_acct" id="vsis_menu_reconciliation_acct" sequence="31" parent="menu_vvti_master" groups="base.group_erp_manager,group_readonly"/>-->
-    
+    	
+    	<menuitem action="vsis_action_credit_limit_group" id="vsis_menu_customer_group" sequence="30" parent="menu_vvti_master" groups="base.group_erp_manager,group_readonly"/>
         
     </data>
 </openerp>
