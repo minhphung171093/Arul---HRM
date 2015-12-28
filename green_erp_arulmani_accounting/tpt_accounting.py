@@ -1398,6 +1398,7 @@ class account_invoice(osv.osv):
         payment_term_obj = self.pool.get('account.payment.term')
         journal_obj = self.pool.get('account.journal')
         move_obj = self.pool.get('account.move')
+        cst_flag = False
         if context is None:
             context = {}
         for inv in self.browse(cr, uid, ids, context=context):
@@ -1427,8 +1428,19 @@ class account_invoice(osv.osv):
                     if inv.purchase_id.po_document_type != 'service':
                         # sup inv
                         iml += invoice_line_obj.move_line_fright_change_si(cr, uid, inv.id)
-                        iml += invoice_line_obj.move_line_amount_untaxed(cr, uid, inv.id) 
-                        iml += invoice_line_obj.move_line_amount_tax(cr, uid, inv.id)
+                        #iml += invoice_line_obj.move_line_amount_untaxed(cr, uid, inv.id) #TPT-COMMENTED BY BM - ON 26/12/2015
+                        #iml += invoice_line_obj.move_line_amount_tax(cr, uid, inv.id) #TPT-COMMENTED BY BM - ON 26/12/2015
+                        inv_id = self.pool.get('account.invoice').browse(cr, uid, inv.id)                       
+                        for line in inv_id.invoice_line:    
+                            description = [r.description for r in line.invoice_line_tax_id]  
+                            tax_amounts = [r.amount for r in line.invoice_line_tax_id]                        
+                            if description and 'CST' in description[0]:
+                                #amt = invoice_line_obj.move_line_amount_tax_cst(cr, uid, inv.id)
+                                cst_flag = True
+                                iml += invoice_line_obj.move_line_amount_untaxed_cst(cr, uid, inv.id, tax_amounts[0]) 
+                            else:
+                                iml += invoice_line_obj.move_line_amount_untaxed(cr, uid, inv.id) 
+                                iml += invoice_line_obj.move_line_amount_tax(cr, uid, inv.id)
                         #                         iml += invoice_line_obj.move_line_amount_tax_without_po_deducte(cr, uid, inv.id)
                         iml += invoice_line_obj.move_line_tds_amount_without_po(cr, uid, inv.id) 
                         iml += invoice_line_obj.move_line_amount_round_off(cr, uid, inv.id)
@@ -1579,7 +1591,18 @@ class account_invoice(osv.osv):
             total_currency = 0
             total, total_currency, iml = self.compute_invoice_totals(cr, uid, inv, company_currency, ref, iml, context=ctx)
             acc_id = inv.account_id.id
-  
+            
+            ###CST - 3338
+            #===================================================================
+            # if cst_flag is True:
+            #     cst_amt = 0.00
+            #     for line in inv_id.invoice_line:                        
+            #         tax_amounts = [r.amount for r in line.invoice_line_tax_id]  
+            #         cst_amt = total * tax_amounts[0]/100
+            #         #total = 
+            #     total = total+cst_amt
+            #===================================================================
+            ###
             totlines = False
             if inv.payment_term:
                 totlines = payment_term_obj.compute(cr,
@@ -1885,7 +1908,32 @@ class account_invoice_line(osv.osv):
                     'account_analytic_id': t['account_analytic_id'],
                     })
         return res
-    
+    def move_line_amount_untaxed_cst(self, cr, uid, invoice_id, tax_amounts):
+        res = []
+        cr.execute('SELECT * FROM account_invoice_line WHERE invoice_id=%s', (invoice_id,))
+        for t in cr.dictfetchall():
+            basic = (t['quantity'] * t['price_unit']) - ( (t['quantity'] * t['price_unit'])*t['disc']/100)
+            basic = round(basic,2)
+            
+            basic += basic * tax_amounts/100
+            sql = '''
+                SELECT purchase_acc_id FROM product_product WHERE id=%s and purchase_acc_id is not null
+            '''%(t['product_id'])
+            cr.execute(sql)
+            purchase_acc_id = cr.dictfetchone()
+            if not purchase_acc_id:
+                raise osv.except_osv(_('Warning!'),_('Account is not null, please configure it in Material master !'))
+            if basic:
+                res.append({
+                    'type':'tax',
+                    'name':t['name'],
+                    'price_unit': t['price_unit'],
+                    'quantity': 1,
+                    'price': basic,
+                    'account_id': purchase_acc_id and purchase_acc_id['purchase_acc_id'] or False,
+                    'account_analytic_id': t['account_analytic_id'],
+                    })
+        return res
     def move_line_amount_untaxed_without_po(self, cr, uid, invoice_id):
         res = []
         cr.execute('SELECT * FROM account_invoice_line WHERE invoice_id=%s', (invoice_id,))
@@ -2582,6 +2630,28 @@ class account_invoice_line(osv.osv):
                         'account_analytic_id': line.account_analytic_id.id,
                         })
         return res
+    ###
+    ###
+    def move_line_amount_tax_cst(self, cr, uid, invoice_id, context = None):       
+        voucher_rate = 1
+        if context is None:
+            context = {}
+        ctx = context.copy()
+        inv_id = self.pool.get('account.invoice').browse(cr, uid, invoice_id)
+        if inv_id:
+            currency = inv_id.currency_id.name or False
+            currency_id = inv_id.currency_id.id or False
+            ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d')})
+        if currency != 'INR':
+            voucher_rate = self.pool.get('res.currency').read(cr, uid, currency_id, ['rate'], context=ctx)['rate']
+        for line in inv_id.invoice_line:              
+            tax_amounts = [r.amount for r in line.invoice_line_tax_id]
+            for tax_amount in tax_amounts:
+                tax_value += tax_amount/100
+                
+                     
+                
+            return tax
     ###
     def move_line_amount_tax_sbc_14(self, cr, uid, invoice_id, context = None):
         res = []
