@@ -154,7 +154,8 @@ class res_partner(osv.osv):
         'tcs': fields.many2one('tax.category','TCS %'), 
         #'is_approved': fields.boolean('Is Approved'),
         #tien
-        'disapprove': fields.boolean('Approve'), 
+        'disapprove': fields.boolean('Approved'), 
+        'credit_limit_group_id': fields.many2one('credit.limit.group','Credit Limit Group'),
     }
     _defaults = {
         'is_company': True,
@@ -267,6 +268,7 @@ class res_partner(osv.osv):
     #===========================================================================
     
 res_partner()
+
 
 class res_language(osv.osv):
     _name = "res.language"
@@ -710,4 +712,36 @@ class crm_case_channel(osv.osv):
     }
 crm_case_channel()    
 
-
+#TPT-By BalamuruganPurushothaman - ON 28/12/2015 - Nyan ite Customer Credit Limit Group kondu crate cheyinu 
+class credit_limit_group(osv.osv):
+    _name = "credit.limit.group"
+    _order = 'name'
+    _description = 'Customer Credit Limit Group'
+    _columns = {
+        'code': fields.char('Group Code', size=128,required=True),
+        'name': fields.char('Group Name', size=128,required=True),
+        'amount': fields.float('Amount', required=True),
+        'desc': fields.text('Group Name', size=1024),
+        'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancel'), ('approve', 'Confirmed')],'Status', readonly=True),
+    }
+    _defaults = {
+        'state': 'draft',
+        'name': '/',
+    }
+    def create(self, cr, uid, vals, context=None):
+        if vals.get('name','/')=='/':
+            vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'credit.limit.group.import') or '/'
+        new_id = super(credit_limit_group, self).create(cr, uid, vals, context=context)
+        return new_id    
+    def _check_name(self,cr,uid,ids):
+        obj = self.browse(cr,uid,ids[0])
+        if obj and obj.code:
+            code = self.search(cr, uid, [('code','=',obj.code)])
+            if code and len(code) > 1:
+                return False
+        return True
+    _constraints = [
+        (_check_name, 'The Language Code must be unique !', ['code']),
+    ]
+credit_limit_group()
+#TPT-END
