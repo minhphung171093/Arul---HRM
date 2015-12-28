@@ -203,7 +203,11 @@ class Parser(report_sxw.rml_parse):
                         ai.bill_number as bill_no,ai.bill_date as bill_date,
                         ail.amount_basic as base_amnt, at.name as tax_deduction, 
                         --cast(round((ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
-                        ai.amount_total_tds_2 as tdsamount,
+                        case when am.doc_type ='sup_inv_po' then cast(round((ail.amount_basic)*at.amount/100,0) As decimal(8, 2))
+                        when am.doc_type ='ser_inv' then ai.amount_total_tds
+                        when am.doc_type ='sup_inv' then ai.amount_total_tds
+                        when am.doc_type ='freight' then ai.amount_total_tds_2
+                        else 0 end as tdsamount,
                         ai.vendor_ref as ven_ref, ai.number as gl_doc,at.section as sec
                         from account_invoice_line ail
                         join account_invoice ai on (ai.id=ail.invoice_id)
