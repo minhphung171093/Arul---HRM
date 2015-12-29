@@ -1914,6 +1914,7 @@ class account_invoice_line(osv.osv):
             basic = (t['quantity'] * t['price_unit']) - ( (t['quantity'] * t['price_unit'])*t['disc']/100)
             ###
             ed = 0.00
+            aed = 0.00
             if t['ed_type'] == '1' :
                 ed = (basic) * t['ed']/100
                 ed = round(ed,2)
@@ -1926,9 +1927,11 @@ class account_invoice_line(osv.osv):
             else:
                 ed = t['ed']
                 ed = round(ed,2) 
+            aed = t['aed_id_1']
             ###
-            cst_basic = round(basic,2)+ed
+            cst_basic = basic+ed+aed
             basic += cst_basic * tax_amounts/100
+            basic = round(basic,2)
             sql = '''
                 SELECT purchase_acc_id FROM product_product WHERE id=%s and purchase_acc_id is not null
             '''%(t['product_id'])
