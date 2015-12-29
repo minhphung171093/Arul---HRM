@@ -712,7 +712,7 @@ class crm_case_channel(osv.osv):
     }
 crm_case_channel()    
 
-#TPT-By BalamuruganPurushothaman - ON 28/12/2015 - Nyan ite Customer Credit Limit Group kondu crate cheyinu 
+#TPT-By BalamuruganPurushothaman - ON 28/12/2015 - For Customer Group Credit Limit Configuration
 class credit_limit_group(osv.osv):
     _name = "credit.limit.group"
     _order = 'name'
@@ -722,7 +722,7 @@ class credit_limit_group(osv.osv):
         'name': fields.char('Group Name', size=128,required=True),
         'amount': fields.float('Credit Limit', required=True),
         'desc': fields.text('Comments', size=1024),
-        'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancel'), ('approve', 'Approved')],'Status', readonly=True),
+        'state':fields.selection([('draft', 'Draft'),('cancel', 'Canceled'), ('approve', 'Approved')],'Status', readonly=True),
         #'disapprove': fields.boolean('Approved'), 
         
         'history_line': fields.one2many('credit.limit.group','history_id','Histories',readonly = True),
@@ -752,13 +752,18 @@ class credit_limit_group(osv.osv):
             new_write = super(credit_limit_group, self).write(cr, uid,ids, vals, context)
         return new_write
     
-    def bt_approve(self, cr, uid, ids, context=None):
-        for line in self.browse(cr, uid, ids):
-            self.write(cr, uid, ids,{'state':'approve'})
-        return True  
-    def bt_cancel(self, cr, uid, ids, context=None):
-        for line in self.browse(cr, uid, ids):
-            self.write(cr, uid, ids,{'state':'cancel'})
+    def bt_approve(self, cr, uid, ids, context=None):  
+        sql = ''' 
+        update credit_limit_group set state='approve' where id=%s
+        '''%ids[0]
+        cr.execute(sql)
+        return True
+    
+    def bt_cancel(self, cr, uid, ids, context=None):  
+        sql = ''' 
+        update credit_limit_group set state='cancel' where id=%s
+        '''%ids[0]
+        cr.execute(sql)
         return True   
 #     def _check_name(self,cr,uid,ids):
 #         obj = self.browse(cr,uid,ids[0])

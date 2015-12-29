@@ -3356,7 +3356,9 @@ class arul_hr_audit_shift_time(osv.osv):
                     shift_hours = 0               
 
                 #if flag==1 or line.additional_shifts or (extra_hours>8 and line.employee_id.employee_category_id and line.employee_id.employee_category_id.code!='S1'): # Commented By BalamuruganPurushothaman - TO do not calculate COFF for S1 categ
-                if flag==1 or line.additional_shifts or (line.employee_id.employee_category_id and line.employee_id.employee_category_id.code!='S1'):
+                #TPT-29/12/2015 - By BalamuruganPurushothaman - TOA AVOID THROWING ERROR WILE APPROVING EMP:167, DATE:05/12/2015 FROM AST
+                #if flag==1 or line.additional_shifts or (line.employee_id.employee_category_id and line.employee_id.employee_category_id.code!='S1'):
+                if flag==1 or (line.employee_id.employee_category_id and line.employee_id.employee_category_id.code!='S1'):
                     c_off_day = 0.0   
                     #Permission
                     permission_count = 0
@@ -3384,7 +3386,8 @@ class arul_hr_audit_shift_time(osv.osv):
                     
                     
                     perm_onduty_count =   permission_count + onduty_count
-                    extra_hours = extra_hours + perm_onduty_count      
+                    extra_hours = extra_hours + perm_onduty_count    
+                    #leave_type_ids = leave_type_obj.search(cr, uid, [('code','=','C.Off')])  
                     if line.employee_id.employee_category_id.code!='S1':       
                         if line.additional_shifts:
                             if extra_hours >= 3.7 and extra_hours < 7.45:
