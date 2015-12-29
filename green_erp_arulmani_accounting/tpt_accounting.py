@@ -1923,7 +1923,7 @@ class account_invoice_line(osv.osv):
                 ed = t['ed']
                 ed = round(ed,2)
             elif t['ed_type'] == '3' :
-                ed = t['ed'] * line.quantity
+                ed = t['ed'] * t['quantity']
                 ed = round(ed,2)
             else:
                 ed = t['ed']
