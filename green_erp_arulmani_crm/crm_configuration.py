@@ -720,19 +720,38 @@ class credit_limit_group(osv.osv):
     _columns = {
         'code': fields.char('Group Code', size=128,required=True),
         'name': fields.char('Group Name', size=128,required=True),
-        'amount': fields.float('Amount', required=True),
-        'desc': fields.text('Group Name', size=1024),
+        'amount': fields.float('Credit Limit', required=True),
+        'desc': fields.text('Comments', size=1024),
         'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancel'), ('approve', 'Approved')],'Status', readonly=True),
+        #'disapprove': fields.boolean('Approved'), 
+        
+        'history_line': fields.one2many('credit.limit.group','history_id','Histories',readonly = True),
+        'history_id': fields.many2one('credit.limit.group','Histories Line', ondelete='cascade'),
+        'create_date': fields.datetime('Created Date',readonly = True),
+        'write_date': fields.datetime('Updated Date',readonly = True),
+        'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
+        'write_uid': fields.many2one('res.users','Updated By',ondelete='restrict',readonly = True),
     }
     _defaults = {
         'state': 'draft',
         'code': '/',
+        #'disapprove': False,
     }
     def create(self, cr, uid, vals, context=None):
         if vals.get('code','/')=='/':
             vals['code'] = self.pool.get('ir.sequence').get(cr, uid, 'credit.limit.group.import') or '/'
         new_id = super(credit_limit_group, self).create(cr, uid, vals, context=context)
         return new_id   
+    
+    def write(self, cr, uid, ids, vals, context=None):
+        for cr_limit in self.browse(cr,uid,ids): 
+            if 'amount' in vals: 
+                default ={'history_id': cr_limit.id,'history_line':[]}
+                self.copy(cr, uid, cr_limit.id,default)            
+            vals.update({'state':'draft'})
+            new_write = super(credit_limit_group, self).write(cr, uid,ids, vals, context)
+        return new_write
+    
     def bt_approve(self, cr, uid, ids, context=None):
         for line in self.browse(cr, uid, ids):
             self.write(cr, uid, ids,{'state':'approve'})
@@ -741,15 +760,15 @@ class credit_limit_group(osv.osv):
         for line in self.browse(cr, uid, ids):
             self.write(cr, uid, ids,{'state':'cancel'})
         return True   
-    def _check_name(self,cr,uid,ids):
-        obj = self.browse(cr,uid,ids[0])
-        if obj and obj.code:
-            code = self.search(cr, uid, [('code','=',obj.code)])
-            if code and len(code) > 1:
-                return False
-        return True
-    _constraints = [
-        (_check_name, 'The Language Code must be unique !', ['code']),
-    ]
+#     def _check_name(self,cr,uid,ids):
+#         obj = self.browse(cr,uid,ids[0])
+#         if obj and obj.code:
+#             code = self.search(cr, uid, [('code','=',obj.code)])
+#             if code and len(code) > 1:
+#                 return False
+#         return True
+#     _constraints = [
+#         (_check_name, 'The Language Code must be unique !', ['code']),
+#     ]
 credit_limit_group()
 #TPT-END

@@ -1913,9 +1913,23 @@ class account_invoice_line(osv.osv):
         cr.execute('SELECT * FROM account_invoice_line WHERE invoice_id=%s', (invoice_id,))
         for t in cr.dictfetchall():
             basic = (t['quantity'] * t['price_unit']) - ( (t['quantity'] * t['price_unit'])*t['disc']/100)
-            basic = round(basic,2)
-            
-            basic += basic * tax_amounts/100
+            ###
+            ed = 0.00
+            if t['ed_type'] == '1' :
+                ed = (basic) * t['ed']/100
+                ed = round(ed,2)
+            elif t['ed_type'] == '2' :
+                ed = t['ed']
+                ed = round(ed,2)
+            elif t['ed_type'] == '3' :
+                ed = t['ed'] * line.quantity
+                ed = round(ed,2)
+            else:
+                ed = t['ed']
+                ed = round(ed,2) 
+            ###
+            cst_basic = round(basic,2)+ed
+            basic += cst_basic * tax_amounts/100
             sql = '''
                 SELECT purchase_acc_id FROM product_product WHERE id=%s and purchase_acc_id is not null
             '''%(t['product_id'])
