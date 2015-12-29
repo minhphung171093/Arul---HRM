@@ -1928,7 +1928,7 @@ class account_invoice_line(osv.osv):
             else:
                 ed = t['ed']
                 ed = round(ed,2) 
-            aed = t['aed_id_1']
+            aed = t['aed_id_1'] or 0.00
             ###
             cst_basic = basic+ed+aed
             basic += cst_basic * tax_amounts/100
