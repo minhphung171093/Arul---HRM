@@ -1430,18 +1430,18 @@ class account_invoice(osv.osv):
                         iml += invoice_line_obj.move_line_fright_change_si(cr, uid, inv.id)
                         #iml += invoice_line_obj.move_line_amount_untaxed(cr, uid, inv.id) #TPT-COMMENTED BY BM - ON 26/12/2015
                         #iml += invoice_line_obj.move_line_amount_tax(cr, uid, inv.id) #TPT-COMMENTED BY BM - ON 26/12/2015
-                        inv_id = self.pool.get('account.invoice').browse(cr, uid, inv.id)                       
+                        inv_id = self.pool.get('account.invoice').browse(cr, uid, inv.id)   
+                        cst_flag = False                    
                         for line in inv_id.invoice_line:    
                             description = [r.description for r in line.invoice_line_tax_id]  
                             tax_amounts = [r.amount for r in line.invoice_line_tax_id]                        
                             if description and 'CST' in description[0]:
-                                #amt = invoice_line_obj.move_line_amount_tax_cst(cr, uid, inv.id)
-                                cst_flag = True
-                                iml += invoice_line_obj.move_line_amount_untaxed_cst(cr, uid, inv.id, tax_amounts[0]) 
-                            else:
-                                iml += invoice_line_obj.move_line_amount_untaxed(cr, uid, inv.id) 
-                                iml += invoice_line_obj.move_line_amount_tax(cr, uid, inv.id)
-                        #                         iml += invoice_line_obj.move_line_amount_tax_without_po_deducte(cr, uid, inv.id)
+                                cst_flag = True   
+                        if cst_flag is True:
+                            iml += invoice_line_obj.move_line_amount_untaxed_cst(cr, uid, inv.id, tax_amounts[0]) 
+                        else:
+                            iml += invoice_line_obj.move_line_amount_untaxed(cr, uid, inv.id) 
+                            iml += invoice_line_obj.move_line_amount_tax(cr, uid, inv.id)
                         iml += invoice_line_obj.move_line_tds_amount_without_po(cr, uid, inv.id) 
                         iml += invoice_line_obj.move_line_amount_round_off(cr, uid, inv.id)
                     if inv.purchase_id.po_document_type == 'service':
