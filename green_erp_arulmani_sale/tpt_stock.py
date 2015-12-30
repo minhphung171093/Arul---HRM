@@ -798,11 +798,28 @@ class stock_picking(osv.osv):
             context = {}
         for picking in self.browse(cr, uid, ids, context):
             sale = picking.sale_id and picking.sale_id.amount_total or 0
-            limit = picking.partner_id and picking.partner_id.credit_limit_used or 0
+            ###TPT-START By BalamuruganPurushothaman - ON 29/12/2015
+            if picking.partner_id.credit_limit_group_id:
+                grp_id = picking.partner_id.credit_limit_group_id.id
+                bp_obj = self.pool.get('res.partner')
+                bp_ids = bp_obj.search(cr, uid, [('credit_limit_group_id','=',grp_id)])
+                bp_group_obj = self.pool.get('credit.limit.group')
+                bp_group_ids = bp_group_obj.search(cr, uid, [('id','=',grp_id)])
+                amt = 0.00
+                limit = 0.00
+                for bp in bp_obj.browse(cr, uid, bp_ids):
+                    amt += bp.tpt_credit
+                bp_grp = bp_group_obj.browse(cr, uid, bp_group_ids[0])
+                limit = bp_grp.amount
+                used = amt  
+            else:
+                limit = picking.partner_id and picking.partner_id.credit_limit_used or 0   
+                used = picking.partner_id and picking.partner_id.tpt_credit or 0   
+            ###TPT-END
+            #limit = picking.partner_id and picking.partner_id.credit_limit_used or 0
             #used = picking.partner_id and picking.partner_id.credit or 0 #this is commented by TPT
-            
             #TPT - By BalamuruganPurushothaman on 14/10/2015 - to set credit limit rule as per customer request
-            used = picking.partner_id and picking.partner_id.tpt_credit or 0
+            #used = picking.partner_id and picking.partner_id.tpt_credit or 0
             
             #===================================================================
             # if not picking.flag_confirm and limit == 0 and used == 0 and picking.sale_id:
