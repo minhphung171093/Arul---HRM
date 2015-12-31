@@ -1158,10 +1158,28 @@
                 <tree string="Customer Group">
                     <field name="code"/>
                     <field name="name"/>
+                    <field name ="state" invisible='1'/>
                 </tree>
             </field>
         </record>
-        
+        <record id="view_credit_limit_group_search_vew" model="ir.ui.view">
+			<field name="name">credit.limit.group.search</field>
+			<field name="model">credit.limit.group</field>
+			<field name="arch" type="xml">
+				<search string="Material Issue">
+					<field name="code"/>
+					<field name="name"/>
+					<field name="state"/>
+					<filter string="Draft" name="draft" icon="terp-personal" domain="[('state','=','draft')]" context="{}"/>
+					<filter string="Approved" name="approve" icon="terp-personal" domain="[('state','=','approve')]" context="{}"/>
+					<filter string="Canceled" name="done" icon="terp-personal" domain="[('state','=','cancel')]" context="{}"/>								
+					<group expand="0" string="Group By...">
+						<filter string="Status" icon="terp-partner" domain="[]" context="{'group_by':'state'}"/>						
+                        <filter string="Created By" icon="terp-go-month" domain="[]"  context="{'group_by':'create_uid'}"/>
+                    </group>
+				</search>
+			</field>
+		</record>
         <record id="credit_limit_group_form_view" model="ir.ui.view" >
             <field name="name">credit.limit.group.form</field>
             <field name="model">credit.limit.group</field>

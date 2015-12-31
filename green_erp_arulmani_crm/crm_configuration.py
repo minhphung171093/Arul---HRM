@@ -719,15 +719,13 @@ class credit_limit_group(osv.osv):
     _description = 'Customer Credit Limit Group'
     _columns = {
         'code': fields.char('Group Code', size=128,required=True),
-        'name': fields.char('Group Name', size=128,required=True),
-        'amount': fields.float('Credit Limit', required=True),
-        'desc': fields.text('Comments', size=1024),
-        'state':fields.selection([('draft', 'Draft'),('cancel', 'Canceled'), ('approve', 'Approved')],'Status', readonly=True),
-        #'disapprove': fields.boolean('Approved'), 
-        
+        'name': fields.char('Group Name', size=128,required=True, states={'cancel':[('readonly',True)]}),
+        'amount': fields.float('Credit Limit', required=True, states={'cancel':[('readonly',True)]}),
+        'desc': fields.text('Comments', size=1024, states={'cancel':[('readonly',True)]}),
+        'state':fields.selection([('draft', 'Draft'),('cancel', 'Canceled'), ('approve', 'Approved')],'Status', readonly=True),       
         'history_line': fields.one2many('credit.limit.group','history_id','Histories',readonly = True),
         'history_id': fields.many2one('credit.limit.group','Histories Line', ondelete='cascade'),
-        'create_date': fields.datetime('Created Date',readonly = True),
+        'create_date': fields.datetime('Created Date',readonly = True), 
         'write_date': fields.datetime('Updated Date',readonly = True),
         'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
         'write_uid': fields.many2one('res.users','Updated By',ondelete='restrict',readonly = True),

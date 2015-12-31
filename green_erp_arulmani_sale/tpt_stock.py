@@ -871,6 +871,15 @@ class stock_picking(osv.osv):
                     'context': context,
                     'nodestroy': True,
                 }
+#             else:
+#                 do_obj = self.pool.get('stock.picking')
+#                 do_ids = do_obj.browse(cr, uid, picking.id)
+#                 state = do_ids.state
+#                 if state=='waiting':
+#                     sql = '''
+#                         update stock_picking set doc_status='assigned' where id = %s
+#                         '''%(picking.id)
+#                     cr.execute(sql)
             
             
         """Open the partial picking wizard"""
