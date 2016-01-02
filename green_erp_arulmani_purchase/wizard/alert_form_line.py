@@ -223,3 +223,28 @@ class pr_copy(osv.osv_memory):
     
 pr_copy()
 
+class po_close(osv.osv_memory):
+    _name = "po.close"
+    _columns = {    
+                'name': fields.char(string="Title", size=1024, readonly=True),
+                'reason': fields.char('Reason', size=1024, ),
+                }
+    
+    def bt_close(self, cr, uid, ids, context=None): 
+        audit_id = context.get('audit_id')
+        po_obj = self.pool.get('purchase.order').browse(cr, uid, audit_id)
+        popup_id = self.pool.get('po.close').browse(cr, uid, ids[0])
+        reason = popup_id.reason
+        
+        space_removed = reason.replace(" ", "")
+        if space_removed == '':
+            raise osv.except_osv(_('Warning!'),_('Please Provide the Reason!'))
+        
+        sql = ''' update purchase_order set reason_for_close='%s',state='close' where id=%s
+        '''%(reason,audit_id)
+        cr.execute(sql) 
+        
+        return {'type': 'ir.actions.act_window_close'}   
+    
+    
+po_close()

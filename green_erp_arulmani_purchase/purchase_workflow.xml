@@ -15,6 +15,14 @@
             <field name="action">action_amendement()</field>
         </record>
         
+        <!-- TPT -->
+        <record id="act_close_po" model="workflow.activity">
+            <field name="wkf_id" ref="purchase.purchase_order"/>
+            <field name="name">close_po</field>
+            <field name="kind">function</field>
+            <field name="action">action_close_po()</field>
+        </record>
+        
         <record id="act_gm" model="workflow.activity">
             <field name="wkf_id" ref="purchase.purchase_order"/>
             <field name="name">gm</field>
@@ -64,6 +72,13 @@
             <field name="act_from" ref="act_md"/>
             <field name="act_to" ref="act_amendement"/>
             <field name="signal">purchase_md_amendement</field>
+        </record>
+        
+        <!-- TPT By BalamuruganPurushothaman - ON 02/01/2015 - FOR CLOSE PO-->
+        <record id="trans_close_po" model="workflow.transition">
+            <field name="act_from" ref="act_md"/>
+            <field name="act_to" ref="act_close_po"/>
+            <field name="signal">purchase_close_po</field>
         </record>
         
         <record id="trans_gm_amendement" model="workflow.transition">

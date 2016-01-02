@@ -88,6 +88,36 @@
 	        </field>
     	</record>
     	
+    	
+    	<record id="alert_po_close_form_view" model="ir.ui.view">
+	        <field name="name">po.close</field>
+	        <field name="model">po.close</field>
+	        <field eval="20" name="priority"/>
+	        <field name="arch" type="xml">
+	            <form string="Alert" version="7.0">
+	            	<group>
+	            		<field name="name" invisible="1"/>
+		                <field name="reason" />		               
+		            </group>
+	                <footer>
+	                    <button name='bt_close' type='object' string="Approve" class="oe_highlight"/> 
+	                    <button string="Cancel" special="cancel" />
+	                </footer>
+	            </form>
+	        </field>
+    	</record>
+
+	    <record model="ir.actions.act_window" id="alert_form_po_close_form_view">
+	        <field name="name">PO Close Alert</field>
+	        <field name="res_model">po.close</field>
+	        <field name="view_type">form</field>
+	        <field name="view_mode">form</field>
+	        <field name="view_id" ref="alert_po_close_form_view" />
+	        <field name="target">new</field>
+	    </record>
+	    
+	    
+	    
     </data>
 </openerp>
 
