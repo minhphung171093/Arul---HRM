@@ -2391,6 +2391,7 @@ class purchase_order(osv.osv):
                                     ('except_invoice', 'Invoice Exception'),
                                     ('done', 'Done'),
                                     ('cancel', 'Cancelled'),
+                                    ('close', 'Closed By Purchase'),
                                    ], 'Status', required=True, readonly=True,
                                   ),
         'check_amendement':fields.boolean("Amended",readonly=True),
@@ -2468,6 +2469,39 @@ class purchase_order(osv.osv):
                 'datas': datas,
                 }
         #TPT ENDss
+    def tpt_close_po(self, cr, uid, ids, context=None):     
+        for picking in self.browse(cr, uid, ids, context=context):
+            res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
+                                            'green_erp_arulmani_sale', 'alert_mgnt_warning_form_view')
+            return {
+                                    'name': 'Management Confirmation',
+                                    'view_type': 'form',
+                                    'view_mode': 'form',
+                                    'view_id': res[1],
+                                    'res_model': 'do.mgnt.confirm',
+                                    'domain': [],
+                                    'context': {'default_message':'Are you sure want to confirm this DO?','audit_id':picking.id},
+                                    'type': 'ir.actions.act_window',
+                                    'target': 'new',
+                 }   
+                    
+    def action_md(self, cr, uid, ids, context=None):
+        return self.write(cr, uid, ids,{'state':'md','md_approve_date':time.strftime('%Y-%m-%d')})
+    def action_close(self, cr, uid, ids, context=None):     
+        for picking in self.browse(cr, uid, ids, context=context):
+            res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
+                                            'green_erp_arulmani_sale', 'alert_mgnt_warning_form_view')
+            return {
+                                    'name': 'Management Confirmation',
+                                    'view_type': 'form',
+                                    'view_mode': 'form',
+                                    'view_id': res[1],
+                                    'res_model': 'do.mgnt.confirm',
+                                    'domain': [],
+                                    'context': {'default_message':'Are you sure want to confirm this DO?','audit_id':picking.id},
+                                    'type': 'ir.actions.act_window',
+                                    'target': 'new',
+                 }   
     
     def action_cancel(self, cr, uid, ids, context=None):
         wf_service = netsvc.LocalService("workflow")
