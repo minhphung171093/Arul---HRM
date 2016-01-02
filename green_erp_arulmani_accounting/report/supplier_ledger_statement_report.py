@@ -245,7 +245,7 @@ class Parser(report_sxw.rml_parse):
         return acount_move_line_obj.browse(self.cr,self.uid,sup_ids)
     
     def get_bill_no(self, move_id, doc_type):
-        if doc_type == 'sup_inv_po' or doc_type == 'sup_inv' or doc_type == 'ser_inv' :
+        if doc_type == 'sup_inv_po' or doc_type == 'sup_inv' or doc_type == 'ser_inv' or doc_type=='freight':
             self.cr.execute('''select bill_number from account_invoice where move_id =%s''', (move_id,))
         else:
              return ''
@@ -253,7 +253,7 @@ class Parser(report_sxw.rml_parse):
         return number and number[0] or ''
     
     def get_inv_no(self, move_id, doc_type):
-        if doc_type == 'sup_inv_po' or doc_type == 'sup_inv' or doc_type == 'ser_inv':
+        if doc_type == 'sup_inv_po' or doc_type == 'sup_inv' or doc_type == 'ser_inv' or doc_type=='freight':
             self.cr.execute('''select Name from account_invoice where move_id =%s''', (move_id,))
         else:
              return ''
@@ -262,20 +262,20 @@ class Parser(report_sxw.rml_parse):
     
     def get_so_no(self, move_id, doc_type):
         number = ''
-        if doc_type == 'sup_inv_po':
+        if doc_type == 'sup_inv_po' or doc_type=='freight':
             self.cr.execute('''select name from purchase_order where id in (select purchase_id from account_invoice where move_id =%s)''', (move_id,))
         number = self.cr.fetchone()
         return number and number[0] or ''
     
     def get_so_date(self, move_id, doc_type):
         date = ''
-        if doc_type == 'sup_inv_po':
+        if doc_type == 'sup_inv_po' or doc_type=='freight':
             self.cr.execute('''select date_order from purchase_order where id in (select purchase_id from account_invoice where move_id =%s)''', (move_id,))
         date = self.cr.fetchone()
         return date and date[0] or ''
     
     def get_bill_date(self, move_id, doc_type):
-        if doc_type == 'sup_inv_po' or doc_type == 'sup_inv' or doc_type == 'ser_inv':
+        if doc_type == 'sup_inv_po' or doc_type == 'sup_inv' or doc_type == 'ser_inv' or doc_type=='freight':
             self.cr.execute('''select bill_date from account_invoice where move_id =%s''', (move_id,))
         else:
             self.cr.execute('''select date from account_voucher where move_id =%s''', (move_id,))

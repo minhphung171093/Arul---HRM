@@ -169,7 +169,7 @@ class supplier_ledger_statement(osv.osv_memory):
             return acount_move_line_obj.browse(cr,uid,sup_ids)
          
         def get_bill_no(move_id, doc_type):
-            if doc_type == 'sup_inv_po' or doc_type == 'sup_inv' or doc_type=='ser_inv':
+            if doc_type == 'sup_inv_po' or doc_type == 'sup_inv' or doc_type=='ser_inv' or doc_type=='freight':
                 cr.execute('''select bill_number from account_invoice where move_id =%s''', (move_id,))
             else:
                 return ''
@@ -177,7 +177,7 @@ class supplier_ledger_statement(osv.osv_memory):
             return number and number[0] or ''
         
         def get_inv_no(move_id, doc_type):
-            if doc_type == 'sup_inv_po' or doc_type == 'sup_inv' or doc_type=='ser_inv':
+            if doc_type == 'sup_inv_po' or doc_type == 'sup_inv' or doc_type=='ser_inv' or doc_type=='freight':
                 cr.execute('''select name from account_invoice where move_id =%s''', (move_id,))
             else:
                 return ''
@@ -185,7 +185,7 @@ class supplier_ledger_statement(osv.osv_memory):
             return number and number[0] or ''
          
         def get_bill_date(move_id, doc_type):
-            if doc_type == 'sup_inv_po' or doc_type == 'sup_inv' or doc_type=='ser_inv':
+            if doc_type == 'sup_inv_po' or doc_type == 'sup_inv' or doc_type=='ser_inv' or doc_type=='freight':
                 cr.execute('''select bill_date from account_invoice where move_id =%s''', (move_id,))
             else:
                 cr.execute('''select date from account_voucher where move_id =%s''', (move_id,))
@@ -244,18 +244,18 @@ class supplier_ledger_statement(osv.osv_memory):
             return balance
          
         def get_so_no(move_id, doc_type):
-            if doc_type == 'sup_inv_po':
+            if doc_type == 'sup_inv_po' or doc_type=='freight':
                 cr.execute('''select name from purchase_order where id in (select purchase_id from account_invoice where move_id =%s)''', (move_id,))
             number = cr.fetchone()
             return number and number[0] or ''
         def get_po_id(move_id, doc_type):
-            if doc_type == 'sup_inv_po':
+            if doc_type == 'sup_inv_po' or doc_type=='freight':
                 cr.execute('''select id from purchase_order where id in (select purchase_id from account_invoice where move_id =%s)''', (move_id,))
             number = cr.fetchone()
             return number and number[0] or ''
      
         def get_so_date(move_id, doc_type):
-            if doc_type == 'sup_inv_po':
+            if doc_type == 'sup_inv_po' or doc_type=='freight':
                 cr.execute('''select date_order from purchase_order where id in (select purchase_id from account_invoice where move_id =%s)''', (move_id,))
             date = cr.fetchone()
             return date and date[0] or ''
