@@ -554,6 +554,31 @@ class stock_picking(osv.osv):
                             if 'CST' in description :
                                 for tax in tax_amounts:
                                     tax_amt = tax
+                                pf_type = p.purchase_line_id.p_f_type
+                                pf = p.purchase_line_id.p_f
+                                ed_type = p.purchase_line_id.ed_type
+                                ed = p.purchase_line_id.ed
+                                excise_duty = 0.00
+                                basic = (p.purchase_line_id.product_qty * p.purchase_line_id.price_unit) - ( (p.purchase_line_id.product_qty * p.purchase_line_id.price_unit)*p.purchase_line_id.discount/100)
+                                if pf_type == '1' :
+                                    p_f = basic * pf/100
+                                elif pf_type == '2' :
+                                    p_f = pf
+                                elif pf_type == '3':
+                                    p_f = pf * p.purchase_line_id.product_qty
+                                else:
+                                    p_f = pf                                
+                                if ed_type == '1' :
+                                    ed = (basic + p_f) * ed/100
+                                elif ed_type == '2' :
+                                    ed = ed
+                                elif ed_type == '3' :
+                                    ed = ed *  p.purchase_line_id.product_qty
+                                else:
+                                    ed = ed
+                                excise_duty += ed
+                                credit += excise_duty
+                                debit += excise_duty
                                 credit += credit*tax_amt/100
                                 debit += debit*tax_amt/100
                     #TPT-End
