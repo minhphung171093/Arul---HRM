@@ -160,6 +160,7 @@ class Parser(report_sxw.rml_parse):
                 
                 sql = ''' select id from hr_employee where department_id=%s and 
                 resource_id in (select id from resource_resource where active in ('f','t'))
+                order by employee_id
                 '''%(department[0]) 
                 self.cr.execute(sql)
                 employee_ids = [r[0] for r in self.cr.fetchall()]
@@ -168,6 +169,7 @@ class Parser(report_sxw.rml_parse):
                 
                 sql = ''' select id from hr_employee where department_id=%s and employee_category_id = %s and
                 resource_id in (select id from resource_resource where active in ('f','t'))
+                order by employee_id
                 '''%(department[0],employee_category[0]) 
                 self.cr.execute(sql)
                 employee_ids = [r[0] for r in self.cr.fetchall()]
@@ -175,12 +177,14 @@ class Parser(report_sxw.rml_parse):
                 
                 sql = ''' select id from hr_employee where department_id=%s and employee_category_id = %s and employee_id = %s and
                 resource_id in (select id from resource_resource where active in ('f','t'))
+                order by employee_id
                 '''%(department[0],employee_category[0],employee[0])
                 self.cr.execute(sql)
                 employee_ids = [r[0] for r in self.cr.fetchall()]
             elif employee:
                 
                 sql = ''' select id from hr_employee where id = %s and resource_id in (select id from resource_resource where active in ('f','t'))
+                order by employee_id
                 '''%(employee[0])
                 self.cr.execute(sql)
                 employee_ids = [r[0] for r in self.cr.fetchall()]
@@ -188,12 +192,14 @@ class Parser(report_sxw.rml_parse):
                 
                 sql = ''' select id from hr_employee where employee_category_id = %s and resource_id in 
                 (select id from resource_resource where active in ('f','t'))
+                order by employee_id
                 '''%(employee_category[0])
                 self.cr.execute(sql)
                 employee_ids = [r[0] for r in self.cr.fetchall()]
             else:
                 
                 sql = ''' select id from hr_employee where resource_id in (select id from resource_resource where active in ('f','t'))
+                order by employee_id
                 '''
                 self.cr.execute(sql)
                 employee_ids = [r[0] for r in self.cr.fetchall()]
@@ -236,7 +242,7 @@ class Parser(report_sxw.rml_parse):
                 SELECT CASE WHEN SUM(days_total)!=0 THEN 
             SUM(days_total) ELSE 0 END days_total FROM 
                 arul_hr_employee_leave_details WHERE EXTRACT(year FROM date_from) = %s
-                AND EXTRACT(month FROM date_from) between 4 and %s-1 AND
+                AND EXTRACT(month FROM date_from) between 1 and %s-1 AND
                  employee_id = (select id from hr_employee where id=%s) AND
                 leave_type_id in (select id from arul_hr_leave_types where code in ('CL'))
                 and state='done'
@@ -286,7 +292,7 @@ class Parser(report_sxw.rml_parse):
                 SELECT CASE WHEN SUM(days_total)!=0 THEN 
             SUM(days_total) ELSE 0 END days_total FROM 
                 arul_hr_employee_leave_details WHERE EXTRACT(year FROM date_from) = %s
-                AND EXTRACT(month FROM date_from) between 4 and %s-1 AND
+                AND EXTRACT(month FROM date_from) between 1 and %s-1 AND
                  employee_id = (select id from hr_employee where id=%s) AND
                 leave_type_id in (select id from arul_hr_leave_types where code in ('SL'))
                 and state='done'
@@ -334,7 +340,7 @@ class Parser(report_sxw.rml_parse):
                 SELECT CASE WHEN SUM(days_total)!=0 THEN 
                 SUM(days_total) ELSE 0 END days_total FROM 
                 arul_hr_employee_leave_details WHERE EXTRACT(year FROM date_from) = %s
-                AND EXTRACT(month FROM date_from) between 4 and %s-1 AND
+                AND EXTRACT(month FROM date_from) between 1 and %s-1 AND
                  employee_id = (select id from hr_employee where id=%s) AND
                 leave_type_id in (select id from arul_hr_leave_types where code in ('PL'))
                 and state='done'
@@ -394,7 +400,7 @@ class Parser(report_sxw.rml_parse):
                 SELECT CASE WHEN SUM(coff_count)!=0 THEN 
                 SUM(coff_count) ELSE 0 END coff_count FROM 
                 tpt_coff_register WHERE EXTRACT(year FROM work_date) = %s
-                AND EXTRACT(month FROM work_date) between 4 and %s-1 AND
+                AND EXTRACT(month FROM work_date) between 1 and %s-1 AND
                 employee_id = (select id from hr_employee where id=%s)      
             '''%(year,int(month),employee.id)
             self.cr.execute(sql)
@@ -405,7 +411,7 @@ class Parser(report_sxw.rml_parse):
                 SELECT CASE WHEN SUM(days_total)!=0 THEN 
                 SUM(days_total) ELSE 0 END days_total FROM 
                 arul_hr_employee_leave_details WHERE EXTRACT(year FROM date_from) = %s 
-                AND EXTRACT(month FROM date_from) between 4 and %s-1 AND employee_id =%s AND
+                AND EXTRACT(month FROM date_from) between 1 and %s-1 AND employee_id =%s AND
                 leave_type_id in (select id from arul_hr_leave_types where code in ('C.Off'))
                 and state='done'  
             '''%(year,int(month),employee.id)
