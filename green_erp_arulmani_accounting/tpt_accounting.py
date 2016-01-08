@@ -576,10 +576,11 @@ class stock_picking(osv.osv):
                                 else:
                                     ed = ed
                                 excise_duty += ed
-                                credit += excise_duty
-                                debit += excise_duty
-                                credit += credit*tax_amt/100
-                                debit += debit*tax_amt/100
+                                #credit += excise_duty
+                                cst_cr_amt = (credit + excise_duty)*tax_amt/100    
+                                cst_dr_amt = (debit + excise_duty)*tax_amt/100                                
+                                credit += cst_cr_amt
+                                debit += cst_dr_amt
                     #TPT-End
                     if not p.product_id.product_asset_acc_id:
                         raise osv.except_osv(_('Warning!'),_('You need to define Product Asset GL Account for this product'))
