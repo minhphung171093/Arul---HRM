@@ -577,8 +577,8 @@ class stock_picking(osv.osv):
                                     ed = ed
                                 excise_duty += ed
                                 #credit += excise_duty
-                                cst_cr_amt = (credit + excise_duty)*tax_amt/100    
-                                cst_dr_amt = (debit + excise_duty)*tax_amt/100                                
+                                cst_cr_amt = (credit + excise_duty + p_f)*tax_amt/100    
+                                cst_dr_amt = (debit + excise_duty + p_f)*tax_amt/100                                
                                 credit += cst_cr_amt
                                 debit += cst_dr_amt
                     #TPT-End
