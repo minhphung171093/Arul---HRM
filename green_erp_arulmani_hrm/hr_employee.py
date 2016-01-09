@@ -1332,7 +1332,7 @@ class employee_leave(osv.osv):
                         else:
                             day = leave.condition
                         ###TPT-BalamuruganPurushothaman - ON 09/01/2015
-                        if day>leave.maximum_limit:
+                        if leave.maximum_limit >0 and day>leave.maximum_limit:
                             day = leave.maximum_limit
                         ###
                         emp_all_lea_detail.append((0,0,{'leave_type_id':leave.leave_type_id.id, 'total_day':day}))
