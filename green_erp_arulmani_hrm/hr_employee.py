@@ -1296,11 +1296,6 @@ class employee_leave(osv.osv):
             emp_category = emp.employee_category_id and emp.employee_category_id.id or False
             emp_sub = emp.employee_sub_category_id and emp.employee_sub_category_id.id or False
             emp_sub_code = emp.employee_sub_category_id and emp.employee_sub_category_id.code or False
-#             if emp.date_of_joining:
-#                 join_date = datetime.datetime.strptime(emp.date_of_joining, DATETIME_FORMAT)
-#                 timedelta = date_now - join_date
-#             else:
-#                 timedelta = date_now - date_now
             if emp_sub_code != 'T1' and emp_sub_code != 'T2':
                 if emp_leave_ids:
                     for line in self.pool.get('employee.leave').browse(cr, uid, emp_leave_ids, context=context):
@@ -1330,20 +1325,16 @@ class employee_leave(osv.osv):
                             if emp_leave_ids:
                                 for line in self.pool.get('employee.leave').browse(cr, uid, emp_leave_ids, context=context):
                                     for leave_detail in line.emp_leave_details_ids:
-#                                         if leave_detail.leave_type_id.id == leave.id and timedelta.days > 365 and leave.leave_type_id.code in ['CL','SL','PL']:
-#                                             day = line.total_day - line.taken_day + leave.condition
                                         if leave_detail.leave_type_id.id == leave.leave_type_id.id:
                                             day = leave_detail.total_day - leave_detail.total_taken + leave.condition
                             else:
-#                                 if timedelta.days < 365 and leave.leave_type_id.code in ['CL','SL','PL']:
-#                                     day = 0
-#                                 else:
                                 day = leave.condition
                         else:
-#                             if timedelta.days < 365 and leave.leave_type_id.code in ['CL','SL','PL']:
-#                                 day = 0
-#                             else:
                             day = leave.condition
+                        ###TPT-BalamuruganPurushothaman - ON 09/01/2015
+                        if day>leave.maximum_limit:
+                            day = leave.maximum_limit
+                        ###
                         emp_all_lea_detail.append((0,0,{'leave_type_id':leave.leave_type_id.id, 'total_day':day}))
                     self.pool.get('employee.leave').create(cr, uid, {'employee_id':emp.id,'year': time.strftime('%Y'),'emp_leave_details_ids':emp_all_lea_detail})
         return True  
