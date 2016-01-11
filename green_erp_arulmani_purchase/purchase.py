@@ -2528,8 +2528,8 @@ class purchase_order(osv.osv):
             po_line_ids = po_line_obj.search(cr, uid, [('order_id','=',ids[0])])
             for line in po_line_obj.browse(cr,uid,po_line_ids):
                 sql = '''
-                update tpt_purchase_product set state='++' where pur_product_id=%s and product_id=%s and description='%s' and item_text='%s'
-                '''%(line.po_indent_no.id,line.product_id.id, line.description, line.item_text)
+                update tpt_purchase_product set state='++', rfq_qty=rfq_qty-%s where pur_product_id=%s and product_id=%s and description='%s' 
+                '''%(line.product_qty, line.po_indent_no.id,line.product_id.id, line.description)
                 cr.execute(sql)
 #             return {
 #                                     'name': 'Management Confirmation',
