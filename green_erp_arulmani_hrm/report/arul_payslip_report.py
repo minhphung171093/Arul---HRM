@@ -345,7 +345,7 @@ class Parser(report_sxw.rml_parse):
                     'emp_title':title,
                     'emp_doj': payroll.employee_id.date_of_joining and (payroll.employee_id.date_of_joining[8:10]+'.'+payroll.employee_id.date_of_joining[5:7]+'.'+payroll.employee_id.date_of_joining[:4]) or '',
                     'basic': format(basic,'.2f'),
-                    'da':format(da,'.2f'),
+                    'da': format(da,'.2f'),
                     'hra': format(hra,'.2f'),
                     'conv': format(conv,'.2f'),
                     'pf_gros': format(basic+da,'.2f'),
@@ -355,8 +355,8 @@ class Parser(report_sxw.rml_parse):
                     'ma': format(ma,'.2f'),
                     'shd': format(shd,'.2f'),
                     'total_erning': format(total_erning,'.2f'),
-                    'net':format(net,'.2f'),
-                    'total_ded':format(total_ded,'.2f'),
+                    'net': format(net,'.2f'),
+                    'total_ded': format(total_ded,'.2f'),
                     'pt':it+pt,
                     #'lop':lop, 
                     'lop':tpt_lop_leave,
@@ -379,6 +379,9 @@ class Parser(report_sxw.rml_parse):
                     'new_pt':pt, 
                     'new_it':it,
                     'emp_department':payroll.department_id.name,  
+                    'aa': format(aa,'.2f'),
+                    'ea': format(ea,'.2f'),
+                    'la': format(la,'.2f'),
                 
                 })
         return res

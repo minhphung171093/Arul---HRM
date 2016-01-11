@@ -2496,9 +2496,41 @@ class purchase_order(osv.osv):
             res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
                                             'green_erp_arulmani_purchase', 'alert_po_close_form_view')
             sql = '''
-            update purchase_order set is_cancel_po='t' where id
+            update purchase_order set is_cancel_po='t' where id=%s
+            '''%ids[0]
+            #cr.execute(sql)
+            self.write(cr, uid, ids,{'is_cancel_po':True})
+            sql = '''
+            update purchase_order_line set state='cancel' where order_id=%s
             '''%ids[0]
             cr.execute(sql)
+            #Quotation
+            sql = '''
+            update tpt_purchase_quotation set state='cancel' where id=%s
+            '''%picking.quotation_no.id
+            cr.execute(sql)
+            sql = '''
+            update tpt_purchase_quotation_line set state='cancel' where purchase_quotation_id=%s
+            '''%picking.quotation_no.id
+            #cr.execute(sql)
+            #RFQ
+            sql = '''
+            update tpt_request_for_quotation set state='cancel' where id=%s
+            '''%picking.quotation_no.rfq_no_id.id
+            cr.execute(sql)
+            sql = '''
+            update tpt_rfq_line set state='cancel' where rfq_id=%s
+            '''%picking.quotation_no.rfq_no_id.id
+            cr.execute(sql)
+
+            #PR
+            po_line_obj = self.pool.get('purchase.order.line')
+            po_line_ids = po_line_obj.search(cr, uid, [('order_id','=',ids[0])])
+            for line in po_line_obj.browse(cr,uid,po_line_ids):
+                sql = '''
+                update tpt_purchase_product set state='++' where pur_product_id=%s and product_id=%s and description='%s' and item_text='%s'
+                '''%(line.po_indent_no.id,line.product_id.id, line.description, line.item_text)
+                cr.execute(sql)
 #             return {
 #                                     'name': 'Management Confirmation',
 #                                     'view_type': 'form',
@@ -3350,6 +3382,7 @@ class purchase_order_line(osv.osv):
                                     ('except_invoice', 'Invoice Exception'),
                                     ('done', 'Done'),
                                     ('cancel', 'Cancelled'),
+                                    ('close', 'Closed By Purchase'),
                                    ], string='State'),
 #                 'po_document_type_relate':fields.selection([('raw','VV Raw material PO'),('asset','VV Capital PO'),('standard','VV Standard PO'),('local','VV Local PO'),('return','VV Return PO'),('service','VV Service PO'),('out','VV Out Service PO')],'PO Document Type'),
                 'pending_qty': fields.function(get_pending_qty, type='float', digits=(16,0), multi='sum', string='Pending Qty',),
