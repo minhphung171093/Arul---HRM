@@ -66,6 +66,9 @@
         'wizard/DailyIn_view.xml', ##
         'report/canteen_deduct_report.xml', ##  
         'wizard/canteen_deduct_report.xml', ##
+        
+        'report/salary_bank_transfer_report.xml', ##  
+        'wizard/salary_bank_transfer_report.xml', ##
 #         'data_category.xml', 
         'import_view.xml',
         'green_erp_arulmani_sequence.xml',

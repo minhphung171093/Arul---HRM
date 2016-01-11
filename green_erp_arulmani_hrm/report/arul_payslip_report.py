@@ -59,6 +59,9 @@ class Parser(report_sxw.rml_parse):
         res = {
             'pf_no': '',
             'esi_no': '',
+             ###TPT-R-ON 09/01/2016 - TO PRINT REVISED PAYSLIP FROM 2016
+            'pan_no': '',            
+            
         }
         if employee_id:
             employee = self.pool.get('hr.employee').browse(self.cr, self.uid, employee_id)
@@ -69,8 +72,12 @@ class Parser(report_sxw.rml_parse):
                     pf_no = line.name
                 if line.esi_no:
                     esi_no = line.esi_no
+                ###TPT-R-ON 09/01/2016 - TO PRINT REVISED PAYSLIP FROM 2016
+                if line.pan_no:
+                    pan_no = line.pan_no
+                ###
                 break
-            res.update({'pf_no': str(pf_no),'esi_no': str(esi_no)})
+            res.update({'pf_no': str(pf_no),'esi_no': str(esi_no),'pan_no': str(pan_no)}) ###TPT- pan_no added
         return res
     
     def get_month_name(self, month):
@@ -367,6 +374,11 @@ class Parser(report_sxw.rml_parse):
                     'special_holiday_worked_count':special_holiday_worked_count,
                     'md1':format(l_vvti_loan + l_lic_hfl + l_hdfc + l_tmb + l_sbt + l_others,'.2f'),
                     'lic':format(i_lic_prem + i_others,'.2f'),
+                    
+                    ###TPT-R-ON 09/01/2016 - TO PRINT REVISED PAYSLIP FROM 2016
+                    'new_pt':pt, 
+                    'new_it':it,
+                    'emp_department':payroll.department_id.name,  
                 
                 })
         return res

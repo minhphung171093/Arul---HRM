@@ -70,6 +70,8 @@
         'wizard/mateiral_purchase_value_month_view.xml',
         'report/report_mateiral_purchase_value_month_view.xml',
         'report/tpt_material_issue.xml',
+        'wizard/po_above10lacs.xml',
+        'report/po_above10lacs_view.xml',
         
     ],
     'css' : [

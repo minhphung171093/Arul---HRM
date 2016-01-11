@@ -12,4 +12,5 @@ import daily_filo_time_form
 import DailyInOut_form 
 import DailyIn_form 
 import canteen_deduct_report
+import salary_bank_transfer_report
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

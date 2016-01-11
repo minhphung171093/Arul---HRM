@@ -2318,7 +2318,7 @@ class purchase_order(osv.osv):
             result[line.order_id.id] = True
         return result.keys()
     _columns = {
-        'po_document_type':fields.selection([('raw','VV Raw material PO'),('asset','VV Capital PO'),('standard','VV Standard PO'),('local','VV Local PO'),('return','VV Return PO'),('service','VV Service PO'),('out','VV Out Service PO')],'PO Document Type', required = True, track_visibility='onchange',states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)],'md':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}),
+        'po_document_type':fields.selection([('raw','VV Raw material PO'),('asset','VV Capital PO'),('standard','VV Standard PO'),('local','VV Local PO'),('return','VV Return PO'),('service','VV Service PO'),('out','VV Out Service PO')],'PO Document Type', required = True, track_visibility='onchange',states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)],'md':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)],'close':[('readonly',True)]}),
         'quotation_no': fields.many2one('tpt.purchase.quotation', 'Quotation No', required = True, track_visibility='onchange',states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)],'md':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)],'close':[('readonly',True)]}),
 #         'po_indent_no' : fields.many2one('tpt.purchase.indent', 'PO Indent No', required = True, track_visibility='onchange'),
         'partner_ref': fields.char('Quotation Reference', states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)],'md':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)],'close':[('readonly',True)]}, size=64,
@@ -2406,6 +2406,8 @@ class purchase_order(osv.osv):
         #'quotation_ref':fields.char('Quotation Reference',size = 1024,required=True),
         #TPT END
         'tpt_currency_id': fields.many2one('res.currency', 'Currency'),
+        'is_cancel_po': fields.boolean('Is Cancelled By Purchase'), 
+        'cancel_reason': fields.char('Reason for Cancellation', size = 1024,),
         }
     def _get_currency_id(self, cr, uid, context=None):
         company = self.pool.get('res.users').browse(cr, uid, uid).company_id
@@ -2416,6 +2418,7 @@ class purchase_order(osv.osv):
         'flag': False,
         'currency_id': _get_currency_id,
         'tpt_currency_id': _get_currency_id,
+        'is_cancel_po': False,
                }
     
     def bt_purchase_done(self, cr, uid, ids, context=None):
@@ -2492,17 +2495,21 @@ class purchase_order(osv.osv):
         for picking in self.browse(cr, uid, ids, context=context):
             res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
                                             'green_erp_arulmani_purchase', 'alert_po_close_form_view')
-            return {
-                                    'name': 'Management Confirmation',
-                                    'view_type': 'form',
-                                    'view_mode': 'form',
-                                    'view_id': res[1],
-                                    'res_model': 'po.close',
-                                    'domain': [],
-                                    'context': {'default_message':'Are you sure want to confirm this DO?','audit_id':picking.id},
-                                    'type': 'ir.actions.act_window',
-                                    'target': 'new',
-                 }  
+            sql = '''
+            update purchase_order set is_cancel_po='t' where id
+            '''%ids[0]
+            cr.execute(sql)
+#             return {
+#                                     'name': 'Management Confirmation',
+#                                     'view_type': 'form',
+#                                     'view_mode': 'form',
+#                                     'view_id': res[1],
+#                                     'res_model': 'po.close',
+#                                     'domain': [],
+#                                     'context': {'default_message':'Are you sure want to confirm this DO?','audit_id':picking.id},
+#                                     'type': 'ir.actions.act_window',
+#                                     'target': 'new',
+#                  }  
         return self.write(cr, uid, ids,{'state':'close','po_closed_date':time.strftime('%Y-%m-%d')})
     
     def action_cancel(self, cr, uid, ids, context=None):

@@ -12,3 +12,4 @@ import daily_filo_time_report
 import DailyInOut_report
 import DailyIn_report
 import canteen_deduct_report
+import salary_bank_transfer_report
