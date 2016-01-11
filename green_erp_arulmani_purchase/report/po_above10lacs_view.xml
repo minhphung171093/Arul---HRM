@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+    	<record id="po_above10lacs" model="ir.actions.report.xml">
+	        <field name="name">po_above10lacs</field>
+	        <field name="type">ir.actions.report.xml</field>
+	        <field name="model">po.above10lacs</field>
+	        <field name="report_name">po_above10lacs</field>
+	        <field name="report_type">aeroo</field>
+	        <field name="in_format">oo-ods</field>
+	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-xls')]"/>
+	        <field name="parser_loc">green_erp_arulmani_purchase/report/po_above10lacs.py</field>
+	        <field name="report_rml">green_erp_arulmani_purchase/report/po_above10lacs.ods</field>
+	        <field name="parser_state">loc</field>
+	        <field name="tml_source">file</field>
+	        <field name="attachment_use" eval="0"/>
+    	</record>		    
+		<report 
+			auto="True" 
+			menu="False"
+			id="po_above10lacs" 
+			model="po.above10lacs" 
+			name="po_above10lacs"
+	        string="Above 10lakhs PO"
+	        rml="green_erp_arulmani_purchase/report/po_above10lacs.ods"/>	
+	   </data>
+</openerp>

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+		<record id="po_above10lacs" model="ir.ui.view">
+	        <field name="name">po_above10lacs</field>
+	        <field name="model">po.above10lacs</field>
+	        <field name="arch" type="xml">
+	            <form string="Above 10lakhs PO Report" version="7.0">
+	            	<group>
+	                <field name='month'/>  
+	                <field name='year'/>
+	                <field name='categ_id' widget='selection'/>
+	                </group>
+	                <footer>
+	                     <button name="print_report" type='object' string="OK" class="oe_highlight"/>
+	                    or
+	                     <button string="Cancel" class="oe_highlight" special="cancel" />
+	                </footer>
+	            </form>
+	        </field>
+    	</record>
+
+	    <record model="ir.actions.act_window" id="action_po_above10lacs">
+	        <field name="name">Above 10lakhs PO Report</field>
+	        <field name="type">ir.actions.act_window</field>
+	        <field name="res_model">po.above10lacs</field>
+	        <field name="view_type">form</field>
+	        <field name="view_mode">form</field>
+	        <field name="view_id" ref="po_above10lacs" />
+	        <field name="target">new</field>
+	    </record>
+	    
+	    
+        <menuitem action="action_po_above10lacs"
+            id="menu_action_po_above10lacs"
+            parent="stock.menu_stock_warehouse_mgmt" sequence="65"/>
+               
+	 
+	    
+    </data>
+</openerp>
