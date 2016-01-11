@@ -747,8 +747,8 @@
 					<field name="check_amendement" />
 					<field name="tpt_currency_id" invisible='1'/>
 					<field name="is_cancel_po" invisible='1'/>
-					<!-- <field name="cancel_reason" required='1' attrs="{'invisible':[('is_cancel_po','=',False)],'required':[('is_cancel_po','=',True)]}"/>
-				 	-->
+					<field name="cancel_reason" attrs="{'invisible':[('is_cancel_po','=',False)],'required':[('is_cancel_po','=',True)]}"/>
+				 	
 				</xpath>
 				<xpath expr="//page[@string='Incoming Shipments &amp; Invoices']/group/group/field[@name='payment_term_id']" position="replace">
 				</xpath> 
