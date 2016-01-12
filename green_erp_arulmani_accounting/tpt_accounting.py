@@ -1481,11 +1481,13 @@ class account_invoice(osv.osv):
                         flag1 = False
                         
                         inv_id = self.pool.get('account.invoice').browse(cr, uid, inv.id)
-                        for line in inv_id.invoice_line:                            
-                            if line.tax_id and line.tax_id.description=='STax 14.5%':
-                                flag=True
-                            if line.tax_id and line.tax_id.description=='STax 30% of Freight 14.5% (Dr)':
-                                flag=True         
+                        for line in inv_id.invoice_line:   
+                            if line.tax_id and line.tax_id.is_swachh_bharat is True: #line.tax_id.description=='STax 30% of Freight 14.5% (Dr)':
+                                flag=True                          
+                            # if line.tax_id and line.tax_idline.tax_id.description=='STax 14.5%':
+                                #------------------------------------- flag=True
+                            # if line.tax_id and line.tax_id.description=='STax 30% of Freight 14.5% (Dr)':
+                                #------------------------------------- flag=True
 #                             if line.tax_service_credit and line.tax_service_credit.description=='STax 30% of Freight 14.5% (Cr)':
 #                                 flag1=True
                         if flag is True:
@@ -7453,8 +7455,12 @@ class account_tax(osv.osv):
     _columns = {
         'gl_account_id': fields.many2one('account.account', 'GL Account'),
         'section': fields.char('Section', size = 20),
-        'is_stax_report':fields.boolean('Is STax Report Applicable') #TPT-Y on 16/10/2015
+        'is_stax_report':fields.boolean('Is STax Report Applicable'), #TPT-Y on 16/10/2015
+        'is_swachh_bharat':fields.boolean('Is Swachh Bharat Cess Applicable') #TPT-BM on 12/01/2016 - SWACHH BHARAT CESS
         }
+    _default = {
+       'is_swachh_bharat':False
+    }
     
 account_tax()
 

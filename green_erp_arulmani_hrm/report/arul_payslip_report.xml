@@ -24,5 +24,31 @@
 			name="arul_payslip_report"
 	        string="Payslip"
 	        rml="green_erp_arulmani_hrm/report/arul_payslip_report.ods"/>	
+	        
+	     <record id="arul_payslip_report_odt" model="ir.actions.report.xml">
+	        <field name="name">arul_payslip_report</field>
+	        <field name="type">ir.actions.report.xml</field>
+	        <field name="model">arul.hr.payroll.executions</field>
+	        <field name="report_name">arul_payslip_report</field>
+	        <field name="report_type">aeroo</field>
+	        <field name="in_format">oo-odt</field>
+	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-pdf')]"/>
+	        <field name="parser_loc">green_erp_arulmani_hrm/report/arul_payslip_report.py</field>
+	        <field name="report_rml">green_erp_arulmani_hrm/report/arul_payslip_report.odt</field>
+	        <field name="parser_state">loc</field>
+	        <field name="tml_source">file</field>
+	        <field name="attachment_use" eval="0"/>
+    	</record>		    
+		
+		<report 
+			auto="True" 
+			menu="False"
+			id="arul_payslip_report_odt" 
+			model="arul.hr.payroll.executions" 
+			name="arul_payslip_report_odt"
+	        string="Payslip"
+	        rml="green_erp_arulmani_hrm/report/arul_payslip_report.odt"/>	
+	        
+	        
     </data>
 </openerp>
