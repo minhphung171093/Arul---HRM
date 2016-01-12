@@ -24,6 +24,7 @@ from openerp import pooler
 from openerp.osv import osv
 from openerp.tools.translate import _
 import random
+import locale
 DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
 DATE_FORMAT = "%Y-%m-%d"
 
@@ -43,6 +44,7 @@ class Parser(report_sxw.rml_parse):
             'get_fh_name': self.get_fh_name,
             'get_month_name': self.get_month_name,
             'get_statutory': self.get_statutory,
+            'get_amt': self.get_amt,
         })
     
     def get_fh_name(self, employee_id):
@@ -388,11 +390,15 @@ class Parser(report_sxw.rml_parse):
                     'la': format(la,'.2f'),
                     'emp_grade':payroll.grade_id.name,
                     'acc_no':payroll.employee_id.bank_account or '',
+                    'new_net':self.get_amt(net), 
                 
                 })
         return res
                 
-                
+    def get_amt(self, amt):               
+        locale.setlocale(locale.LC_NUMERIC, "en_IN")
+        inr_comma_format = locale.format("%.2f", amt, grouping=True)
+        return inr_comma_format           
                     
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
 
