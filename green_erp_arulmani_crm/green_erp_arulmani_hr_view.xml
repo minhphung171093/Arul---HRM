@@ -175,6 +175,7 @@
                         	<tree string="Statutory Details">
                         		<field name="name"/>
                         		<field name="pension_no"/>
+                        		<field name="uan"/>
                         		<field name="epf_nominee"/>
                         		<field name="esi_no" />
                         		<field name="eis_nominee"/>
@@ -188,6 +189,7 @@
 	                        		<field name="name"/>
 	                        		<field name="pension_no"/>
 	                        		<field name="epf_nominee"/>
+	                        		<field name="uan"/>
 	                        		<field name="esi_no" />
 	                        		<field name="eis_nominee"/>
 	                        		<field name="esi_dispensary"/>

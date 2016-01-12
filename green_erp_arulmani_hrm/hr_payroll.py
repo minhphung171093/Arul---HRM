@@ -2849,6 +2849,7 @@ class arul_hr_payroll_executions(osv.osv):
                         'emp_esi_con': emp_esi_con_amount,
                         'emp_pf_con': emp_pf_con_amount,
                         'emp_lwf_amt': emp_lwf_amt,
+                        'grade_id':p.employee_sub_category_id and p.employee_sub_category_id.id or False,#TPT-BM-12/01/2016
                       }
                 executions_details_id = executions_details_obj.create(cr,uid,rs)
                 
@@ -2912,6 +2913,7 @@ class arul_hr_payroll_executions_details(osv.osv):
         'emp_esi_limit': fields.float('Employee ESI Limit'),
         'emp_esi_con': fields.float('Employee ESI Contribution'),
         'emp_lwf_amt': fields.float('Employee Labor Welfare Fund (LWF) Amt'),
+        'grade_id': fields.many2one('hr.employee.sub.category', 'Grade',ondelete='restrict'),#TPT-By BalamuruganPurushothaman -ON 12/01/2016 - FOR NEW PAYSLIP FROM JAN 2016
     }
     
     def onchange_department_from_id(self, cr, uid, ids,department_id=False, context=None):
