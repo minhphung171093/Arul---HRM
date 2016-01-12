@@ -392,7 +392,7 @@ class Parser(report_sxw.rml_parse):
                     'emp_grade':payroll.grade_id.name,
                     'acc_no':payroll.employee_id.bank_account or '',
                     'new_net':self.get_amt(net), 
-                
+                    'shwc':special_holiday_worked_count, 
                 })
         return res
                 
