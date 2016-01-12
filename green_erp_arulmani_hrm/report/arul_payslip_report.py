@@ -60,7 +60,8 @@ class Parser(report_sxw.rml_parse):
             'pf_no': '',
             'esi_no': '',
              ###TPT-R-ON 09/01/2016 - TO PRINT REVISED PAYSLIP FROM 2016
-            'pan_no': '',            
+            'pan_no': '',   
+            'uan': '',           
             
         }
         if employee_id:
@@ -75,9 +76,11 @@ class Parser(report_sxw.rml_parse):
                 ###TPT-R-ON 09/01/2016 - TO PRINT REVISED PAYSLIP FROM 2016
                 if line.pan_no:
                     pan_no = line.pan_no
+                if line.uan:
+                    uan = line.uan
                 ###
                 break
-            res.update({'pf_no': str(pf_no),'esi_no': str(esi_no),'pan_no': str(pan_no)}) ###TPT- pan_no added
+            res.update({'pf_no': str(pf_no),'esi_no': str(esi_no),'pan_no': str(pan_no), 'uan': str(uan)}) ###TPT- pan_no added
         return res
     
     def get_month_name(self, month):
@@ -382,6 +385,8 @@ class Parser(report_sxw.rml_parse):
                     'aa': format(aa,'.2f'),
                     'ea': format(ea,'.2f'),
                     'la': format(la,'.2f'),
+                    'emp_grade':payroll.grade_id.name,
+                    'acc_no':payroll.employee_id.bank_account or '',
                 
                 })
         return res

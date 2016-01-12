@@ -375,6 +375,7 @@ class hr_statutory (osv.osv):
         'pan_no' : fields.char('PAN No.', size=128),
         'pension_no' : fields.char('Pension No', size=128),
         'employee_id': fields.many2one('hr.employee','Employee',ondelete='cascade'),
+        'uan' : fields.char('UAN', size=128),
     }
 
     def _check_epf(self, cr, uid, ids, context=None):
