@@ -68,6 +68,7 @@ class Parser(report_sxw.rml_parse):
             employee = self.pool.get('hr.employee').browse(self.cr, self.uid, employee_id)
             pf_no = ''
             esi_no = ''
+            uan = ''
             for line in employee.statutory_ids:
                 if line.name:
                     pf_no = line.name
