@@ -636,10 +636,18 @@ class tpt_purchase_product(osv.osv):
             if product.categ_id.cate_name == 'raw':
                 parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
                 locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw Material','Raw Materials']),('location_id','=',parent_ids[0])])
+                #TPT-By BalamuruganPurushothaman - ON 13/01/2016 - TO DISPLAY LATEST PO PRICE FOR NEWLY CREATED PR
+                #===============================================================
+                # sql = '''
+                #     select avg_cost from tpt_product_avg_cost where warehouse_id = %s and product_id=%s
+                #     
+                # '''%(locat_ids[0],product_id)
+                #===============================================================
                 sql = '''
-                    select avg_cost from tpt_product_avg_cost where warehouse_id = %s and product_id=%s
-                    
-                '''%(locat_ids[0],product_id)
+                    select case when price_unit>0 then price_unit else 0 end avg_cost from purchase_order_line where id = (
+                    select max(id) from purchase_order_line pol
+                    where pol.product_id=%s)
+                '''%(product_id)
                 cr.execute(sql)
                 avg = cr.dictfetchone()
                 avg_cost = 0
@@ -651,10 +659,18 @@ class tpt_purchase_product(osv.osv):
             if product.categ_id.cate_name == 'spares':
                 parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
                 locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Spare','Spares']),('location_id','=',parent_ids[0])])
+                #TPT-By BalamuruganPurushothaman - ON 13/01/2016 - TO DISPLAY LATEST PO PRICE FOR NEWLY CREATED PR
+                #===============================================================
+                # sql = '''
+                #     select avg_cost from tpt_product_avg_cost where warehouse_id = %s and product_id=%s
+                #     
+                # '''%(locat_ids[0],product_id)
+                #===============================================================
                 sql = '''
-                    select avg_cost from tpt_product_avg_cost where warehouse_id = %s and product_id=%s
-                    
-                '''%(locat_ids[0],product_id)
+                    select case when price_unit>0 then price_unit else 0 end avg_cost from purchase_order_line where id = (
+                    select max(id) from purchase_order_line pol
+                    where pol.product_id=%s)
+                '''%(product_id)
                 cr.execute(sql)
                 avg = cr.dictfetchone()
                 avg_cost = 0
