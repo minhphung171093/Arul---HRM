@@ -4419,7 +4419,7 @@ class arul_hr_employee_leave_details(osv.osv):
 #         employee_work_dates = [r[0] for r in cr.fetchall()]
 #         if employee_work_dates:
 #             raise osv.except_osv(_('Warning!'),_('The Leave Day do not suitable'))
-        
+                
         #Trong them
         new_id = super(arul_hr_employee_leave_details, self).create(cr, uid, vals, context)
         new = self.browse(cr, uid, new_id)
@@ -4433,14 +4433,41 @@ class arul_hr_employee_leave_details(osv.osv):
         ##TPT START: 18/05/2015
         #employee_leave_detail_obj = self.pool.get('employee.leave.detail')
         emp_attendance_io = self.pool.get('arul.hr.punch.in.out.time')
-        emp = self.pool.get('hr.employee')
-        emp_id = emp.search(cr, uid, [('employee_id','=',vals['employee_id'])])
+        emp_obj = self.pool.get('hr.employee')
+        emp_id = emp_obj.search(cr, uid, [('id','=',vals['employee_id'])])
         emp_attendance_io_ids = emp_attendance_io.search(cr, uid, [('employee_id','=',vals['employee_id']),('work_date','=',vals['date_from'])])
         if emp_attendance_io_ids:             
             if vals['haft_day_leave'] is False:
                 raise osv.except_osv(_('Warning!'),_('System Could not Post Leave Entry if Attendance Entry exists for this Day!'))
                 
-        ## TPT END          
+        ## TPT END       
+        ##        
+        emp_ids = emp_obj.browse(cr, uid, emp_id[0])     
+        month = vals['date_from'][5:7]
+        year = vals['date_from'][:4]      
+        sql = '''
+                SELECT CASE WHEN SUM(days_total)!=0 THEN 
+                SUM(days_total) ELSE 0 END days_total FROM 
+                arul_hr_employee_leave_details WHERE EXTRACT(year FROM date_from) = %s 
+                AND EXTRACT(month FROM date_from) = %s AND employee_id =%s AND
+                leave_type_id in (select id from arul_hr_leave_types where code in ('LOP','ESI'))
+                and state='done'
+        '''%(year,month,vals['employee_id'])
+        cr.execute(sql)
+        lop_esi =  cr.fetchone()
+        tpt_lop_esi = lop_esi[0]
+        ##
+        DATETIME_FORMAT = "%Y-%m-%d"
+        from_dt = datetime.datetime.strptime(vals['date_from'], DATETIME_FORMAT)
+        to_dt = datetime.datetime.strptime(vals['date_to'], DATETIME_FORMAT)
+        timedelta = (to_dt - from_dt).days+1
+        if vals['haft_day_leave']:
+            timedelta = timedelta-0.5
+        ##
+        if emp_ids.employee_category_id.code=='S3':
+            if tpt_lop_esi>=26:  raise osv.except_osv(_('Warning!'),_('Leave Count exceeds 26 days'))
+            if tpt_lop_esi+timedelta>=26: raise osv.except_osv(_('Warning!'),_('Leave Count exceeds 26 days!.'))
+        ##
         #TPT START-By BalamuruganPurushothaman ON 14/03/2015-If CL/SL/C.OFF is taken a Half Day,
         #then system would not allow the same for next Half a day Except ESI/LOP
         if vals['haft_day_leave']:
@@ -4528,7 +4555,7 @@ class arul_hr_employee_leave_details(osv.osv):
             if ld['state'] in ['draft', 'cancel']:
                 unlink_ids.append(ld['id'])
             else:
-                raise osv.except_osv(_('Warning!'), _('In employee leave details to delete a confirmed employee leave details, You can not delete it!'))
+                raise osv.except_osv(_('Warning!'), _('You can not delete a confirmed Record!'))
 
         return osv.osv.unlink(self, cr, uid, unlink_ids, context=context)
     
@@ -4669,6 +4696,35 @@ class arul_hr_employee_leave_details(osv.osv):
         DATETIME_FORMAT = "%Y-%m-%d"
         time_evalv_obj = self.pool.get('tpt.time.leave.evaluation')
         for line in self.browse(cr, uid, ids):
+            ##
+            emp_obj = self.pool.get('hr.employee')
+            emp_id = emp_obj.search(cr, uid, [('id','=',line.employee_id.id)])
+            emp_ids = emp_obj.browse(cr, uid, emp_id[0])     
+            month = line.date_from[5:7]
+            year = line.date_from[:4]      
+            sql = '''
+                    SELECT CASE WHEN SUM(days_total)!=0 THEN 
+                    SUM(days_total) ELSE 0 END days_total FROM 
+                    arul_hr_employee_leave_details WHERE EXTRACT(year FROM date_from) = %s 
+                    AND EXTRACT(month FROM date_from) = %s AND employee_id =%s AND
+                    leave_type_id in (select id from arul_hr_leave_types where code in ('LOP','ESI'))
+                    and state='done'
+            '''%(year,month,line.employee_id.id)
+            cr.execute(sql)
+            lop_esi =  cr.fetchone()
+            tpt_lop_esi = lop_esi[0]
+            ##
+            DATETIME_FORMAT = "%Y-%m-%d"
+            from_dt = datetime.datetime.strptime(line.date_from, DATETIME_FORMAT)
+            to_dt = datetime.datetime.strptime(line.date_to, DATETIME_FORMAT)
+            timedelta = (to_dt - from_dt).days+1
+            if line.haft_day_leave:
+                timedelta = timedelta-0.5
+            ##
+            if emp_ids.employee_category_id.code=='S3':
+                if tpt_lop_esi>=26:  raise osv.except_osv(_('Warning!'),_('Leave Count exceeds 26 days!'))
+                if tpt_lop_esi+timedelta>=26: raise osv.except_osv(_('Warning!'),_('Leave Count exceeds 26 days!.'))
+            ##
              #Trong them
             if line.date_from: 
                 month = line.date_from[5:7]
@@ -4862,8 +4918,8 @@ class arul_hr_employee_leave_details(osv.osv):
                         raise osv.except_osv(_('Warning!'),_('The Employee requested leave day for these date!'))
         return True   
     _constraints = [
-        (_check_days, _(''), ['date_from', 'date_to']),
-        (_check_days_2, _(''), ['employee_id','date_from', 'date_to']),
+        #(_check_days, _(''), ['date_from', 'date_to']),
+        #(_check_days_2, _(''), ['employee_id','date_from', 'date_to']),
         #(_check_date_holiday, _(''), ['employee_id','date_from', 'date_to']), TPT-COMMENTED
     ]
     
