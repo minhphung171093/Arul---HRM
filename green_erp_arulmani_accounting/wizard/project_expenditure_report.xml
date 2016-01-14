@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>   
+        <record id="project_expenditure_report_wzd" model="ir.ui.view">
+            <field name="name">project.expenditure.report</field>
+            <field name="model">project.expenditure</field>
+            <field name="arch" type="xml">
+                <form string="" version="7.0">
+                	<group>
+	                    <field name='date_from'/>
+	                    <field name='date_to'/> 
+	                    <field name='project_id' options="{'create': false, 'create_edit': false}"/>                               
+                 	</group>
+                    <footer>
+                        <button name="print_report" string="Print" type="object" class="oe_highlight" context="{'type':'appointments'}"/>
+                        or
+                        <button string="Cancel" class="oe_link" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>        
+        <record id="action_project_expenditure_report" model="ir.actions.act_window">
+            <field name="name">Project Expenditure Report</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">project.expenditure</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="project_expenditure_report_wzd"/>
+            <field name="target">new</field>
+        </record>
+        <menuitem action="action_project_expenditure_report"
+            id="menu_action_project_expenditure_report"
+            parent="account.menu_finance_reporting" sequence="110"/>
+     </data> 
+</openerp>

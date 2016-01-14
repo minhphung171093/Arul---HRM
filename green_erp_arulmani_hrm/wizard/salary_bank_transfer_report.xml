@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <openerp>
     <data>   
-        <record id="salary_bank_transfer_report" model="ir.ui.view">
+        <record id="salary_bank_transfer_wzd" model="ir.ui.view">
             <field name="name">salary.bank.transfer.report</field>
             <field name="model">bank.transfer</field>
             <field name="arch" type="xml">
