@@ -71,6 +71,8 @@
         'report/customer_ageing_report.xml',
         'wizard/customer_ageing_group.xml',
         'report/customer_ageing_group.xml',
+        'wizard/project_expenditure_report.xml',
+        'report/project_expenditure_report.xml',
     ],
     'css' : [
         "static/src/css/base.css",
