@@ -5855,7 +5855,7 @@ class tpt_material_issue_line(osv.osv):
             kq2 = line.product_uom_qty - (kq + line.product_isu_qty)
             sql = '''
                 update tpt_material_request_line set pending_qty = %s where id = %s
-            '''%(kq2, issue_line.request_line_id.id)
+            '''%(kq2, line.request_line_id.id)
             cr.execute(sql)
         return new_write
 tpt_material_issue_line()
