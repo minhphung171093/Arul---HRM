@@ -7456,10 +7456,13 @@ class account_tax(osv.osv):
         'gl_account_id': fields.many2one('account.account', 'GL Account'),
         'section': fields.char('Section', size = 20),
         'is_stax_report':fields.boolean('Is STax Report Applicable'), #TPT-Y on 16/10/2015
-        'is_swachh_bharat':fields.boolean('Is Swachh Bharat Cess Applicable') #TPT-BM on 12/01/2016 - SWACHH BHARAT CESS
+        'is_swachh_bharat':fields.boolean('Is Swachh Bharat Cess Applicable'), #TPT-BM on 12/01/2016 - SWACHH BHARAT CESS
+        'is_vat_report':fields.boolean('Is VAT Report Applicable'), #TPT on 18/01/2016
         }
     _default = {
-       'is_swachh_bharat':False
+       'is_stax_report':False,
+       'is_swachh_bharat':False,
+       'is_vat_report':False
     }
     
 account_tax()
