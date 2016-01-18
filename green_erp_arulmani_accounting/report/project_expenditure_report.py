@@ -98,8 +98,7 @@ class Parser(report_sxw.rml_parse):
             proj_name = proj_ids.name
             sql += " where a.project='%s'"%proj_name
         sql += " group by a.default_code, a.name_template, a.section, a.project, a.uom order by a.project, a.section, a.default_code"
-   
-        print sql                        
+                     
         self.cr.execute(sql);
         res = []
         s_no = 1

@@ -2571,7 +2571,6 @@ class tds_form_report(osv.osv_memory):
 #                         order by a.ven_code,a.gl_doc
 #                     '''%(date_from,date_to,gl_accnt,date_from,date_to,gl_accnt,date_from,date_to,gl_accnt)
 #                 cr.execute(sql)
-#                 print sql
 #                 return cr.dictfetchall()
 #             
 #             else:            
