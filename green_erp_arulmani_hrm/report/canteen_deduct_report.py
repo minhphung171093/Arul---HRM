@@ -73,7 +73,6 @@ class Parser(report_sxw.rml_parse):
         
         sql += " order by emp.employee_id asc"
         self.cr.execute(sql)     
-        print sql
         for line in self.cr.dictfetchall():
             emp_id = line['employee_id'] or False
             emp_ids = emp_obj.browse(self.cr,self.uid,emp_id)

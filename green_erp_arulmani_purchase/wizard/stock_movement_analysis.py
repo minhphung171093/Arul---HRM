@@ -2209,7 +2209,6 @@ class stock_movement_analysis(osv.osv_memory):
                     'location_spare_id':14,
                     'product_id':product_ids#stock.product_id.id prev sql - and pp.id = %(product_id)s
                     }
-                print sql
                 cr.execute(sql)   
             else:
                 sql = '''

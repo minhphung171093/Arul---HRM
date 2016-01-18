@@ -115,10 +115,7 @@ class Parser(report_sxw.rml_parse):
             cate_name = prd_categ_ids.cate_name
             sql += " and pc.cate_name='%s'"%cate_name
         sql += " order by PO_Date"   
-        
-        
-        
-        print sql                        
+                                  
         self.cr.execute(sql);
         res = []
         s_no = 1
