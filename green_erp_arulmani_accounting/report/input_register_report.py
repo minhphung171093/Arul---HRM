@@ -126,9 +126,9 @@ class Parser(report_sxw.rml_parse):
         pro_cat_obj = self.pool.get('product.category')
         category = pro_cat_obj.browse(self.cr,self.uid,type[0])
                 
-        if category.id == 3:
+        if category.cate_name == 'raw':#Raw Material
             return "Monthly Return Cenvat on Input"
-        if category.id == 5:
+        if category.cate_name == 'spares':#Spares
             return "Monthly Return Cenvat on Capital Goods"
         
         

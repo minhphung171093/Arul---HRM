@@ -47,8 +47,8 @@ class tpt_input_register_line(osv.osv_memory):
     _columns = {
         'input_id': fields.many2one('tpt.input.register', 'Input Register', ondelete='cascade'),
         'doc_type': fields.char('Invoice Type', size = 1024), # YuVi
-        'doc_no': fields.char('Document No', size = 1024),
-        'inv_ex_date': fields.date('Excise Invoice Date' ),
+        'doc_no': fields.char('Invoice no',size = 1024),
+        'inv_ex_date': fields.date('Invoice Date'),
         'supplier':fields.char('Name of The Supplier',size = 1024),
         'supplier_type':fields.char('Type of Supplier',size = 1024),        
         'date_rcvd':fields.date('Date On Which Inputs were Received'),
@@ -60,9 +60,9 @@ class tpt_input_register_line(osv.osv_memory):
         'qty': fields.char('Quantity',size = 1024),
         'uom': fields.char('Unit Of Measure',size = 1024),
          #'uom': fields.char('Unit Of Measure',size = 1024),
-        'billno': fields.char('Bill no',size = 1024),
-        'billdate': fields.date('Bill Date'),
-        'postdate': fields.date('Posting Date',size = 1024),
+        #'billno': fields.char('Bill no',size = 1024),
+        #'billdate': fields.date('Bill Date'),
+        #'postdate': fields.date('Posting Date',size = 1024),
         #'total' : fields.float('Total'),               
         'invoice_id':fields.many2one('account.invoice', 'Document No'), 
         'partner_id':fields.many2one('res.partner', 'Partner'), 
