@@ -360,7 +360,7 @@ class Parser(report_sxw.rml_parse):
                     'spa': self.get_amt(spa),
                     'oa': self.get_amt(la + ea + aa + oa), #format(la + ea + aa + oa,'.2f') ,
                     'ma': self.get_amt(ma), #format(ma,'.2f'),
-                    'shd': self.get_amt(spa), #format(shd,'.2f'),
+                    'shd': self.get_amt(shd), #format(shd,'.2f'),
                     'total_erning': self.get_amt(total_erning), #format(total_erning,'.2f'),
                     'net': self.get_amt(net),#format(net,'.2f'),
                     'total_ded': self.get_amt(total_ded),#format(total_ded,'.2f'),
