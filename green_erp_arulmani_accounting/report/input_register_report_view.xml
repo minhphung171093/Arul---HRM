@@ -117,9 +117,6 @@
 		                			<field name="cha_id"/>
 		                			<field name="qty"/>
 		                			<field name="uom"/>		                			
-		                			<field name="billno"/>
-		                			<field name="billdate"/>
-		                			<field name="postdate"/>
 		                			<!-- <field name="total"/> -->
 		                		</tree>
 		                	</field>
