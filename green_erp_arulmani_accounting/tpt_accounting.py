@@ -1944,6 +1944,7 @@ class account_invoice_line(osv.osv):
             ###
             ed = 0.00
             aed = 0.00
+            p_f = 0.0
             if t['ed_type'] == '1' :
                 ed = (basic) * t['ed']/100
                 ed = round(ed,2)
@@ -1957,8 +1958,18 @@ class account_invoice_line(osv.osv):
                 ed = t['ed']
                 ed = round(ed,2) 
             aed = t['aed_id_1'] or 0.00
+            ##
+            if (t['p_f_type'] == '1'):
+                 p_f = basic * t['p_f']/100
+            elif (t['p_f_type'] == '2'):
+                 p_f =  t['p_f']
+            elif (t['p_f_type'] == '3'):
+                 p_f =  t['p_f'] * t['quantity']
+            else:
+                 p_f = t['p_f']
+            ##
             ###
-            cst_basic = basic+ed+aed
+            cst_basic = basic+ed+aed+p_f
             basic += cst_basic * tax_amounts/100
             basic = round(basic,2)
             sql = '''
