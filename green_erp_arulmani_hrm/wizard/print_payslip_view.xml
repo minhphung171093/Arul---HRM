@@ -19,9 +19,9 @@
                     </group>
          		</sheet>          
 	                    <footer>
-	                    <!-- 
-	                        <button name="print_report" string="Print Payslip" type="object" class="oe_highlight" context="{'type':'appointments'}"/>
-	                         -->
+	                    
+	                        <button name="print_report" string="Print Payslip - old" type="object" class="oe_highlight" context="{'type':'appointments'}"/>
+	                         
 	                        <button name="print_report_odt" string="Print Payslip" type="object" class="oe_highlight" context="{'type':'appointments'}"/>
 	                        
 	                        <button string="Cancel" class="oe_link" special="cancel"/>
