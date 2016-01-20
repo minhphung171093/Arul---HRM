@@ -38,7 +38,7 @@ class print_payslip(osv.osv_memory):
         line = self.browse(cr, uid, ids[0],context)
         employee_ids = [e.id for e in line.employee_ids]
         datas['form'].update({'active_id':context.get('active_ids',False),'employee_ids':employee_ids})
-        return {'type': 'ir.actions.report.xml', 'report_name': 'arul_payslip_report', 'datas': datas}
+        return {'type': 'ir.actions.report.xml', 'report_name': 'arul_payslip_report_odt', 'datas': datas}
     def print_report_odt(self, cr, uid, ids, context=None):
         if context is None:
             context = {}
@@ -49,7 +49,7 @@ class print_payslip(osv.osv_memory):
         line = self.browse(cr, uid, ids[0],context)
         employee_ids = [e.id for e in line.employee_ids]
         datas['form'].update({'active_id':context.get('active_ids',False),'employee_ids':employee_ids})
-        return {'type': 'ir.actions.report.xml', 'report_name': 'arul_payslip_report_odt', 'datas': datas}
+        return {'type': 'ir.actions.report.xml', 'report_name': 'arul_payslip_report', 'datas': datas}
         
 print_payslip()
 

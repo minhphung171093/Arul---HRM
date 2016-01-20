@@ -35,6 +35,19 @@
 	        <field name="args" eval="'()'" />
         </record>  
         
+        <record model="ir.cron" id="emp_cl_update">
+	        <field name="name">Increase CL Count for SHD Holiday if its falls on W.Off</field>
+	        <field name="interval_number">4</field>
+	        <field name="interval_type">hours</field>
+	        <field name="priority">1</field>
+	        <field name="numbercall">-1</field>
+	        <field name="doall" eval="False"/>
+	        <field name="model" eval="'arul.hr.employee.leave.details'"/>
+	        <field name="function" eval="'increment_cl_shd_woff'"/>
+	        <field name="args" eval="'()'" />
+        </record>  
+        
+        
         <!-- 
         <record model="ir.cron" id="emp_out_time_entry_update">
 	        <field name="name">Employee Move Out Time Details to Attendance</field>
