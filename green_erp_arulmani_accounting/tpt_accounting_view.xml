@@ -117,6 +117,7 @@
 					<field name="is_swachh_bharat"/>
 					<field name="is_stax_report"/>
 					<field name="is_vat_report"/>
+					<field name="is_cst_report"/>
 				</xpath>
 			</field>
 		</record>

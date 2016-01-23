@@ -4940,88 +4940,69 @@ class arul_hr_employee_leave_details(osv.osv):
         return super(arul_hr_employee_leave_details, self).search(cr, uid, args, offset, limit, order, context, count)
 
     def increment_cl_shd_woff(self, cr, uid, context=None):   
-  #=============================================================================
-  #       monthly_shift_schedule_obj = self.pool.get('arul.hr.monthly.shift.schedule')        
-  #       attend_obj = self.pool.get('arul.hr.punch.in.out.time') 
-  #       emp_obj = self.pool.get('hr.employee') 
-  #       emp_obj_ids = emp_obj.search(cr, uid, [('active','=',True)]) 
-  #       now = datetime.datetime.now()
-  #       year = now.year
-  #       month = now.month
-  #       day = now.day
-  #       for emp in emp_obj.browse(cr,uid,emp_obj_ids):
-  #           sql = '''
-  #           select date from arul_hr_holiday_special where extract(year from date)='%s'
-  #           and extract(month from date)=%s  
-  #           '''%(year, month)
-  #           cr.execute(sql)
-  #           shd_ids = [r[0] for r in cr.fetchall()]
-  #           
-  #           for shd in shd_ids:
-  #               shd_date = shd
-  #               sql = '''
-  #               select day_%s from arul_hr_monthly_shift_schedule where 
-  #                   monthly_work_id in (select id from arul_hr_monthly_work_schedule where "month"='%s' and "year"=%s 
-  #                   and state='done')
-  #                   and employee_id=%s
-  #               '''%(day, month, year, emp.id)
-  #               cr.execute(sql)
-  #               date = cr.fetchall()
-  #               if date and date[0]==6:
-  #                   a=a
-  #                   
-  #                   
-  #           
-  #           employee_id = time_entry.employee_id.id
-  #           work_date = time_entry.work_date
-  #           punch_type = time_entry.punch_type
-  #           #Example Work_date = "2015-08-27 05:48:14.976784"
-  #           day = work_date[8:10]
-  #           month = work_date[5:7]
-  #           year = work_date[:4]
-  #           hour = work_date[11:13]
-  #           min = work_date[14:16]
-  #           sec = work_date[17:19]
-  #           
-  #       
-  #           punch_obj = self.pool.get('arul.hr.punch.in.out')       
-  #           shift_id = punch_obj.get_work_shift(cr, uid, employee_id, int(day), int(month), year)
-  #           
-  #           work_date_format = work_date[:4]+'-'+work_date[5:7]+'-'+work_date[8:10]
-  # 
-  #           #if punch_type=='OUT':
-  #           out_time = float(hour)+float(min)/60+float(sec)/3600
-  #           attend_temp_obj_ids = attend_temp_obj.search(cr, uid, [('employee_id','=',employee_id), ('work_date','=',work_date_format)]) 
-  #           exist_emp_obj = attend_temp_obj.browse(cr,uid,attend_temp_obj_ids[0])
-  #           
-  #           if not exist_emp_obj: 
-  #                   attend_temp_obj.create(cr, uid, {
-  #                            'employee_id': employee_id,
-  #                            'work_date': work_date_format,
-  #                            'in_time': 0,
-  #                            'out_time': out_time,
-  #                             }) 
-  #                   attend_obj.write(cr, uid, time_entry.id, {'is_processed':'t'})
-  #           else:
-  #                   exist_in_time = exist_emp_obj.in_time
-  #                   punch_in_date = exist_emp_obj.work_date
-  #                   attend_temp_obj.write(cr, uid, [exist_emp_obj.id], {
-  #                            'employee_id': employee_id,
-  #                            'work_date': work_date_format,
-  #                            'in_time': exist_in_time,
-  #                            'out_time': out_time,
-  #                             }) 
-  #                   
-  #                   self.auto_approve_to_attendance(cr, uid, employee_id, work_date_format, exist_in_time, out_time, shift_id, 
-  #                                                   time_entry.employee_id,  punch_in_date, ast_id)
-  #                   attend_temp_obj.write(cr, uid, [exist_emp_obj.id], {
-  #                            'is_auto_approved': True,
-  #                             })
-  #           ###
-  #                   attend_obj.write(cr, uid, time_entry.id, {'is_processed':'t'})
-  #           ###
-  #       #END FOR
-  #=============================================================================
+        monthly_shift_schedule_obj = self.pool.get('arul.hr.monthly.shift.schedule')        
+        attend_obj = self.pool.get('arul.hr.punch.in.out.time') 
+        leave_obj = self.pool.get('arul.hr.employee.leave.details') 
+        emp_obj = self.pool.get('hr.employee') 
+        emp_obj_ids = emp_obj.search(cr, uid, [('active','=',True)]) 
+        now = datetime.datetime.now()
+        year = now.year
+        month = now.month
+        day = now.day
+        for emp in emp_obj.browse(cr,uid,emp_obj_ids):
+            sql = '''
+            select date from arul_hr_holiday_special where extract(year from date)='%s'
+            and extract(month from date)=%s  
+            '''%(year, month)
+            cr.execute(sql)
+            shd_ids = [r[0] for r in cr.fetchall()]
+            
+            for shd in shd_ids:
+                day = shd[8:10]
+                day = int(day)
+                sql = '''
+                select day_%s from arul_hr_monthly_shift_schedule where 
+                    monthly_work_id in (select id from arul_hr_monthly_work_schedule where "month"='%s' and "year"=%s 
+                    and state='done')
+                    and employee_id=%s
+                '''%(day, month, year, emp.id)
+                cr.execute(sql)
+                date = cr.fetchone()
+                if date and date[0]==6: 
+                    attend_obj_ids = attend_obj.search(cr, uid, [('employee_id','=',emp.id), ('work_date','=',shd)]) 
+                    punch_id = attend_obj.browse(cr,uid,emp_obj_ids[0])
+                    sql = '''
+                    select count(*) from arul_hr_punch_in_out_time where work_date='%s' and employee_id=%s
+                    '''%(shd, emp.id)
+                    cr.execute(sql)
+                    punch_count = cr.fetchone()
+                    punch_count = punch_count[0]
+                    sql = '''
+                    select count(*) from arul_hr_employee_leave_details where '%s' 
+                      between date_from and date_to and employee_id=%s and state='done'
+                    '''%(shd, emp.id)
+                    cr.execute(sql)
+                    leave_count = cr.fetchone()
+                    leave_count = leave_count[0]
+                    sql = '''
+                    select count(*) from arul_hr_permission_onduty where 
+                    approval is True and date='%s' and employee_id=%s
+                    '''%(shd, emp.id)
+                    cr.execute(sql)
+                    perm_od_count = cr.fetchone()
+                    perm_od_count = perm_od_count[0]
+                    #No Punch Entry, Leave Entry, OD Entry
+                    if punch_count == 0 and leave_count == 0 and perm_od_count == 0:
+                        #print emp.employee_id
+                        #print shd
+                        print "test"
+                        
+                    
+                    
+            
+            
+            ###
+        #END FOR
    
 
         return True

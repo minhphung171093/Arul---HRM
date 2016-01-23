@@ -43,6 +43,7 @@ class Parser(report_sxw.rml_parse):
             'get_month':self.get_month,
             'get_year':self.get_year,
             'get_po':self.get_po,
+            'get_po_multiple':self.get_po_multiple,
             'get_categ':self.get_categ,
             
         })
@@ -80,36 +81,34 @@ class Parser(report_sxw.rml_parse):
           prd_categ_ids = prd_categ_obj.browse(self.cr,self.uid,categ_id[0])  
           cate_name = prd_categ_ids.name
         return cate_name
-    
         
     def get_po(self):
         wizard_data = self.localcontext['data']['form']
         month=wizard_data['month']
         year=wizard_data['year'] 
         categ_id=wizard_data['categ_id']
-        prd_categ_obj = self.pool.get('product.category') 
-        
-        
+        prd_categ_obj = self.pool.get('product.category')  
         sql = '''
-        select p.date_order::date as po_date,
-                    p.name as PO_No,
-                    b.name as Vendor_Name,
-                    case when pr.name_template='-' then pr.default_code else pr.name_template end as Materials,
-                    pc.name as materialtype,
-                    pl.product_qty as Qty,
-                    uom.name as UOM,
-                    pl.line_net as Net_Value
-                    from
-                    purchase_order_line pl
-                    join purchase_order p on p.id=pl.order_id 
-                    join res_partner b on b.id=p.partner_id  
-                    join product_product pr on pr.id=pl.product_id
-                    join product_uom uom on uom.id=pl.product_uom
-                    join product_category pc on pc.cate_name=pr.cate_name
-                    where pl.line_net>=1000000 and p.state='done' 
-                    and EXTRACT(month FROM p.date_order)='%s' 
-                    and EXTRACT(year FROM p.date_order)='%s' 
-        '''%(int(month),int(year))
+                select p.date_order::date as po_date,
+                p.name as PO_No,
+                b.name as Vendor_Name,
+                case when pr.name_template='-' then pr.default_code else pr.name_template end as Materials,
+                pc.name as materialtype,
+                pl.product_qty as Qty,
+                uom.name as UOM,
+                pl.line_net as Net_Value
+                from
+                purchase_order_line pl
+                join purchase_order p on p.id=pl.order_id 
+                join res_partner b on b.id=p.partner_id  
+                join product_product pr on pr.id=pl.product_id
+                join product_uom uom on uom.id=pl.product_uom
+                join product_category pc on pc.cate_name=pr.cate_name
+                where pl.line_net>=1000000 and p.state='done' 
+                and EXTRACT(month FROM p.date_order)='%s' 
+                and EXTRACT(year FROM p.date_order)='%s' 
+                '''%(int(month),int(year))
+    
         if categ_id:
             prd_categ_ids = prd_categ_obj.browse(self.cr,self.uid,categ_id[0])
             cate_name = prd_categ_ids.cate_name
@@ -133,16 +132,52 @@ class Parser(report_sxw.rml_parse):
             s_no += 1
         return res  
     
-  
+    def get_po_multiple(self, cate_name):
+        wizard_data = self.localcontext['data']['form']
+        month=wizard_data['month']
+        year=wizard_data['year'] 
+        categ_id=wizard_data['categ_id']
+        prd_categ_obj = self.pool.get('product.category')  
+        sql = '''
+                select p.date_order::date as po_date,
+                p.name as PO_No,
+                b.name as Vendor_Name,
+                case when pr.name_template='-' then pr.default_code else pr.name_template end as Materials,
+                pc.name as materialtype,
+                pl.product_qty as Qty,
+                uom.name as UOM,
+                pl.line_net as Net_Value
+                from
+                purchase_order_line pl
+                join purchase_order p on p.id=pl.order_id 
+                join res_partner b on b.id=p.partner_id  
+                join product_product pr on pr.id=pl.product_id
+                join product_uom uom on uom.id=pl.product_uom
+                join product_category pc on pc.cate_name=pr.cate_name
+                where pl.line_net>=1000000 and p.state='done' 
+                and EXTRACT(month FROM p.date_order)='%s' 
+                and EXTRACT(year FROM p.date_order)='%s' 
+                '''%(int(month),int(year))
+#        if categ_id:       
+#         prd_categ_ids = prd_categ_obj.browse(self.cr,self.uid,categ_id)
+#         cate_name = prd_categ_ids.cate_name
+        sql += " and pc.cate_name='%s'"%cate_name
+        sql += " order by PO_Date"      
+                                  
+        self.cr.execute(sql)
+        res = []
+        s_no = 1
+        for line in self.cr.dictfetchall():            
+            res.append({
+                        's_no':s_no,
+                        'po_date': line['po_date'] or '',
+                        'po_no': line['po_no'] or '',
+                        'vendor_name': line['vendor_name'] or '',
+                        'materials': line['materials'] or '',
+                        'qty': line['qty'] or '',  
+                        'uom': line['uom'] or '', 
+                        'net_value': line['net_value'] or '',                  
+                      })
+            s_no += 1
+        return res      
         #return self.cr.dictfetchall()
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-    
