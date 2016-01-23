@@ -72,6 +72,10 @@
         'report/tpt_material_issue.xml',
         'wizard/po_above10lacs.xml',
         'report/po_above10lacs_view.xml',
+        'wizard/purchase_vat_wizard.xml',
+        'report/purchase_vat_report.xml',
+        'wizard/purchase_cst_wizard.xml',
+        'report/purchase_cst_report.xml',
         
     ],
     'css' : [

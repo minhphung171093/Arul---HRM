@@ -120,18 +120,7 @@ class input_register_form(osv.osv_memory):
             return sum
         
         def get_document_type(document_type):
-            if document_type == 'raw':
-                return "VV Raw material PO"
-            if document_type == 'asset':
-                return "VV Capital PO"
-            if document_type == 'standard':
-                return "VV Standard PO"
-            if document_type == 'return':
-                return "VV Return PO"
-            if document_type == 'service':
-                return "VV Service PO"
-            if document_type == 'out':
-                return "VV Out Service PO"
+                return "invoice"
             
         def get_total(value):
             #print value
@@ -162,19 +151,30 @@ class input_register_form(osv.osv_memory):
             invoice_ids = []
             if product_cate_id:
                 sql = '''
-                    select id from account_invoice_line where invoice_id in 
-                    (select id from account_invoice where date_invoice between '%s' and '%s' and type = 'in_invoice' and purchase_id is not null) 
-                    and ed is not null and ed != 0
-                    and product_id in (select id from product_product where product_tmpl_id in (select id from product_template where categ_id = %s))
+                     select id from ( SELECT ail.id, ail.quantity*ail.price_unit amt, rank() OVER (PARTITION BY ail.invoice_id order by ail.line_net desc ) as productrank
+                     FROM account_invoice_line ail
+                     inner join account_invoice ai on ail.invoice_id=ai.id
+                     where ai.date_invoice between '%s' and '%s'
+                     and ai.type='in_invoice' and ai.purchase_id is not null
+                     and ail.ed is not null and ail.ed != 0
+                     and ail.product_id in
+                     (select id from product_product where product_tmpl_id in (select id from product_template where categ_id = %s))
+                     )b where b.productrank=1;
                     '''%(date_from, date_to, product_cate_id)
                 cr.execute(sql)
                 invoice_ids = [r[0] for r in cr.fetchall()]
             else:
                 sql = '''
-                    select id from account_invoice_line where invoice_id in 
-                    (select id from account_invoice where date_invoice between '%s' and '%s' and type = 'in_invoice' and purchase_id is not null) 
-                    and ed is not null and ed != 0
-                    and product_id in (select id from product_product where product_tmpl_id in (select id from product_template where categ_id in (select id from product_category where cate_name in ('raw','spares'))))
+                     select id from (SELECT ail.id, ail.quantity*ail.price_unit amt, rank() OVER (PARTITION BY ail.invoice_id order by ail.line_net desc ) as productrank
+                     FROM account_invoice_line ail
+                     inner join account_invoice ai on ail.invoice_id=ai.id
+                     where ai.date_invoice between '%s' and '%s'
+                     and ai.type='in_invoice' and ai.purchase_id is not null
+                     and ail.ed is not null and ail.ed != 0
+                     and ail.product_id in
+                     (select id from product_product where product_tmpl_id in (select id from product_template where categ_id = %s))
+                     (select id from product_category where cate_name in ('raw','spares'))))
+                     )b where b.productrank=1;
                     '''%(date_from, date_to)
                 cr.execute(sql)
                 invoice_ids = [r[0] for r in cr.fetchall()]
@@ -187,8 +187,8 @@ class input_register_form(osv.osv_memory):
         for line in get_invoice(sls):
             sls_line.append((0,0,{                              
                 'doc_type': get_document_type(line.invoice_id.purchase_id and line.invoice_id.purchase_id.po_document_type) or '',
-                'doc_no':line.invoice_id.name or '',
-                'inv_ex_date': line.invoice_id and line.invoice_id.date_invoice or False,
+                'doc_no':line.invoice_id.bill_number,
+                'inv_ex_date': line.invoice_id.bill_date or False,
                 'supplier': line.invoice_id.partner_id and line.invoice_id.partner_id.name or '',
                 'supplier_type': line.invoice_id.partner_id and line.invoice_id.partner_id.vendor_type or '',
                 'date_rcvd': get_grn_date(line.invoice_id.id) or False,
@@ -199,9 +199,9 @@ class input_register_form(osv.osv_memory):
                 'cha_id': line.product_id and line.product_id.chapter or '',
                 'qty': decimal_convert(line.quantity) or 0.000, #YuVi_2
                 'uom': line.uos_id and line.uos_id.name or '',
-                'billno': line.invoice_id.bill_number,
-                'billdate': line.invoice_id.bill_date or False,
-                'postdate': line.invoice_id and line.invoice_id.date_invoice or False,  
+                #'billno': line.invoice_id.bill_number,
+                #'billdate': line.invoice_id.bill_date or False,
+                #'postdate': line.invoice_id and line.invoice_id.date_invoice or False,  
                 'invoice_id': line.invoice_id and line.invoice_id.id or False,  
                 'partner_id': line.invoice_id.partner_id and line.invoice_id.partner_id.id or False,                 
             }))

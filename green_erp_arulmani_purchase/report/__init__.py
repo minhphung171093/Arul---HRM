@@ -16,3 +16,5 @@ import pr_history
 import report_mateiral_purchase_value_month
 import tpt_material_issue
 import po_above10lacs
+import purchase_vat_report
+import purchase_cst_report

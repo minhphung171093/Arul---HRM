@@ -87,37 +87,37 @@ class Parser(report_sxw.rml_parse):
         invoice_ids = []
         if product_cate_id:
             sql = '''
-                select id from account_invoice_line where invoice_id in 
-                (select id from account_invoice where date_invoice between '%s' and '%s' and type = 'in_invoice' and purchase_id is not null) 
-                and ed is not null and ed != 0
-                and product_id in (select id from product_product where product_tmpl_id in (select id from product_template where categ_id = %s))
-                '''%(date_from, date_to, product_cate_id[0])
+                 select id from ( SELECT ail.id, ail.quantity*ail.price_unit amt, rank() OVER (PARTITION BY ail.invoice_id order by ail.line_net desc ) as productrank
+                 FROM account_invoice_line ail
+                 inner join account_invoice ai on ail.invoice_id=ai.id
+                 where ai.date_invoice between '%s' and '%s'
+                 and ai.type='in_invoice' and ai.purchase_id is not null
+                 and ail.ed is not null and ail.ed != 0
+                 and ail.product_id in
+                 (select id from product_product where product_tmpl_id in (select id from product_template where categ_id = %s))
+                 )b where b.productrank=1;
+                 '''%(date_from, date_to, product_cate_id[0])
             self.cr.execute(sql)
             invoice_ids = [r[0] for r in self.cr.fetchall()]
         else:
             sql = '''
-                select id from account_invoice_line where invoice_id in 
-                (select id from account_invoice where date_invoice between '%s' and '%s' and type = 'in_invoice' and purchase_id is not null) 
-                and ed is not null and ed != 0
-                and product_id in (select id from product_product where product_tmpl_id in (select id from product_template where categ_id in (select id from product_category where cate_name in ('raw','spares'))))
-                '''%(date_from, date_to)
+                 select id from (SELECT ail.id, ail.quantity*ail.price_unit amt, rank() OVER (PARTITION BY ail.invoice_id order by ail.line_net desc ) as productrank
+                 FROM account_invoice_line ail
+                 inner join account_invoice ai on ail.invoice_id=ai.id
+                 where ai.date_invoice between '%s' and '%s'
+                 and ai.type='in_invoice' and ai.purchase_id is not null
+                 and ail.ed is not null and ail.ed != 0
+                 and ail.product_id in
+                 (select id from product_product where product_tmpl_id in (select id from product_template where categ_id = %s))
+                 (select id from product_category where cate_name in ('raw','spares'))))
+                 )b where b.productrank=1;
+                 '''%(date_from, date_to)
             self.cr.execute(sql)
             invoice_ids = [r[0] for r in self.cr.fetchall()]
         return invoice_obj.browse(self.cr,self.uid,invoice_ids)
     
     def get_document_type(self, document_type):
-        if document_type == 'raw':
-            return "VV Raw material PO"
-        if document_type == 'asset':
-            return "VV Capital PO"
-        if document_type == 'standard':
-            return "VV Standard PO"
-        if document_type == 'return':
-            return "VV Return PO"
-        if document_type == 'service':
-            return "VV Service PO"
-        if document_type == 'out':
-            return "VV Out Service PO"
+            return "Invoice"
         
     #YuVi
     def get_cate_type(self):

@@ -16,4 +16,6 @@ import purchase_indent_line_form
 import pr_history_form
 import mateiral_purchase_value_month
 import po_above10lacs
+import purchase_vat_wizard
+import purchase_cst_wizard
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

@@ -35,7 +35,5 @@
             id="menu_action_po_above10lacs"
             parent="stock.menu_stock_warehouse_mgmt" sequence="65"/>
                
-	 
-	    
     </data>
 </openerp>
