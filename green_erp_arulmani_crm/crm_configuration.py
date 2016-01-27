@@ -155,7 +155,7 @@ class res_partner(osv.osv):
         #'is_approved': fields.boolean('Is Approved'),
         #tien
         'disapprove': fields.boolean('Approved'), 
-        'credit_limit_group_id': fields.many2one('credit.limit.group','Credit Limit Group'),
+        #'credit_limit_group_id': fields.many2one('credit.limit.group','Credit Limit Group'),
     }
     _defaults = {
         'is_company': True,
