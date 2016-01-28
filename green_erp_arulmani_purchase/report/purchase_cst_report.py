@@ -112,9 +112,9 @@ class Parser(report_sxw.rml_parse):
             join purchase_order_taxe pot on pl.id=pot.ord_id
             join account_tax at on pot.tax_id=at.id
             where p.date_order::date between '%s' and '%s' and p.state='done' 
-            and at.is_cst_report=true)a group by a.Rate,a.supplier,a.tinno,a.commoditycode,a.city,a.po_no,a.po_date,
+            and at.description like 'CST%s(P)')a group by a.Rate,a.supplier,a.tinno,a.commoditycode,a.city,a.po_no,a.po_date,
             a.invoiceno,a.invoicedate,a.descriptions order by a.supplier
-        '''%(date_from, date_to)
+        '''%(date_from, date_to, '%')
         self.cr.execute(sql);
         res = []
         s_no = 1

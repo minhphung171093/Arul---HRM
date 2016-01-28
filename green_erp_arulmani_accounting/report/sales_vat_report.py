@@ -89,8 +89,8 @@ class Parser(report_sxw.rml_parse):
             join product_category pc on pc.cate_name=pr.cate_name
             join account_tax at on s.sale_tax_id=at.id
             where s.date_order::date between '%s' and '%s' and s.state='done' 
-            and at.is_sales_vat_report=true order by customer
-        '''%(date_from, date_to)
+            and at.description like 'VAT%s(S)' order by customer
+        '''%(date_from, date_to, '%')
         self.cr.execute(sql);
         res = []
         s_no = 1

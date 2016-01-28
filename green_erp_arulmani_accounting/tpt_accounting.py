@@ -7472,9 +7472,7 @@ class account_tax(osv.osv):
         'section': fields.char('Section', size = 20),
         'is_stax_report':fields.boolean('Is STax Report Applicable'), #TPT-Y on 16/10/2015
         'is_swachh_bharat':fields.boolean('Is Swachh Bharat Cess Applicable'), #TPT-BM on 12/01/2016 - SWACHH BHARAT CESS
-        'is_vat_report':fields.boolean('Is VAT Report Applicable'), #TPT vinoth on 18/01/2016
-        'is_cst_report':fields.boolean('Is CST Report Applicable'), #TPT vinoth on 22/01/2016
-        #'is_sales_vat_report':fields.boolean('Is Sales VAT Report Applicable'), #TPT vinoth on 27/01/2016
+        'is_vat_report':fields.boolean('Is VAT Report Applicable'), #TPT vinoth on 18/01/2016 
         }
     _default = {
        'is_stax_report':False,
