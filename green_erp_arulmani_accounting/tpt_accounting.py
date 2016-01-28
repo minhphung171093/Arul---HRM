@@ -1891,8 +1891,12 @@ class account_invoice(osv.osv):
                     if produce:
                         total_cost += float(produce['produce_cost'])
                         avg_cost = hand_quantity and total_cost/hand_quantity or 0
-                    
-                    invoice_line_amt = line.quantity * line.price_unit
+                    base = 0.0
+                    if line.fright_fi_type == '2':
+                        base = round(line.fright,2)
+                    else:
+                        base = round(line.fright*line.quantity,2)
+                    invoice_line_amt = base
                     total_cost += invoice_line_amt
                     if hand_quantity>0:
                         avg_cost = total_cost/hand_quantity
