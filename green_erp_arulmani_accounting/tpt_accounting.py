@@ -1799,6 +1799,7 @@ class account_invoice(osv.osv):
                                 except:
                                     pass
 #             move_obj.post(cr, uid, [move_id], context=ctx)
+            
         self._log_event(cr, uid, ids)
         return True
      
@@ -1922,6 +1923,9 @@ class account_invoice_line(osv.osv):
                 SELECT purchase_acc_id FROM product_product WHERE id=%s and purchase_acc_id is not null
             '''%(t['product_id'])
             cr.execute(sql)
+            print "test1"
+            print t['product_id']
+            prd_obj.write(cr,uid, [t['product_id']], {'track_incoming':True}, context)
             purchase_acc_id = cr.dictfetchone()
             if not purchase_acc_id:
                 raise osv.except_osv(_('Warning!'),_('Account is not null, please configure it in Material master !'))
@@ -3891,7 +3895,7 @@ class account_invoice_line(osv.osv):
     #                 'account_id': sale_acc_id and sale_acc_id['sale_acc_id'] or False,
                     'account_id': account,
                     'account_analytic_id': t['account_analytic_id'],
-                })
+                })           
         return res
     
     def move_line_fi_debit(self, cr, uid, invoice_id):
@@ -7470,12 +7474,13 @@ class account_tax(osv.osv):
         'is_swachh_bharat':fields.boolean('Is Swachh Bharat Cess Applicable'), #TPT-BM on 12/01/2016 - SWACHH BHARAT CESS
         'is_vat_report':fields.boolean('Is VAT Report Applicable'), #TPT vinoth on 18/01/2016
         'is_cst_report':fields.boolean('Is CST Report Applicable'), #TPT vinoth on 22/01/2016
+        #'is_sales_vat_report':fields.boolean('Is Sales VAT Report Applicable'), #TPT vinoth on 27/01/2016
         }
     _default = {
        'is_stax_report':False,
        'is_swachh_bharat':False,
        'is_vat_report':False,
-       'is_cst_report':False,
+       'is_cst_report':False
     }
     
 account_tax()

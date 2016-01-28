@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- TPT - By P.Vinothkumar  - on 23/01/2016
+Sales  VAT Report : Display the Sales  VAT  values for the selected date range -->
+<openerp>    
+ <data>
+	      
+	      <record id="rpt_salesvatreport" model="ir.actions.report.xml">
+	        <field name="name">sales_vat_report</field>
+	        <field name="type">ir.actions.report.xml</field>
+	        <field name="model">sales.vatreport</field>
+	        <field name="report_name">rpt_salesvatreport</field>
+	        <field name="report_type">aeroo</field>
+	        <field name="in_format">oo-ods</field>
+	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-xls'),('compatible_types','=','oo-ods')]"/>
+	        <field name="parser_loc">green_erp_arulmani_accounting/report/sales_vat_report.py</field>
+	        <field name="report_rml">green_erp_arulmani_accounting/report/sales_vatreport.ods</field>
+	        <field name="parser_state">loc</field>
+	        <field name="tml_source">file</field>
+	        <field name="attachment_use" eval="0"/>
+    	</record>		    
+		
+		<report 
+			auto="True" 
+			menu="False"
+			id="rpt_salesvatreport" 
+			model="sales.vatreport" 
+			name="rpt_salesvatreport"
+	        string="Sales VAT Report"
+	       rml="green_erp_arulmani_accounting/report/sales_vatreport.ods"/>
+    </data>
+</openerp>

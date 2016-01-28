@@ -20,3 +20,4 @@ import amount_to_text_vn
 import customer_ageing_report
 import customer_ageing_group
 import project_expenditure_report
+import sales_vat_report
