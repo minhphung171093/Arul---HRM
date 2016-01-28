@@ -19,4 +19,5 @@ import alert_form
 import customer_ageing_report
 import customer_ageing_group
 import project_expenditure_report
+import sales_vat_wizard
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

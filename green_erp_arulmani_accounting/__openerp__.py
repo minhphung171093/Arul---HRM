@@ -73,6 +73,8 @@
         'report/customer_ageing_group.xml',
         'wizard/project_expenditure_report.xml',
         'report/project_expenditure_report.xml',
+        'wizard/sales_vat_wizard.xml',
+        'report/sales_vat_report.xml',
     ],
     'css' : [
         "static/src/css/base.css",

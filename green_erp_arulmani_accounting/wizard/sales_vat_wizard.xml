@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- TPT - By P.Vinothkumar  - on 23/01/2016
+Sales VAT Report : Display the  VAT values for the selected date range -->
+<openerp>
+    <data>   
+        <record id="sales_vat_report_wizard" model="ir.ui.view">
+            <field name="name">sales.vat.report</field>
+            <field name="model">sales.vatreport</field>
+            <field name="arch" type="xml">
+                <form string="Sales VAT Report" version="7.0">
+                	<group col='4' colspan='2'>
+	                    <field name='date_from'/>   
+	                    <field name='date_to'/>                 
+                 	</group>
+                    <footer>
+                        <button name="print_report" string="Print" type="object" class="oe_highlight" />                    
+                        <button string="Cancel" class="oe_link" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>        
+        <record id="action_sales_vatreport" model="ir.actions.act_window">
+            <field name="name">Sales VAT Report</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">sales.vatreport</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+        </record>
+        
+      <menuitem id="menu_tpt_accounting" name="Accounting" parent="account.menu_finance" sequence="0" groups="green_erp_arulmani_sale.group_vvti_unit_account"/>
+        <menuitem action="action_sales_vatreport"
+            id="menu_action_sales_vatreport"
+            parent="account.menu_finance_reporting" sequence="18"/>
+    </data>
+</openerp>
+
