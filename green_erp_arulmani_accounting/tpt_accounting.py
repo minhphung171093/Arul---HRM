@@ -1894,9 +1894,9 @@ class account_invoice(osv.osv):
                         avg_cost = hand_quantity and total_cost/hand_quantity or 0
                     base = 0.0
                     if line.fright_fi_type == '2':
-                        base = round(line.fright,2)
+                        base = round(line.fright)
                     else:
-                        base = round(line.fright*line.quantity,2)
+                        base = round(line.fright*line.quantity)
                     invoice_line_amt = base
                     total_cost += invoice_line_amt
                     if hand_quantity>0:
