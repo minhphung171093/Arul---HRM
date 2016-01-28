@@ -4992,10 +4992,10 @@ class arul_hr_employee_leave_details(osv.osv):
                     perm_od_count = cr.fetchone()
                     perm_od_count = perm_od_count[0]
                     #No Punch Entry, Leave Entry, OD Entry
-                    if punch_count == 0 and leave_count == 0 and perm_od_count == 0:
-                        #print emp.employee_id
-                        #print shd
-                        print "test"
+#                     if punch_count == 0 and leave_count == 0 and perm_od_count == 0:
+#                         #print emp.employee_id
+#                         #print shd
+#                         print "test"
                         
                     
                     
