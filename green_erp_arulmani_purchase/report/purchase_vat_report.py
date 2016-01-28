@@ -68,13 +68,12 @@ class Parser(report_sxw.rml_parse):
         date_from = wizard_data['date_from']
         date_to = wizard_data['date_to']
         sql='''
-            select a.supplier,a.tinno,a.commoditycode,a.invoiceno,a.invoicedate,a.rate,
+            select a.supplier, a.tinno, a.commoditycode, a.invoiceno, a.invoicedate, a.rate,
             sum(a.ed+a.pf+a.basicamt) as purchase_value,
-            sum(a.ed+a.pf+a.basicamt*a.amount/100) as vat_paid,
-            a.poname,
+            sum(a.ed+a.pf+a.basicamt*a.amount/100) as vat_paid, a.poname,
            'B' as category
             from
-    (select 
+            (select 
             rp.vendor_code||'-'||rp.name as supplier,
             rp.tin as tinno,
             at.description as rate,
