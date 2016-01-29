@@ -129,16 +129,30 @@ class Parser(report_sxw.rml_parse):
             return ''
         
   
-    # TPT-Y, fix-3127 on 31Aug2015
-    def get_voucher(self,move_id):      
-            sql = '''
-                select cost_center_id from account_invoice where move_id =%s
-            '''%(move_id)
-            self.cr.execute(sql)
-            p = self.cr.fetchone()
-            cost_center = ''
-            if p and p[0]:
-                cost_center = self.pool.get('tpt.cost.center').browse(self.cr,self.uid, p[0]).name
+    #===========================================================================
+    # # TPT-Y, fix-3127 on 31Aug2015
+    # def get_voucher(self,move_id):      
+    #         sql = '''
+    #             select cost_center_id from account_invoice where move_id =%s
+    #         '''%(move_id)
+    #         self.cr.execute(sql)
+    #         p = self.cr.fetchone()
+    #         cost_center = ''
+    #         if p and p[0]:
+    #             cost_center = self.pool.get('tpt.cost.center').browse(self.cr,self.uid, p[0]).name
+    #         return cost_center
+    #===========================================================================
+    # TPT-P.vinothkumar, on 29/01/2016
+    def get_voucher(self,move_id,doc_type):
+        if doc_type == 'sup_inv' or doc_type == 'sup_pay' or doc_type == 'ser_inv' :
+          sql='''select cost_center_id from account_invoice where move_id =%s'''%(move_id.id)
+        else: 
+           sql='''select cost_center_id from account_voucher where move_id =%s'''%(move_id.id)    
+        self.cr.execute(sql)
+        p = self.cr.fetchone()
+        cost_center = ''
+        if p and p[0]:
+            cost_center = self.pool.get('tpt.cost.center').browse(self.cr,self.uid, p[0]).name
             return cost_center
     
     def get_date_from(self):
