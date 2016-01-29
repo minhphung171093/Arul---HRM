@@ -1375,8 +1375,10 @@ class arul_hr_payroll_executions(osv.osv):
                 '''%(str(line.month),line.year, p.id)
                 cr.execute(sql)
                 
+                if p.id in [524, 576]:
+                    print "in"
                 skip_esi_flag = False
-                if int(line.month)-1 == 11:
+                if int(line.month) == 1:#int(line.month)-1 == 11:
                     month = 12
                     year = int(line.year) - 1
                 else:
