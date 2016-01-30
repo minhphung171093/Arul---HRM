@@ -4399,27 +4399,7 @@ class arul_hr_employee_leave_details(osv.osv):
                         raise osv.except_osv(_('Warning!'),_('Payroll were already exists, not allowed to edit again!'))
         return new_write        
     
-    def create(self, cr, uid, vals, context=None):       
-
-
-        
-#         per_onduty_obj = self.pool.get('arul.hr.permission.onduty')  
-#         sql = '''
-#             select * from arul_hr_permission_onduty where employee_id = %s and date between '%s' and '%s' and approval = True
-#         '''%(vals['employee_id'], vals['date_from'], vals['date_to'])   
-#         cr.execute(sql)
-#         employee_dates = [r[0] for r in cr.fetchall()]
-#         if employee_dates:
-#             raise osv.except_osv(_('Warning!'),_('The Leave Day do not suitable'))
-#          
-#         sql = '''
-#             select * from arul_hr_audit_shift_time where employee_id = %s and work_date between '%s' and '%s'
-#         '''%(vals['employee_id'], vals['date_from'], vals['date_to'])   
-#         cr.execute(sql)
-#         employee_work_dates = [r[0] for r in cr.fetchall()]
-#         if employee_work_dates:
-#             raise osv.except_osv(_('Warning!'),_('The Leave Day do not suitable'))
-                
+    def create(self, cr, uid, vals, context=None):                    
         #Trong them
         new_id = super(arul_hr_employee_leave_details, self).create(cr, uid, vals, context)
         new = self.browse(cr, uid, new_id)
@@ -4456,7 +4436,19 @@ class arul_hr_employee_leave_details(osv.osv):
         cr.execute(sql)
         lop_esi =  cr.fetchone()
         tpt_lop_esi = lop_esi[0]
-        ##
+        
+        #TPT START- By Rakesh Kumar - ON 29/01/2016 - Fix For Duplicate Leave Entries
+        if vals['employee_id']:
+            if vals['date_from'] == vals['date_to']:
+                sql = '''
+                         select count(*) from arul_hr_employee_leave_details where employee_id=%s and ('%s' between date_from and date_to)
+                        and ('%s' between date_from and date_to)
+                    '''%(vals['employee_id'],vals['date_from'],vals['date_to'])
+                cr.execute(sql)
+                k = cr.fetchone()   
+                if k[0]> 0:
+                  raise osv.except_osv(_('Warning!'),_('Leave Entry were already created for this Date!'))                           
+        ## TPT END
         DATETIME_FORMAT = "%Y-%m-%d"
         from_dt = datetime.datetime.strptime(vals['date_from'], DATETIME_FORMAT)
         to_dt = datetime.datetime.strptime(vals['date_to'], DATETIME_FORMAT)
@@ -4468,7 +4460,7 @@ class arul_hr_employee_leave_details(osv.osv):
             if tpt_lop_esi>=26:  raise osv.except_osv(_('Warning!'),_('Leave Count exceeds 26 days'))
             if tpt_lop_esi+timedelta>=26: raise osv.except_osv(_('Warning!'),_('Leave Count exceeds 26 days!.'))
         ##
-        #TPT START-By BalamuruganPurushothaman ON 14/03/2015-If CL/SL/C.OFF is taken a Half Day,
+        #TPT START-By BalamuruganPurushothaman - ON 14/03/2015 - If CL/SL/C.OFF is taken a Half Day,
         #then system would not allow the same for next Half a day Except ESI/LOP
         if vals['haft_day_leave']:
             if vals['date_from'] == vals['date_to']:
