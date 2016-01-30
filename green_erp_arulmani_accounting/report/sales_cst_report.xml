@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- TPT - By P.Vinothkumar  - on 29/01/2016
+Sales CST Report : Display the Sales  CST  values for the selected date range -->
+<openerp>    
+ <data>
+	      
+	      <record id="rpt_salescstreport" model="ir.actions.report.xml">
+	        <field name="name">sales_cst_report</field>
+	        <field name="type">ir.actions.report.xml</field>
+	        <field name="model">sales.cstreport</field>
+	        <field name="report_name">rpt_salescstreport</field>
+	        <field name="report_type">aeroo</field>
+	        <field name="in_format">oo-ods</field>
+	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-xls'),('compatible_types','=','oo-ods')]"/>
+	        <field name="parser_loc">green_erp_arulmani_accounting/report/sales_cst_report.py</field>
+	        <field name="report_rml">green_erp_arulmani_accounting/report/sales_cstreport.ods</field>
+	        <field name="parser_state">loc</field>
+	        <field name="tml_source">file</field>
+	        <field name="attachment_use" eval="0"/>
+    	</record>		    
+		
+		<report 
+			auto="True" 
+			menu="False"
+			id="rpt_salescstreport" 
+			model="sales.cstreport" 
+			name="rpt_salescstreport"
+	        string="Sales CST Report"
+	       rml="green_erp_arulmani_accounting/report/sales_cstreport.ods"/>
+    </data>
+</openerp>

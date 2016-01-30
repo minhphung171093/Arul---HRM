@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """ 
-TPT - By P.Vinothkumar  - on 23/01/2016
-Sales VAT Report : Display the Sales VAT  values for the selected date range
+TPT - By P.Vinothkumar  - on 29/01/2016
+Sales CST Report : Display the Sales CST  values for the selected date range
 """
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
@@ -12,8 +12,8 @@ import openerp.tools
 from openerp.tools import DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_DATETIME_FORMAT, float_compare
 DATE_FORMAT = "%Y-%m-%d"
 
-class sales_vatreport(osv.osv_memory):
-    _name = "sales.vatreport"
+class sales_cstreport(osv.osv_memory):
+    _name = "sales.cstreport"
     _columns = {
                 'date_from': fields.date('From Date', required = True),
                 'date_to': fields.date('To Date', required = True),   
@@ -23,11 +23,11 @@ class sales_vatreport(osv.osv_memory):
         if context is None:
             context = {}
         datas = {'ids': context.get('active_ids', [])}
-        datas['model'] = 'sales.vatreport'
+        datas['model'] = 'sales.cstreport'
         datas['form'] = self.read(cr, uid, ids)[0]
         datas['form'].update({'active_id':context.get('active_ids',False)})
-        return {'type': 'ir.actions.report.xml', 'report_name': 'rpt_salesvatreport', 'datas': datas}
-     
-     
-sales_vatreport()
+        return {'type': 'ir.actions.report.xml', 'report_name': 'rpt_salescstreport', 'datas': datas}
+    
+    
+sales_cstreport()
 
