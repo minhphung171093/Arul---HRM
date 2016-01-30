@@ -21,3 +21,4 @@ import customer_ageing_report
 import customer_ageing_group
 import project_expenditure_report
 import sales_vat_report
+import sales_cst_report

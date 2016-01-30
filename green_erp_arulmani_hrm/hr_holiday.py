@@ -4446,7 +4446,7 @@ class arul_hr_employee_leave_details(osv.osv):
                     '''%(vals['employee_id'],vals['date_from'],vals['date_to'])
                 cr.execute(sql)
                 k = cr.fetchone()   
-                if k[0]> 0:
+                if k and k[0]-1> 0:
                   raise osv.except_osv(_('Warning!'),_('Leave Entry were already created for this Date!'))                           
         ## TPT END
         DATETIME_FORMAT = "%Y-%m-%d"
