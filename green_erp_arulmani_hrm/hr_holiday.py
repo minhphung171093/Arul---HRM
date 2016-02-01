@@ -4714,8 +4714,8 @@ class arul_hr_employee_leave_details(osv.osv):
                 timedelta = timedelta-0.5
             ##
             if emp_ids.employee_category_id.code=='S3':
-                if tpt_lop_esi>=26:  raise osv.except_osv(_('Warning!'),_('Leave Count exceeds 26 days!'))
-                if tpt_lop_esi+timedelta>=26: raise osv.except_osv(_('Warning!'),_('Leave Count exceeds 26 days!.'))
+                if tpt_lop_esi>26:  raise osv.except_osv(_('Warning!'),_('Leave Count exceeds 26 days!'))
+                if tpt_lop_esi+timedelta>26: raise osv.except_osv(_('Warning!'),_('Leave Count exceeds 26 days!.'))
             ##
              #Trong them
             if line.date_from: 
