@@ -3517,7 +3517,8 @@ class arul_hr_audit_shift_time(osv.osv):
                 #raise osv.except_osv(_('Warning! LEN1:'),_('test'))         
                 
                 sql = '''
-                        SELECT min(start_time), max(end_time),case when sum(time_total)!=0 then sum(time_total) else 0 end time_total FROM arul_hr_permission_onduty WHERE non_availability_type_id='on_duty' 
+                        SELECT min(start_time), max(end_time),case when sum(time_total)!=0 then sum(time_total) else 0 end time_total, 
+                        case when sum(total_shift_worked)!=0 then sum(total_shift_worked) else 0 end total_shift_worked FROM arul_hr_permission_onduty WHERE non_availability_type_id='on_duty' 
                         AND TO_CHAR(from_date,'YYYY-MM-DD') = ('%s') and employee_id =%s and state='done'
                         '''%(line.work_date,line.employee_id.id)
                 od = cr.execute(sql)
@@ -3525,6 +3526,7 @@ class arul_hr_audit_shift_time(osv.osv):
                     od_in=od[0]
                     od_out=od[1] 
                     od_total=od[2] 
+                    total_shift_worked=od[3] 
 
                 ###
                 if perm_in>0 and od_in>0:
@@ -3559,6 +3561,9 @@ class arul_hr_audit_shift_time(osv.osv):
                             shifts_out_time = [shift_out,od_out]
                             start_time = max(shifts_in_time)
                             end_time = max(shifts_out_time)
+                            if total_shift_worked >=1:#TPT-BM-ON 02/02/2016
+                                start_time = shift_in
+                                end_time = shift_out
                         elif perm_in>0 and perm_in>20:
                             shifts_in_time = [shift_in,perm_in]
                             shifts_out_time = [shift_out,perm_out]
