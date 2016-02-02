@@ -3500,22 +3500,14 @@ class arul_hr_audit_shift_time(osv.osv):
                     non_availability_type_id='permission' 
                         AND TO_CHAR(date,'YYYY-MM-DD') = ('%s') and employee_id =%s and approval='t'
                         '''%(line.work_date,line.employee_id.id)
-                perm_temp = cr.execute(sql)
-                #if perm_temp:
-                #perm =  cr.fetchone()
-               
+                perm_temp = cr.execute(sql)             
                 for perm in cr.fetchall():
                     perm_in=perm[0]
                     perm_out=perm[1]
                     perm_total=perm[2]
                     perm_in_date=perm[3]
                     perm_out_date=perm[4]
-                    
-                    
-                        ##end for loop
                 ##END PERMISSIOn    
-                #raise osv.except_osv(_('Warning! LEN1:'),_('test'))         
-                
                 sql = '''
                         SELECT min(start_time), max(end_time),case when sum(time_total)!=0 then sum(time_total) else 0 end time_total, 
                         case when sum(total_shift_worked)!=0 then sum(total_shift_worked) else 0 end total_shift_worked FROM arul_hr_permission_onduty WHERE non_availability_type_id='on_duty' 
@@ -3527,7 +3519,6 @@ class arul_hr_audit_shift_time(osv.osv):
                     od_out=od[1] 
                     od_total=od[2] 
                     total_shift_worked=od[3] 
-
                 ###
                 if perm_in>0 and od_in>0:
                     shifts_in_time = [shift_in,perm_in,od_in]
@@ -3547,7 +3538,6 @@ class arul_hr_audit_shift_time(osv.osv):
                 else:
                     start_time = shift_in
                     end_time = shift_out
-                
                 ###
                 if line.punch_in_date!=line.punch_out_date:
                     if line.actual_work_shift_id.code=='C':
@@ -3644,8 +3634,6 @@ class arul_hr_audit_shift_time(osv.osv):
                                 start_time = min(shifts_in_time)
                                 end_time = min(shifts_out_time)
                 ###
-                    ##
-                ###
                 recording_hrs = 0     
                 sql = '''
                              select id,a_shift,g1_shift,g2_shift,b_shift,c_shift,shift_count,time_total from tpt_work_shift where 
@@ -3654,7 +3642,6 @@ class arul_hr_audit_shift_time(osv.osv):
                             (%s between min_end_time and max_end_time)
                             '''%(start_time,end_time)
                 cr.execute(sql)
-                #raise osv.except_osv(_('Warning!%s'),_(sql)) 
                 for k in cr.fetchall():
                         id=k[0]
                         a_shift=k[1]
@@ -3705,10 +3692,7 @@ class arul_hr_audit_shift_time(osv.osv):
                 if line.diff_day and (shift_in <= shift_out):
                     time_total += 24
                 
-                time_total = time_total + float(str(perm_total)) + float(str(od_total))
-                
-                
-                
+                time_total = time_total + float(str(perm_total)) + float(str(od_total))               
                 if time_total < recording_hrs:
                     shift_total = datetime.timedelta(hours=time_total) 
                     recording_hrs = datetime.timedelta(hours=recording_hrs) 
@@ -3760,22 +3744,18 @@ class arul_hr_audit_shift_time(osv.osv):
                               'actual_work_shift_id':line.actual_work_shift_id.id,
                               'in_time':line.in_time,
                               'out_time':line.out_time,
-                              
-                              #'total_hours':total_hrs,
                               'a_shift_count':a_shift, #a_shift_count,
                               'g1_shift_count':g1_shift,
                               'g2_shift_count':g2_shift,
                               'b_shift_count':b_shift,
                               'c_shift_count':c_shift,
                               'total_shift_worked':shift_count,
-                              
                               'a_shift_count1':a_shift,
                               'g1_shift_count1':g1_shift,
                               'g2_shift_count1':g2_shift,
                               'b_shift_count1':b_shift,
                               'c_shift_count1':c_shift,
                               'total_shift_worked1':shift_count,
-                              
                               'approval':1,
                               'diff_day': line.diff_day,
                                 }
@@ -3788,14 +3768,12 @@ class arul_hr_audit_shift_time(osv.osv):
                               'actual_work_shift_id':line.actual_work_shift_id.id,
                               'in_time':line.in_time,
                               'out_time':line.out_time,
-                        
                               'a_shift_count1':a_shift,
                               'g1_shift_count1':g1_shift,
                               'g2_shift_count1':g2_shift,
                               'b_shift_count1':b_shift,
                               'c_shift_count1':c_shift,
                               'total_shift_worked1':shift_count,
-                              
                               'approval':1,
                               'diff_day': line.diff_day,
                               } 
