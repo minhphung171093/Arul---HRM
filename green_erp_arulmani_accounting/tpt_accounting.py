@@ -4926,7 +4926,7 @@ class account_voucher(osv.osv):
                     total_debit += round(line.amount,2)
                 if line.type=='cr':
                     total_credit += round(line.amount,2) 
-            if total_debit != total_credit:
+            if round(total_debit,2) != round(total_credit,2):
                 raise osv.except_osv(_('Warning!'),
                     _('Total Debit must be equal Total Credit!'))
 #         elif context.get('tpt_remove_dr_cr',False):
@@ -4971,7 +4971,7 @@ class account_voucher(osv.osv):
                         total_debit += round(line.amount,2)
                     if line.type=='cr':
                         total_credit += round(line.amount,2) 
-                if total_debit != total_credit:
+                if round(total_debit,2) != round(total_credit,2):
                     raise osv.except_osv(_('Warning!'),
                         _('Total Debit must be equal Total Credit!'))
 #             else:
