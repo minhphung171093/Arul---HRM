@@ -2027,9 +2027,9 @@ class account_invoice_line(osv.osv):
                 SELECT purchase_acc_id FROM product_product WHERE id=%s and purchase_acc_id is not null
             '''%(t['product_id'])
             cr.execute(sql)
-            print "test1"
-            print t['product_id']
-            prd_obj.write(cr,uid, [t['product_id']], {'track_incoming':True}, context)
+            #print "test1"
+            #print t['product_id']
+            #prd_obj.write(cr,uid, [t['product_id']], {'track_incoming':True}, context)
             purchase_acc_id = cr.dictfetchone()
             if not purchase_acc_id:
                 raise osv.except_osv(_('Warning!'),_('Account is not null, please configure it in Material master !'))
