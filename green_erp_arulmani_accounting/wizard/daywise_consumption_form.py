@@ -136,9 +136,9 @@ class day_wise_register(osv.osv_memory):
             date_from = cb.date_from
             date_to = cb.date_to      
             raw_mat=cb.product_id.id
-            print raw_mat
+            #print raw_mat
             norms= cb.name.id
-            print norms
+            #print norms
             res = []
             #date_from += datetime.timedelta(1)
             #datenext = wizard_data['date_from'] + 1

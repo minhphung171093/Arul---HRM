@@ -2524,11 +2524,7 @@ class purchase_order(osv.osv):
             sql = '''
             update tpt_purchase_quotation set state='cancel' where id=%s
             '''%picking.quotation_no.id
-            cr.execute(sql)
-            sql = '''
-            update tpt_purchase_quotation_line set state='cancel' where purchase_quotation_id=%s
-            '''%picking.quotation_no.id
-            #cr.execute(sql)
+            cr.execute(sql)           
             #RFQ
             sql = '''
             update tpt_request_for_quotation set state='cancel' where id=%s

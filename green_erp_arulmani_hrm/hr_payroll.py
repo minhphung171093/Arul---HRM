@@ -1374,9 +1374,7 @@ class arul_hr_payroll_executions(osv.osv):
                 delete from tpt_skip_esi where month = '%s' and year=%s and employee_id=%s
                 '''%(str(line.month),line.year, p.id)
                 cr.execute(sql)
-                
-                if p.id in [524, 576]:
-                    print "in"
+                                
                 skip_esi_flag = False
                 if int(line.month) == 1:#int(line.month)-1 == 11:
                     month = 12
