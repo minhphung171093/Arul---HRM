@@ -701,10 +701,6 @@
 				<xpath expr="//form/header/button[@name='purchase_confirm']" position="replace">
 					
 					<button name="print_quotation" states="md" string="Print PO" type="object"  class="oe_highlight"/>
-					<!-- <button name="tpt_close_po" string="Close PO1" type="object"  class="oe_highlight"/>
-					<button name="close_po_2" 
-					states="gm,md" string="Close PO2" class="oe_highlight"/>
-					 -->
 					<button name="purchase_draft_head" states="draft" string="Purchase Head Approval" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin,green_erp_arulmani_purchase.group_vvti_purchase_mgr"/>
 					<button name="purchase_head_gm" states="head" string="GM Approval" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin,green_erp_arulmani_purchase.group_vvti_purchase_gm"/>
 					<!--<button name="purchase_gm_amendement" states="gm" string="Amendement" class="oe_highlight"/>-->
@@ -715,7 +711,7 @@
 					<button name="purchase_md_confirmed" attrs="{'invisible':['|',('state','!=','md'),('po_document_type','=','service')]}" string="Create GRN" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin,green_erp_arulmani_purchase.group_vvti_purchase_store_mgr,green_erp_arulmani_purchase.group_vvti_purchase_store_user"/>
 					 
 					<button name="purchase_close_po" 
-					states="md" string="Close PO" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_user"/>
+					states="md" string="Close PO" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin"/>
 					 
 					<button name="bt_purchase_done" attrs="{'invisible':['|',('state','!=','md'),('po_document_type','!=','service')]}" string="Service Confirm" type='object' class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin,green_erp_arulmani_purchase.group_vvti_purchase_store_mgr,green_erp_arulmani_accounting.group_vvti_accounting_admin,green_erp_arulmani_purchase.group_vvti_purchase_user"/>
 				</xpath>  
