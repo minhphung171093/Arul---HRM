@@ -185,9 +185,13 @@ class Parser(report_sxw.rml_parse):
                 birthday = date.strftime('%d-%m-%Y')
             
             date_of_resignation = ''
+            date_of_leaving = ''
             if emp.date_of_retirement:
                 date = datetime.strptime(emp.date_of_retirement, "%Y-%m-%d")
                 date_of_resignation = date.strftime('%d-%m-%Y')
+            if emp.date_of_resignation:
+                date = datetime.strptime(emp.date_of_resignation, "%Y-%m-%d")
+                date_of_leaving = date.strftime('%d-%m-%Y')
             
             name_last_name =''
             if emp.last_name:
@@ -206,6 +210,7 @@ class Parser(report_sxw.rml_parse):
                     'date_of_wedding': date_of_wedding,
                     'date_of_joining': date_of_joining,
                     'date_of_resignation': date_of_resignation,
+                    'date_of_leaving': date_of_leaving,
                     'designation': emp.job_id.name,
                     'category': emp.employee_category_id.code,
                     'department': emp.department_id.name,
