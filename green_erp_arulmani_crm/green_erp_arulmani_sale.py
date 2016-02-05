@@ -166,7 +166,7 @@ class crm_sale_order(osv.osv):
         return shop_ids[0]
         
     _columns = {
-                'partner_id': fields.many2one('res.partner', 'Customer', readonly=True, states={'draft': [('readonly', False)]}, required=True, change_default=True, select=True, track_visibility='always'),
+                'partner_id': fields.many2one('res.partner', 'Customer', readonly=True, states={'draft': [('readonly', False)]}, required=False, change_default=True, select=True, track_visibility='always'),
                 'name': fields.char('Order Reference', size=64, required=True,
             readonly=True, states={'draft': [('readonly', False)]}, select=True),
                 'lead_id': fields.many2one('crm.lead','Lead',domain="[('type','=','opportunity')]" ,readonly=True),
