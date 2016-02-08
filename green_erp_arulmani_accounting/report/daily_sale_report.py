@@ -150,19 +150,19 @@ class Parser(report_sxw.rml_parse):
         amount = 0
         if 'CST' in tax.name:
             amount = tax.amount
-        return round(amount*untax/100,2)
+        return round(amount*untax/100,0)
     
     def get_vat_tax(self, tax, untax):
         amount = 0
         if 'VAT' in tax.name:
             amount = tax.amount
-        return round(amount*untax/100,2)
+        return round(amount*untax/100,0)
     
     def get_tcs_tax(self, tax, untax):
         amount = 0
         if 'TCS' in tax.name:
             amount = tax.amount
-        return round(amount*untax/100,2)
+        return round(amount*untax/100,0)
     
     def decimal_convert(self, amount):       
             decamount = format(amount, '.3f')

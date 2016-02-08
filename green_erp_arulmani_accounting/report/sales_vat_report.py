@@ -71,7 +71,7 @@ class Parser(report_sxw.rml_parse):
         vat_paid=0.0
         sql='''
             select 
-            rp.customer_code||'-'||rp.name as customer,
+            rp.name as customer,
             rp.tin as tinno,
             case 
             when pc.name='FinishedProduct' then '2001'
@@ -88,7 +88,7 @@ class Parser(report_sxw.rml_parse):
             join product_product pr on pr.id=sl.product_id
             join product_category pc on pc.cate_name=pr.cate_name
             join account_tax at on s.sale_tax_id=at.id
-            where s.date_order::date between '%s' and '%s' and s.state='done' 
+            where ai.date_invoice::date between '%s' and '%s' and s.state='done' 
             and at.description like 'VAT%s(S)' order by customer
         '''%(date_from, date_to, '%')
         self.cr.execute(sql);
