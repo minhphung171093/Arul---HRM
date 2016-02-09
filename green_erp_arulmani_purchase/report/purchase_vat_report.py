@@ -74,7 +74,7 @@ class Parser(report_sxw.rml_parse):
            'B' as category
             from
             (select 
-            rp.vendor_code||'-'||rp.name as supplier,
+            rp.name as supplier,
             rp.tin as tinno,
             at.description as rate,
             pc.name,

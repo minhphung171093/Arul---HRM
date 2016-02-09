@@ -74,7 +74,7 @@ class Parser(report_sxw.rml_parse):
             sum((a.ed+a.pf+a.basicamt) + (a.ed+a.pf+a.basicamt)*a.amount/100) as totalvalue,
            'J' as category,a.descriptions from
             (select 
-            rp.vendor_code||'-'||rp.name as supplier,
+            rp.name as supplier,
             rp.city,
             rp.tin as tinno,
             p.name as po_no,
