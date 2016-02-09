@@ -258,7 +258,8 @@ class Parser(report_sxw.rml_parse):
         for move in get_move_ids:
             debit += move['debit']
             credit += move['credit']      
-        balance = (debit+get_opening_balance) - credit
+        #balance = (debit+get_opening_balance) - credit
+        balance = (debit - credit) # TPT BY RAKESH KUMAR ON 09/02/2016 FOR BALANCE AMOUNT CHANGE
         return balance
         
     #TPT-Y on 22/09/2015
@@ -273,7 +274,8 @@ class Parser(report_sxw.rml_parse):
         debit = 0.0
         for move in get_move_ids:
             debit += move['debit']    
-        return debit+get_opening_balance
+        #return debit+get_opening_balance
+        return debit # TPT BY RAKESH KUMAR ON 09/02/2016 FOR TOTAL AMOUNT CHANGE
         
     #TPT-Y on 22/09/2015   
     def get_opening_balance(self):

@@ -158,7 +158,8 @@ class general_ledger_statement(osv.osv_memory):
             debit = 0.0
             for move in get_move_ids:
                 debit += move['debit']    
-            return debit+get_opening_balance
+            #return debit+get_opening_balance
+            return debit # TPT BY RAKESH KUMAR ON 09/02/2016 FOR TOTAL AMOUNT CHANGE
         
         #TPT-Y on 22/09/2015
         def get_total_balance(get_move_ids, get_opening_balance):
@@ -168,8 +169,9 @@ class general_ledger_statement(osv.osv_memory):
             for move in get_move_ids:
                 debit += move['debit']
                 credit += move['credit']      
-            balance = (debit+get_opening_balance) - credit
-            return balance
+            #balance = (debit+get_opening_balance) - credit
+            balance = (debit - credit) # TPT BY RAKESH KUMAR ON 09/02/2016 FOR BALANCE AMOUNT CHANGE
+            return balance 
         
         #TPT-Y on 22/09/2015
         def get_opening_balance(o):  
