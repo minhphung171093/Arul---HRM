@@ -306,7 +306,7 @@
 				</xpath>
 				
 				<xpath expr="//form/sheet/notebook/page[@string='Invoice Lines']/field/tree/field[@name='name']"  position="after">
-					<field name="product_type" readonly='1'/>
+					<!-- <field name="product_type" readonly='1'/>  TPT-BM-ON 10/02/2016-->
 					<field name="application_id" readonly='1' options="{'create': false, 'create_edit': false}"/>
 				</xpath>
 				
@@ -453,7 +453,7 @@
 		                    <field name="type" invisible="1" on_change="onchange_move_type(type)"/>
 		                    <field name="create_date" invisible="1" groups="base.group_no_one"/>
 		                    <field name="product_id" readonly = "1" context="{'search_pro_by_so':1,'sale_id':parent.sale_id}" on_change="onchange_product_id(product_id,location_id,location_dest_id, False)" options="{'create': false, 'create_edit': false}"/>
-		                    <field name="product_type" readonly = "1" />
+		                    <!-- <field name="product_type" readonly = "1" /> TPT-BM-ON 10/02/2016 -->
             				<field name="application_id" readonly = "1" options="{'create': false, 'create_edit': false}"/>
 		                    <field name="product_qty" readonly = "1" on_change="onchange_quantity(product_id, product_qty, product_uom, product_uos)"/>
 		                    <field name="product_uom" readonly = "1" string="Unit of Measure" groups="product.group_uom" options="{'create': false, 'create_edit': false}"/>

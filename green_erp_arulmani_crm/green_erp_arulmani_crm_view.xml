@@ -328,7 +328,7 @@
                             <field name="lead_line" nolabel='1'>
                             	<tree string="Product Line" editable='top'>
                             		<field name="product_id" context="{'search_cate_name':True }" on_change="onchange_product_id(product_id)" options="{'create': false, 'create_edit': false}" />
-                            		<field name="product_type" />
+                            		<!-- <field name="product_type"/>  TPT-BM-ON-10/02/2016 - TO HIDE PRD TYPE-->
                             		<field name="application_id" domain="[('product_id','=',product_id)]" options="{'create': false, 'create_edit': false}"/>
                             		<field name="month" on_change="onchange_month(month)"/>
                             		<field name="year" on_change="onchange_year(year)"/>
@@ -716,7 +716,7 @@
 	                            <field name="sample_request_line" nolabel='1'>
 	                            	<tree string="Product Line" editable='top'>
 	                            		<field name="product_id" widget="selection" on_change="onchange_product_id(product_id)"/>
-	                            		<field name="product_type"/>
+	                            		<!-- <field name="product_type"/>  TPT-BM-ON 10/02/2016-->
 	                            		<field name="application_id" widget="selection"/>
 	                            		<field name="quantity" />
 	                            		<field name="uom_id" widget="selection"/>
@@ -810,7 +810,7 @@
 	                            <field name="sample_sending_line" nolabel='1'>
 	                            	<tree string="Product Line" editable='top'>
 	                            		<field name="product_id" widget="selection" on_change="onchange_product_id(product_id)"/>
-	                            		<field name="product_type"/>
+	                            		<!-- <field name="product_type"/>  TPT-BM-ON-10/02/2016 - TO HIDE PRD TYPE-->
 	                            		<field name="application_id" widget="selection"/>
 	                            		<field name="quantity" />
 	                            		<field name="uom_id" widget="selection"/>

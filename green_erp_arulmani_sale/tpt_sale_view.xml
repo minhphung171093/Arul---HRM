@@ -81,7 +81,7 @@
 				</xpath>
 			
 				<xpath expr="//form/sheet/notebook/page[@string='Order Lines']/field/tree/field[@name='name']"  position="after">
-					<field name="product_type" />
+					<!-- <field name="product_type" /> TPT-BM-ON 10/02/2016 -->
 					<field name="application_id" options="{'create': false, 'create_edit': false}" />
 				</xpath>
 				
@@ -274,7 +274,7 @@
 									<tree editable='top'>
 									    <field name="product_id" on_change="onchange_product_id(product_id)" options="{'create': false, 'create_edit': false}" domain="[('cate_name','=','finish')]"/>															
 										<field name="description" readonly='1'/>
-										<field name="product_type" readonly='1'/>
+										<!-- <field name="product_type" readonly='1'/>  TPT-BM-ON 10/02/2016-->
 										<field name="application_id" domain="[('product_id','=',product_id)]" attrs="{'required':[('is_fsh_tio2','=',True)]}" options="{'create': false, 'create_edit': false}"/>
 										<field name="is_fsh_tio2" invisible='1'/> 
 										<field name="product_uom_qty" />
@@ -434,7 +434,7 @@
 								<field name="product_information_line" nolabel='1'>
 									<tree editable='top'>
 										<field name="product_id" widget = "selection" on_change="onchange_product_id(product_id)" options="{'create': false, 'create_edit': false}"/>
-										<field name="product_type" />
+										<!-- <field name="product_type" />  -->
 										<field name="application_id" options="{'create': false, 'create_edit': false}"/>
 										<field name="product_uom_qty" />
 										<field name="uom_po_id" edit='false' options="{'create': false, 'create_edit': false}"/>
@@ -844,7 +844,7 @@
 	                            <field name="batch_allotment_line" nolabel='1' attrs="{'readonly':[('state','in',('cancel','confirm'))]}">
 	                            	<tree editable='bottom'>
 	                            		<field name="product_id" on_change="onchange_product_id(product_id,parent.batch_request_id)" domain="[('track_production','=','True'),('track_incoming','=','True'),('track_outgoing','=','True')]" context="{'search_batch_request':True,'batch_request_id':parent.batch_request_id}" options="{'create': false, 'create_edit': false}"/>
-										<field name="product_type" />
+										<!-- <field name="product_type" />  -->
 										<field name="application_id" options="{'create': false, 'create_edit': false}"/>
 										<field name="product_uom_qty"/>
 										<field name="uom_po_id" edit='false' options="{'create': false, 'create_edit': false}"/>
