@@ -1387,8 +1387,8 @@ class tpt_blanket_order(osv.osv):
                          })
         new_id = super(tpt_blanket_order, self).create(cr, uid, vals, context=context)
         blanket = self.browse(cr, uid, new_id)
-        if not blanket.blank_order_line:
-            raise osv.except_osv(_('Warning!'),_('You can not create a blanket order without blanket order lines!'))
+#         if not blanket.blank_order_line:
+#             raise osv.except_osv(_('Warning!'),_('You can not create a blanket order without blanket order lines!'))
         con_ids = []
         for con_line in blanket.customer_id.consignee_line:
             con_ids.append(con_line.id)

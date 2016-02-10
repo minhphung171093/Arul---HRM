@@ -582,7 +582,7 @@ class crm_sample_request_line(osv.osv):
         'sample_request_id': fields.many2one('crm.sample.request','Sample Request', ondelete='cascade'),
         'product_id': fields.many2one('product.product','Product',required=True),
         'quantity': fields.integer('Quantity',required=True),
-        'product_type':fields.selection([('rutile','Rutile'),('anatase','Anatase')],'Product Type',required=True),
+        'product_type':fields.selection([('rutile','Rutile'),('anatase','Anatase')],'Product Type',required=False),
         'uom_id': fields.many2one('product.uom','UOM'),
         'application_id': fields.many2one('crm.application','Application', ondelete='restrict'),
             }
@@ -705,7 +705,7 @@ class crm_sample_sending_line(osv.osv):
         'sample_sending_id': fields.many2one('crm.sample.sending','Sample Sending', ondelete='cascade'),
         'product_id': fields.many2one('product.product','Product',required=True),
         'quantity': fields.integer('Quantity',required=True),
-        'product_type':fields.selection([('rutile','Rutile'),('anatase','Anatase')],'Product Type',required=True),
+        'product_type':fields.selection([('rutile','Rutile'),('anatase','Anatase')],'Product Type',required=False),
         'uom_id': fields.many2one('product.uom','UOM'),
         'application_id': fields.many2one('crm.application','Application', ondelete='restrict'),
             }

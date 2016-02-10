@@ -47,6 +47,8 @@ class Parser(report_sxw.rml_parse):
           'get_date_to':self.get_date_to, 
           'get_sales_vat':self.get_sales_vat, 
           'convert_date':self.convert_date,
+          'get_total':self.get_total,  # Add  on 10/02/2016 by P.VINOTHKUMAR
+          'get_vattotal':self.get_vattotal, # Add  on 10/02/2016 by P.VINOTHKUMAR
         })
         
     def get_date_from(self):
@@ -63,7 +65,19 @@ class Parser(report_sxw.rml_parse):
         wizard_data = self.localcontext['data']['form']
         date = datetime.strptime(wizard_data['date_to'], DATE_FORMAT)
         return date.strftime('%d/%m/%Y') 
-    
+    # The following method is added on 10/02/2016 by P.VINOTHKUMAR  
+    def get_total(self):
+        sum = 0.00
+        for line in self.get_sales_vat():
+           sum += line['salesvalue']
+        return sum
+        # The following method is added on 10/02/2016 by P.VINOTHKUMAR
+    def get_vattotal(self):
+        sum = 0.00
+        for line in self.get_sales_vat():
+           sum += line['vat_paid']
+        return sum
+    #  Query modified on 10/02/2016 by P.VINOTHKUMAR
     def get_sales_vat(self):
         wizard_data = self.localcontext['data']['form']
         date_from = wizard_data['date_from']
@@ -73,12 +87,18 @@ class Parser(report_sxw.rml_parse):
             select 
             rp.name as customer,
             rp.tin as tinno,
+            'F' as category,
             case 
             when pc.name='FinishedProduct' then '2001'
             else '-' end as commoditycode,
             ai.vvt_number as invoiceno,
             ai.date_invoice as invoicedate,
-            at.description as rate,
+            CASE
+              when at.description='VAT 1%s  (S)' then 'VAT 1'
+              when at.description='VAT 2%s  (S)' then 'VAT 2'
+              when at.description='VAT 5%s  (S)' then 'VAT 5'
+              when at.description='VAT 0%s (S) - Indirect Export' then 'VAT 0'
+              when at.description='VAT 0%s (S) - Domestic' then 'VAT 0'  else 'VAT' end as rate,  
             s.amount_untaxed as salesvalue,
             case when coalesce(s.amount_tax,0)=0 then 0 else s.amount_tax end as vat_paid
             from sale_order_line sl
@@ -88,10 +108,10 @@ class Parser(report_sxw.rml_parse):
             join product_product pr on pr.id=sl.product_id
             join product_category pc on pc.cate_name=pr.cate_name
             join account_tax at on s.sale_tax_id=at.id
-            where ai.date_invoice::date between '%s' and '%s' and s.state='done' 
+            where s.date_order::date between '%s' and '%s' and s.state='done' 
             and at.description like 'VAT%s(S)' order by customer
-        '''%(date_from, date_to, '%')
-        self.cr.execute(sql);
+        '''%('%','%','%','%','%',date_from, date_to,'%')
+        self.cr.execute(sql)
         res = []
         s_no = 1
         for line in self.cr.dictfetchall():
@@ -104,7 +124,8 @@ class Parser(report_sxw.rml_parse):
                         'invoicedate': line['invoicedate'] or '',
                         'salesvalue': line['salesvalue'] or '', 
                         'rate': line['rate'] or '', 
-                        'vat_paid': line['vat_paid'] or 0.00,               
+                        'vat_paid': line['vat_paid'] or 0.00,  #  Added this line on 10/02/2016 by P.VINOTHKUMAR 
+                        'category': line['category'] or '',            
                         })
              s_no += 1
         return res 

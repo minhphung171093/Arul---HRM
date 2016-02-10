@@ -47,6 +47,8 @@ class Parser(report_sxw.rml_parse):
           'get_date_to':self.get_date_to, 
           'get_sales_cst':self.get_sales_cst, 
           'convert_date':self.convert_date,
+          'get_total':self.get_total,          # Added  on 10/02/2016 by P.VINOTHKUMAR
+          'get_csttotal':self.get_csttotal     # Added  on 10/02/2016 by P.VINOTHKUMAR
         })
         
     def get_date_from(self):
@@ -63,34 +65,53 @@ class Parser(report_sxw.rml_parse):
         wizard_data = self.localcontext['data']['form']
         date = datetime.strptime(wizard_data['date_to'], DATE_FORMAT)
         return date.strftime('%d/%m/%Y') 
-    
+   # The following method is added on 10/02/2016 by P.VINOTHKUMAR 
+    def get_total(self):
+        sum = 0.00
+        for line in self.get_sales_cst():
+           sum += line['salesvalue']
+        return sum
+   # The following method is added on 10/02/2016 by P.VINOTHKUMAR 
+    def get_csttotal(self):
+        sum = 0.00
+        for line in self.get_sales_cst():
+           sum += line['cst_paid']
+        return sum
+     #  Query modified on 10/02/2016 by P.VINOTHKUMAR      
     def get_sales_cst(self):
         wizard_data = self.localcontext['data']['form']
         date_from = wizard_data['date_from']
         date_to = wizard_data['date_to']
         cst_paid=0.0
-        sql='''
-            select 
-            rp.name as customer,
-            rp.tin as tinno,
-            case 
-            when pc.name='FinishedProduct' then '2001'
-            else '-' end as commoditycode,
-            ai.vvt_number as invoiceno,
-            ai.date_invoice as invoicedate,
-            at.description as rate,
-            s.amount_untaxed as salesvalue,
-            case when coalesce(s.amount_tax,0)=0 then 0 else s.amount_tax end as cst_paid
-            from sale_order_line sl
-            join sale_order s on s.id=sl.order_id 
-            join account_invoice ai on ai.sale_id=s.id
-            join res_partner rp on rp.id=s.partner_id
-            join product_product pr on pr.id=sl.product_id
-            join product_category pc on pc.cate_name=pr.cate_name
-            join account_tax at on s.sale_tax_id=at.id
-            where ai.date_invoice::date between '%s' and '%s' and s.state='done' 
-            and at.description like 'CST%s(S)' order by customer
-        '''%(date_from, date_to,'%')
+        sql='''  
+                    select
+                    rp.name as customer,
+                    rp.tin as tinno,
+                    case
+                    when pc.name='FinishedProduct' then '2001'
+                    else '-' end as commoditycode,
+                    ai.vvt_number as invoiceno,
+                    ai.date_invoice as invoicedate,
+                    'F' as category,
+                    case
+                        when at.description='CST 2%s  (S)' then 'CST 2'
+                        when at.description='CST 1%s (S)' then 'CST 1'
+                        when at.description='CST 4%s (S)' then 'CST 4'
+                        when at.description='CST 0%s  (S) - Indirect Export' then 'CST 0'
+                        when at.description='CST 0%s (S) - Domestic' then 'CST 0'
+                        else 'cst' end as rate,
+                    s.amount_untaxed as salesvalue,
+                    case when coalesce(s.amount_tax,0)=0 then 0 else s.amount_tax end as cst_paid
+                    from sale_order_line sl
+                    join sale_order s on s.id=sl.order_id
+                    join account_invoice ai on ai.sale_id=s.id
+                    join res_partner rp on rp.id=s.partner_id
+                    join product_product pr on pr.id=sl.product_id
+                    join product_category pc on pc.cate_name=pr.cate_name
+                    join account_tax at on s.sale_tax_id=at.id
+                    where ai.date_invoice::date between '%s' and '%s' and s.state='done'
+                    and at.description like 'CST%s(S)' order by customer
+        '''%('%','%','%','%','%',date_from, date_to,'%')
         self.cr.execute(sql)
         res = []
         s_no = 1
@@ -104,6 +125,7 @@ class Parser(report_sxw.rml_parse):
                         'invoicedate': line['invoicedate'] or '',
                         'salesvalue': line['salesvalue'] or '', 
                         'rate': line['rate'] or '', 
+                        'category': line['category'] or '', #  Added this line on 10/02/2016 by P.VINOTHKUMAR  
                         'cst_paid': line['cst_paid'] or 0.00,               
                         })
              s_no += 1

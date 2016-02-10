@@ -34,7 +34,7 @@
 	                            <field name="specification_line" nolabel='1' attrs="{'readonly':[('states','in',('qc_test_completed','sample_received','sample_request','sample_acceptance','sample_matched','sample_mismatched','cancelled'))]}">
 	                            	<tree string="Product Line" editable='top'>
 	                            		<field name="product_id" on_change="onchange_product_id(product_id)"/>
-	                            		<field name="product_type"/>
+	                            		<!-- <field name="product_type"/>  TPT-BM-ON-10/02/2016 - TO HIDE PRD TYPE-->
 	                            		<field name="application_id" widget="selection"/>
 	                            		<field name="quantity" />
 	                            		<field name="uom_id" />
