@@ -94,11 +94,11 @@ class Parser(report_sxw.rml_parse):
             ai.vvt_number as invoiceno,
             ai.date_invoice as invoicedate,
             CASE
-              when at.description='VAT 1%s (S)' then 'VAT 1'
-              when at.description='VAT 2%s (S)' then 'VAT 2'
-              when at.description='VAT 5%s (S)' then 'VAT 5'
-              when at.description='VAT 0%s (S) - Indirect Export' then 'VAT 0'
-              when at.description='VAT 0%s (S) - Domestic' then 'VAT 0'  else 'VAT' end as rate,  
+              when at.description='VAT 1%s (S)' then '1'
+              when at.description='VAT 2%s (S)' then '2'
+              when at.description='VAT 5%s (S)' then '5'
+              when at.description='VAT 0%s (S) - Indirect Export' then '0'
+              when at.description='VAT 0%s (S) - Domestic' then '0'  else 'VAT' end as rate,  
             s.amount_untaxed as salesvalue,
             case when coalesce(s.amount_tax,0)=0 then 0 else s.amount_tax end as vat_paid
             from sale_order_line sl

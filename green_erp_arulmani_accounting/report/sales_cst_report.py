@@ -93,13 +93,7 @@ class Parser(report_sxw.rml_parse):
                     ai.vvt_number as invoiceno,
                     ai.date_invoice as invoicedate,
                     'F' as category,
-                    case
-                        when at.description='CST 2%s (S)' then 'CST 2'
-                        when at.description='CST 1%s (S)' then 'CST 1'
-                        when at.description='CST 4%s (S)' then 'CST 4'
-                        when at.description='CST 0%s (S) - Indirect Export' then 'CST 0'
-                        when at.description='CST 0%s (S) - Domestic' then 'CST 0'
-                        else 'cst' end as rate,
+                    at.description as rate,
                     s.amount_untaxed as salesvalue,
                     case when coalesce(s.amount_tax,0)=0 then 0 else s.amount_tax end as cst_paid
                     from sale_order_line sl
@@ -111,7 +105,7 @@ class Parser(report_sxw.rml_parse):
                     join account_tax at on s.sale_tax_id=at.id
                     where ai.date_invoice::date between '%s' and '%s' and s.state='done'
                     and at.description like 'CST%s(S)' order by customer
-        '''%('%','%','%','%','%',date_from, date_to,'%')
+        '''%(date_from, date_to,'%')
         self.cr.execute(sql)
         res = []
         s_no = 1
