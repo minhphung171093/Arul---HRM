@@ -94,10 +94,10 @@ class Parser(report_sxw.rml_parse):
                     ai.date_invoice as invoicedate,
                     'F' as category,
                     case
-                        when at.description='CST 2%s  (S)' then 'CST 2'
+                        when at.description='CST 2%s (S)' then 'CST 2'
                         when at.description='CST 1%s (S)' then 'CST 1'
                         when at.description='CST 4%s (S)' then 'CST 4'
-                        when at.description='CST 0%s  (S) - Indirect Export' then 'CST 0'
+                        when at.description='CST 0%s (S) - Indirect Export' then 'CST 0'
                         when at.description='CST 0%s (S) - Domestic' then 'CST 0'
                         else 'cst' end as rate,
                     s.amount_untaxed as salesvalue,
