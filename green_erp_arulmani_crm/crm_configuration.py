@@ -24,6 +24,8 @@ import itertools
 import logging
 import os
 import re
+from datetime import date, datetime
+import datetime
 
 from openerp import tools
 from openerp.osv import fields,osv
@@ -94,7 +96,136 @@ class res_partner(osv.osv):
         for partner in self.browse(cursor, user, ids, context=context):
             res[partner.id] = False
         return res
-    
+    def _total_order_placed(self, cr, uid, ids, field_name, arg, context=None):
+        res = {}
+        for time in self.browse(cr, uid, ids, context=context):
+            res[time.id] = {
+                'total_order_placed': 0.0,
+            }
+            if time.id : 
+                sql = '''
+                select count(*) from sale_order where partner_id=%s
+                   '''% (time.id)
+                cr.execute(sql)
+                a = cr.fetchone()
+                if a:
+                    time_qty = a[0]                            
+                else:
+                    time_qty=0.0
+            res[time.id]['total_order_placed'] = time_qty            
+        return res 
+    def _total_qty_ordered(self, cr, uid, ids, field_name, arg, context=None):
+        res = {}
+        for time in self.browse(cr, uid, ids, context=context):
+            res[time.id] = {
+                'total_qty_ordered': 0.0,
+            }
+            if time.id : 
+                sql = '''
+                select case when sum(product_uom_qty)>0 then sum(product_uom_qty) else 0 end product_uom_qty from sale_order_line sol
+                inner join sale_order so on sol.order_id=so.id
+                where so.partner_id=%s
+                   '''% (time.id)
+                cr.execute(sql)
+                a = cr.fetchone()
+                if a:
+                    time_qty = a[0]                            
+                else:
+                    time_qty=0.0
+            res[time.id]['total_qty_ordered'] = time_qty            
+        return res 
+    def _total_ordered_value(self, cr, uid, ids, field_name, arg, context=None):
+        res = {}
+        for time in self.browse(cr, uid, ids, context=context):
+            res[time.id] = {
+                'total_ordered_value': 0.0,
+            }
+            if time.id : 
+                sql = '''
+                select case when sum(product_uom_qty*price_unit)>0 then sum(product_uom_qty*price_unit) else 0 end product_value from sale_order_line sol
+                inner join sale_order so on sol.order_id=so.id
+                where so.partner_id=%s
+                   '''% (time.id)
+                cr.execute(sql)
+                a = cr.fetchone()
+                if a:
+                    time_qty = a[0]                            
+                else:
+                    time_qty=0.0
+            res[time.id]['total_ordered_value'] = time_qty            
+        return res 
+    def _total_order_exe(self, cr, uid, ids, field_name, arg, context=None):
+        res = {}
+        for time in self.browse(cr, uid, ids, context=context):
+            res[time.id] = {
+                'total_order_exe': 0.0,
+            }
+            if time.id : 
+                sql = '''
+                select count(*) from account_invoice where partner_id=%s
+                   '''% (time.id)
+                cr.execute(sql)
+                a = cr.fetchone()
+                if a :
+                    time_qty = a[0]                   
+                else:
+                    time_qty=0.0
+            res[time.id]['total_order_exe'] = time_qty            
+        return res 
+    def _pending_order(self, cr, uid, ids, field_name, arg, context=None):
+        res = {}
+        for time in self.browse(cr, uid, ids, context=context):
+            res[time.id] = {
+                'pending_order': 0.0,
+            }
+            if time.id : 
+                sql = '''
+                select count(*) from sale_order where partner_id=%s
+                   '''% (time.id)
+                cr.execute(sql)
+                a = cr.fetchone()
+                
+                sql = '''
+                select count(*) from account_invoice where partner_id=%s
+                   '''% (time.id)
+                cr.execute(sql)
+                b = cr.fetchone()
+                
+                if a or b:
+                    time_qty = a[0]-b[0]                        
+                else:
+                    time_qty=0.0
+            res[time.id]['pending_order'] = time_qty            
+        return res 
+    def _pending_qty(self, cr, uid, ids, field_name, arg, context=None):
+        res = {}
+        for time in self.browse(cr, uid, ids, context=context):
+            res[time.id] = {
+                'pending_qty': 0.0,
+            }
+            if time.id : 
+                sql = '''
+                select case when sum(product_uom_qty)>0 then sum(product_uom_qty) else 0 end ordered_qty from sale_order_line sol
+                inner join sale_order so on sol.order_id=so.id
+                where so.partner_id=%s
+                   '''% (time.id)
+                cr.execute(sql)
+                a = cr.fetchone()
+                
+                sql = '''
+                select case when sum(quantity)>0 then sum(quantity) else 0 end exe_qty from account_invoice_line 
+                where partner_id=%s
+                   '''% (time.id)
+                cr.execute(sql)
+                b = cr.fetchone()
+                
+                if a or b:
+                    time_qty = round(a[0]-b[0], 2)                        
+                else:
+                    time_qty=0.0
+            res[time.id]['pending_qty'] = time_qty            
+        return res 
+     
     _columns = {
         'arulmani_type': fields.selection([('export','Export'),('domestic','Domestic'),('indirect_export','Indirect Export')],'Customer Group'),
         'zone': fields.selection([('north','North'),('east','East'),('west','West'),('south','South')],'Zone'),
@@ -156,6 +287,13 @@ class res_partner(osv.osv):
         #tien
         'disapprove': fields.boolean('Approved'), 
         'credit_limit_group_id': fields.many2one('credit.limit.group','Credit Limit Group'),
+        #
+        'total_order_placed': fields.function(_total_order_placed, string='Total Order', multi='test_qty1'),
+        'total_qty_ordered': fields.function(_total_qty_ordered, string='Total Qty Ordered', multi='test_qty2'),
+        'total_ordered_value': fields.function(_total_ordered_value, string='Total Ordered Value', multi='test_qty3'),
+        'total_order_exe': fields.function(_total_order_exe, string='Total Ordered Executed', multi='test_qty4'),
+        'pending_order': fields.function(_pending_order, string='Pending Orders', multi='test_qty'),
+        'pending_qty': fields.function(_pending_qty, string='Pending Qty to be Delivered', multi='test_qty5'),    
     }
     _defaults = {
         'is_company': True,
@@ -674,9 +812,150 @@ account_payment_term()
 class product_product(osv.osv):
     _inherit = "product.product"
      
-#     _columns = {
-#         'product_code': fields.char('Product Code', size=128),
-#     }
+    def _current_day_qty(self, cr, uid, ids, field_name, arg, context=None):
+        res = {}
+        for time in self.browse(cr, uid, ids, context=context):
+            res[time.id] = {
+                'current_day_qty': 0.0,
+            }
+            now = datetime.datetime.now()
+            if time.id : 
+                sql = '''
+                select case when sum(sol.product_uom_qty)>0 then sum(sol.product_uom_qty) else 0 end product_uom_qty 
+                from sale_order_line sol 
+                inner join sale_order so on sol.order_id=so.id
+                where sol.product_id=%s and so.date_order='%s'
+                   '''% (time.id, str(now)[:10])
+                cr.execute(sql)
+                a = cr.fetchone()
+                if a:
+                    time_qty = a[0]                            
+                else:
+                    time_qty=0.0
+            res[time.id]['current_day_qty'] = time_qty            
+        return res 
+    def _current_day_value(self, cr, uid, ids, field_name, arg, context=None):
+        res = {}
+        for time in self.browse(cr, uid, ids, context=context):
+            res[time.id] = {
+                'current_day_value': 0.0,
+            }
+            now = datetime.datetime.now()
+            if time.id : 
+                sql = '''
+                select case when sum(sol.product_uom_qty*sol.price_unit)>0 then sum(sol.product_uom_qty*sol.price_unit) else 0 end product_uom_qty 
+                from sale_order_line sol 
+                inner join sale_order so on sol.order_id=so.id
+                where sol.product_id=%s and so.date_order='%s'
+                '''% (time.id, str(now)[:10])
+                cr.execute(sql)
+                a = cr.fetchone()
+                if a:
+                    time_qty = a[0]                            
+                else:
+                    time_qty=0.0
+            res[time.id]['current_day_value'] = time_qty            
+        return res 
+    def _current_month_qty(self, cr, uid, ids, field_name, arg, context=None):
+        res = {}
+        for time in self.browse(cr, uid, ids, context=context):
+            res[time.id] = {
+                'current_month_qty': 0.0,
+            }
+            now = datetime.datetime.now()
+            year = str(now.year)
+            month = str(now.month)
+            day = str(now.day)
+            if time.id : 
+                sql = '''
+                select case when sum(sol.product_uom_qty)>0 then sum(sol.product_uom_qty) else 0 end product_uom_qty 
+                from sale_order_line sol 
+                inner join sale_order so on sol.order_id=so.id
+                where sol.product_id=%s and extract(month from so.date_order)='%s' and extract(year from so.date_order)=%s
+                   '''% (time.id, month, year)
+                cr.execute(sql)
+                a = cr.fetchone()
+                if a:
+                    time_qty = a[0]                            
+                else:
+                    time_qty=0.0
+            res[time.id]['current_month_qty'] = time_qty            
+        return res 
+    def _current_month_value(self, cr, uid, ids, field_name, arg, context=None):
+        res = {}
+        for time in self.browse(cr, uid, ids, context=context):
+            res[time.id] = {
+                'current_month_value': 0.0,
+            }
+            now = datetime.datetime.now()
+            year = str(now.year)
+            month = str(now.month)
+            day = str(now.day)
+            if time.id : 
+                sql = '''
+                select case when sum(sol.product_uom_qty*sol.price_unit)>0 then sum(sol.product_uom_qty*sol.price_unit) else 0 end product_uom_qty 
+                from sale_order_line sol 
+                inner join sale_order so on sol.order_id=so.id
+                where sol.product_id=%s and extract(month from so.date_order)=%s and extract(year from so.date_order)=%s
+                '''% (time.id, month, year)
+                cr.execute(sql)
+                a = cr.fetchone()
+                if a:
+                    time_qty = a[0]                            
+                else:
+                    time_qty=0.0
+            res[time.id]['current_month_value'] = time_qty            
+        return res 
+    def _current_yr_qty(self, cr, uid, ids, field_name, arg, context=None):
+        res = {}
+        for time in self.browse(cr, uid, ids, context=context):
+            res[time.id] = {
+                'current_yr_qty': 0.0,
+            }
+            now = datetime.datetime.now()
+            year = now.year
+            month = now.month
+            day = now.day
+            if time.id : 
+                sql = '''
+                select case when sum(sol.product_uom_qty)>0 then sum(sol.product_uom_qty) else 0 end product_uom_qty 
+                from sale_order_line sol 
+                inner join sale_order so on sol.order_id=so.id
+                where sol.product_id=%s and extract(year from so.date_order)=%s
+                   '''% (time.id, year)
+                cr.execute(sql)
+                a = cr.fetchone()
+                if a:
+                    time_qty = a[0]                            
+                else:
+                    time_qty=0.0
+            res[time.id]['current_yr_qty'] = time_qty            
+        return res 
+    def _current_yr_value(self, cr, uid, ids, field_name, arg, context=None):
+        res = {}
+        for time in self.browse(cr, uid, ids, context=context):
+            res[time.id] = {
+                'current_yr_value': 0.0,
+            }
+            now = datetime.datetime.now()
+            year = str(now.year)
+            month = str(now.month)
+            day = str(now.day)
+            if time.id : 
+                sql = '''
+                select case when sum(sol.product_uom_qty*sol.price_unit)>0 then sum(sol.product_uom_qty*sol.price_unit) else 0 end product_uom_qty 
+                from sale_order_line sol 
+                inner join sale_order so on sol.order_id=so.id
+                where sol.product_id=%s and extract(year from so.date_order)=%s
+                '''% (time.id, year)
+                cr.execute(sql)
+                a = cr.fetchone()
+                if a:
+                    time_qty = a[0]                            
+                else:
+                    time_qty=0.0
+            res[time.id]['current_day_value'] = time_qty            
+        return res 
     def name_get(self, cr, uid, ids, context=None):
         """Overrides orm name_get method"""
         res = []
@@ -684,19 +963,20 @@ class product_product(osv.osv):
             ids = [ids]
         if not ids:
             return res
-#         reads = self.read(cr, uid, ids, ['default_code'], context)
         reads = self.read(cr, uid, ids, ['name','default_code'], context=context)
         for record in reads:
             name = record['default_code']+ ' '+'-'+' ' + (record['name'] or'')
-            res.append((record['id'], name))
-  
-#         for record in reads:
-#             name = record['default_code']
-#             res.append((record['id'], name))
+            res.append((record['id'], name))  
         return res
     _columns = { 
         ###TPT-BM-28/11/2015-TO OVERWRITE DUMMY FUNCTION OF THIS WAREHOUSE ID
         'warehouse_id':fields.many2one('stock.location', 'Sale Warehouse'),
+        'current_day_qty': fields.function(_current_day_qty, string='Current Day Qty', multi='test_qty6'),
+        'current_day_value': fields.function(_current_day_value, string='Current Day Value', multi='test_qty7'),
+        'current_month_qty': fields.function(_current_month_qty, string='Current Month Qty', multi='test_qty8'),
+        'current_month_value': fields.function(_current_month_value, string='Current Month Value', multi='test_qty9'),
+        'current_yr_qty': fields.function(_current_yr_qty, string='Current Year Qty', multi='test_qty10'),
+        'current_yr_value': fields.function(_current_yr_value, string='Current Year Value', multi='test_qty11'),
     }
     def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
         ids = self.search(cr, user, args, context=context, limit=limit)

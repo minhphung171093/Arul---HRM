@@ -1225,7 +1225,23 @@ class account_invoice(osv.osv):
                         update purchase_order set flag = 't' where id = %s
                     '''%(new.purchase_id.id)
                 cr.execute(sql)
+                
+            #TPT START BY RAKESHKUMAR on 03-02-2016 FOR SAME LINE ITEMS APPEARING AGAIN IN SERVICE INVOICE
+            po_qty = 0
+            inv_qty = 0            
+            for purchase_line in new.purchase_id.order_line:
+                po_qty += purchase_line.product_qty
+            for invoice_line in new.invoice_line:
+                inv_qty += invoice_line.quantity
+            if po_qty == inv_qty:
+               sql = '''
+                    update purchase_order set state = 'invoice_raised' where id = %s
+                '''%(new.purchase_id.id)
+               cr.execute(sql)
+            #TPT END BY RAKESHKUMAR on 03-02-2016 FOR SAME LINE ITEMS APPEARING AGAIN IN SERVICE INVOICE
+            
         return new_id
+    
      
     def write(self, cr, uid, ids, vals, context=None):
         if vals.get('type','')=='in_invoice' and 'sup_inv_id' in vals and vals['sup_inv_id']:

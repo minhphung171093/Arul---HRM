@@ -692,7 +692,10 @@
                     <group>
                         <group>
                         	<field name="name" string="Document No" readonly="1"/>
-                        	<field name="purchase_id" context="{'search_po_document':True, 'purchase_id':purchase_id}" on_change = 'onchange_purchase_id(purchase_id)' string = 'Service PO' domain="[('po_document_type','=','service'), ('state','=','done')]" required = '1' readonly="0" options="{'create': false, 'create_edit': false}"/>
+                        	
+                        	<!--  <field name="purchase_id" context="{'search_po_document':True, 'purchase_id':purchase_id}" on_change = 'onchange_purchase_id(purchase_id)' string = 'Service PO' domain="[('po_document_type','=','service'), ('state','=','done')]" required = '1' readonly="0" options="{'create': false, 'create_edit': false}"/> -->
+                        	
+                        	<field name="purchase_id" context="{'search_po_document':True, 'purchase_id':purchase_id}" on_change = 'onchange_purchase_id(purchase_id)' string = 'Service PO' domain="[('po_document_type','=','service'), ('state','=','done'), ('state','not in',['invoice_raised'])]" required = '1' readonly="0" options="{'create': false, 'create_edit': false}"/>
                         	<!-- TPT-BM
                         	<field string="Vendor" name="partner_id" 
                               context="{'default_customer': 0, 'search_default_supplier': 1, 'default_supplier': 1}"
