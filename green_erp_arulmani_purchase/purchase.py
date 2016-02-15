@@ -2409,6 +2409,7 @@ class purchase_order(osv.osv):
                                     ('done', 'Done'),
                                     ('cancel', 'Cancelled'),
                                     ('close', 'Closed By Purchase'),
+                                    ('invoice_raised', 'Invoice Raised'), # TPT on 15/02/2016 by RAKESHKUMAR for Service invoice line details change
                                    ], 'Status', required=True, readonly=True,
                                   ),
         'check_amendement':fields.boolean("Amended",readonly=True),

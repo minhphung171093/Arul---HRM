@@ -280,7 +280,8 @@ class daily_sale_form(osv.osv_memory):
                     'vat_tax':get_vat_tax(line.invoice_id.sale_tax_id, line.invoice_id.amount_untaxed) or 0.00,
                     'tcs_tax':get_tcs_tax(line.invoice_id.sale_tax_id, line.invoice_id.amount_untaxed) or 0.00,
                     'freight':(line.freight * line.quantity) or 0.00,
-                    'insurance':line.invoice_id.insurance or 0.00,
+                   # 'insurance':line.invoice_id.insurance or 0.00, 
+                    'insurance':(line.insurance * line.quantity) or 0.00, # TPT - modified on 12-02-2016 by G.Ragesh Kumar and P.Vinoth Kumar
                     'other_charges':line.invoice_id.other_charges or 0.00,
                     'currency':line.invoice_id.currency_id and line.invoice_id.currency_id.name or '',
                     'total_amt':line.invoice_id.amount_total_inr or 0.00,
