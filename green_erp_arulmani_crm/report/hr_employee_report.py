@@ -107,6 +107,14 @@ class Parser(report_sxw.rml_parse):
                         mobile = father and father.mobile or False
                         break  
                 
+            epf_num = ''
+            epf_no = ''
+            esi_num = ''
+            esi_no = ''
+            gratuity = ''
+            gratuity_no = ''
+            pan_num = ''
+            uan = ''
             if emp.statutory_ids:
                 for statutory in emp.statutory_ids:
                     epf_num = statutory and statutory.name or False
@@ -116,14 +124,8 @@ class Parser(report_sxw.rml_parse):
                     gratuity = statutory and statutory.gratuity_no or False
                     gratuity_no = statutory and statutory.gratuity_nominee or False
                     pan_num = statutory and statutory.pan_no or False
-            else:
-                epf_num = ''
-                epf_no = ''
-                esi_num = ''
-                esi_no = ''
-                gratuity = ''
-                gratuity_no = ''
-                pan_num = ''
+                    uan = statutory and statutory.uan or False
+            
                 
             payroll_employee_obj = self.pool.get('arul.hr.payroll.employee.structure')
             payroll_employee_ids = payroll_employee_obj.search(self.cr, self.uid, [('employee_id','=', emp.id)])
@@ -246,6 +248,7 @@ class Parser(report_sxw.rml_parse):
                     'oa': oa,
                     'gro': gross,
                     'lta': lta,
+                    'uan': uan,#TPT-BM-ON 16/02/2015 - Incident NO: 3388
                      })
         return res
             
