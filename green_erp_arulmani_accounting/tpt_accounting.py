@@ -1315,12 +1315,12 @@ class account_invoice(osv.osv):
                         sql = '''
                             update purchase_order_line set flag_line = 't' where id = %s and id = %s
                         '''%(purchase_line.id, purchase_line.id)
-                        cr.execute(sql)
+                        cr.execute(sql)                        
                     elif quantity<product_qty:
                         sql = '''
                             update purchase_order_line set flag_line = 'f' where id = %s and id = %s
                         '''%(purchase_line.id, purchase_line.id)
-                        cr.execute(sql)
+                        cr.execute(sql)     
                     else:
                         raise osv.except_osv(_('Error!'), _('Quantity in Account Invoice is not more than quantity in Purchase Order'))
                 sql = '''
@@ -1329,17 +1329,36 @@ class account_invoice(osv.osv):
                 cr.execute(sql)
                 purchase_orders = [row[0] for row in cr.fetchall()]
                 if purchase_orders: 
-    # con so luong doi voi purchase order do
+                    # con so luong doi voi purchase order do
                     sql = '''
                             update purchase_order set flag = 'f' where id = %s
                         '''%(new.purchase_id.id)
                     cr.execute(sql)
                 else:
-    # khong con so luong doi voi purchase order do
+                    # khong con so luong doi voi purchase order do
                     sql = '''
                             update purchase_order set flag = 't' where id = %s
                         '''%(new.purchase_id.id)
                     cr.execute(sql)
+                    #TPT START BY RAKESHKUMAR on 03-02-2016 FOR SAME LINE ITEMS APPEARING AGAIN IN SERVICE INVOICE
+                po_qty = 0
+                inv_qty = 0            
+                for purchase_line in new.purchase_id.order_line:
+                    po_qty += purchase_line.product_qty
+                for invoice_line in new.invoice_line:
+                    inv_qty += invoice_line.quantity
+                if po_qty == inv_qty:
+                   sql = '''
+                        update purchase_order set state = 'invoice_raised' where id = %s
+                    '''%(new.purchase_id.id)
+                   cr.execute(sql)
+                else:
+                    sql = '''
+                        update purchase_order set state = 'done' where id = %s
+                    '''%(new.purchase_id.id)
+                    cr.execute(sql)
+                   
+                #TPT END BY RAKESHKUMAR on 03-02-2016 FOR SAME LINE ITEMS APPEARING AGAIN IN SERVICE INVOICE
         return new_write
     
     def compute_invoice_totals(self, cr, uid, inv, company_currency, ref, invoice_move_lines, context=None):
