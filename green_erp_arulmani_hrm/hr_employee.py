@@ -686,17 +686,21 @@ class hr_employee(osv.osv):
             day = birthday[8:10]
             month = birthday[5:7]
             year = birthday[:4]
+            #TPT-By BalamuruganPurushothaman - ON 18/02/2016 - TO CHANGE DATE OF RETIREMENT TO 58 INSTEAD OF 60 YRS
             if month == "01" and day=='01':
-                year = int(year)+59
+                #year = int(year)+59
+                year = int(year)+57
                 num_of_month = calendar.monthrange(year,12)[1]
                 retirement = datetime.datetime(year,12,num_of_month)
             elif month != "01" and day=='01':
-                year = int(year)+60
+                #year = int(year)+60
+                year = int(year)+58
                 month = int(month)-1
                 num_of_month = calendar.monthrange(year,month)[1]
                 retirement = datetime.datetime(year,month,num_of_month)
             else:
-                year = int(year)+60
+                #year = int(year)+60
+                year = int(year)+58
                 day = int(day)-1
                 month = int(month)
                 retirement = datetime.datetime(year,month,day)

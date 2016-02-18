@@ -322,11 +322,11 @@ class tpt_notification(osv.osv):
         for line in self.browse(cr,uid,ids,context=context):
             leave_type_obj = self.pool.get('res.users')
             group_obj = self.pool.get('res.groups')
-            group_ids = self.pool.get('res.groups').search(cr, uid, [('name','=','Maintenance Manager')])
-            grp = group_obj.browse(cr,uid,group_ids[0])
+            group_search_ids = group_obj.search(cr, uid, [('name','=','Maintenance Manager')])
+            grp = group_obj.browse(cr,uid,group_search_ids[0])
             grp_ids = []
-            for line1 in grp.users:
-                grp_ids.append(line1.id)
+            for usr_line in grp.users:
+                grp_ids.append(usr_line.id)
             if uid not in grp_ids:
                raise osv.except_osv(_('Warning!'),_('Not Authorized to Approve!'))        
         return self.write(cr, uid, ids,{'state':'in'}) 
@@ -361,11 +361,11 @@ class tpt_notification(osv.osv):
                 #===============================================================
                 leave_type_obj = self.pool.get('res.users')
                 group_obj = self.pool.get('res.groups')
-                group_ids = self.pool.get('res.groups').search(cr, uid, [('name','=','Maintenance Manager')])
-                grp = group_obj.browse(cr,uid,group_ids[0])
+                group_search_ids = group_obj.search(cr, uid, [('name','=','Maintenance Manager')])
+                grp = group_obj.browse(cr,uid,group_search_ids[0])
                 grp_ids = []
-                for line1 in grp.users:
-                    grp_ids.append(line1.id)
+                for usr_line in grp.users:
+                    grp_ids.append(usr_line.id)
                 if uid not in grp_ids:
                    raise osv.except_osv(_('Warning!'),_('Not Authorized to Approve!'))   
         return self.write(cr, uid, ids,{'state':'cancel'})
@@ -468,24 +468,10 @@ class tpt_maintenance_oder(osv.osv):
             res[main_obj.id] = {
                 'total_hours': 0.0,
             }
-            time_total = 0
-            #service_obj = self.pool.get('tpt.maintenance.oder').browse(cr, uid, 'id','=',ids[0]) 
-            
+            time_total = 0           
             for service_entry_header in main_obj.service_entry_line:
                 for service_entry_line in service_entry_header.service_entry_line:
                     time_total += service_entry_line.work_hour
-                
-            #===================================================================
-            # if time.in_time != 0 and time.out_time!=0:
-            #     if time.in_time > time.out_time:
-            #         time_total = 24-time.in_time + time.out_time
-            #     else:
-            #         time_total = time.out_time - time.in_time
-            #     if time.diff_day and (time.in_time <= time.out_time):
-            #         time_total += 24
-            # else:
-            #     time_total=0
-            #===================================================================
             res[main_obj.id]['total_hours'] = time_total            
         return res
     
