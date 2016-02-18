@@ -304,17 +304,32 @@ class tpt_notification(osv.osv):
     def bt_generate(self, cr, uid, ids, context=None):
         return self.write(cr, uid, ids,{'state':'waiting'})
     
+    #TPT-By BalamuruganPurushothaman - ON 18/02/2015 - TO CHANGE APPROVAL ONLY FOR MAINTENANCE MANAGER REGARDLESS OF HOD
+    #===========================================================================
+    # def bt_approve(self, cr, uid, ids, context=None):
+    #     for line in self.browse(cr,uid,ids,context=context):
+    #         sql = '''
+    #             select %s in (select primary_auditor_id from hr_department
+    #             where id =%s)
+    #         '''%(uid,line.department_id.id)
+    #         cr.execute(sql)
+    #         notif = cr.fetchone()
+    #         if not notif[0]:
+    #             raise osv.except_osv(_('Warning!'),_('HOD of The Department can only approve!'))
+    #     return self.write(cr, uid, ids,{'state':'in'})
+    #===========================================================================
     def bt_approve(self, cr, uid, ids, context=None):
         for line in self.browse(cr,uid,ids,context=context):
-            sql = '''
-                select %s in (select primary_auditor_id from hr_department
-                where id =%s)
-            '''%(uid,line.department_id.id)
-            cr.execute(sql)
-            notif = cr.fetchone()
-            if not notif[0]:
-                raise osv.except_osv(_('Warning!'),_('HOD of The Department can only approve!'))
-        return self.write(cr, uid, ids,{'state':'in'})
+            leave_type_obj = self.pool.get('res.users')
+            group_obj = self.pool.get('res.groups')
+            group_ids = self.pool.get('res.groups').search(cr, uid, [('name','=','Maintenance Manager')])
+            grp = group_obj.browse(cr,uid,group_ids[0])
+            grp_ids = []
+            for line1 in grp.users:
+                grp_ids.append(line1.id)
+            if uid not in grp_ids:
+               raise osv.except_osv(_('Warning!'),_('Not Authorized to Approve!'))        
+        return self.write(cr, uid, ids,{'state':'in'}) 
     
     def bt_close(self, cr, uid, ids, context=None):
         return self.write(cr, uid, ids,{'state':'close'})
@@ -333,14 +348,26 @@ class tpt_notification(osv.osv):
             else:
                 step = 1
             if line.state == 'in':
-                sql = '''
-                    select %s in (select primary_auditor_id from hr_department
-                    where id =%s)
-                '''%(uid,line.department_id.id)
-                cr.execute(sql)
-                notif = cr.fetchone()
-                if not notif[0]:
-                    raise osv.except_osv(_('Warning!'),_('Do not have permission to cancel this notification!'))
+                #TPT-By BalamuruganPurushothaman - ON 18/02/2015 - TO CHANGE CANCELLATION ONLY FOR MAINTENANCE MANAGER REGARDLESS OF HOD
+                #===============================================================
+                # sql = '''
+                #     select %s in (select primary_auditor_id from hr_department
+                #     where id =%s)
+                # '''%(uid,line.department_id.id)
+                # cr.execute(sql)
+                # notif = cr.fetchone()
+                # if not notif[0]:
+                #     raise osv.except_osv(_('Warning!'),_('Do not have permission to cancel this notification!'))
+                #===============================================================
+                leave_type_obj = self.pool.get('res.users')
+                group_obj = self.pool.get('res.groups')
+                group_ids = self.pool.get('res.groups').search(cr, uid, [('name','=','Maintenance Manager')])
+                grp = group_obj.browse(cr,uid,group_ids[0])
+                grp_ids = []
+                for line1 in grp.users:
+                    grp_ids.append(line1.id)
+                if uid not in grp_ids:
+                   raise osv.except_osv(_('Warning!'),_('Not Authorized to Approve!'))   
         return self.write(cr, uid, ids,{'state':'cancel'})
     
 #     def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
