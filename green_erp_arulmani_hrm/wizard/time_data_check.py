@@ -104,8 +104,7 @@ class time_data_check(osv.osv_memory):
                     sql = """
                     update hr_employee set date_of_retirement='%s' where id=%s
                     """%(retirement, emp.id)
-                    cr.execute(sql)
-           
+                    cr.execute(sql)           
         return {'type': 'ir.actions.act_window_close'}  
         
 time_data_check()
