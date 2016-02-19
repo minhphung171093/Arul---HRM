@@ -1105,9 +1105,23 @@ class arul_hr_payroll_executions(osv.osv):
             cr.execute(sql)
             emp_ids = []
             emp_ids = [r[0] for r in cr.fetchall()]
-            employee_ids = employee_ids+emp_ids           
+            ###TPT-By BalamuruganPurushothaman - ON 19/02/2016 - TO RUN PAYROLL FOR EMPLOYEE WHOES ONLY HAVING LEAVE POSTING FOR WHOLE MONTH
+            sql = '''
+                select emp.id from hr_employee emp
+                inner join resource_resource rr on emp.resource_id=rr.id
+                where rr.active='t' and emp.id not in (
+                select employee_id from arul_hr_punch_in_out_time  
+                where extract(year from work_date)='%s' 
+                and extract(month from work_date)=%s) and emp.payroll_area_id=%s
+            '''%(line.year, line.month, line.payroll_area_id.id)
+            cr.execute(sql)
+            emp_ids1 = []
+            emp_ids1 = [r[0] for r in cr.fetchall()]
+            if emp_ids1:
+                employee_ids = employee_ids+emp_ids+emp_ids1  
+            else:
+                employee_ids = employee_ids+emp_ids           
             ### TPT-END
-            
             for p in emp_obj.browse(cr,uid,employee_ids):
                 payroll_executions_details_ids = executions_details_obj.search(cr, uid, [('payroll_executions_id', '=', line.id), ('employee_id', '=', p.id)], context=context)
                 
