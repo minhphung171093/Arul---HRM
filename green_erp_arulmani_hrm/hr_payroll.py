@@ -1249,12 +1249,8 @@ class arul_hr_payroll_executions(osv.osv):
                 total_shift_worked = 0.0    
                 total_shift_worked = shift_count + onduty_count
                 
-                total_g1_shift_allowance = 0
-                total_g2_shift_allowance = 0
-                total_a_shift_allowance = 0
-                total_b_shift_allowance = 0
-                total_c_shift_allowance = 0
-                              
+                total_g1_shift_allowance = total_g2_shift_allowance = total_a_shift_allowance = total_b_shift_allowance = total_c_shift_allowance = 0
+                       
                 sql = '''
                     SELECT CASE WHEN SUM(a_shift_count1)!=0 THEN SUM(a_shift_count1) ELSE 0 END a_shift_count FROM arul_hr_punch_in_out_time WHERE EXTRACT(year FROM work_date) = %s 
                     AND EXTRACT(month FROM work_date) = %s AND employee_id =%s
@@ -1406,56 +1402,16 @@ class arul_hr_payroll_executions(osv.osv):
                 vals_earning_struc = []
                 vals_other_deductions = []
                 emp_struc_ids = payroll_emp_struc_obj.search(cr,uid,[('employee_id','=',p.id),('state','=','approved')]) 
-                emp_esi_limit = 0
-                emp_esi_con = 0
-                emp_pf_con = 0
-                emp_lwf_amt = 0
-                emp_esi_con_amount = 0
-                emp_pf_con_amount = 0
-                vpfd_amount = 0
-                gross_sal = 0
-                total_earning = 0
-                da = 0
-                lop = 0
-                
-                pfd = 0.0
-                pd = 0.0
-                vpfd = 0.0
-                esid = 0.0
-                fd = 0.0
-                ld = 0.0 
-                ind = 0.0
-                pt = 0.0
-                lwf = 0.0
-                total_deduction = 0
-                
-                basic = 0.0
-                da = 0.0
-                c = 0.0
-                hra = 0.0
-                fa = 0.0
-                pc = 0.0
-                cre = 0.0
-                ea = 0.0
-                spa = 0.0
-                la = 0.0
-                aa = 0.0
-                sha = 0.0
-                oa = 0.0
-                ma = 0.0
-                lta = 0.0
-                med = 0.0
-                net_sala = 0.0
-                
-                net_basic = 0.0
-                net_da = 0.0 
-                net_c = 0.0
-                net_hra = 0.0
-                net_ea = 0.0
-                net_aa = 0.0
-                net_la = 0.0
-                net_oa = 0.0
+                #TPT-BM-Variable Declarations
+                emp_esi_limit = emp_esi_con = emp_pf_con = emp_lwf_amt = 0
+                emp_esi_con_amount = emp_pf_con_amount = vpfd_amount = 0
+                gross_sal = total_earning = da = lop = 0  
+                pfd = pd = vpfd = esid = fd = ld = ind = pt = lwf = total_deduction = 0.0
 
+                basic = da = c = hra = fa  = pc = cre = ea = spa = la = aa = sha = oa = ma = lta = med = net_sala = 0.0            
+                
+                net_basic = net_da = net_c = net_hra = net_ea = net_aa = net_la = net_oa = 0.0
+                
                 if emp_struc_ids:
                     payroll_emp_struc = payroll_emp_struc_obj.browse(cr,uid,emp_struc_ids[0])
                     contribution_ids = contribution_obj.search(cr, uid, [('employee_category_id','=',p.employee_category_id.id),('sub_category_id','=',p.employee_sub_category_id.id)])
@@ -1506,28 +1462,9 @@ class arul_hr_payroll_executions(osv.osv):
                     total_cd = cr.dictfetchone()['total_cd']
                     ###
                     if p.employee_category_id and p.employee_category_id.code == 'S1':
-                        pfd = 0.0
-                        pd = 0.0
-                        vpfd = 0.0
-                        esid = 0.0
-                        fd = 0.0
-                        cd = 0.0
-                        ld = 0.0 
-                        ind = 0.0
-                        pt = 0.0
-                        lwf = 0.0
-                        total_deduction = 0
-                        
-                        i_lic_prem = 0
-                        i_others = 0 
-                        l_vvti_loan = 0 
-                        l_lic_hfl = 0 
-                        l_hdfc = 0 
-                        l_tmb = 0 
-                        l_sbt = 0 
-                        l_others = 0
-                        it_deduction = 0
-    
+                        pfd = pd = vpfd = esid = fd = cd = ld = ind = pt = lwf = total_deduction = 0.0
+                        i_lic_prem = i_others = l_vvti_loan = l_lic_hfl = l_hdfc = l_tmb = l_sbt = l_others = it_deduction = 0
+
                         for other_deductions_id in payroll_emp_struc_obj.browse(cr,uid,emp_struc_ids[0]).payroll_other_deductions_line:
                             if other_deductions_id.deduction_parameters_id.code == 'P.D':
                                 pd = other_deductions_id.float
@@ -1587,37 +1524,9 @@ class arul_hr_payroll_executions(osv.osv):
                                     }))
 
                         basic = 0.0
-                        da = 0.0
-                        c = 0.0
-                        hra = 0.0
-                        fa = 0.0
-                        pc = 0.0
-                        cre = 0.0
-                        ea = 0.0
-                        spa = 0.0
-                        la = 0.0
-                        aa = 0.0
-                        sha = 0.0
-                        oa = 0.0
-                        lta = 0.0
-                        med = 0.0
-                        gross_sal = 0.0
-                        total_earning = 0.0
-                        net_sala = 0.0
-
-                        net_basic = 0.0
-                        net_da = 0.0 
-                        net_c = 0.0
-                        net_hra = 0.0
-                        net_ea = 0.0
-                        net_aa = 0.0
-                        net_la = 0.0
-                        net_oa = 0.0
-                        vpfd_amount = 0.0
-                        ma = 0.0
-                        spa = 0.0
-                        esi_check = 0.0
-
+                        da = c = hra = fa = cre = ea = spa = la = aa = sha = oa = lta = med = gross_sal = total_earning = net_sala = 0.0                       
+                        net_basic = net_da = net_c = net_hra = net_ea = net_aa = net_la = net_oa = vpfd_amount = ma = spa = esi_check = 0.0
+                        
                         for earning_struc_id in payroll_emp_struc_obj.browse(cr,uid,emp_struc_ids[0]).payroll_earning_structure_line:
                             if earning_struc_id.earning_parameters_id.code == 'BASIC':
                                 basic = earning_struc_id.float
@@ -1669,7 +1578,6 @@ class arul_hr_payroll_executions(osv.osv):
                                 spa = spa / calendar_days  * total_working_days_s1   
                                 spa  = round(spa,0)                     
                         
-
                         net_basic = round(basic - (basic / calendar_days) * total_no_of_leave,0)
                         net_da = round(da - (da / calendar_days) * total_no_of_leave, 0)
                         net_c = round(c - (c / calendar_days) * total_no_of_leave, 0)
@@ -1679,8 +1587,6 @@ class arul_hr_payroll_executions(osv.osv):
                         net_la = round(la - (la / calendar_days) * total_no_of_leave, 0)
                         net_oa = round(oa - (oa / calendar_days) * total_no_of_leave, 0)
             
-            
-
                         total_earning =  net_basic + net_da + net_c + net_hra + net_ea + net_aa + net_la + net_oa + fa + spa + pc + cre + sha + lta + med
                         gross_sal =  net_basic + net_da + net_c + net_hra + net_ea + net_aa + net_la + net_oa + fa + spa + pc + cre + sha + lta + med
 
@@ -1949,27 +1855,8 @@ class arul_hr_payroll_executions(osv.osv):
 
 		    # Handling Pay Structure for S2 Category
                     if p.employee_category_id and p.employee_category_id.code == 'S2':
-                        pfd = 0.0
-                        pd = 0.0
-                        vpfd = 0.0
-                        esid = 0.0
-                        fd = 0.0
-                        cd = 0.0
-                        ld = 0.0 
-                        ind = 0.0
-                        pt = 0.0
-                        lwf = 0.0
-                        total_deduction = 0
-                        
-                        i_lic_prem = 0
-                        i_others = 0 
-                        l_vvti_loan = 0 
-                        l_lic_hfl = 0 
-                        l_hdfc = 0 
-                        l_tmb = 0 
-                        l_sbt = 0 
-                        l_others = 0
-                        it_deduction = 0
+                        pfd = pd = vpfd = esid = fd = cd = ld = ind = pt = lwf = total_deduction = 0.0
+                        i_lic_prem = i_others = l_vvti_loan = l_lic_hfl = l_hdfc = l_tmb = l_sbt = l_others = it_deduction = 0
                         
                         for other_deductions_id in payroll_emp_struc_obj.browse(cr,uid,emp_struc_ids[0]).payroll_other_deductions_line:
 
@@ -2030,38 +1917,8 @@ class arul_hr_payroll_executions(osv.osv):
                                           'float': ind,
                                     }))
 
-                        basic = 0.0
-                        da = 0.0
-                        c = 0.0
-                        hra = 0.0
-                        fa = 0.0
-                        pc = 0.0
-                        cre = 0.0
-                        ea = 0.0
-                        spa = 0.0
-                        la = 0.0
-                        aa = 0.0
-                        sha = 0.0
-                        oa = 0.0
-                        lta = 0.0
-                        med = 0.0
-                        gross_sal = 0.0
-                        total_earning = 0.0
-                        net_sala = 0.0
-			
-			            #Start:TPT
-                        net_basic = 0.0
-                        net_da = 0.0 
-                        net_c = 0.0
-                        net_hra = 0.0
-                        net_ea = 0.0
-                        net_aa = 0.0
-                        net_la = 0.0
-                        net_oa = 0.0
-                        vpfd_amount = 0.0
-                        ma = 0.0
-                        shd = 0.0
-                        esi_check = 0.0
+                        basic = da = c = hra = fa = pc = cre = ea = spa = la = aa = sha = oa = lta = med = gross_sal = total_earning = net_sala = 0.0
+                        net_basic = net_da = net_c = net_hra = net_ea = net_aa = net_la = net_oa = vpfd_amount = ma = shd = esi_check = 0.0
 
                         for earning_struc_id in payroll_emp_struc_obj.browse(cr,uid,emp_struc_ids[0]).payroll_earning_structure_line:
                             if earning_struc_id.earning_parameters_id.code == 'BASIC':
@@ -2100,13 +1957,11 @@ class arul_hr_payroll_executions(osv.osv):
                                 shd = earning_struc_id.float	
                             if earning_struc_id.earning_parameters_id.code == 'ESI_CHECK':
                                 esi_check = earning_struc_id.float		
-                        
-                        
+                               
                         for_esi_base_spa = spa
                         spa = spa / (calendar_days - 4 - special_holidays) * total_shift_worked # TPT total_days <-> total_shift_worked
                         spa  = round(spa,0)  
-                        
-			
+
                         net_basic = round(basic - (basic / calendar_days) * total_no_of_leave, 0)
                         net_da = round(da - (da / calendar_days) * total_no_of_leave, 0)
                         net_c = round(c - (c / calendar_days) * total_no_of_leave, 0)
@@ -2115,7 +1970,6 @@ class arul_hr_payroll_executions(osv.osv):
                         net_aa = round(aa - (aa / calendar_days) * total_no_of_leave, 0)
                         net_la = round(la - (la / calendar_days) * total_no_of_leave, 0)
                         net_oa = round(oa - (oa / calendar_days) * total_no_of_leave, 0)
-            
             
                         total_earning =  net_basic + net_da + net_c + net_hra + net_ea + net_aa + net_la + net_oa + fa + spa + pc + cre + sha + lta + med
                         gross_sal =  net_basic + net_da + net_c + net_hra + net_ea + net_aa + net_la + net_oa + fa + spa + pc + cre + sha + lta + med
@@ -2129,7 +1983,6 @@ class arul_hr_payroll_executions(osv.osv):
                             shd = round(shd, 0)
                         total_earning = total_earning + shd
                         gross_sal = gross_sal + shd
-                        
                         
                         if for_esi_base_gross_sal + esi_check >= emp_esi_limit:#S2
                             if skip_esi_flag is True and line.month not in ('4', '10'): # SKip in only April, October
@@ -2300,8 +2153,6 @@ class arul_hr_payroll_executions(osv.osv):
                                       'float': net_sala,
                                 }))
                        
-                        
-                        
                         deduction_ids = deduction_obj.search(cr, uid, [('code','in',['TOTAL_DEDUCTION','VPF.D','PF.D','ESI.D','LWF','F.D','C.D','LOP',
                                         'INS_LIC_PREM','INS_OTHERS','LOAN_VVTI','LOAN_LIC_HFL','LOAN_HDFC','LOAN_TMB', 'LOAN_SBT','LOAN_OTHERS','IT','PT'                                               
                                                                                      ])])
@@ -2391,32 +2242,12 @@ class arul_hr_payroll_executions(osv.osv):
                                           'deduction_parameters_id':deduction.id,
                                           'float': pt,
                                     }))
-                                
 
 		            #Start:TPT hadling Workers - S3 category
                     if p.employee_category_id and p.employee_category_id.code == 'S3':
-                        pfd = 0.0
-                        pd = 0.0
-                        vpfd = 0.0
-                        esid = 0.0
-                        fd = 0.0
-                        cd = 0.0
-                        ld = 0.0 
-                        ind = 0.0
-                        pt = 0.0
-                        lwf = 0.0
-                        total_deduction = 0
-                        
-                        i_lic_prem = 0
-                        i_others = 0 
-                        l_vvti_loan = 0 
-                        l_lic_hfl = 0 
-                        l_hdfc = 0 
-                        l_tmb = 0 
-                        l_sbt = 0 
-                        l_others = 0
-                        it_deduction = 0
-                        
+                        pfd = pd = vpfd = esid = fd = cd = ld = ind = pt = lwf = total_deduction = 0.0
+                        i_lic_prem = i_others = l_vvti_loan = l_lic_hfl = l_hdfc = l_tmb = l_sbt = l_others = it_deduction = 0
+
                         for other_deductions_id in payroll_emp_struc_obj.browse(cr,uid,emp_struc_ids[0]).payroll_other_deductions_line:
                             if other_deductions_id.deduction_parameters_id.code == 'P.D':
                                 pd = other_deductions_id.float
@@ -2475,41 +2306,10 @@ class arul_hr_payroll_executions(osv.osv):
                                           'float': ind,
                                     }))
 
-                        basic = 0.0
-                        da = 0.0
-                        c = 0.0
-                        hra = 0.0
-                        fa = 0.0
-                        pc = 0.0
-                        cre = 0.0
-                        ea = 0.0
-                        spa = 0.0
-                        la = 0.0
-                        aa = 0.0
-                        sha = 0.0
-                        oa = 0.0
-                        lta = 0.0
-                        med = 0.0
-                        gross_sal = 0.0
-                        total_earning = 0.0
-                        net_sala = 0.0
-                        wa = 0.0
-                        ma = 0.0
-                        shd = 0.0
-                        esi_check = 0.0
-
-                        #Start:TPT - Variable Declarations
-                        net_basic = 0.0
-                        net_da = 0.0 
-                        net_c = 0.0
-                        net_hra = 0.0
-                        net_ea = 0.0
-                        net_aa = 0.0
-                        net_la = 0.0
-                        net_oa = 0.0
-                        vpfd_amount = 0.0
-                        #End:TPT - Variable Declarations
-
+                        basic = da = c = hra = fa = pc = cre = ea = spa = la = aa = sha = oa = lta = med  = wa = ma = shd = esi_check = 0.0
+                        gross_sal = total_earning = net_sala = 0.0
+                        net_basic = net_da = net_c = net_hra = net_ea = net_aa = net_la = net_oa = vpfd_amount = 0.0
+                        
                         for earning_struc_id in payroll_emp_struc_obj.browse(cr,uid,emp_struc_ids[0]).payroll_earning_structure_line:
                             if earning_struc_id.earning_parameters_id.code == 'BASIC':
                                 basic = earning_struc_id.float
