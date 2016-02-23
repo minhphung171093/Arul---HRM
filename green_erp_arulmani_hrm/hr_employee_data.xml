@@ -122,6 +122,11 @@
 			<field name="code">Section Change</field>
 		</record>
 		
+		<record id="action_types_25" model="arul.employee.action.type">
+			<field name="name">Section Change</field>
+			<field name="code">Section Change</field>
+		</record>
+		
 		<record id="action_1" model="arul.employee.actions">
 			<field name="name">Leaving</field>
 			<field name="code">Leaving</field>

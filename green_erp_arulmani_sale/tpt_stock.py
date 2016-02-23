@@ -1194,7 +1194,15 @@ class account_invoice(osv.osv):
             if context is None:
                 context = {}
             ctx = context.copy()
-            ctx.update({'date': time.strftime('%Y-%m-%d')})
+            #ctx.update({'date': time.strftime('%Y-%m-%d')})
+            #TPT
+            if line.type=='in_invioce':
+                ctx.update({'date': time.strftime('%Y-%m-%d'), 'rate_type': 'buying' })
+            elif line.type=='out_invioce':
+                ctx.update({'date': time.strftime('%Y-%m-%d'), 'rate_type': 'selling'})
+            else:
+                ctx.update({'date': time.strftime('%Y-%m-%d')})
+            #TPT
             currency = line.currency_id.name or False
             currency_id = line.currency_id.id or False           
             if currency != 'INR':

@@ -696,8 +696,15 @@ class account_invoice(osv.osv):
                 if context is None:
                     context = {}
                 ctx = context.copy()
-                ctx.update({'date': line.date_invoice})
-#                 ctx.update({'date': time.strftime('%Y-%m-%d')})
+                #ctx.update({'date': line.date_invoice})
+                #TPT-By BalamuruganPurushothaman - ON 22/02/2016 -  TO TAKE CURRENCY RATE BASED ON INVOICE TYPE
+                if line.type=='in_invoice':
+                    ctx.update({'date': time.strftime('%Y-%m-%d'), 'rate_type': 'buying' })
+                elif line.type=='out_invoice':
+                    ctx.update({'date': time.strftime('%Y-%m-%d'), 'rate_type': 'selling'})
+                else:
+                    ctx.update({'date': time.strftime('%Y-%m-%d')})
+
                 currency = line.currency_id.name or False
                 currency_id = line.currency_id.id or False
                 #line.invoice_type=='export'
@@ -775,11 +782,16 @@ class account_invoice(osv.osv):
                     if context is None:
                         context = {}
                     ctx = context.copy()
-                    ctx.update({'date': line.date_invoice})
-#                     ctx.update({'date': time.strftime('%Y-%m-%d')})
+                    #ctx.update({'date': line.date_invoice})
+                    if line.type=='in_invoice':
+                        ctx.update({'date': line.date_invoice, 'rate_type': 'buying' })
+                    elif line.type=='out_invoice':
+                        ctx.update({'date': line.date_invoice, 'rate_type': 'selling'})
+                    else:
+                        ctx.update({'date': line.date_invoice})
                     currency = line.currency_id.name or False
                     currency_id = line.currency_id.id or False
-                    if currency != 'INR':
+                    if currency != 'INR': 
                         voucher_rate = self.pool.get('res.currency').read(cr, uid, currency_id, ['rate'], context=ctx)['rate']
                     for po in line.invoice_line:
                         tax = 0
