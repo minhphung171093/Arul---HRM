@@ -2215,7 +2215,14 @@ class account_invoice_line(osv.osv):
             channel = inv_id.delivery_order_id and inv_id.delivery_order_id.sale_id and inv_id.delivery_order_id.sale_id.distribution_channel and inv_id.delivery_order_id.sale_id.distribution_channel.name or False
             currency = inv_id.currency_id.name
             currency_id = inv_id.currency_id.id
-            ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d')})
+            #ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d')})
+            #TPT-By BalamuruganPurushothaman - ON 22/02/2016 -  TO TAKE CURRENCY RATE BASED ON INVOICE TYPE
+            if inv_id.type=='in_invoice':
+                ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d'), 'rate_type': 'buying' })
+            elif inv_id.type=='out_invoice':
+                ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d'), 'rate_type': 'selling'})
+            else:
+                ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d')})
         cr.execute('SELECT * FROM account_invoice_line WHERE invoice_id=%s', (invoice_id,))
         for t in cr.dictfetchall():
             product_id = self.pool.get('product.product').browse(cr, uid, t['product_id'])
@@ -2258,7 +2265,14 @@ class account_invoice_line(osv.osv):
         if inv_id:
             currency = inv_id.currency_id.name or False
             currency_id = inv_id.currency_id.id or False
-            ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d')})
+            #ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d')})
+            #TPT-By BalamuruganPurushothaman - ON 22/02/2016 -  TO TAKE CURRENCY RATE BASED ON INVOICE TYPE
+            if inv_id.type=='in_invoice':
+                ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d'), 'rate_type': 'buying' })
+            elif inv_id.type=='out_invoice':
+                ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d'), 'rate_type': 'selling'})
+            else:
+                ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d')})
         if currency != 'INR':
             voucher_rate = self.pool.get('res.currency').read(cr, uid, currency_id, ['rate'], context=ctx)['rate']
         cr.execute('SELECT * FROM account_invoice_line WHERE invoice_id=%s', (invoice_id,))
@@ -2297,7 +2311,14 @@ class account_invoice_line(osv.osv):
         if inv_id:
             currency = inv_id.currency_id.name or False
             currency_id = inv_id.currency_id.id or False
-            ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d')})
+            #ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d')})
+            #TPT-By BalamuruganPurushothaman - ON 22/02/2016 -  TO TAKE CURRENCY RATE BASED ON INVOICE TYPE
+            if inv_id.type=='in_invoice':
+                ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d'), 'rate_type': 'buying' })
+            elif inv_id.type=='out_invoice':
+                ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d'), 'rate_type': 'selling'})
+            else:
+                ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d')})
         if currency != 'INR':
             voucher_rate = self.pool.get('res.currency').read(cr, uid, currency_id, ['rate'], context=ctx)['rate']
         for line in inv_id.invoice_line:
@@ -2368,7 +2389,14 @@ class account_invoice_line(osv.osv):
         if inv_id:
             currency = inv_id.currency_id.name or False
             currency_id = inv_id.currency_id.id or False
-            ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d')})
+            #ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d')})
+            #TPT-By BalamuruganPurushothaman - ON 22/02/2016 -  TO TAKE CURRENCY RATE BASED ON INVOICE TYPE
+            if inv_id.type=='in_invoice':
+                ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d'), 'rate_type': 'buying' })
+            elif inv_id.type=='out_invoice':
+                ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d'), 'rate_type': 'selling'})
+            else:
+                ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d')})
         if currency != 'INR':
             voucher_rate = self.pool.get('res.currency').read(cr, uid, currency_id, ['rate'], context=ctx)['rate']
         for line in inv_id.invoice_line:
@@ -2438,7 +2466,14 @@ class account_invoice_line(osv.osv):
         if inv_id:
             currency = inv_id.currency_id.name or False
             currency_id = inv_id.currency_id.id or False
-            ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d')})
+            #ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d')})
+            #TPT-By BalamuruganPurushothaman - ON 22/02/2016 -  TO TAKE CURRENCY RATE BASED ON INVOICE TYPE
+            if inv_id.type=='in_invoice':
+                ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d'), 'rate_type': 'buying' })
+            elif inv_id.type=='out_invoice':
+                ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d'), 'rate_type': 'selling'})
+            else:
+                ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d')})
         if currency != 'INR':
             voucher_rate = self.pool.get('res.currency').read(cr, uid, currency_id, ['rate'], context=ctx)['rate']
         for line in inv_id.invoice_line:
@@ -2512,7 +2547,14 @@ class account_invoice_line(osv.osv):
         if inv_id:
             currency = inv_id.currency_id.name or False
             currency_id = inv_id.currency_id.id or False
-            ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d')})
+            #ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d')})
+            #TPT-By BalamuruganPurushothaman - ON 22/02/2016 -  TO TAKE CURRENCY RATE BASED ON INVOICE TYPE
+            if inv_id.type=='in_invoice':
+                ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d'), 'rate_type': 'buying' })
+            elif inv_id.type=='out_invoice':
+                ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d'), 'rate_type': 'selling'})
+            else:
+                ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d')})
         if currency != 'INR':
             voucher_rate = self.pool.get('res.currency').read(cr, uid, currency_id, ['rate'], context=ctx)['rate']
         account_ids = self.pool.get('account.account').search(cr, uid, [('code','in',['0000484008'])])
@@ -2597,7 +2639,14 @@ class account_invoice_line(osv.osv):
         if inv_id:
             currency = inv_id.currency_id.name or False
             currency_id = inv_id.currency_id.id or False
-            ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d')})
+            #ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d')})
+            #TPT-By BalamuruganPurushothaman - ON 22/02/2016 -  TO TAKE CURRENCY RATE BASED ON INVOICE TYPE
+            if inv_id.type=='in_invoice':
+                ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d'), 'rate_type': 'buying' })
+            elif inv_id.type=='out_invoice':
+                ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d'), 'rate_type': 'selling'})
+            else:
+                ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d')})
         if currency != 'INR':
             voucher_rate = self.pool.get('res.currency').read(cr, uid, currency_id, ['rate'], context=ctx)['rate']
         account_ids = self.pool.get('account.account').search(cr, uid, [('code','in',['0000484008'])])
@@ -2682,7 +2731,14 @@ class account_invoice_line(osv.osv):
         if inv_id:
             currency = inv_id.currency_id.name or False
             currency_id = inv_id.currency_id.id or False
-            ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d')})
+            #ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d')})
+            #TPT-By BalamuruganPurushothaman - ON 22/02/2016 -  TO TAKE CURRENCY RATE BASED ON INVOICE TYPE
+            if inv_id.type=='in_invoice':
+                ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d'), 'rate_type': 'buying' })
+            elif inv_id.type=='out_invoice':
+                ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d'), 'rate_type': 'selling'})
+            else:
+                ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d')})
         if currency != 'INR':
             voucher_rate = self.pool.get('res.currency').read(cr, uid, currency_id, ['rate'], context=ctx)['rate']
         account_ids = self.pool.get('account.account').search(cr, uid, [('code','in',['0000484008'])])
@@ -2766,7 +2822,14 @@ class account_invoice_line(osv.osv):
         if inv_id:
             currency = inv_id.currency_id.name or False
             currency_id = inv_id.currency_id.id or False
-            ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d')})
+            #ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d')})
+            #TPT-By BalamuruganPurushothaman - ON 22/02/2016 -  TO TAKE CURRENCY RATE BASED ON INVOICE TYPE
+            if inv_id.type=='in_invoice':
+                ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d'), 'rate_type': 'buying' })
+            elif inv_id.type=='out_invoice':
+                ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d'), 'rate_type': 'selling'})
+            else:
+                ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d')})
         if currency != 'INR':
             voucher_rate = self.pool.get('res.currency').read(cr, uid, currency_id, ['rate'], context=ctx)['rate']
         for line in inv_id.invoice_line:
@@ -2840,7 +2903,14 @@ class account_invoice_line(osv.osv):
         if inv_id:
             currency = inv_id.currency_id.name or False
             currency_id = inv_id.currency_id.id or False
-            ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d')})
+            #ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d')})
+            #TPT-By BalamuruganPurushothaman - ON 22/02/2016 -  TO TAKE CURRENCY RATE BASED ON INVOICE TYPE
+            if inv_id.type=='in_invoice':
+                ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d'), 'rate_type': 'buying' })
+            elif inv_id.type=='out_invoice':
+                ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d'), 'rate_type': 'selling'})
+            else:
+                ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d')})
         if currency != 'INR':
             voucher_rate = self.pool.get('res.currency').read(cr, uid, currency_id, ['rate'], context=ctx)['rate']
         for line in inv_id.invoice_line:              
@@ -2862,7 +2932,14 @@ class account_invoice_line(osv.osv):
         if inv_id:
             currency = inv_id.currency_id.name or False
             currency_id = inv_id.currency_id.id or False
-            ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d')})
+            #ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d')})
+            #TPT-By BalamuruganPurushothaman - ON 22/02/2016 -  TO TAKE CURRENCY RATE BASED ON INVOICE TYPE
+            if inv_id.type=='in_invoice':
+                ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d'), 'rate_type': 'buying' })
+            elif inv_id.type=='out_invoice':
+                ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d'), 'rate_type': 'selling'})
+            else:
+                ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d')})
         if currency != 'INR':
             voucher_rate = self.pool.get('res.currency').read(cr, uid, currency_id, ['rate'], context=ctx)['rate']
         for line in inv_id.invoice_line:
@@ -2940,7 +3017,14 @@ class account_invoice_line(osv.osv):
         if inv_id:
             currency = inv_id.currency_id.name or False
             currency_id = inv_id.currency_id.id or False
-            ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d')})
+            #ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d')})
+            #TPT-By BalamuruganPurushothaman - ON 22/02/2016 -  TO TAKE CURRENCY RATE BASED ON INVOICE TYPE
+            if inv_id.type=='in_invoice':
+                ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d'), 'rate_type': 'buying' })
+            elif inv_id.type=='out_invoice':
+                ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d'), 'rate_type': 'selling'})
+            else:
+                ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d')})
         if currency != 'INR':
             voucher_rate = self.pool.get('res.currency').read(cr, uid, currency_id, ['rate'], context=ctx)['rate']
         for line in inv_id.invoice_line:
@@ -3019,7 +3103,14 @@ class account_invoice_line(osv.osv):
         if inv_id:
             currency = inv_id.currency_id.name or False
             currency_id = inv_id.currency_id.id or False
-            ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d')})
+            #ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d')})
+            #TPT-By BalamuruganPurushothaman - ON 22/02/2016 -  TO TAKE CURRENCY RATE BASED ON INVOICE TYPE
+            if inv_id.type=='in_invoice':
+                ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d'), 'rate_type': 'buying' })
+            elif inv_id.type=='out_invoice':
+                ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d'), 'rate_type': 'selling'})
+            else:
+                ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d')})
         if currency != 'INR':
             voucher_rate = self.pool.get('res.currency').read(cr, uid, currency_id, ['rate'], context=ctx)['rate']
         for line in inv_id.invoice_line:
@@ -3099,7 +3190,14 @@ class account_invoice_line(osv.osv):
         if inv_id:
             currency = inv_id.currency_id.name or False
             currency_id = inv_id.currency_id.id or False
-            ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d')})
+            #ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d')})
+            #TPT-By BalamuruganPurushothaman - ON 22/02/2016 -  TO TAKE CURRENCY RATE BASED ON INVOICE TYPE
+            if inv_id.type=='in_invoice':
+                ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d'), 'rate_type': 'buying' })
+            elif inv_id.type=='out_invoice':
+                ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d'), 'rate_type': 'selling'})
+            else:
+                ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d')})
         if currency != 'INR':
             voucher_rate = self.pool.get('res.currency').read(cr, uid, currency_id, ['rate'], context=ctx)['rate']
         for line in inv_id.invoice_line:
@@ -3188,7 +3286,14 @@ class account_invoice_line(osv.osv):
         if inv_id:
             currency = inv_id.currency_id.name or False
             currency_id = inv_id.currency_id.id or False
-            ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d')})
+            #ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d')})
+            #TPT-By BalamuruganPurushothaman - ON 22/02/2016 -  TO TAKE CURRENCY RATE BASED ON INVOICE TYPE
+            if inv_id.type=='in_invoice':
+                ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d'), 'rate_type': 'buying' })
+            elif inv_id.type=='out_invoice':
+                ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d'), 'rate_type': 'selling'})
+            else:
+                ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d')})
         if currency != 'INR':
             voucher_rate = self.pool.get('res.currency').read(cr, uid, currency_id, ['rate'], context=ctx)['rate']
         for line in inv_id.invoice_line:
@@ -3279,7 +3384,14 @@ class account_invoice_line(osv.osv):
         if inv_id:
             currency = inv_id.currency_id.name or False
             currency_id = inv_id.currency_id.id or False
-            ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d')})
+            #ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d')})
+            #TPT-By BalamuruganPurushothaman - ON 22/02/2016 -  TO TAKE CURRENCY RATE BASED ON INVOICE TYPE
+            if inv_id.type=='in_invoice':
+                ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d'), 'rate_type': 'buying' })
+            elif inv_id.type=='out_invoice':
+                ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d'), 'rate_type': 'selling'})
+            else:
+                ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d')})
         if currency != 'INR':
             voucher_rate = self.pool.get('res.currency').read(cr, uid, currency_id, ['rate'], context=ctx)['rate']
         account_ids = self.pool.get('account.account').search(cr, uid, [('code','in',['0000484008'])])
@@ -3361,7 +3473,14 @@ class account_invoice_line(osv.osv):
         if inv_id:
             currency = inv_id.currency_id.name or False
             currency_id = inv_id.currency_id.id or False
-            ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d')})
+            #ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d')})
+            #TPT-By BalamuruganPurushothaman - ON 22/02/2016 -  TO TAKE CURRENCY RATE BASED ON INVOICE TYPE
+            if inv_id.type=='in_invoice':
+                ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d'), 'rate_type': 'buying' })
+            elif line.type=='out_invoice':
+                ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d'), 'rate_type': 'selling'})
+            else:
+                ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d')})
         if currency != 'INR':
             voucher_rate = self.pool.get('res.currency').read(cr, uid, currency_id, ['rate'], context=ctx)['rate']
         for line in inv_id.invoice_line:
@@ -3547,7 +3666,14 @@ class account_invoice_line(osv.osv):
         if inv_id:
             currency = inv_id.currency_id.name or False
             currency_id = inv_id.currency_id.id or False
-            ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d')})
+            #ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d')})
+            #TPT-By BalamuruganPurushothaman - ON 22/02/2016 -  TO TAKE CURRENCY RATE BASED ON INVOICE TYPE
+            if inv_id.type=='in_invoice':
+                ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d'), 'rate_type': 'buying' })
+            elif inv_id.type=='out_invoice':
+                ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d'), 'rate_type': 'selling'})
+            else:
+                ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d')})
         if currency != 'INR':
             voucher_rate = self.pool.get('res.currency').read(cr, uid, currency_id, ['rate'], context=ctx)['rate']
         cr.execute('SELECT * FROM account_invoice_line WHERE invoice_id=%s', (invoice_id,))
@@ -3695,7 +3821,14 @@ class account_invoice_line(osv.osv):
         if inv_id:
             currency = inv_id.currency_id.name or False
             currency_id = inv_id.currency_id.id or False
-            ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d')})
+            #ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d')})
+            #TPT-By BalamuruganPurushothaman - ON 22/02/2016 -  TO TAKE CURRENCY RATE BASED ON INVOICE TYPE
+            if inv_id.type=='in_invoice':
+                ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d'), 'rate_type': 'buying' })
+            elif inv_id.type=='out_invoice':
+                ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d'), 'rate_type': 'selling'})
+            else:
+                ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d')})
         if currency != 'INR':
             voucher_rate = self.pool.get('res.currency').read(cr, uid, currency_id, ['rate'], context=ctx)['rate']
         for line in inv_id.invoice_line:
@@ -3777,7 +3910,14 @@ class account_invoice_line(osv.osv):
         if inv_id:
             currency = inv_id.currency_id.name or False
             currency_id = inv_id.currency_id.id or False
-            ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d')})
+            #ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d')})
+            #TPT-By BalamuruganPurushothaman - ON 22/02/2016 -  TO TAKE CURRENCY RATE BASED ON INVOICE TYPE
+            if inv_id.type=='in_invoice':
+                ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d'), 'rate_type': 'buying' })
+            elif inv_id.type=='out_invoice':
+                ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d'), 'rate_type': 'selling'})
+            else:
+                ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d')})
         if currency != 'INR':
             voucher_rate = self.pool.get('res.currency').read(cr, uid, currency_id, ['rate'], context=ctx)['rate']
         cr.execute('SELECT * FROM account_invoice_line WHERE invoice_id=%s', (invoice_id,))
@@ -3812,7 +3952,14 @@ class account_invoice_line(osv.osv):
         if inv_id:
             currency = inv_id.currency_id.name or False
             currency_id = inv_id.currency_id.id or False
-            ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d')})
+            #ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d')})
+            #TPT-By BalamuruganPurushothaman - ON 22/02/2016 -  TO TAKE CURRENCY RATE BASED ON INVOICE TYPE
+            if inv_id.type=='in_invoice':
+                ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d'), 'rate_type': 'buying' })
+            elif inv_id.type=='out_invoice':
+                ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d'), 'rate_type': 'selling'})
+            else:
+                ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d')})
         if currency != 'INR':
             voucher_rate = self.pool.get('res.currency').read(cr, uid, currency_id, ['rate'], context=ctx)['rate']
         cr.execute('SELECT * FROM account_invoice_line WHERE invoice_id=%s', (invoice_id,))
@@ -3977,7 +4124,14 @@ class account_invoice_line(osv.osv):
         if inv_id:
             currency = inv_id.currency_id.name
             currency_id = inv_id.currency_id.id
-            ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d')})
+            #ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d')})
+            #TPT-By BalamuruganPurushothaman - ON 22/02/2016 -  TO TAKE CURRENCY RATE BASED ON INVOICE TYPE
+            if inv_id.type=='in_invoice':
+                ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d'), 'rate_type': 'buying' })
+            elif inv_id.type=='out_invoice':
+                ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d'), 'rate_type': 'selling'})
+            else:
+                ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d')})
         cr.execute('SELECT * FROM account_invoice_line WHERE invoice_id=%s', (invoice_id,))
         for t in cr.dictfetchall():
             product_id = self.pool.get('product.product').browse(cr, uid, t['product_id'])
@@ -7658,6 +7812,7 @@ class res_currency_rate(osv.osv):
     _inherit = 'res.currency.rate'
     _columns = {
         'rate': fields.float('Rate', digits=(12,14), help='The rate of the currency to the currency of rate 1'),
+        'rate_type': fields.selection([('buying','Buying Rate'),('selling','Selling Rate')],'Rate Type'),#TPT-BM
     }
     
 res_currency_rate()

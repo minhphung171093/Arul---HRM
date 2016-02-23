@@ -525,16 +525,16 @@
             <field name="arch" type="xml">
 	            <form string="Maintenance Order" version="7.0">   
 	            	<header>
-	            		<button name="bt_create_order" string="Create Order" type="object" class="oe_highlight" attrs="{'invisible': [('state', '!=', 'draft')]}"/>
-	            		<button name="bt_approve_order" string="Approve Order" type="object" class="oe_highlight" attrs="{'invisible': ['|',('state', '!=', 'confirm'),('check_approve', '!=', True)]}"/>
-	            		<button name="bt_service_entry" states='in' string="Create Service Entry" type="object" class="oe_highlight"/>
-	            		<button name="bt_third_service_entry" states='in' string="Create 3rd Party Service Entry" type="object" class="oe_highlight"/>
-	            		<button name="bt_return_rq" states='in' string="Return Request" type="object" class="oe_highlight"/>
-	            		<button name="bt_create_mrs" states='in' string="Create MRS" type="object" class="oe_highlight"/>
-	            		<button name="bt_chargeable_mrs" states='in' string="Chargeable MRS" type="object" class="oe_highlight"/>
-	            		<button name="bt_close" states='confirm,completed,put,in' string="Close Order" type="object" class="oe_highlight"/>
-	            		<button name="bt_cancel" states='draft,confirm,completed,put,close,in' string="Cancel Order" type="object" class="oe_highlight"/>
-	            		<button name="bt_set_to" states='cancel' string="Set to draft" type="object" class="oe_highlight"/>
+	            		<button name="bt_create_order" string="Create Order" type="object" class="oe_highlight" attrs="{'invisible': [('state', '!=', 'draft')]}" groups="green_erp_arulmani_maintenance.group_vvti_maintenance, green_erp_arulmani_maintenance.group_vvti_maintenance_manager"/>
+	            		<button name="bt_approve_order" string="Approve Order" type="object" class="oe_highlight" attrs="{'invisible': ['|',('state', '!=', 'confirm'),('check_approve', '!=', True)]}" groups="green_erp_arulmani_maintenance.group_vvti_maintenance_manager"/>
+	            		<button name="bt_service_entry" states='in' string="Create Service Entry" type="object" class="oe_highlight" groups="green_erp_arulmani_maintenance.group_vvti_maintenance, green_erp_arulmani_maintenance.group_vvti_maintenance_manager"/>
+	            		<button name="bt_third_service_entry" states='in' string="Create 3rd Party Service Entry" type="object" class="oe_highlight" groups="green_erp_arulmani_maintenance.group_vvti_maintenance, green_erp_arulmani_maintenance.group_vvti_maintenance_manager"/>
+	            		<button name="bt_return_rq" states='in' string="Return Request" type="object" class="oe_highlight" groups="green_erp_arulmani_maintenance.group_vvti_maintenance, green_erp_arulmani_maintenance.group_vvti_maintenance_manager"/>
+	            		<button name="bt_create_mrs" states='in' string="Create MRS" type="object" class="oe_highlight" groups="green_erp_arulmani_maintenance.group_vvti_maintenance, green_erp_arulmani_maintenance.group_vvti_maintenance_manager"/>
+	            		<button name="bt_chargeable_mrs" states='in' string="Chargeable MRS" type="object" class="oe_highlight" groups="green_erp_arulmani_maintenance.group_vvti_maintenance, green_erp_arulmani_maintenance.group_vvti_maintenance_manager"/>
+	            		<button name="bt_close" states='confirm,completed,put,in' string="Close Order" type="object" class="oe_highlight" groups="green_erp_arulmani_maintenance.group_vvti_maintenance, green_erp_arulmani_maintenance.group_vvti_maintenance_manager"/>
+	            		<button name="bt_cancel" states='draft,confirm,completed,put,close,in' string="Cancel Order" type="object" class="oe_highlight" groups="green_erp_arulmani_maintenance.group_vvti_maintenance, green_erp_arulmani_maintenance.group_vvti_maintenance_manager"/>
+	            		<button name="bt_set_to" states='cancel' string="Set to draft" type="object" class="oe_highlight" groups="green_erp_arulmani_maintenance.group_vvti_maintenance, green_erp_arulmani_maintenance.group_vvti_maintenance_manager"/>
 	                    <field name ="state" widget="statusbar" statusbar_visible="draft,in,completed,put,close" statusbar_colors='{"draft":"blue","in":"red","close":"grey"}'/>
 	                </header>
 	            	<sheet>

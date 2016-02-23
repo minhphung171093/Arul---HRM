@@ -3150,6 +3150,17 @@
 				</xpath>
             </field>
         </record>
-	  
+      <!-- TPT-By BalamuruganPurushothaman - ON 22/02/2016 - TO ADD RATE TYPE(BUYING/SELLING) IN CURRENCY MASTER -->
+	  <record id="tpt_res_currency_inherit_form" model="ir.ui.view">
+            <field name="name">tpt.res.currency.inherit.form</field>
+            <field name="model">res.currency</field>
+            <field name="inherit_id" ref="base.view_currency_form"/>
+            <field name="arch" type="xml">
+            	<xpath expr="//field[@name='rate_ids']/tree/field[@name='name']" position="after">					
+					<field name="rate_type"/>
+				</xpath>
+			</field>
+		</record>
+		<!-- TPT-END -->
     </data>
 </openerp>

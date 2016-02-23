@@ -324,6 +324,10 @@ class stock_invoice_onshipping(osv.osv_memory):
                         cur_rate_ids = cur_rate_obj.search(cr, uid, [('currency_id','=',currency_id),('name','=',wiz.invoice_date)])
                         if not cur_rate_ids:
                             raise osv.except_osv(_('Warning!'),_('Rate of currency is not defined on %s!'%wiz.invoice_date)) 
+                        else:
+                            cur_rate_ids1 = cur_rate_obj.search(cr, uid, [('currency_id','=',currency_id),('name','=',wiz.invoice_date), ('rate_type', '=', 'selling')])
+                            if not cur_rate_ids1:
+                                raise osv.except_osv(_('Warning!'),_('Selling Rate of Currency is not defined on %s!'%wiz.invoice_date))
                 else:
                     raise osv.except_osv(_('Warning!'),_('Please check again! Do not have currency for this Picking order!')) 
         res = self.create_invoice(cr, uid, ids, context=context)

@@ -1417,7 +1417,10 @@ class tpt_purchase_quotation(osv.osv):
             if context is None:
                 context = {}
             ctx = context.copy()
-            ctx.update({'date': time.strftime('%Y-%m-%d')})
+            #ctx.update({'date': time.strftime('%Y-%m-%d')})
+            #TPT-By BalamuruganPurushothaman - ON 22/02/2016 -  TO TAKE CURRENCY RATE 
+            ctx.update({'date': time.strftime('%Y-%m-%d'), 'rate_type': 'buying' })
+            
             currency = line.currency_id.name or False
             currency_id = line.currency_id.id or False
             if currency and currency != 'INR':
@@ -2273,7 +2276,9 @@ class purchase_order(osv.osv):
             if context is None:
                 context = {}
             ctx = context.copy()
-            ctx.update({'date': time.strftime('%Y-%m-%d')})
+            #ctx.update({'date': time.strftime('%Y-%m-%d')})
+            #TPT-By BalamuruganPurushothaman - ON 22/02/2016 -  TO TAKE CURRENCY RATE
+            ctx.update({'date': time.strftime('%Y-%m-%d'), 'rate_type': 'buying' })
             currency = line.currency_id.name or False
             currency_id = line.currency_id.id or False
             if currency and currency != 'INR':

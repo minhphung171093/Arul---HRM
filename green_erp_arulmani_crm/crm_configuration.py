@@ -225,7 +225,34 @@ class res_partner(osv.osv):
                     time_qty=0.0
             res[time.id]['pending_qty'] = time_qty            
         return res 
-     
+    def _last_inv_no(self, cr, uid, ids, field_name, arg, context=None):
+        res = {}
+        for time in self.browse(cr, uid, ids, context=context):
+            res[time.id] = {
+                'last_inv_no': 0.0,
+            }
+            if time.id : 
+                sql = '''
+                select  max(vvt_number)  from account_invoice where partner_id=%s
+                   '''% (time.id)
+                cr.execute(sql)
+                a = cr.fetchone()
+            res[time.id]['last_inv_no'] = a[0]            
+        return res 
+    def _last_inv_date(self, cr, uid, ids, field_name, arg, context=None):
+        res = {}
+        for time in self.browse(cr, uid, ids, context=context):
+            res[time.id] = {
+                'last_inv_date': 0.0,
+            }
+            if time.id : 
+                sql = '''
+                select  max(date_invoice)  from account_invoice where partner_id=%s
+                   '''% (time.id)
+                cr.execute(sql)
+                a = cr.fetchone()
+            res[time.id]['last_inv_date'] = a[0]            
+        return res 
     _columns = {
         'arulmani_type': fields.selection([('export','Export'),('domestic','Domestic'),('indirect_export','Indirect Export')],'Customer Group'),
         'zone': fields.selection([('north','North'),('east','East'),('west','West'),('south','South')],'Zone'),
@@ -287,13 +314,16 @@ class res_partner(osv.osv):
         #tien
         'disapprove': fields.boolean('Approved'), 
         'credit_limit_group_id': fields.many2one('credit.limit.group','Credit Limit Group'),
-        #
+        ##TPT- Mobile App- By BalamuruganPurushothaman - SALES INFO 
         'total_order_placed': fields.function(_total_order_placed, string='Total Order', multi='test_qty1'),
         'total_qty_ordered': fields.function(_total_qty_ordered, string='Total Qty Ordered', multi='test_qty2'),
         'total_ordered_value': fields.function(_total_ordered_value, string='Total Ordered Value', multi='test_qty3'),
         'total_order_exe': fields.function(_total_order_exe, string='Total Ordered Executed', multi='test_qty4'),
         'pending_order': fields.function(_pending_order, string='Pending Orders', multi='test_qty'),
-        'pending_qty': fields.function(_pending_qty, string='Pending Qty to be Delivered', multi='test_qty5'),    
+        'pending_qty': fields.function(_pending_qty, string='Pending Qty to be Delivered', multi='test_qty5'),
+        #TPT- Mobile App- By BalamuruganPurushothaman - DEBTOR INFO
+        'last_inv_no': fields.function(_last_inv_no, string='Last Invoice Date', multi='test_qty6'),    
+        'last_inv_date': fields.function(_last_inv_date, string='Last Invoice Date', multi='test_qty7'), 
     }
     _defaults = {
         'is_company': True,
