@@ -1392,7 +1392,7 @@ class tpt_blanket_order(osv.osv):
         con_ids = []
         for con_line in blanket.customer_id.consignee_line:
             con_ids.append(con_line.id)
-        #TPT - Commented By BalamuruganPurushothaman on 01/03/2015 - To manke COnsignee mandatory on     
+        #TPT - Commented By BalamuruganPurushothaman on 01/03/2015 - To make Consignee mandatory      
         #for blanket_line in blanket.blank_order_line:
         #    if blanket_line.name_consignee_id.id not in con_ids:
         #       raise osv.except_osv(_('Warning!'),_('This consignee "%s" does not belong to the selected customer "%s"!')%(blanket_line.name_consignee_id.name,blanket.customer_id.name))
