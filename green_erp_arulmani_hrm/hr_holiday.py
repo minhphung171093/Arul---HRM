@@ -4262,7 +4262,8 @@ class arul_hr_employee_leave_details(osv.osv):
                         temp += 1
                         day = line.total_day - line.total_taken
                         if timedelta > day and line.leave_type_id.code!='LOP' and line.leave_type_id.code != 'ESI': # To treat ESI as same as LOP
-                            raise osv.except_osv(_('Warning!'),_('The Taken Day Must Be Less Than The Limit!'))
+                            if context.get('leave_cancel')==0:
+                                raise osv.except_osv(_('Warning!'),_('The Taken Day Must Be Less Than The Limit!'))
                     if date.leave_type_id.code == 'LOP' or date.leave_type_id.code == 'ESI': # To treat ESI as same as LOP
                         temp += 1
                         leave = leave_details_obj.search(cr, uid, [('emp_leave_id','=',emp_leave.id),('leave_type_id','=',date.leave_type_id.id)])
@@ -4828,7 +4829,10 @@ class arul_hr_employee_leave_details(osv.osv):
     def cancel_leave_request(self, cr, uid, ids, context=None):
         date_now = time.strftime('%Y-%m-%d')
         time_evalv_obj = self.pool.get('tpt.time.leave.evaluation')
-        for line in self.browse(cr, uid, ids):
+        print context.get('leave_cancel')
+        if context.get('leave_cancel')==1:
+            print "test"
+        for line in self.browse(cr, uid, ids): 
             #TPT-Commented By BalamuruganPurushothaman ON 11/04/2015 - TO AVOID THROW THIS WARNING
             #if line.date_from < date_now:
             #    raise osv.except_osv(_('Warning!'),_('Can not Cancel for past day!'))
