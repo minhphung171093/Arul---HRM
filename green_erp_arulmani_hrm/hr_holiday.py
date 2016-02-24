@@ -4262,7 +4262,7 @@ class arul_hr_employee_leave_details(osv.osv):
                         temp += 1
                         day = line.total_day - line.total_taken
                         if timedelta > day and line.leave_type_id.code!='LOP' and line.leave_type_id.code != 'ESI': # To treat ESI as same as LOP
-                            if context.get('leave_cancel')==0:
+                            if context.get('leave_cancel')==0: #TPT-BM-ON 24/02/2016 - TO AVOID THROW THIS ERROR WHEN CANCEL LEAVE
                                 raise osv.except_osv(_('Warning!'),_('The Taken Day Must Be Less Than The Limit!'))
                     if date.leave_type_id.code == 'LOP' or date.leave_type_id.code == 'ESI': # To treat ESI as same as LOP
                         temp += 1
