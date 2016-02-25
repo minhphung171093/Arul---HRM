@@ -5,11 +5,12 @@ from openerp.tools.translate import _
 import time
 from openerp import SUPERUSER_ID
 from openerp.tools import DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_DATETIME_FORMAT, DATETIME_FORMATS_MAP, float_compare
-from datetime import datetime
+from datetime import datetime, date
 import datetime
 import calendar
 import openerp.addons.decimal_precision as dp
 from openerp import netsvc
+
 
 class product_product(osv.osv):
     _inherit = "product.product"
@@ -1243,7 +1244,9 @@ class tpt_blanket_order(osv.osv):
         'state': 'draft',
         'name': '/',
         'document_type': 'blankedorder',
-        'bo_date': time.strftime('%Y-%m-%d'),
+        #'bo_date': time.strftime('%Y-%m-%d'),
+        #'bo_date': time.strftime(DEFAULT_SERVER_DATE_FORMAT),
+        #'bo_date':date.today().strftime('%Y-%m-%d'),
         'flag2':False,
         'amendment_flag':False,
     }
@@ -1478,6 +1481,7 @@ class tpt_blanket_order(osv.osv):
                     'blank_consignee_line': consignee_lines or False,
                     'incoterm_id':customer.inco_terms_id and customer.inco_terms_id.id or False,
                     'currency_id':customer.currency_id and customer.currency_id.id or False,
+                    'bo_date': fields.date.context_today(self,cr,uid,context=context)
                     }
         return {'value': vals}
     
@@ -2037,7 +2041,7 @@ class tpt_batch_allotment(osv.osv):
         'sale_order_id':fields.many2one('sale.order','Sale Order',required = True),   
         'customer_id':fields.many2one('res.partner', 'Customer', required = True), 
         'description':fields.text('Description'),
-        'state': fields.selection([('to_approve', 'To Approved'), ('refuse', 'Refused'),('confirm', 'Approved'), ('cancel', 'Cancelled')],'Status'),
+        'state': fields.selection([('to_approve', 'Draft'), ('refuse', 'Refused'),('confirm', 'Allotted'), ('cancel', 'Cancelled')],'Status'),
         'batch_allotment_line': fields.one2many('tpt.batch.allotment.line', 'batch_allotment_id', 'Product Information'), 
         'requested_qty': fields.float('Requested Quantity', digits=(16,3),readonly = True),   
         'create_date': fields.datetime('Created Date',readonly = True),

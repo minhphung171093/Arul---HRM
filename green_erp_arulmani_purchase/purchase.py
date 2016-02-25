@@ -70,7 +70,7 @@ class tpt_purchase_indent(osv.osv):
 
     _defaults = {
         'state':'draft',
-        'date_indent': time.strftime('%Y-%m-%d'),
+        #'date_indent': time.strftime('%Y-%m-%d'),
 #         'date_indent': fields.datetime.now,
         'name': '/',
         'intdent_cate':'normal',
@@ -355,6 +355,7 @@ class tpt_purchase_indent(osv.osv):
                           }  
                 vals['document_type']=False
                 return {'value': vals,'warning':warning}
+        vals.update({'date_indent': fields.date.context_today(self,cr,uid,context=context)})
         return {'value': vals}
     
     def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
@@ -4908,7 +4909,7 @@ class tpt_material_request(osv.osv):
     _defaults = {
         'state':'draft',      
         'name': '/',
-        'date_request': time.strftime('%Y-%m-%d'),
+        #'date_request': time.strftime('%Y-%m-%d'),
         'department_id': _get_department_id,
     }
     
@@ -5335,6 +5336,7 @@ class tpt_material_request(osv.osv):
                         update tpt_material_request_line set request_type = '%s' where id=%s
                     '''%(request_type,line.id)
                     cr.execute(sql)
+        vals.update({'date_request': fields.date.context_today(self,cr,uid,context=context)})
         return {'value':vals} 
     
     def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
@@ -5561,7 +5563,7 @@ class tpt_material_issue(osv.osv):
         'flag': False,
         'state':'draft',    
         'doc_no': '/',  
-        'date_expec': time.strftime('%Y-%m-%d'),
+        #'date_expec': time.strftime('%Y-%m-%d'),
     }
 
 #     def create(self, cr, uid, vals, context=None):
@@ -5631,6 +5633,7 @@ class tpt_material_issue(osv.osv):
                     'material_issue_line':product_information_line,
                     'request_type': request.request_type,
                     }
+        vals.update({'date_expec': fields.date.context_today(self,cr,uid,context=context)})
         return {'value': vals}
 
     def bt_approve(self, cr, uid, ids, context=None):
