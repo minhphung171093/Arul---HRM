@@ -1946,7 +1946,7 @@ class tpt_purchase_quotation_line(osv.osv):
         'line_net': fields.function(line_net_line, store = True, multi='deltas' ,digits=(16,3),string='SubTotal'),
         'line_no': fields.integer('SI.No', readonly = True),
         'order_charge': fields.float('Other Charges',digits=(16,3)),
-        'description':fields.char('Mat.Desc', size = 50, readonly = True),
+        'description':fields.char('Mat.Desc', readonly = True), # TPT BM-ON 25/02/2016 - TO EXTEND STORAGE
         #TPT
         'item_text': fields.char('Item Text'), 
         }
@@ -3379,7 +3379,7 @@ class purchase_order_line(osv.osv):
                                        \n* The \'Confirmed\' status is set automatically as confirm when purchase order in confirm status. \
                                        \n* The \'Done\' status is set automatically when purchase order is set as done. \
                                        \n* The \'Cancelled\' status is set automatically when user cancel purchase order.'),
-                'description':fields.char('Description', size = 50, readonly = True),
+                'description':fields.char('Description', readonly = True),
                 'flag_line': fields.boolean('flag_line'),
                 #TPT
                 'item_text': fields.char('Item Text'), 
