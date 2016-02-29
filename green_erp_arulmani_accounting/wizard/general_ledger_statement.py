@@ -84,7 +84,7 @@ class tpt_general_ledger_line(osv.osv_memory):
         'emp': fields.char('Vendor/Customer', size = 1024), #TPT-Y
         'debit': fields.float('Debit',digits=(16,2)),
         'credit': fields.float('Credit',digits=(16,2)),
-        'total':fields.float('Total',digits=(16,2)),
+        'total':fields.float('Transaction Total',digits=(16,2)),
         'doc_no_line':fields.char('Document No',size=1024), #TPT-Y
         'employee_id': fields.char('Employee', size = 1024), #TPT-Y
         'order_id':fields.many2one('purchase.order','Order/work Order No'),
@@ -213,7 +213,7 @@ class general_ledger_statement(osv.osv_memory):
                 debit += move['debit']                  
             balance = debit - credit            
             return balance
-        
+                
         def get_emp(move_id):
             acc_obj = self.pool.get('res.partner')
             acc = acc_obj.browse(cr,uid,move_id)
@@ -422,12 +422,25 @@ class general_ledger_statement(osv.osv_memory):
         cb_obj = self.pool.get('tpt.general.ledger.from')
         cb = self.browse(cr, uid, ids[0])
         cb_line = []
-        cb_line.append((0,0,{
-            'doc_no_line': False, #TPT-Y on 22/09/2015
-            'employee_id': 'Opening Balance:', #TPT-Y on 22/09/2015
-            'debit': get_opening_balance(cb), #TPT-Y on 22/09/2015
-
-        }))
+        
+  # TPT START BALAMURUGAN ON 18/02/2016       
+        if get_opening_balance(cb)>0:
+            cb_line.append((0,0,{
+                 'doc_no_line': False, #TPT-Y on 22/09/2015
+                 'employee_id': 'Opening Balance:', #TPT-Y on 22/09/2015
+                 'debit': get_opening_balance(cb), #TPT-Y on 22/09/2015
+                 'credit': 0.00      # TPT START BALAMURUGAN ON 18/02/2016  
+                
+             }))
+        else:
+            cb_line.append((0,0,{
+                 'doc_no_line': False, #TPT-Y on 22/09/2015
+                 'employee_id': 'Opening Balance:', #TPT-Y on 22/09/2015
+                 #'debit': get_opening_balance(cb), #TPT-Y on 22/09/2015
+                 'debit': 0.00,
+                 'credit': abs(get_opening_balance(cb)), ##TPT RK on 18/02/2016 
+    # TPT END BALAMURUGAN ON 18/02/2016             
+             }))
         for line in get_invoice(cb):
             cb_line.append((0,0,{
                     'doc_no_line': line.move_id and line.move_id.name, #TPT-Y             
@@ -447,15 +460,15 @@ class general_ledger_statement(osv.osv_memory):
                     'partner_id': line.partner_id and line.partner_id.id or False,  
             }))
         cb_line.append((0,0,{
-            'narration': 'Total',
+            'narration': 'Total Transaction',
             #'debit': get_total(get_invoice(cb),'debit'),
-            'debit': get_total_debit(get_invoice(cb), get_opening_balance(cb)), #TPT-Y on 22/09/2015
-            'credit': get_total(get_invoice(cb)), #TPT-Y on 22/09/2015
+            'debit': get_total_debit(get_invoice(cb), get_opening_balance(cb)),# TPT START BALAMURUGAN ON 18/02/2016  
+            'credit': get_total(get_invoice(cb)), # TPT START BALAMURUGAN ON 18/02/2016  
         }))
         cb_line.append((0,0,{   
             'narration': 'Balance', 
             #'credit': get_balance(get_invoice(cb)),  #TPT-Y
-            'credit': get_total_balance(get_invoice(cb), get_opening_balance(cb)), #TPT-Y on 22/09/2015 
+            'credit': get_total_balance(get_invoice(cb), get_opening_balance(cb)), # TPT START BALAMURUGAN ON 18/02/2016  
         }))
         vals = {
             'name': 'General Ledger Statement',
