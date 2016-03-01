@@ -4437,9 +4437,9 @@ class arul_hr_employee_leave_details(osv.osv):
             if vals['date_from'] == vals['date_to']:
                 sql = '''
                          select count(*) from arul_hr_employee_leave_details where employee_id=%s and ('%s' between date_from and date_to)
-                        and ('%s' between date_from and date_to)
+                        and ('%s' between date_from and date_to) and state not in ('cancel')
                     '''%(vals['employee_id'],vals['date_from'],vals['date_to'])
-                cr.execute(sql)
+                cr.execute(sql)# tpt-bm-state check is appended here on 01/03/2016
                 k = cr.fetchone()   
                 if k and k[0]-1> 0:
                   raise osv.except_osv(_('Warning!'),_('Leave Entry were already created for this Date!'))                           
