@@ -423,13 +423,13 @@ class general_ledger_statement(osv.osv_memory):
         cb = self.browse(cr, uid, ids[0])
         cb_line = []
         
-  # TPT START BALAMURUGAN ON 18/02/2016       
+        # TPT START BALAMURUGAN ON 18/02/2016       
         if get_opening_balance(cb)>0:
             cb_line.append((0,0,{
                  'doc_no_line': False, #TPT-Y on 22/09/2015
                  'employee_id': 'Opening Balance:', #TPT-Y on 22/09/2015
                  'debit': get_opening_balance(cb), #TPT-Y on 22/09/2015
-                 'credit': 0.00      # TPT START BALAMURUGAN ON 18/02/2016  
+                 'credit': 0.00      # TPT BALAMURUGAN ON 18/02/2016  
                 
              }))
         else:
@@ -439,7 +439,7 @@ class general_ledger_statement(osv.osv_memory):
                  #'debit': get_opening_balance(cb), #TPT-Y on 22/09/2015
                  'debit': 0.00,
                  'credit': abs(get_opening_balance(cb)), ##TPT RK on 18/02/2016 
-    # TPT END BALAMURUGAN ON 18/02/2016             
+        # TPT END BALAMURUGAN ON 18/02/2016             
              }))
         for line in get_invoice(cb):
             cb_line.append((0,0,{
