@@ -1716,10 +1716,13 @@ class arul_hr_payroll_executions(osv.osv):
                             cr.execute(sql)
                             temp_list = [r[0] for r in cr.fetchall()]
                             month_list = []
+                            year_list = [] #TPT-BM-year list added on 01/03/2016
                             for k in temp_list:
                                 month_list.append(str(int(k[5:7])))
+                                year_list.append(str(int(k[:4])))
                                       
-                            payroll_ids = payroll_obj.search(cr, uid,[('month','in',month_list),('year','=',line.year),('employee_id','=',p.id),('payroll_executions_id.state','in',['confirm','approve'])])
+                            #payroll_ids = payroll_obj.search(cr, uid,[('month','in',month_list),('year','=',line.year),('employee_id','=',p.id),('payroll_executions_id.state','in',['confirm','approve'])])
+                            payroll_ids = payroll_obj.search(cr, uid,[('month','in',month_list),('year','in',year_list),('employee_id','=',p.id),('payroll_executions_id.state','in',['confirm','approve'])])
                             if payroll_ids:
                                 for pay in payroll_ids:
                                     payroll = payroll_obj.browse(cr, uid, pay)
@@ -2108,10 +2111,13 @@ class arul_hr_payroll_executions(osv.osv):
                             cr.execute(sql)
                             temp_list = [r[0] for r in cr.fetchall()]
                             month_list = []
+                            year_list = []
                             for k in temp_list:
                                 month_list.append(str(int(k[5:7])))
+                                year_list.append(str(int(k[:4])))
                                       
-                            payroll_ids = payroll_obj.search(cr, uid,[('month','in',month_list),('year','=',line.year),('employee_id','=',p.id),('payroll_executions_id.state','in',['confirm','approve'])])
+                            #payroll_ids = payroll_obj.search(cr, uid,[('month','in',month_list),('year','=',line.year),('employee_id','=',p.id),('payroll_executions_id.state','in',['confirm','approve'])])
+                            payroll_ids = payroll_obj.search(cr, uid,[('month','in',month_list),('year','in',year_list),('employee_id','=',p.id),('payroll_executions_id.state','in',['confirm','approve'])])
                             if payroll_ids:
                                 for pay in payroll_ids:
                                     payroll = payroll_obj.browse(cr, uid, pay)
@@ -2511,10 +2517,13 @@ class arul_hr_payroll_executions(osv.osv):
                             cr.execute(sql)
                             temp_list = [r[0] for r in cr.fetchall()]
                             month_list = []
+                            year_list = []
                             for k in temp_list:
                                 month_list.append(str(int(k[5:7])))
+                                year_list.append(str(int(k[:4])))
                                       
-                            payroll_ids = payroll_obj.search(cr, uid,[('month','in',month_list),('year','=',line.year),('employee_id','=',p.id),('payroll_executions_id.state','in',['confirm','approve'])])
+                            #payroll_ids = payroll_obj.search(cr, uid,[('month','in',month_list),('year','=',line.year),('employee_id','=',p.id),('payroll_executions_id.state','in',['confirm','approve'])])
+                            payroll_ids = payroll_obj.search(cr, uid,[('month','in',month_list),('year','in',year_list),('employee_id','=',p.id),('payroll_executions_id.state','in',['confirm','approve'])])
                             if payroll_ids:
                                 for pay in payroll_ids:
                                     payroll = payroll_obj.browse(cr, uid, pay)
@@ -2813,7 +2822,7 @@ class tpt_hr_ptax(osv.osv):
         ptax_obj = self.pool.get('tpt.hr.ptax') 
         ptax_obj_id = ptax_obj.browse(cr,uid,ids[0])
         if 'from_date' in vals :
-            vals.update({'name':'From '+str(self.get_datevals['from_date'])+ ' to '+str(self.get_date(ptax_obj_id.to_date)),
+            vals.update({'name':'From '+str(self.get_date(vals['from_date']))+ ' to '+str(self.get_date(ptax_obj_id.to_date)),
                          })
         if 'to_date' in vals :
             vals.update({'name':'From '+str(self.get_date(ptax_obj_id.from_date))+ ' to '+str(self.get_date(vals['to_date'])),
