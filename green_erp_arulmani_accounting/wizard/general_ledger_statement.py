@@ -161,6 +161,40 @@ class general_ledger_statement(osv.osv_memory):
             #return debit+get_opening_balance
             return debit # TPT BY RAKESH KUMAR ON 09/02/2016 FOR TOTAL AMOUNT CHANGE
         
+         #TPT START BY P.VINOTHKUMAR ON 01/03/2016 for calculate closing balance credit
+        def get_total_balance_cr(get_move_ids, get_opening_balance):
+            debit = 0.0
+            credit = 0.0
+            balance = 0.0
+            for move in get_move_ids:
+                debit += move['debit']
+                credit += move['credit']      
+            balance = float(debit) - float(credit)
+            if get_opening_balance < 0:
+               balance = float(balance) + get_opening_balance #TPT START BY P.VINOTHKUMAR ON 02/03/2016
+            else:   
+               balance = 0.00  
+            return balance    
+       #TPT END
+       
+        #TPT START BY P.VINOTHKUMAR ON 01/03/2016 for calculate closing balance debit
+        def get_total_balance_dr(get_move_ids, get_opening_balance):
+            debit = 0.0
+            credit = 0.0
+            balance = 0.0
+            for move in get_move_ids:
+                debit += move['debit']
+                credit += move['credit']      
+            balance = balance = float(debit) - float(credit)
+            if get_opening_balance > 0:
+               balance=float(balance)+ get_opening_balance #TPT START BY P.VINOTHKUMAR ON 02/03/2016
+            elif get_opening_balance == 0: #TPT START BY P.VINOTHKUMAR ON 02/03/2016 for 0 in opening balance
+                balance = float(balance)   
+            else:
+               balance = 0.00   
+            return balance   
+      #TPT END      
+        
         #TPT-Y on 22/09/2015
         def get_total_balance(get_move_ids, get_opening_balance):
             debit = 0.0
@@ -466,9 +500,10 @@ class general_ledger_statement(osv.osv_memory):
             'credit': get_total(get_invoice(cb)), # TPT START BALAMURUGAN ON 18/02/2016  
         }))
         cb_line.append((0,0,{   
-            'narration': 'Balance', 
+            'narration': 'Closing Balance', 
             #'credit': get_balance(get_invoice(cb)),  #TPT-Y
-            'credit': get_total_balance(get_invoice(cb), get_opening_balance(cb)), # TPT START BALAMURUGAN ON 18/02/2016  
+            'credit': get_total_balance_cr(get_invoice(cb), get_opening_balance(cb)), # TPT START BALAMURUGAN ON 18/02/2016   #TPT START BY P.VINOTHKUMAR ON 01/03/2016 for calculate closing balance credit (modify method name)
+            'debit': get_total_balance_dr(get_invoice(cb), get_opening_balance(cb)),   #TPT START BY P.VINOTHKUMAR ON 01/03/2016 for calculate closing balance debit 
         }))
         vals = {
             'name': 'General Ledger Statement',

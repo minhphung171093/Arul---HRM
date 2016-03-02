@@ -268,7 +268,7 @@ class Parser(report_sxw.rml_parse):
    
 
  # TPT START BY P.VINOTHKUMAR ON 26/02/2016 FOR Total balance for debit  
-    def get_total_balance_dr(self,get_move_ids,get_opening_balance_dr):
+    def get_total_balance_dr(self,get_move_ids,get_opening_balance_dr,get_opening_balance_cr):
         debit = 0.0
         credit = 0.0
         balance = 0.0
@@ -278,25 +278,25 @@ class Parser(report_sxw.rml_parse):
         #balance = (debit+get_opening_balance) - credit
         balance = float(debit) - float(credit)
         if get_opening_balance_dr > 0:
-            balance=float(balance)
+            balance=float(balance)+ get_opening_balance_dr #TPT START BY P.VINOTHKUMAR ON 02/03/2016
+        elif get_opening_balance_cr == 0 and get_opening_balance_dr == 0: #TPT START BY P.VINOTHKUMAR ON 02/03/2016
+            balance = float(balance)   
         else:
-           balance = 0.00  
-               
-        return balance   
-   # TPT START BY P.VINOTHKUMAR ON 26/02/2016 FOR Total balance for credit 
+            balance = 0.00   
+        return balance
+    
     def get_total_balance_cr(self,get_move_ids,get_opening_balance_cr):
         debit = 0.0
         credit = 0.0
         balance = 0.0
         for move in get_move_ids:
-            debit += move['debit']
-            credit += move['credit']      
-        #balance = (debit+get_opening_balance) - credit
+                debit += move['debit']
+                credit += move['credit']      
         balance = float(debit) - float(credit)
         if get_opening_balance_cr < 0:
-            balance=float(balance)
-        else:
-           balance = 0.00    
+               balance = float(balance) + get_opening_balance_cr #TPT START BY P.VINOTHKUMAR ON 02/03/2016
+        else:   
+               balance = 0.00  
         return balance   
   #TPT END
          
