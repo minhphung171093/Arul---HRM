@@ -4453,8 +4453,8 @@ class arul_hr_employee_leave_details(osv.osv):
             timedelta = timedelta-0.5
         ##
         if emp_ids.employee_category_id.code=='S3':
-            if tpt_lop_esi>=26:  raise osv.except_osv(_('Warning!'),_('Leave Count exceeds 26 days'))
-            if tpt_lop_esi+timedelta>=26: raise osv.except_osv(_('Warning!'),_('Leave Count exceeds 26 days!.'))
+            if tpt_lop_esi>26:  raise osv.except_osv(_('Warning!'),_('Leave Count exceeds 26 days'))
+            if tpt_lop_esi+timedelta>26: raise osv.except_osv(_('Warning!'),_('Leave Count exceeds 26 days!.'))
         ##
         #TPT START-By BalamuruganPurushothaman - ON 14/03/2015 - If CL/SL/C.OFF is taken a Half Day,
         #then system would not allow the same for next Half a day Except ESI/LOP
