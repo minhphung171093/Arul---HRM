@@ -4145,20 +4145,21 @@ class arul_hr_audit_shift_time(osv.osv):
                     employee_ids = emp_attendence_obj.search(cr, uid, [('employee_id','=',line.employee_id.id)])
                     if employee_ids:                                                   
                             punch_obj1 = self.pool.get('arul.hr.punch.in.out.time')
-                            punch_obj1.write(cr,uid,punch_id,{'a_shift_count1':a_shift_count,
-                                                              'g1_shift_count1':g1_shift_count,
-                                                              'g2_shift_count1':g2_shift_count,
-                                                              'b_shift_count1':b_shift_count,
-                                                              'c_shift_count1':c_shift_count,
-                                                              'total_shift_worked1':total_shift_worked,
-                                                              
-                                                              'a_shift_count':a_shift_count,
-                                                              'g1_shift_count':g1_shift_count,
-                                                              'g2_shift_count':g2_shift_count,
-                                                              'b_shift_count':b_shift_count,
-                                                              'c_shift_count':c_shift_count,
-                                                              'total_shift_worked':total_shift_worked,
-                                                             })       
+                            if total_shift_worked>0:
+                                punch_obj1.write(cr,uid,punch_id,{'a_shift_count1':a_shift_count,
+                                                                  'g1_shift_count1':g1_shift_count,
+                                                                  'g2_shift_count1':g2_shift_count,
+                                                                  'b_shift_count1':b_shift_count,
+                                                                  'c_shift_count1':c_shift_count,
+                                                                  'total_shift_worked1':total_shift_worked,
+                                                                  
+                                                                  'a_shift_count':a_shift_count,
+                                                                  'g1_shift_count':g1_shift_count,
+                                                                  'g2_shift_count':g2_shift_count,
+                                                                  'b_shift_count':b_shift_count,
+                                                                  'c_shift_count':c_shift_count,
+                                                                  'total_shift_worked':total_shift_worked,
+                                                                 })       
                     ## 
             self.write(cr, uid, [line.id],{'approval': True, 'state':'done', 'time_evaluate_id':False})
         return True
