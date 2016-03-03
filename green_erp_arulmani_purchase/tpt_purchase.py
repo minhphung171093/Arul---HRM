@@ -333,6 +333,7 @@ class tpt_mrp_process(osv.osv):
                                             'intdent_cate': 'normal',
                                             'purchase_product_line':purchase_product_line,
                                             'state': 'draft',
+                                            'date_indent': mrp.name, #TPT-BM ON 03/03/2016 - impacts mrp process due to current date update issue fix
                                             }, context)
             if mrp.mrp_process_line:
                 for line in mrp.mrp_process_line:
