@@ -183,6 +183,8 @@ class arul_hr_employee_action_history(osv.osv):
         'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
 #         'address_id': fields.many2one('res.partner', 'Working Address',ondelete='restrict'),
 #         'department_id':fields.many2one('hr.department', 'Department',ondelete='restrict'),
+        'date_of_retirement': fields.date('Retirement Date',required=True,ondelete='restrict'), #TPT START - By TPT P.VINOTHKUMAR - ON 22/01/2015 - FOR (Adding field Retirement Date )
+        'date_of_extension' : fields.date('Extension Date',required=True,ondelete='restrict'),  #TPT START - By TPT P.VINOTHKUMAR - ON 22/01/2015 - FOR (Adding field Extension Date )
     }
     #TPT:START
     def action_view_paystruct(self, cr, uid, ids, context=None):
@@ -471,12 +473,27 @@ class arul_hr_employee_action_history(osv.osv):
             self.pool.get('hr.employee').write(cr, uid, [action_history.employee_id.id], {
                                                                                           'section_id': action_history.section_to_id.id and action_history.section_to_id.id or action_history.section_from_id.id, 
                                                                                           'department_id': action_history.department_to_id.id and action_history.department_to_id.id or action_history.department_from_id.id})    
-            
+        #TPT START - By P.VINOTHKUMAR - ON 05/03/2016 - FOR (update retirement date in employee master screen)                                                        })         
+        if context.get('create_retiring_employee'):
+            action_history = self.browse(cr, uid, new_id)
+            if action_history.date_of_retirement > action_history.date_of_extension:
+                raise osv.except_osv(_('Warning!'),_('The Extension date is not lesser than retirement date!'))
+                return False
+            self.pool.get('hr.employee').write(cr, uid, [action_history.employee_id.id], {                                                                              
+           'date_of_retirement': action_history.date_of_extension and action_history.date_of_extension or action_history.date_of_retirement
+                                                                                             })     
         return new_id
     
     def write(self, cr, uid, ids, vals, context=None):
         if not context:
             context = {}
+        if context.get('create_retiring_employee'):
+            if 'date_of_extension' in vals:
+                for line in self.browse(cr, uid, ids):
+                   if line.date_of_retirement > vals['date_of_extension']:
+                       raise osv.except_osv(_('Warning!'),_('The Extension date is not lesser than retirement date!'))
+                   else: 
+                       self.pool.get('hr.employee').write(cr, uid, [line.employee_id.id], {'date_of_retirement': vals['date_of_extension']})   
         if context.get('create_hiring_employee'):
             return super(arul_hr_employee_action_history, self).write(cr, uid,ids, vals, context)
         new_write = super(arul_hr_employee_action_history, self).write(cr, uid,ids, vals, context)
