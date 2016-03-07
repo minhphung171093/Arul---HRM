@@ -124,6 +124,39 @@ class Parser(report_sxw.rml_parse):
                 sum += line.quantity
             if type == 'exs_duty':
                 sum += line.quantity*line.price_unit*(line.invoice_id.excise_duty_id and line.invoice_id.excise_duty_id.amount or 0.0)/100
+            # TPT START-P.VINOTHKUMAR, on 02/03/2016 for calculate subtotal of unitprice,cst,vat,tcs,freight,insurance,other_charges    
+            if type == 'price_unit':    
+                    sum += line.price_unit 
+                     
+            if type == 'cst_subtotal':
+                 amt=0 
+                 stax_id = line.invoice_id.sale_tax_id    
+                 untax = line.invoice_id.amount_untaxed
+                 if 'CST' in stax_id.name: 
+                    sum += round(stax_id.amount*untax/100,0)
+                        
+            if type == 'vat_subtotal':
+                amt=0 
+                stax_id = line.invoice_id.sale_tax_id    
+                untax = line.invoice_id.amount_untaxed
+                if 'VAT' in stax_id.name: 
+                    sum += round(stax_id.amount*untax/100,0)
+                         
+            if type == 'tcs_subtotal':
+                amt=0 
+                stax_id = line.invoice_id.sale_tax_id    
+                untax = line.invoice_id.amount_untaxed
+                if 'TCS' in stax_id.name: 
+                    sum += round(stax_id.amount*untax/100,0)                
+           
+            if type == 'freight':
+                 sum += line.freight * line.quantity     
+            if type == 'insurance':
+                 sum += line.insurance * line.quantity
+            if type == 'other':
+                 sum += line.invoice_id.other_charges
+                
+            # END                     
         return sum
     
     def get_invoice_type(self, invoice_type):

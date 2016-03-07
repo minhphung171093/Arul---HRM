@@ -25,7 +25,8 @@ import logging
 import os
 import re
 from datetime import date, datetime
-import datetime
+#import datetime
+DATE_FORMAT = "%Y-%m-%d"
 
 from openerp import tools
 from openerp.osv import fields,osv
@@ -237,7 +238,8 @@ class res_partner(osv.osv):
                    '''% (time.id)
                 cr.execute(sql)
                 a = cr.fetchone()
-            res[time.id]['last_inv_no'] = a[0]            
+                if a:
+                    res[time.id]['last_inv_no'] = a[0]            
         return res 
     def _last_inv_date(self, cr, uid, ids, field_name, arg, context=None):
         res = {}
@@ -251,7 +253,84 @@ class res_partner(osv.osv):
                    '''% (time.id)
                 cr.execute(sql)
                 a = cr.fetchone()
-            res[time.id]['last_inv_date'] = a[0]            
+                if a[0]:
+                    date = datetime.strptime(a[0], DATE_FORMAT)
+                    res[time.id]['last_inv_date'] = date.strftime('%d/%m/%Y')            
+        return res 
+    def _outstanding_bal(self, cr, uid, ids, field_name, arg, context=None):
+        res = {}
+        for bp in self.browse(cr, uid, ids, context=context):
+            res[bp.id] = {
+                'outstanding_bal': 0.0,
+            }
+            if bp.id and bp.customer_code: 
+                sql = '''
+                select case when sum(debit)-sum(credit)>=0 then sum(debit)-sum(credit) else 0 end amt_paid 
+                from account_move_line where account_id=(select id from account_account where code='0000'||'%s')
+                   '''% (bp.customer_code)
+                cr.execute(sql)
+                a = cr.fetchone()
+                if a:
+                    res[bp.id]['outstanding_bal'] = a[0]            
+        return res 
+    def _payment_term(self, cr, uid, ids, field_name, arg, context=None):
+        res = {}
+        for time in self.browse(cr, uid, ids, context=context):
+            res[time.id] = {
+                'payment_term': 0.0,
+            }
+            property_payment_term = ''
+            if time.id : 
+                bp_obj = self.pool.get('res.partner')                
+                bp_ids = bp_obj.browse(cr,uid,time.id)
+                property_payment_term = bp_ids.property_payment_term.name   
+            res[time.id]['payment_term'] = str(property_payment_term)            
+        return res 
+    def _payment_due_date(self, cr, uid, ids, field_name, arg, context=None):
+        res = {}
+        for bp in self.browse(cr, uid, ids, context=context):
+            res[bp.id] = {
+                'payment_due_date': 0.0,
+            }
+            if bp.id : 
+                sql = '''
+                select  max(date_invoice)  from account_invoice where partner_id=%s
+                   '''% (bp.id)
+                cr.execute(sql)
+                a = cr.fetchone()
+                date = datetime.strptime(a[0], DATE_FORMAT)
+                res[bp.id]['payment_due_date'] = date.strftime('%d/%m/%Y')        
+        return res 
+    def _last_pay_amt(self, cr, uid, ids, field_name, arg, context=None):
+        res = {}
+        for bp in self.browse(cr, uid, ids, context=context):
+            res[bp.id] = {
+                'last_pay_amt': 0.0,
+            }
+            if bp.id : 
+                sql = '''
+                select case when amount>=0 then amount else 0 end amount from account_voucher where 
+                date = (select max(date) from account_voucher where state='posted' and partner_id=%s)
+                and state='posted' and partner_id=%s
+                   '''% (bp.id,bp.id)
+                cr.execute(sql)
+                a = cr.fetchone()
+                res[bp.id]['last_pay_amt'] = a[0]  
+        return res 
+    def _last_pay_date(self, cr, uid, ids, field_name, arg, context=None):
+        res = {}
+        for bp in self.browse(cr, uid, ids, context=context):
+            res[bp.id] = {
+                'last_pay_date': 0.0,
+            }
+            if bp.id : 
+                sql = '''
+                select  max(date) from account_voucher where state='posted' and partner_id=%s
+                   '''% (bp.id)
+                cr.execute(sql)
+                a = cr.fetchone()
+                date = datetime.strptime(a[0], DATE_FORMAT)
+                res[bp.id]['last_pay_date'] = date.strftime('%d/%m/%Y') 
         return res 
     _columns = {
         'arulmani_type': fields.selection([('export','Export'),('domestic','Domestic'),('indirect_export','Indirect Export')],'Customer Group'),
@@ -259,10 +338,7 @@ class res_partner(osv.osv):
         'credit_limit_used': fields.float('Credit Limit',degits=(16,2)),
         'credit_exposure': fields.float('Credit Exposure',degits=(16,2)),
         'vat': fields.float('VAT',degits=(16,2)),
-        #'pan_tin': fields.char('PAN/TIN',size=128),
-        #'pan': fields.char('PAN',size=128),
         'pan_tin': fields.char('PAN',size=128),
-        
         'ce_rc': fields.char('Ex. C.E.RC.',size=128),
         'ecc': fields.char('Ex. E.C.C',size=128),
         'sin': fields.char('SIN',size=128),
@@ -271,14 +347,12 @@ class res_partner(osv.osv):
         'division': fields.char('Ex. Division',size=128),
         'commissionerate': fields.char('Ex. Commissionerate',size=128),
         'excise_duty': fields.char('Excise Duty',size=128),
-#         'distribution_channel': fields.selection([('corporate','Corporate'),('distributor','Distributor'),('consignee','Consignee'),('indenting','Indenting'),('direct','Direct')],'Distribution Channel'),
         'distribution_channel': fields.many2one('crm.case.channel','Distribution Channel'),
         'crm_lead_id': fields.many2one('crm.lead','CRM Lead'),
         'employee_id': fields.many2one('hr.employee', 'Salesperson', select=True, track_visibility='onchange'),
         'gender': fields.selection([('male', 'Male'),('female', 'Female')], 'Gender'),
         'last_name' : fields.char('Last Name', size=32),
         'customer_code': fields.char('Customer Code', size=64, select=1),
-#         'is_company': fields.function(_get_is_company, type='boolean', size=5, string='Is a company',store=True, invisible=True),
         'currency_id': fields.many2one('res.currency','Currency'),
         'create_uid': fields.many2one('res.users','Create by'),
         'create_date': fields.datetime('Create on'),
@@ -302,7 +376,6 @@ class res_partner(osv.osv):
         'order_probability_id': fields.many2one('order.probability','Order Probability'), 
         'reconciliation_acct_id': fields.many2one('reconciliation.acct','Reconciliation Acct'), 
         'sychronized': fields.function(get_sychronized, string='Is Sychronized', type='boolean'),
-        
         #TPT'
         'excise_reg_no': fields.char('Ex.RegNo.',size=128),
         'tin': fields.char('TIN',size=128),
@@ -310,7 +383,6 @@ class res_partner(osv.osv):
         'lst': fields.char('LST',size=128),
         'service_reg_no': fields.char('Service RegNo.',size=128),
         'tcs': fields.many2one('tax.category','TCS %'), 
-        #'is_approved': fields.boolean('Is Approved'),
         #tien
         'disapprove': fields.boolean('Approved'), 
         'credit_limit_group_id': fields.many2one('credit.limit.group','Credit Limit Group'),
@@ -324,6 +396,12 @@ class res_partner(osv.osv):
         #TPT- Mobile App- By BalamuruganPurushothaman - DEBTOR INFO
         'last_inv_no': fields.function(_last_inv_no, string='Last Invoice Date', multi='test_qty6'),    
         'last_inv_date': fields.function(_last_inv_date, string='Last Invoice Date', multi='test_qty7'), 
+        'outstanding_bal': fields.function(_outstanding_bal, string='Outstanding Balance', multi='test_qty8'), 
+        'payment_term': fields.function(_payment_term, string='Customer Payment Term', multi='test_qty9'), 
+        'payment_due_date': fields.function(_payment_due_date, string='Payment Due Date', multi='test_qty10'), 
+        'last_pay_amt': fields.function(_last_pay_amt, string='Last Payment Amount', multi='test_qty11'), 
+        'last_pay_date': fields.function(_last_pay_date, string='Last Payment Date', multi='test_qty12'), 
+        
     }
     _defaults = {
         'is_company': True,
@@ -848,7 +926,7 @@ class product_product(osv.osv):
             res[time.id] = {
                 'current_day_qty': 0.0,
             }
-            now = datetime.datetime.now()
+            now = datetime.now()
             if time.id : 
                 sql = '''
                 select case when sum(sol.product_uom_qty)>0 then sum(sol.product_uom_qty) else 0 end product_uom_qty 
@@ -870,7 +948,7 @@ class product_product(osv.osv):
             res[time.id] = {
                 'current_day_value': 0.0,
             }
-            now = datetime.datetime.now()
+            now = datetime.now()
             if time.id : 
                 sql = '''
                 select case when sum(sol.product_uom_qty*sol.price_unit)>0 then sum(sol.product_uom_qty*sol.price_unit) else 0 end product_uom_qty 
@@ -892,7 +970,7 @@ class product_product(osv.osv):
             res[time.id] = {
                 'current_month_qty': 0.0,
             }
-            now = datetime.datetime.now()
+            now = datetime.now()
             year = str(now.year)
             month = str(now.month)
             day = str(now.day)
@@ -917,7 +995,7 @@ class product_product(osv.osv):
             res[time.id] = {
                 'current_month_value': 0.0,
             }
-            now = datetime.datetime.now()
+            now = datetime.now()
             year = str(now.year)
             month = str(now.month)
             day = str(now.day)
@@ -942,7 +1020,7 @@ class product_product(osv.osv):
             res[time.id] = {
                 'current_yr_qty': 0.0,
             }
-            now = datetime.datetime.now()
+            now = datetime.now()
             year = now.year
             month = now.month
             day = now.day
@@ -967,7 +1045,7 @@ class product_product(osv.osv):
             res[time.id] = {
                 'current_yr_value': 0.0,
             }
-            now = datetime.datetime.now()
+            now = datetime.now()
             year = str(now.year)
             month = str(now.month)
             day = str(now.day)
@@ -1001,6 +1079,7 @@ class product_product(osv.osv):
     _columns = { 
         ###TPT-BM-28/11/2015-TO OVERWRITE DUMMY FUNCTION OF THIS WAREHOUSE ID
         'warehouse_id':fields.many2one('stock.location', 'Sale Warehouse'),
+        #
         'current_day_qty': fields.function(_current_day_qty, string='Current Day Qty', multi='test_qty6'),
         'current_day_value': fields.function(_current_day_value, string='Current Day Value', multi='test_qty7'),
         'current_month_qty': fields.function(_current_month_qty, string='Current Month Qty', multi='test_qty8'),

@@ -141,8 +141,41 @@ class daily_sale_form(osv.osv_memory):
                     sum += line.quantity*line.price_unit
                 if type == 'qty':
                     sum += line.quantity
+                 # TPT START-P.VINOTHKUMAR, on 03/03/2016 for calculate subtotal of unitprice    
+                if type == 'price_unit':    
+                    sum += line.price_unit   
+            # END           
                 if type == 'exs_duty':
-                    sum += line.quantity*line.price_unit*(line.invoice_id.excise_duty_id and line.invoice_id.excise_duty_id.amount or 0.0)/100                   
+                   sum += line.quantity*line.price_unit*(line.invoice_id.excise_duty_id and line.invoice_id.excise_duty_id.amount or 0.0)/100
+            # TPT START-P.VINOTHKUMAR, on 03/03/2016 for calculate subtotal of cst,vat,tcs,freight,insurance and other_charges    
+                if type == 'cst_subtotal':
+                    amt=0 
+                    stax_id = line.invoice_id.sale_tax_id    
+                    untax = line.invoice_id.amount_untaxed
+                    if 'CST' in stax_id.name: 
+                        sum += round(stax_id.amount*untax/100,0)
+                        
+                if type == 'vat_subtotal':
+                    amt=0 
+                    stax_id = line.invoice_id.sale_tax_id    
+                    untax = line.invoice_id.amount_untaxed
+                    if 'VAT' in stax_id.name: 
+                        sum += round(stax_id.amount*untax/100,0)
+                         
+                if type == 'tcs_subtotal':
+                    amt=0 
+                    stax_id = line.invoice_id.sale_tax_id    
+                    untax = line.invoice_id.amount_untaxed
+                    if 'TCS' in stax_id.name: 
+                        sum += round(stax_id.amount*untax/100,0)                
+           
+                if type == 'freight':
+                 sum += line.freight * line.quantity     
+                if type == 'insurance':
+                 sum += line.insurance * line.quantity
+                if type == 'other':
+                 sum += line.invoice_id.other_charges
+            # END                                                        
             return sum
         
         def convert_date(date):
@@ -303,6 +336,14 @@ class daily_sale_form(osv.osv_memory):
             'basic_price': round(get_total(get_invoice(cb),'total_basic_amt'),0) or 0.00,
             'quantity': get_total(get_invoice(cb),'qty') or 0.000, #exs_duty
             'excise_duty' : round(get_total(get_invoice(cb),'exs_duty'),0) or 0.000,
+            # TPT START-P.VINOTHKUMAR, on 03/03/2016 for append subtotal values of cst,vat,tcs,freight,insurance and other_charges
+            'price_unit': round(get_total(get_invoice(cb),'price_unit'),0) or 0.00,
+            'cst_tax': round(get_total(get_invoice(cb),'cst_subtotal'),0) or 0.00,
+            'vat_tax': round(get_total(get_invoice(cb),'vat_subtotal'),0) or 0.00,
+            'tcs_tax': round(get_total(get_invoice(cb),'tcs_subtotal'),0) or 0.00,
+            'freight' : round(get_total(get_invoice(cb),'freight'),0) or 0.000,
+            'insurance' : round(get_total(get_invoice(cb),'insurance'),0) or 0.000,
+            'other_charges' : round(get_total(get_invoice(cb),'other'),0) or 0.000,
         }))
         
         vals = {
