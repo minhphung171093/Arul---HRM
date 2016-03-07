@@ -72,7 +72,16 @@ class crm_lead(osv.osv):
                         team = True
             res[lead.id] = team
         return res
-    
+    def _mapp_currency(self, cr, uid, ids, field_name, arg, context=None):
+        res = {}
+        for time in self.browse(cr, uid, ids, context=context):
+            res[time.id] = {
+                'mapp_currency': 0.0,
+            }
+            property_payment_term = ''
+            if time.id : 
+                res[time.id]['mapp_currency'] = str(time.currency_id.id)            
+        return res 
     _columns = {
         'name': fields.char('Subject', size=64, select=1),
         'lead_line': fields.one2many('crm.lead.line','lead_id','Lead Line'),
@@ -105,6 +114,8 @@ class crm_lead(osv.osv):
         'quotation_status':fields.function(get_quotation_status, string='Quotation Status', type='boolean',ondelete="cascade"),
     
         'street3': fields.char('Street3',size=128), #TPT
+        #'mapp_currency': fields.char('Currency in char'), #tpt-bm-for mobile app implementation - on 05/03/2016
+        'mapp_currency': fields.function(_mapp_currency, string='Currency ID in char', multi='mobile_1'), 
 
     }
     
@@ -414,6 +425,36 @@ crm_lead()
 
 class crm_lead_line(osv.osv):
     _name = "crm.lead.line"
+    def _mapp_product(self, cr, uid, ids, field_name, arg, context=None):
+        res = {}
+        for time in self.browse(cr, uid, ids, context=context):
+            res[time.id] = {
+                'mapp_product': 0.0,
+            }
+            property_payment_term = ''
+            if time.id : 
+                res[time.id]['mapp_product'] = str(time.product_id.id)            
+        return res 
+    def _mapp_uom(self, cr, uid, ids, field_name, arg, context=None):
+        res = {}
+        for time in self.browse(cr, uid, ids, context=context):
+            res[time.id] = {
+                'mapp_uom': 0.0,
+            }
+            property_payment_term = ''
+            if time.id : 
+                res[time.id]['mapp_uom'] = str(time.uom_id.id)           
+        return res 
+    def _mapp_application(self, cr, uid, ids, field_name, arg, context=None):
+        res = {}
+        for time in self.browse(cr, uid, ids, context=context):
+            res[time.id] = {
+                'mapp_application': 0.0,
+            }
+            property_payment_term = ''
+            if time.id : 
+                res[time.id]['mapp_application'] = str(time.application_id.id)            
+        return res 
     _columns = {
         'lead_id': fields.many2one('crm.lead','Lead', ondelete='cascade'),
         'product_id': fields.many2one('product.product','Product',required=True),
@@ -423,6 +464,10 @@ class crm_lead_line(osv.osv):
         'application_id': fields.many2one('crm.application','Application', ondelete='restrict'),
         'month': fields.char('Monthly Req. Qty',size=128),
         'year': fields.char('Yearly Req. Qty',size=128),
+        'name': fields.text('Description'),
+        'mapp_product': fields.function(_mapp_product, string='Product ID in char', multi='mobile1'), # tpt-bm- for mobile app implementation
+        'mapp_uom': fields.function(_mapp_uom, string='UOM ID in char', multi='mobile2'), 
+        'mapp_application': fields.function(_mapp_application, string='Application ID in char', multi='mobile3'), 
     }
     
     _defaults = {
@@ -455,7 +500,7 @@ class crm_lead_line(osv.osv):
             product = self.pool.get('product.product').browse(cr, uid, product_id)
             vals = {'uom_id':product.uom_id.id,
                     'product_type':product.tpt_product_type or False,
-                    #'application_id':product.application_id or False,
+                    'name':product.name_template or '',                    
                     }
         return {'value': vals}
     
