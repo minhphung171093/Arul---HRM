@@ -427,6 +427,7 @@ class tpt_maintenance_oder(osv.osv):
                 res[line.id] = False
             if uid == 1:
                 res[line.id] = True
+            res[line.id] = True#TPT-By BalamuruganPurushothaman ON 14/03/2016 - TO ENABLE MO APPROVE TO MAINTENANCE MANAGER
         return res
     
     def get_net_value(self, cr, uid, ids, field_name, args, context=None):
