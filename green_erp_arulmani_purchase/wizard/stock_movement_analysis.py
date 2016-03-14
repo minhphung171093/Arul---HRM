@@ -2182,9 +2182,8 @@ class stock_movement_analysis(osv.osv_memory):
                 and date between '%(date_from)s' and '%(date_to)s' and state = 'done') receipt_value,
                 
                 
-                (select case when sum(product_isu_qty)!=0 then sum(product_isu_qty) else 0 end product_isu_qty from tpt_material_issue_line  
-                where product_id = pp.id and material_issue_id in (select id from tpt_material_issue where date_expec 
-                between '%(date_from)s' and '%(date_to)s' and warehouse = %(location_spare_id)s and state = 'done')) 
+                (select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_isu_qty from stock_move where product_id=pp.id and issue_id is not null and 
+                date between '%(date_from)s' and '%(date_to)s' and state='done') 
                 +
                 (select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty 
                             from stock_move where product_id = pp.id and state = 'done' and issue_id is null 
@@ -2209,7 +2208,20 @@ class stock_movement_analysis(osv.osv_memory):
                     'location_spare_id':14,
                     'product_id':product_ids#stock.product_id.id prev sql - and pp.id = %(product_id)s
                     }
-                cr.execute(sql)   
+                cr.execute(sql)  
+                #TPT-BalamuruganPurushothaman - ON 11/03/2016  - for stock mimatch b/w onhand & stock inward/outware report 
+                '''
+                select case when sum(product_isu_qty)!=0 then sum(product_isu_qty) else 0 end product_isu_qty from tpt_material_issue_line  
+                where product_id = pp.id and material_issue_id in (select id from tpt_material_issue where date_expec 
+                between '%(date_from)s' and '%(date_to)s' and warehouse = %(location_spare_id)s and state = 'done')
+                
+                ----------above changed into the following script for calculating sum of issued quantity for the given period---------------
+                
+                select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_isu_qty from stock_move where product_id=pp.id and issue_id is not null and 
+                date between '%(date_from)s' and '%(date_to)s' and state='done'
+                
+                ''' 
+                #TPT-END
             else:
                 sql = '''
                 select pp.id as product_id, pp.default_code, pp.name_template as name, pu.name as uom,
@@ -2276,9 +2288,8 @@ class stock_movement_analysis(osv.osv_memory):
                 and date between '%(date_from)s' and '%(date_to)s' and state = 'done') receipt_value,
                 
                 
-                (select case when sum(product_isu_qty)!=0 then sum(product_isu_qty) else 0 end product_isu_qty from tpt_material_issue_line  
-                where product_id = pp.id and material_issue_id in (select id from tpt_material_issue where date_expec 
-                between '%(date_from)s' and '%(date_to)s' and warehouse = %(location_spare_id)s and state = 'done')) 
+                (select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_isu_qty from stock_move where product_id=pp.id and issue_id is not null and 
+                date between '%(date_from)s' and '%(date_to)s' and state='done') 
                 +
                 (select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty 
                             from stock_move where product_id = pp.id and state = 'done' and issue_id is null 

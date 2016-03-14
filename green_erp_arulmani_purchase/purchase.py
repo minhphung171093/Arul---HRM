@@ -5739,6 +5739,8 @@ class tpt_material_issue(osv.osv):
             request = self.pool.get('tpt.material.request').browse(cr, uid, vals['name'])
         
             vals.update({'department_id':request.department_id.id}) 
+        if vals['request_type']=='production' and vals['warehouse']==vals['dest_warehouse_id']:
+            raise osv.except_osv(_('Warning!'),_('Source & Destination can not be the same'))
         new_id = super(tpt_material_issue, self).create(cr, uid, vals, context)
         issue = self.browse(cr, uid, new_id)
 #         for line in issue.material_issue_line:
@@ -5758,7 +5760,19 @@ class tpt_material_issue(osv.osv):
         if 'department_id' in vals:
             department_id = self.pool.get('hr.department').browse(cr, uid, vals['department_id'])
             if department_id:
-                vals.update({'department_id':department_id.id})   
+                vals.update({'department_id':department_id.id})
+        #TPT-BM-ON 10/03/2016 - TO VALIDATE FROM & TO WAREHOUSE LOCATION NOT BE THE SAME
+        for line in self.browse(cr, uid, ids):
+            if 'warehouse' in vals and 'dest_warehouse_id' not in vals: 
+                if vals['warehouse']== line.dest_warehouse_id.id:
+                    raise osv.except_osv(_('Warning!'),_('Source & Destination can not be the same'))
+            elif 'dest_warehouse_id' in vals and 'warehouse' not in vals: 
+                 if vals['dest_warehouse_id']== line.warehouse.id:
+                    raise osv.except_osv(_('Warning!'),_('Source & Destination can not be the same'))
+            elif 'dest_warehouse_id' in vals and 'warehouse' in vals:
+                if vals['dest_warehouse_id']== vals['warehouse']:
+                    raise osv.except_osv(_('Warning!'),_('Source & Destination can not be the same'))
+        #TPT-END
         new_write = super(tpt_material_issue, self).write(cr, uid,ids, vals, context)
         if 'state' in vals and vals['state']=='done':
             for line in self.browse(cr, uid, ids):
