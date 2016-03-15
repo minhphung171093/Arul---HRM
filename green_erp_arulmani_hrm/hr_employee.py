@@ -360,7 +360,14 @@ class arul_hr_employee_action_history(osv.osv):
             if not sub_category_ids:
                 vals['sub_category_id']=False
         return {'value': vals}    
-    
+    #TPT START - By TPT P.VINOTHKUMAR - ON 22/01/2015 - FOR (update retirement date of selected employee)
+    def onchange_retiring_employee_id(self, cr, uid, ids,employee_id=False, context=None):
+        vals = {}
+        if employee_id:
+            emp = self.pool.get('hr.employee').browse(cr, uid, employee_id)
+            vals = {'date_of_retirement':emp.date_of_retirement}
+        return {'value': vals}
+    #TPT END
     def create_hiring_employee(self, cr, uid, ids, context=None):
         ir_model_data = self.pool.get('ir.model.data')
         try:
