@@ -1071,8 +1071,8 @@ class product_product(osv.osv):
                                            ('raw_mat','Raw. Mat. & Prod'),
                                            ('qc','QC and R&D'),
                                            ('safe','Safety & Personnel'),('proj','Projects')],'Material Type'),
-        'onhand_qty': fields.function(_onhand_qty, string='On-Hand Qty', multi='test_qty'),
-        'onhand_qty_store': fields.function(_onhand_qty_store, string='Store On-Hand Qty', multi='test_qty1'),
+        'onhand_qty': fields.function(_onhand_qty, string='On-Hand Qty', multi='test_qty', digits=(16,3)),
+        'onhand_qty_store': fields.function(_onhand_qty_store, string='Store On-Hand Qty', multi='test_qty1', digits=(16,3)),
         
         'tolerance_qty': fields.float('Tolerance'), #TPT
         'warehouse_id':fields.many2one('stock.location', 'Sale Warehouse'), ###TPT-BM-28/11/2015-TO OVERWRITE DUMMY FUNCTION OF THIS WAREHOUSE ID
@@ -1318,7 +1318,7 @@ class tpt_product_inventory(osv.osv):
         'product_id':fields.many2one('product.product', 'Product', ondelete = 'cascade'),
         'warehouse_id':fields.many2one('stock.location', 'Warehouse'),
         'prodlot_id':fields.many2one('stock.production.lot', 'System Batch Number'),
-        'hand_quantity' : fields.float('On hand Quantity'),
+        'hand_quantity' : fields.float('On hand Quantity', digits=(16,3)),
         'uom_id': fields.many2one('product.uom', 'Unit of Measure'),
         }
     
