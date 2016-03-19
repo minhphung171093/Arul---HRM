@@ -11129,3 +11129,1235 @@ class tpt_leave_rule(osv.osv):
         'desc': fields.text('Description', size=1024),
     }
 tpt_leave_rule()    
+
+#TPT START - BY RAKESHKUMAR - ON 22/02/2016 - FOR NEW SCREEN MONTHLY WORK SCHEDULE FOR MID MONTH JOINING EMPLOYEES 
+
+class update_monthly_schedule(osv.osv):
+    _name='update.monthly.schedule'
+    
+    _order='create_date desc'
+    
+    _columns={
+              'employee_id': fields.many2one('hr.employee','Employee ID',required = True, states={'done': [('readonly', True)]}, ondelete='restrict' ,),
+              'department_id':fields.many2one('hr.department','Department', required = True, states={'done': [('readonly', True)]}),
+              'section_id': fields.many2one('arul.hr.section','Section', required = True, states={'done': [('readonly', True)]}),
+              'year': fields.selection([(num, str(num)) for num in range(1950, 2026)], 'Year', required = True, states={'done': [('readonly', True)]}),
+              'month': fields.selection([('1', 'January'),('2', 'February'), ('3', 'March'), ('4','April'), ('5','May'), ('6','June'), ('7','July'), ('8','August'), ('9','September'), ('10','October'), ('11','November'), ('12','December')], 'Month',required = True, states={'done': [('readonly', True)]}),
+              'monthly_shift_line': fields.one2many('update.monthly.schedule.line','monthly_work_id', 'Monthly Work Schedule', states={'done': [('readonly', True)]}),
+              'create_date': fields.datetime('Created Date',readonly = True),
+              'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
+              'state':fields.selection([('draft', 'Draft'),('load', 'Load'),('done', 'Done')],'Status', readonly=True),
+              }
+    _defaults = {
+        'state':'draft',
+        'year': int(time.strftime('%Y')),
+    }
+    def set_to_draft(self, cr, uid, ids, context=None):
+        return self.write(cr, uid, ids, {'state':'draft'})
+     
+    def name_get(self, cr, uid, ids, context=None):
+        res = []
+        if not ids:
+            return res
+        reads = self.read(cr, uid, ids, ['year', 'month'], context)
+        for line in self.browse(cr,uid,ids):
+            for record in reads:
+                year = str(line.year)
+                month = str(line.month)
+                name = month + ' - ' + year
+                res.append((record['id'], name))
+            return res  
+    
+    
+    def approve_current_month(self, cr, uid, ids, context=None):
+        for line in self.browse(cr, uid, ids):           
+            #TPT
+            monthly_shift_schedule_obj = self.pool.get('update.monthly.schedule')           
+            sql = '''
+            select count(id) from arul_hr_monthly_shift_schedule where monthly_work_id='%s' and day_28 is null'''%(line.id)
+            cr.execute(sql)
+            p = cr.fetchone()            
+            if p[0]>0:
+                 raise osv.except_osv(_('Warning!'),_('Shift needs to be assigned to all the employees before Approving Work Schedule'))     
+            #TPT
+            sql = '''
+                select %s in (select uid from res_groups_users_rel where gid in (select id from res_groups where name='Time Manager' 
+                and category_id in (select id from ir_module_category where name='VVTI - HRM')))
+                '''%(uid)
+            cr.execute(sql)
+            p = cr.fetchone()
+                
+            if line.department_id and line.department_id.primary_auditor_id and line.department_id.primary_auditor_id.id==uid \
+            or p[0]:
+                t=1
+            else:
+                raise osv.except_osv(_('Warning!'),_('User does not have permission to approve for this employee department!'))
+            
+        return self.write(cr, uid, ids, {'state':'done'})
+    
+    def shift_schedule(self, cr, uid, ids, context=None):
+        obj_model = self.pool.get('ir.model.data')
+        model_data_ids = obj_model.search(cr,uid,[('model','=','ir.ui.view'),('name','=','view_arul_hr_monthly_shift_schedule_form_vew')])
+        resource_id = obj_model.read(cr, uid, model_data_ids, fields=['res_id'])[0]['res_id']
+        work = self.browse(cr, uid, ids[0])
+        num_of_month = calendar.monthrange(int(work.year),int(work.month))[1]
+        for num in range(1,num_of_month+1):
+            if num == 1:
+                date = datetime.date (int(work.year), int(work.month), 1)
+                context.update({'default_name_of_day_1': date.strftime("%A")})
+            if num == 2:
+                date = datetime.date (int(work.year), int(work.month), 2)
+                context.update({'default_name_of_day_2': date.strftime("%A")})
+            if num == 3:
+                date = datetime.date (int(work.year), int(work.month), 3)
+                context.update({'default_name_of_day_3': date.strftime("%A")})
+            if num == 4:
+                date = datetime.date (int(work.year), int(work.month), 4)
+                context.update({'default_name_of_day_4': date.strftime("%A")})
+            if num == 5:
+                date = datetime.date (int(work.year), int(work.month), 5)
+                context.update({'default_name_of_day_5': date.strftime("%A")})
+            if num == 6:
+                date = datetime.date (int(work.year), int(work.month), 6)
+                context.update({'default_name_of_day_6': date.strftime("%A")})
+            if num == 7:
+                date = datetime.date (int(work.year), int(work.month), 7)
+                context.update({'default_name_of_day_7': date.strftime("%A")})
+            if num == 8:
+                date = datetime.date (int(work.year), int(work.month), 8)
+                context.update({'default_name_of_day_8': date.strftime("%A")})
+            if num == 9:
+                date = datetime.date (int(work.year), int(work.month), 9)
+                context.update({'default_name_of_day_9': date.strftime("%A")})
+            if num == 10:
+                date = datetime.date (int(work.year), int(work.month), 10)
+                context.update({'default_name_of_day_10': date.strftime("%A")})
+            if num == 11:
+                date = datetime.date (int(work.year), int(work.month), 11)
+                context.update({'default_name_of_day_11': date.strftime("%A")})
+            if num == 12:
+                date = datetime.date (int(work.year), int(work.month), 12)
+                context.update({'default_name_of_day_12': date.strftime("%A")})
+            if num == 13:
+                date = datetime.date (int(work.year), int(work.month), 13)
+                context.update({'default_name_of_day_13': date.strftime("%A")})
+            if num == 14:
+                date = datetime.date (int(work.year), int(work.month), 14)
+                context.update({'default_name_of_day_14': date.strftime("%A")})
+            if num == 15:
+                date = datetime.date (int(work.year), int(work.month), 15)
+                context.update({'default_name_of_day_15': date.strftime("%A")})
+            if num == 16:
+                date = datetime.date (int(work.year), int(work.month), 16)
+                context.update({'default_name_of_day_16': date.strftime("%A")})
+            if num == 17:
+                date = datetime.date (int(work.year), int(work.month), 17)
+                context.update({'default_name_of_day_17': date.strftime("%A")})
+            if num == 18:
+                date = datetime.date (int(work.year), int(work.month), 18)
+                context.update({'default_name_of_day_18': date.strftime("%A")})
+            if num == 19:
+                date = datetime.date (int(work.year), int(work.month), 19)
+                context.update({'default_name_of_day_19': date.strftime("%A")})
+            if num == 20:
+                date = datetime.date (int(work.year), int(work.month), 20)
+                context.update({'default_name_of_day_20': date.strftime("%A")})
+            if num == 21:
+                date = datetime.date (int(work.year), int(work.month), 21)
+                context.update({'default_name_of_day_21': date.strftime("%A")})
+            if num == 22:
+                date = datetime.date (int(work.year), int(work.month), 22)
+                context.update({'default_name_of_day_22': date.strftime("%A")})
+            if num == 23:
+                date = datetime.date (int(work.year), int(work.month), 23)
+                context.update({'default_name_of_day_23': date.strftime("%A")})
+            if num == 24:
+                date = datetime.date (int(work.year), int(work.month), 24)
+                context.update({'default_name_of_day_24': date.strftime("%A")})
+            if num == 25:
+                date = datetime.date (int(work.year), int(work.month), 25)
+                context.update({'default_name_of_day_25': date.strftime("%A")})
+            if num == 26:
+                date = datetime.date (int(work.year), int(work.month), 26)
+                context.update({'default_name_of_day_26': date.strftime("%A")})
+            if num == 27:
+                date = datetime.date (int(work.year), int(work.month), 27)
+                context.update({'default_name_of_day_27': date.strftime("%A")})
+            if num == 28:
+                date = datetime.date (int(work.year), int(work.month), 28)
+                context.update({'default_name_of_day_28': date.strftime("%A")})
+            if num == 29:
+                date = datetime.date (int(work.year), int(work.month), 29)
+                context.update({'default_name_of_day_29': date.strftime("%A")})
+            if num == 30:
+                date = datetime.date (int(work.year), int(work.month), 30)
+                context.update({'default_name_of_day_30': date.strftime("%A")})
+            if num == 31:
+                date = datetime.date (int(work.year), int(work.month), 31)
+                context.update({'default_name_of_day_31': date.strftime("%A")})
+        context.update({'default_year':work.year,'default_month':work.month,'default_num_of_month':num_of_month,'department_id':work.department_id.id,'section_id':work.section_id.id,'default_monthly_work':work.id})
+        return {
+            'view_type': 'form',
+            'view_mode': 'form',
+            'res_model': 'update.monthly.schedule.line',
+            'views': [(resource_id,'form')],
+            'type': 'ir.actions.act_window',
+            'target': 'new',
+            'context': context,
+        }
+    def onchange_employee(self, cr, uid, ids,employee_id=False, context=None):
+        vals = {}
+        if employee_id:
+            employee = self.pool.get('hr.employee').browse(cr, uid, employee_id)
+            vals = {
+                'department_id': employee.department_id and employee.department_id.id or False,
+                'section_id': employee.section_id and employee.section_id.id or False,
+            }
+        return {'value':vals}
+    
+        
+    def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
+        if context is None:
+            context = {}
+        if context.get('search_for_monthly_work_sche_pri_auditor'):
+            primary_auditor_ids = self.pool.get('hr.department').search(cr, uid, [('primary_auditor_id','=',uid)])
+            if primary_auditor_ids:
+                sql = '''
+                    select id from update_monthly_schedule where
+                        department_id in (select id from hr_department where primary_auditor_id =%s)
+                '''%(uid)
+                cr.execute(sql)
+                leave_details_ids = [r[0] for r in cr.fetchall()]
+                args += [('id','in',leave_details_ids)]
+        return super(update_monthly_schedule, self).search(cr, uid, args, offset, limit, order, context, count)
+    def approve(self, cr, uid, ids, context=None): 
+        schedule_obj = self.pool.get('arul.hr.monthly.work.schedule')
+        schedule_line_obj = self.pool.get('arul.hr.monthly.shift.schedule')
+        
+        for header in self.browse(cr, uid, ids): 
+            num_of_month_new = calendar.monthrange(int(header.year),int(header.month))[1]
+            shift_header_ids = schedule_obj.search(cr, uid, [('state','=','done'),('month','=',header.month), 
+                                                     ('year','=',header.year),
+                                                     ('department_id','=',header.department_id.id),
+                                                     ('section_id','=',header.section_id.id)
+                                                     ])
+            if not shift_header_ids:
+                raise osv.except_osv(_('Warning!'),_('Schift Schedule not found'))
+            for work in header.monthly_shift_line:
+                schedule_line_obj.create(cr, uid, {           
+                 'employee_id': header.employee_id.id,
+                 'year': header.year,
+                 'month': header.month,
+                 'num_of_month': num_of_month_new,
+                 'day_1': work.day_1.id,
+                 'day_2': work.day_2.id,
+                 'day_3': work.day_3.id,
+                 'day_4': work.day_4.id,
+                 'day_5': work.day_5.id,
+                 'day_6': work.day_6.id,
+                 'day_7': work.day_7.id,
+                 'day_8': work.day_8.id,
+                 'day_9': work.day_9.id,
+                 'day_10': work.day_10.id,
+                 'day_11': work.day_11.id,
+                 'day_12': work.day_12.id,
+                 'day_13': work.day_13.id,
+                 'day_14': work.day_14.id,
+                 'day_15': work.day_15.id,
+                 'day_16': work.day_16.id,
+                 'day_17': work.day_17.id,
+                 'day_18': work.day_18.id,
+                 'day_19': work.day_19.id,
+                 'day_20': work.day_20.id,
+                 'day_21': work.day_21.id,
+                 'day_22': work.day_22.id,
+                 'day_23': work.day_23.id,
+                 'day_24': work.day_24.id,
+                 'day_25': work.day_25.id,
+                 'day_26': work.day_26.id,
+                 'day_27': work.day_27.id,
+                 'day_28': work.day_28.id,
+                 'day_29': work.day_29.id,
+                 'day_30': work.day_30.id,
+                 'day_31': work.day_31.id,
+                 'monthly_work_id':shift_header_ids[0] or False
+                })
+        return self.write(cr, uid, ids,{'state':'done'})
+    
+update_monthly_schedule() 
+
+class update_monthly_schedule_line(osv.osv):
+    _name='update.monthly.schedule.line'
+    
+    def default_get(self, cr, uid, fields, context=None):
+        if context is None:
+            context = {}
+        res = super(update_monthly_schedule_line, self).default_get(cr, uid, fields, context=context)
+        if 'num_of_month' in fields and context.get('month') and context.get('year'):
+            num_of_month = calendar.monthrange(int(context.get('year')),int(context.get('month')))[1]
+            res.update({'num_of_month': num_of_month})
+        return res
+    
+    def _get_name_of_day(self, cr, uid, ids, field_name, arg, context=None):
+        res = {}
+        for line in self.browse(cr, uid, ids):
+            name_of_day_1 = False
+            name_of_day_2 = False
+            name_of_day_3 = False
+            name_of_day_4 = False
+            name_of_day_5 = False
+            name_of_day_6 = False
+            name_of_day_7 = False
+            name_of_day_8 = False
+            name_of_day_9 = False
+            name_of_day_10 = False
+            name_of_day_11 = False
+            name_of_day_12 = False
+            name_of_day_13 = False
+            name_of_day_14 = False
+            name_of_day_15 = False
+            name_of_day_16 = False
+            name_of_day_17 = False
+            name_of_day_18 = False
+            name_of_day_19 = False
+            name_of_day_20 = False
+            name_of_day_21 = False
+            name_of_day_22 = False
+            name_of_day_23 = False
+            name_of_day_24 = False
+            name_of_day_25 = False
+            name_of_day_26 = False
+            name_of_day_27 = False
+            name_of_day_28 = False
+            name_of_day_29 = False
+            name_of_day_30 = False
+            name_of_day_31 = False
+            for num in range(1,line.num_of_month+1):
+                if num == 1:
+                    date = datetime.date (line.year, int(line.month), 1)
+                    name_of_day_1 = date.strftime("%A")
+                if num == 2:
+                    date = datetime.date (line.year, int(line.month), 2)
+                    name_of_day_2 = date.strftime("%A")
+                if num == 3:
+                    date = datetime.date (line.year, int(line.month), 3)
+                    name_of_day_3 = date.strftime("%A")
+                if num == 4:
+                    date = datetime.date (line.year, int(line.month), 4)
+                    name_of_day_4 = date.strftime("%A")
+                if num == 5:
+                    date = datetime.date (line.year, int(line.month), 5)
+                    name_of_day_5 = date.strftime("%A")
+                if num == 6:
+                    date = datetime.date (line.year, int(line.month), 6)
+                    name_of_day_6 = date.strftime("%A")
+                if num == 7:
+                    date = datetime.date (line.year, int(line.month), 7)
+                    name_of_day_7 = date.strftime("%A")
+                if num == 8:
+                    date = datetime.date (line.year, int(line.month), 8)
+                    name_of_day_8 = date.strftime("%A")
+                if num == 9:
+                    date = datetime.date (line.year, int(line.month), 9)
+                    name_of_day_9 = date.strftime("%A")
+                if num == 10:
+                    date = datetime.date (line.year, int(line.month), 10)
+                    name_of_day_10 = date.strftime("%A")
+                if num == 11:
+                    date = datetime.date (line.year, int(line.month), 11)
+                    name_of_day_11 = date.strftime("%A")
+                if num == 12:
+                    date = datetime.date (line.year, int(line.month), 12)
+                    name_of_day_12 = date.strftime("%A")
+                if num == 13:
+                    date = datetime.date (line.year, int(line.month), 13)
+                    name_of_day_13 = date.strftime("%A")
+                if num == 14:
+                    date = datetime.date (line.year, int(line.month), 14)
+                    name_of_day_14 = date.strftime("%A")
+                if num == 15:
+                    date = datetime.date (line.year, int(line.month), 15)
+                    name_of_day_15 = date.strftime("%A")
+                if num == 16:
+                    date = datetime.date (line.year, int(line.month), 16)
+                    name_of_day_16 = date.strftime("%A")
+                if num == 17:
+                    date = datetime.date (line.year, int(line.month), 17)
+                    name_of_day_17 = date.strftime("%A")
+                if num == 18:
+                    date = datetime.date (line.year, int(line.month), 18)
+                    name_of_day_18 = date.strftime("%A")
+                if num == 19:
+                    date = datetime.date (line.year, int(line.month), 19)
+                    name_of_day_19 = date.strftime("%A")
+                if num == 20:
+                    date = datetime.date (line.year, int(line.month), 20)
+                    name_of_day_20 = date.strftime("%A")
+                if num == 21:
+                    date = datetime.date (line.year, int(line.month), 21)
+                    name_of_day_21 = date.strftime("%A")
+                if num == 22:
+                    date = datetime.date (line.year, int(line.month), 22)
+                    name_of_day_22 = date.strftime("%A")
+                if num == 23:
+                    date = datetime.date (line.year, int(line.month), 23)
+                    name_of_day_23 = date.strftime("%A")
+                if num == 24:
+                    date = datetime.date (line.year, int(line.month), 24)
+                    name_of_day_24 = date.strftime("%A")
+                if num == 25:
+                    date = datetime.date (line.year, int(line.month), 25)
+                    name_of_day_25 = date.strftime("%A")
+                if num == 26:
+                    date = datetime.date (line.year, int(line.month), 26)
+                    name_of_day_26 = date.strftime("%A")
+                if num == 27:
+                    date = datetime.date (line.year, int(line.month), 27)
+                    name_of_day_27 = date.strftime("%A")
+                if num == 28:
+                    date = datetime.date (line.year, int(line.month), 28)
+                    name_of_day_28 = date.strftime("%A")
+                if num == 29:
+                    date = datetime.date (line.year, int(line.month), 29)
+                    name_of_day_29 = date.strftime("%A")
+                if num == 30:
+                    date = datetime.date (line.year, int(line.month), 30)
+                    name_of_day_30 = date.strftime("%A")
+                if num == 31:
+                    date = datetime.date (line.year, int(line.month), 31)
+                    name_of_day_31 = date.strftime("%A")
+            res[line.id] = {
+                'name_of_day_1': name_of_day_1,
+                'name_of_day_2': name_of_day_2,
+                'name_of_day_3': name_of_day_3,
+                'name_of_day_4': name_of_day_4,
+                'name_of_day_5': name_of_day_5,
+                'name_of_day_6': name_of_day_6,
+                'name_of_day_7': name_of_day_7,
+                'name_of_day_8': name_of_day_8,
+                'name_of_day_9': name_of_day_9,
+                'name_of_day_10': name_of_day_10,
+                'name_of_day_11': name_of_day_11,
+                'name_of_day_12': name_of_day_12,
+                'name_of_day_13': name_of_day_13,
+                'name_of_day_14': name_of_day_14,
+                'name_of_day_15': name_of_day_15,
+                'name_of_day_16': name_of_day_16,
+                'name_of_day_17': name_of_day_17,
+                'name_of_day_18': name_of_day_18,
+                'name_of_day_19': name_of_day_19,
+                'name_of_day_20': name_of_day_20,
+                'name_of_day_21': name_of_day_21,
+                'name_of_day_22': name_of_day_22,
+                'name_of_day_23': name_of_day_23,
+                'name_of_day_24': name_of_day_24,
+                'name_of_day_25': name_of_day_25,
+                'name_of_day_26': name_of_day_26,
+                'name_of_day_27': name_of_day_27,
+                'name_of_day_28': name_of_day_28,
+                'name_of_day_29': name_of_day_29,
+                'name_of_day_30': name_of_day_30,
+                'name_of_day_31': name_of_day_31,
+            }
+        return res
+    _columns={
+#               'num_of_month': fields.function(_num_of_month, string='Day',store=True, multi='sums', help="The total amount."),
+              'num_of_month': fields.integer('Day'),
+              'name_of_day_1': fields.function(_get_name_of_day,string='Name Of Day', type='char',multi='days'),
+              'name_of_day_2': fields.function(_get_name_of_day,string='Name Of Day', type='char',multi='days'),
+              'name_of_day_3': fields.function(_get_name_of_day,string='Name Of Day', type='char',multi='days'),
+              'name_of_day_4': fields.function(_get_name_of_day,string='Name Of Day', type='char',multi='days'),
+              'name_of_day_5': fields.function(_get_name_of_day,string='Name Of Day', type='char',multi='days'),
+              'name_of_day_6': fields.function(_get_name_of_day,string='Name Of Day', type='char',multi='days'),
+              'name_of_day_7': fields.function(_get_name_of_day,string='Name Of Day', type='char',multi='days'),
+              'name_of_day_8': fields.function(_get_name_of_day,string='Name Of Day', type='char',multi='days'),
+              'name_of_day_9': fields.function(_get_name_of_day,string='Name Of Day', type='char',multi='days'),
+              'name_of_day_10': fields.function(_get_name_of_day,string='Name Of Day', type='char',multi='days'),
+              'name_of_day_11': fields.function(_get_name_of_day,string='Name Of Day', type='char',multi='days'),
+              'name_of_day_12': fields.function(_get_name_of_day,string='Name Of Day', type='char',multi='days'),
+              'name_of_day_13': fields.function(_get_name_of_day,string='Name Of Day', type='char',multi='days'),
+              'name_of_day_14': fields.function(_get_name_of_day,string='Name Of Day', type='char',multi='days'),
+              'name_of_day_15': fields.function(_get_name_of_day,string='Name Of Day', type='char',multi='days'),
+              'name_of_day_16': fields.function(_get_name_of_day,string='Name Of Day', type='char',multi='days'),
+              'name_of_day_17': fields.function(_get_name_of_day,string='Name Of Day', type='char',multi='days'),
+              'name_of_day_18': fields.function(_get_name_of_day,string='Name Of Day', type='char',multi='days'),
+              'name_of_day_19': fields.function(_get_name_of_day,string='Name Of Day', type='char',multi='days'),
+              'name_of_day_20': fields.function(_get_name_of_day,string='Name Of Day', type='char',multi='days'),
+              'name_of_day_21': fields.function(_get_name_of_day,string='Name Of Day', type='char',multi='days'),
+              'name_of_day_22': fields.function(_get_name_of_day,string='Name Of Day', type='char',multi='days'),
+              'name_of_day_23': fields.function(_get_name_of_day,string='Name Of Day', type='char',multi='days'),
+              'name_of_day_24': fields.function(_get_name_of_day,string='Name Of Day', type='char',multi='days'),
+              'name_of_day_25': fields.function(_get_name_of_day,string='Name Of Day', type='char',multi='days'),
+              'name_of_day_26': fields.function(_get_name_of_day,string='Name Of Day', type='char',multi='days'),
+              'name_of_day_27': fields.function(_get_name_of_day,string='Name Of Day', type='char',multi='days'),
+              'name_of_day_28': fields.function(_get_name_of_day,string='Name Of Day', type='char',multi='days'),
+              'name_of_day_29': fields.function(_get_name_of_day,string='Name Of Day', type='char',multi='days'),
+              'name_of_day_30': fields.function(_get_name_of_day,string='Name Of Day', type='char',multi='days'),
+              'name_of_day_31': fields.function(_get_name_of_day,string='Name Of Day', type='char',multi='days'),
+              'year': fields.selection([(num, str(num)) for num in range(1950, 2026)], 'Year'),
+              'month': fields.selection([('1', 'January'),('2', 'February'), ('3', 'March'), ('4','April'), ('5','May'), ('6','June'), ('7','July'), ('8','August'), ('9','September'), ('10','October'), ('11','November'), ('12','December')], 'Month'),
+              'monthly_work': fields.integer('monthly work'),
+              'shift_day_from': fields.many2one('tpt.month','Shift Day From'),
+              'shift_day_to': fields.many2one('tpt.month','Shift Day To'),
+              'work_shift_id': fields.many2one('arul.hr.capture.work.shift','Work Shift'),
+              'shift_group_id': fields.many2one('shift.group','Shift Group'),
+              'employee_id':fields.many2one('hr.employee','Employee', required = True),
+              'monthly_work_id':fields.many2one('update.monthly.schedule','Monthly Shift Schedule'),
+              'day_1': fields.many2one('arul.hr.capture.work.shift','1'),
+              'day_2': fields.many2one('arul.hr.capture.work.shift','2'),
+              'day_3': fields.many2one('arul.hr.capture.work.shift','3'),
+              'day_4': fields.many2one('arul.hr.capture.work.shift','4'),
+              'day_5': fields.many2one('arul.hr.capture.work.shift','5'),
+              'day_6': fields.many2one('arul.hr.capture.work.shift','6'),
+              'day_7': fields.many2one('arul.hr.capture.work.shift','7'),
+              'day_8': fields.many2one('arul.hr.capture.work.shift','8'),
+              'day_9': fields.many2one('arul.hr.capture.work.shift','9'),
+              'day_10': fields.many2one('arul.hr.capture.work.shift','10'),
+              'day_11': fields.many2one('arul.hr.capture.work.shift','11'),
+              'day_12': fields.many2one('arul.hr.capture.work.shift','12'),
+              'day_13': fields.many2one('arul.hr.capture.work.shift','13'),
+              'day_14': fields.many2one('arul.hr.capture.work.shift','14'),
+              'day_15': fields.many2one('arul.hr.capture.work.shift','15'),
+              'day_16': fields.many2one('arul.hr.capture.work.shift','16'),
+              'day_17': fields.many2one('arul.hr.capture.work.shift','17'),
+              'day_18': fields.many2one('arul.hr.capture.work.shift','18'),
+              'day_19': fields.many2one('arul.hr.capture.work.shift','19'),
+              'day_20': fields.many2one('arul.hr.capture.work.shift','20'),
+              'day_21': fields.many2one('arul.hr.capture.work.shift','21'),
+              'day_22': fields.many2one('arul.hr.capture.work.shift','22'),
+              'day_23': fields.many2one('arul.hr.capture.work.shift','23'),
+              'day_24': fields.many2one('arul.hr.capture.work.shift','24'),
+              'day_25': fields.many2one('arul.hr.capture.work.shift','25'),
+              'day_26': fields.many2one('arul.hr.capture.work.shift','26'),
+              'day_27': fields.many2one('arul.hr.capture.work.shift','27'),
+              'day_28': fields.many2one('arul.hr.capture.work.shift','28'),
+              'day_29': fields.many2one('arul.hr.capture.work.shift','29'),
+              'day_30': fields.many2one('arul.hr.capture.work.shift','30'),
+              'day_31': fields.many2one('arul.hr.capture.work.shift','31'),
+              }
+    _defaults = {
+        'num_of_month': 28,
+    }
+    
+    def load(self, cr, uid, ids, context=None):
+        return True
+    
+    def save_shift_schedule(self, cr, uid, ids, context=None):
+        active_id = context.get('active_id')
+        for shift_schedule in self.browse(cr, uid, ids):
+            shift_schedule_ids = self.search(cr, uid, [('monthly_work_id','=',active_id),('employee_id','=',shift_schedule.employee_id.id)])
+            if shift_schedule_ids:
+                self.write(cr, uid, shift_schedule_ids,{
+                  'day_1': shift_schedule.day_1.id,
+                  'day_2': shift_schedule.day_2.id,
+                  'day_3': shift_schedule.day_3.id,
+                  'day_4': shift_schedule.day_4.id,
+                  'day_5': shift_schedule.day_5.id,
+                  'day_6': shift_schedule.day_6.id,
+                  'day_7': shift_schedule.day_7.id,
+                  'day_8': shift_schedule.day_8.id,
+                  'day_9': shift_schedule.day_9.id,
+                  'day_10': shift_schedule.day_10.id,
+                  'day_11': shift_schedule.day_11.id,
+                  'day_12': shift_schedule.day_12.id,
+                  'day_13': shift_schedule.day_13.id,
+                  'day_14': shift_schedule.day_14.id,
+                  'day_15': shift_schedule.day_15.id,
+                  'day_16': shift_schedule.day_16.id,
+                  'day_17': shift_schedule.day_17.id,
+                  'day_18': shift_schedule.day_18.id,
+                  'day_19': shift_schedule.day_19.id,
+                  'day_20': shift_schedule.day_20.id,
+                  'day_21': shift_schedule.day_21.id,
+                  'day_22': shift_schedule.day_22.id,
+                  'day_23': shift_schedule.day_23.id,
+                  'day_24': shift_schedule.day_24.id,
+                  'day_25': shift_schedule.day_25.id,
+                  'day_26': shift_schedule.day_26.id,
+                  'day_27': shift_schedule.day_27.id,
+                  'day_28': shift_schedule.day_28.id,
+                  'day_29': shift_schedule.day_29.id,
+                  'day_30': shift_schedule.day_30.id,
+                  'day_31': shift_schedule.day_31.id,
+                })
+            else:
+                self.write(cr, uid, [shift_schedule.id],{
+                  'monthly_work_id': active_id,
+                })
+            sql = '''
+                delete from update_monthly_schedule_line where monthly_work_id is null
+            '''
+            cr.execute(sql)
+        return {'type': 'ir.actions.act_window_close'}
+    
+    def onchange_employee_id(self, cr, uid, ids, employee_id = False,monthly_work=False, context=None):
+        value = {}
+        if employee_id and monthly_work:
+            shift_schedule_ids = self.search(cr, uid, [('monthly_work_id','=',monthly_work),('employee_id','=',employee_id)])
+            if shift_schedule_ids:
+                shift_schedule = self.browse(cr, uid, shift_schedule_ids[0])
+                value = {
+                      'day_1': shift_schedule.day_1.id,
+                      'day_2': shift_schedule.day_2.id,
+                      'day_3': shift_schedule.day_3.id,
+                      'day_4': shift_schedule.day_4.id,
+                      'day_5': shift_schedule.day_5.id,
+                      'day_6': shift_schedule.day_6.id,
+                      'day_7': shift_schedule.day_7.id,
+                      'day_8': shift_schedule.day_8.id,
+                      'day_9': shift_schedule.day_9.id,
+                      'day_10': shift_schedule.day_10.id,
+                      'day_11': shift_schedule.day_11.id,
+                      'day_12': shift_schedule.day_12.id,
+                      'day_13': shift_schedule.day_13.id,
+                      'day_14': shift_schedule.day_14.id,
+                      'day_15': shift_schedule.day_15.id,
+                      'day_16': shift_schedule.day_16.id,
+                      'day_17': shift_schedule.day_17.id,
+                      'day_18': shift_schedule.day_18.id,
+                      'day_19': shift_schedule.day_19.id,
+                      'day_20': shift_schedule.day_20.id,
+                      'day_21': shift_schedule.day_21.id,
+                      'day_22': shift_schedule.day_22.id,
+                      'day_23': shift_schedule.day_23.id,
+                      'day_24': shift_schedule.day_24.id,
+                      'day_25': shift_schedule.day_25.id,
+                      'day_26': shift_schedule.day_26.id,
+                      'day_27': shift_schedule.day_27.id,
+                      'day_28': shift_schedule.day_28.id,
+                      'day_29': shift_schedule.day_29.id,
+                      'day_30': shift_schedule.day_30.id,
+                      'day_31': shift_schedule.day_31.id,
+                    }
+        return {'value': value}
+    
+    def onchange_monthly(self, cr, uid, ids, num_of_month = False, shift_day_from=False,shift_day_to=False, work_shift_id = False,shift_group_id=False,month=False,year=False, context=None):
+        value = {}
+        if shift_day_from and shift_day_to and work_shift_id:
+            shift_day_f = self.pool.get('tpt.month').browse(cr, uid, shift_day_from)
+            shift_day_t = self.pool.get('tpt.month').browse(cr, uid, shift_day_to)
+            if shift_day_f.name > shift_day_t.name:
+                raise osv.except_osv(_('Warning!'),_('Shift Day Form must less than Shift Day To'))
+            if shift_day_t.name > num_of_month:
+                raise osv.except_osv(_('Warning!'),_('Range of month is limited'))
+            for num in range(shift_day_f.name, shift_day_t.name + 1):
+                if num == 1 :
+                    value['day_1'] = work_shift_id
+                if num == 2:
+                    value['day_2'] = work_shift_id
+                if num == 3:
+                    value['day_3'] = work_shift_id
+                if num == 4:
+                    value['day_4'] = work_shift_id
+                if num == 5:
+                    value['day_5'] = work_shift_id
+                if num == 6:
+                    value['day_6'] = work_shift_id
+                if num == 7:
+                    value['day_7'] = work_shift_id
+                if num == 8:
+                    value['day_8'] = work_shift_id
+                if num == 9:
+                    value['day_9'] = work_shift_id
+                if num == 10:
+                    value['day_10'] = work_shift_id
+                if num == 11:
+                    value['day_11'] = work_shift_id
+                if num == 12:
+                    value['day_12'] = work_shift_id
+                if num == 13:
+                    value['day_13'] = work_shift_id
+                if num == 14:
+                    value['day_14'] = work_shift_id
+                if num == 15:
+                    value['day_15'] = work_shift_id
+                if num == 16:
+                    value['day_16'] = work_shift_id
+                if num == 17:
+                    value['day_17'] = work_shift_id
+                if num == 18:
+                    value['day_18'] = work_shift_id
+                if num == 19:
+                    value['day_19'] = work_shift_id
+                if num == 20:
+                    value['day_20'] = work_shift_id
+                if num == 21:
+                    value['day_21'] = work_shift_id
+                if num == 22:
+                    value['day_22'] = work_shift_id
+                if num == 23:
+                    value['day_23'] = work_shift_id
+                if num == 24:
+                    value['day_24'] = work_shift_id
+                if num == 25:
+                    value['day_25'] = work_shift_id
+                if num == 26:
+                    value['day_26'] = work_shift_id
+                if num == 27:
+                    value['day_27'] = work_shift_id
+                if num == 28:
+                    value['day_28'] = work_shift_id
+                if num == 29:
+                    value['day_29'] = work_shift_id
+                if num == 30:
+                    value['day_30'] = work_shift_id
+                if num == 31:
+                    value['day_31'] = work_shift_id
+            value.update({'shift_day_from': False,'shift_day_to': False, 'work_shift_id':False})
+        if shift_day_from and shift_day_to and shift_group_id and month and year:
+            shift_group = self.pool.get('shift.group').browse(cr, uid, shift_group_id)
+            month = int(month)
+            shift_day_f = self.pool.get('tpt.month').browse(cr, uid, shift_day_from)
+            shift_day_t = self.pool.get('tpt.month').browse(cr, uid, shift_day_to)
+            if shift_day_f.name > shift_day_t.name:
+                raise osv.except_osv(_('Warning!'),_('Shift Day Form must less than Shift Day To'))
+            if shift_day_t.name > num_of_month:
+                raise osv.except_osv(_('Warning!'),_('Range of month is limited'))
+            for num in range(shift_day_f.name, shift_day_t.name + 1):
+                if num == 1:
+                    date = datetime.date (year, month, 1)
+                    name_day = date.strftime("%A")
+                    if name_day == 'Sunday':
+                        value['day_1'] = shift_group.sunday_id and shift_group.sunday_id.id or False
+                    elif name_day == 'Monday':
+                        value['day_1'] = shift_group.monday_id and shift_group.monday_id.id or False
+                    elif name_day == 'Tuesday':
+                        value['day_1'] = shift_group.tuesday_id and shift_group.tuesday_id.id or False
+                    elif name_day == 'Wednesday':
+                        value['day_1'] = shift_group.wednesday_id and shift_group.wednesday_id.id or False
+                    elif name_day == 'Thursday':
+                        value['day_1'] = shift_group.thursday_id and shift_group.thursday_id.id or False
+                    elif name_day == 'Friday':
+                        value['day_1'] = shift_group.friday_id and shift_group.friday_id.id or False
+                    else:
+                        value['day_1'] = shift_group.saturday_id and shift_group.saturday_id.id or False
+                if num == 2:
+                    date = datetime.date (year, month, 2)
+                    name_day = date.strftime("%A")
+                    if name_day == 'Sunday':
+                        value['day_2'] = shift_group.sunday_id and shift_group.sunday_id.id or False
+                    elif name_day == 'Monday':
+                        value['day_2'] = shift_group.monday_id and shift_group.monday_id.id or False
+                    elif name_day == 'Tuesday':
+                        value['day_2'] = shift_group.tuesday_id and shift_group.tuesday_id.id or False
+                    elif name_day == 'Wednesday':
+                        value['day_2'] = shift_group.wednesday_id and shift_group.wednesday_id.id or False
+                    elif name_day == 'Thursday':
+                        value['day_2'] = shift_group.thursday_id and shift_group.thursday_id.id or False
+                    elif name_day == 'Friday':
+                        value['day_2'] = shift_group.friday_id and shift_group.friday_id.id or False
+                    else:
+                        value['day_2'] = shift_group.saturday_id and shift_group.saturday_id.id or False
+                if num == 3:
+                    date = datetime.date (year, month, 3)
+                    name_day = date.strftime("%A")
+                    if name_day == 'Sunday':
+                        value['day_3'] = shift_group.sunday_id and shift_group.sunday_id.id or False
+                    elif name_day == 'Monday':
+                        value['day_3'] = shift_group.monday_id and shift_group.monday_id.id or False
+                    elif name_day == 'Tuesday':
+                        value['day_3'] = shift_group.tuesday_id and shift_group.tuesday_id.id or False
+                    elif name_day == 'Wednesday':
+                        value['day_3'] = shift_group.wednesday_id and shift_group.wednesday_id.id or False
+                    elif name_day == 'Thursday':
+                        value['day_3'] = shift_group.thursday_id and shift_group.thursday_id.id or False
+                    elif name_day == 'Friday':
+                        value['day_3'] = shift_group.friday_id and shift_group.friday_id.id or False
+                    else:
+                        value['day_3'] = shift_group.saturday_id and shift_group.saturday_id.id or False
+                if num == 4:
+                    date = datetime.date (year, month, 4)
+                    name_day = date.strftime("%A")
+                    if name_day == 'Sunday':
+                        value['day_4'] = shift_group.sunday_id and shift_group.sunday_id.id or False
+                    elif name_day == 'Monday':
+                        value['day_4'] = shift_group.monday_id and shift_group.monday_id.id or False
+                    elif name_day == 'Tuesday':
+                        value['day_4'] = shift_group.tuesday_id and shift_group.tuesday_id.id or False
+                    elif name_day == 'Wednesday':
+                        value['day_4'] = shift_group.wednesday_id and shift_group.wednesday_id.id or False
+                    elif name_day == 'Thursday':
+                        value['day_4'] = shift_group.thursday_id and shift_group.thursday_id.id or False
+                    elif name_day == 'Friday':
+                        value['day_4'] = shift_group.friday_id and shift_group.friday_id.id or False
+                    else:
+                        value['day_4'] = shift_group.saturday_id and shift_group.saturday_id.id or False
+                if num == 5:
+                    date = datetime.date (year, month, 5)
+                    name_day = date.strftime("%A")
+                    if name_day == 'Sunday':
+                        value['day_5'] = shift_group.sunday_id and shift_group.sunday_id.id or False
+                    elif name_day == 'Monday':
+                        value['day_5'] = shift_group.monday_id and shift_group.monday_id.id or False
+                    elif name_day == 'Tuesday':
+                        value['day_5'] = shift_group.tuesday_id and shift_group.tuesday_id.id or False
+                    elif name_day == 'Wednesday':
+                        value['day_5'] = shift_group.wednesday_id and shift_group.wednesday_id.id or False
+                    elif name_day == 'Thursday':
+                        value['day_5'] = shift_group.thursday_id and shift_group.thursday_id.id or False
+                    elif name_day == 'Friday':
+                        value['day_5'] = shift_group.friday_id and shift_group.friday_id.id or False
+                    else:
+                        value['day_5'] = shift_group.saturday_id and shift_group.saturday_id.id or False
+                if num == 6:
+                    date = datetime.date (year, month, 6)
+                    name_day = date.strftime("%A")
+                    if name_day == 'Sunday':
+                        value['day_6'] = shift_group.sunday_id and shift_group.sunday_id.id or False
+                    elif name_day == 'Monday':
+                        value['day_6'] = shift_group.monday_id and shift_group.monday_id.id or False
+                    elif name_day == 'Tuesday':
+                        value['day_6'] = shift_group.tuesday_id and shift_group.tuesday_id.id or False
+                    elif name_day == 'Wednesday':
+                        value['day_6'] = shift_group.wednesday_id and shift_group.wednesday_id.id or False
+                    elif name_day == 'Thursday':
+                        value['day_6'] = shift_group.thursday_id and shift_group.thursday_id.id or False
+                    elif name_day == 'Friday':
+                        value['day_6'] = shift_group.friday_id and shift_group.friday_id.id or False
+                    else:
+                        value['day_6'] = shift_group.saturday_id and shift_group.saturday_id.id or False
+                if num == 7:
+                    date = datetime.date (year, month, 7)
+                    name_day = date.strftime("%A")
+                    if name_day == 'Sunday':
+                        value['day_7'] = shift_group.sunday_id and shift_group.sunday_id.id or False
+                    elif name_day == 'Monday':
+                        value['day_7'] = shift_group.monday_id and shift_group.monday_id.id or False
+                    elif name_day == 'Tuesday':
+                        value['day_7'] = shift_group.tuesday_id and shift_group.tuesday_id.id or False
+                    elif name_day == 'Wednesday':
+                        value['day_7'] = shift_group.wednesday_id and shift_group.wednesday_id.id or False
+                    elif name_day == 'Thursday':
+                        value['day_7'] = shift_group.thursday_id and shift_group.thursday_id.id or False
+                    elif name_day == 'Friday':
+                        value['day_7'] = shift_group.friday_id and shift_group.friday_id.id or False
+                    else:
+                        value['day_7'] = shift_group.saturday_id and shift_group.saturday_id.id or False
+                if num == 8:
+                    date = datetime.date (year, month, 8)
+                    name_day = date.strftime("%A")
+                    if name_day == 'Sunday':
+                        value['day_8'] = shift_group.sunday_id and shift_group.sunday_id.id or False
+                    elif name_day == 'Monday':
+                        value['day_8'] = shift_group.monday_id and shift_group.monday_id.id or False
+                    elif name_day == 'Tuesday':
+                        value['day_8'] = shift_group.tuesday_id and shift_group.tuesday_id.id or False
+                    elif name_day == 'Wednesday':
+                        value['day_8'] = shift_group.wednesday_id and shift_group.wednesday_id.id or False
+                    elif name_day == 'Thursday':
+                        value['day_8'] = shift_group.thursday_id and shift_group.thursday_id.id or False
+                    elif name_day == 'Friday':
+                        value['day_8'] = shift_group.friday_id and shift_group.friday_id.id or False
+                    else:
+                        value['day_8'] = shift_group.saturday_id and shift_group.saturday_id.id or False
+                if num == 9:
+                    date = datetime.date (year, month, 9)
+                    name_day = date.strftime("%A")
+                    if name_day == 'Sunday':
+                        value['day_9'] = shift_group.sunday_id and shift_group.sunday_id.id or False
+                    elif name_day == 'Monday':
+                        value['day_9'] = shift_group.monday_id and shift_group.monday_id.id or False
+                    elif name_day == 'Tuesday':
+                        value['day_9'] = shift_group.tuesday_id and shift_group.tuesday_id.id or False
+                    elif name_day == 'Wednesday':
+                        value['day_9'] = shift_group.wednesday_id and shift_group.wednesday_id.id or False
+                    elif name_day == 'Thursday':
+                        value['day_9'] = shift_group.thursday_id and shift_group.thursday_id.id or False
+                    elif name_day == 'Friday':
+                        value['day_9'] = shift_group.friday_id and shift_group.friday_id.id or False
+                    else:
+                        value['day_9'] = shift_group.saturday_id and shift_group.saturday_id.id or False
+                if num == 10:
+                    date = datetime.date (year, month, 10)
+                    name_day = date.strftime("%A")
+                    if name_day == 'Sunday':
+                        value['day_10'] = shift_group.sunday_id and shift_group.sunday_id.id or False
+                    elif name_day == 'Monday':
+                        value['day_10'] = shift_group.monday_id and shift_group.monday_id.id or False
+                    elif name_day == 'Tuesday':
+                        value['day_10'] = shift_group.tuesday_id and shift_group.tuesday_id.id or False
+                    elif name_day == 'Wednesday':
+                        value['day_10'] = shift_group.wednesday_id and shift_group.wednesday_id.id or False
+                    elif name_day == 'Thursday':
+                        value['day_10'] = shift_group.thursday_id and shift_group.thursday_id.id or False
+                    elif name_day == 'Friday':
+                        value['day_10'] = shift_group.friday_id and shift_group.friday_id.id or False
+                    else:
+                        value['day_10'] = shift_group.saturday_id and shift_group.saturday_id.id or False
+                if num == 11:
+                    date = datetime.date (year, month, 11)
+                    name_day = date.strftime("%A")
+                    if name_day == 'Sunday':
+                        value['day_11'] = shift_group.sunday_id and shift_group.sunday_id.id or False
+                    elif name_day == 'Monday':
+                        value['day_11'] = shift_group.monday_id and shift_group.monday_id.id or False
+                    elif name_day == 'Tuesday':
+                        value['day_11'] = shift_group.tuesday_id and shift_group.tuesday_id.id or False
+                    elif name_day == 'Wednesday':
+                        value['day_11'] = shift_group.wednesday_id and shift_group.wednesday_id.id or False
+                    elif name_day == 'Thursday':
+                        value['day_11'] = shift_group.thursday_id and shift_group.thursday_id.id or False
+                    elif name_day == 'Friday':
+                        value['day_11'] = shift_group.friday_id and shift_group.friday_id.id or False
+                    else:
+                        value['day_11'] = shift_group.saturday_id and shift_group.saturday_id.id or False
+                if num == 12:
+                    date = datetime.date (year, month, 12)
+                    name_day = date.strftime("%A")
+                    if name_day == 'Sunday':
+                        value['day_12'] = shift_group.sunday_id and shift_group.sunday_id.id or False
+                    elif name_day == 'Monday':
+                        value['day_12'] = shift_group.monday_id and shift_group.monday_id.id or False
+                    elif name_day == 'Tuesday':
+                        value['day_12'] = shift_group.tuesday_id and shift_group.tuesday_id.id or False
+                    elif name_day == 'Wednesday':
+                        value['day_12'] = shift_group.wednesday_id and shift_group.wednesday_id.id or False
+                    elif name_day == 'Thursday':
+                        value['day_12'] = shift_group.thursday_id and shift_group.thursday_id.id or False
+                    elif name_day == 'Friday':
+                        value['day_12'] = shift_group.friday_id and shift_group.friday_id.id or False
+                    else:
+                        value['day_12'] = shift_group.saturday_id and shift_group.saturday_id.id or False
+                if num == 13:
+                    date = datetime.date (year, month, 13)
+                    name_day = date.strftime("%A")
+                    if name_day == 'Sunday':
+                        value['day_13'] = shift_group.sunday_id and shift_group.sunday_id.id or False
+                    elif name_day == 'Monday':
+                        value['day_13'] = shift_group.monday_id and shift_group.monday_id.id or False
+                    elif name_day == 'Tuesday':
+                        value['day_13'] = shift_group.tuesday_id and shift_group.tuesday_id.id or False
+                    elif name_day == 'Wednesday':
+                        value['day_13'] = shift_group.wednesday_id and shift_group.wednesday_id.id or False
+                    elif name_day == 'Thursday':
+                        value['day_13'] = shift_group.thursday_id and shift_group.thursday_id.id or False
+                    elif name_day == 'Friday':
+                        value['day_13'] = shift_group.friday_id and shift_group.friday_id.id or False
+                    else:
+                        value['day_13'] = shift_group.saturday_id and shift_group.saturday_id.id or False
+                if num == 14:
+                    date = datetime.date (year, month, 14)
+                    name_day = date.strftime("%A")
+                    if name_day == 'Sunday':
+                        value['day_14'] = shift_group.sunday_id and shift_group.sunday_id.id or False
+                    elif name_day == 'Monday':
+                        value['day_14'] = shift_group.monday_id and shift_group.monday_id.id or False
+                    elif name_day == 'Tuesday':
+                        value['day_14'] = shift_group.tuesday_id and shift_group.tuesday_id.id or False
+                    elif name_day == 'Wednesday':
+                        value['day_14'] = shift_group.wednesday_id and shift_group.wednesday_id.id or False
+                    elif name_day == 'Thursday':
+                        value['day_14'] = shift_group.thursday_id and shift_group.thursday_id.id or False
+                    elif name_day == 'Friday':
+                        value['day_14'] = shift_group.friday_id and shift_group.friday_id.id or False
+                    else:
+                        value['day_14'] = shift_group.saturday_id and shift_group.saturday_id.id or False
+                if num == 15:
+                    date = datetime.date (year, month, 15)
+                    name_day = date.strftime("%A")
+                    if name_day == 'Sunday':
+                        value['day_15'] = shift_group.sunday_id and shift_group.sunday_id.id or False
+                    elif name_day == 'Monday':
+                        value['day_15'] = shift_group.monday_id and shift_group.monday_id.id or False
+                    elif name_day == 'Tuesday':
+                        value['day_15'] = shift_group.tuesday_id and shift_group.tuesday_id.id or False
+                    elif name_day == 'Wednesday':
+                        value['day_15'] = shift_group.wednesday_id and shift_group.wednesday_id.id or False
+                    elif name_day == 'Thursday':
+                        value['day_15'] = shift_group.thursday_id and shift_group.thursday_id.id or False
+                    elif name_day == 'Friday':
+                        value['day_15'] = shift_group.friday_id and shift_group.friday_id.id or False
+                    else:
+                        value['day_15'] = shift_group.saturday_id and shift_group.saturday_id.id or False
+                if num == 16:
+                    date = datetime.date (year, month, 16)
+                    name_day = date.strftime("%A")
+                    if name_day == 'Sunday':
+                        value['day_16'] = shift_group.sunday_id and shift_group.sunday_id.id or False
+                    elif name_day == 'Monday':
+                        value['day_16'] = shift_group.monday_id and shift_group.monday_id.id or False
+                    elif name_day == 'Tuesday':
+                        value['day_16'] = shift_group.tuesday_id and shift_group.tuesday_id.id or False
+                    elif name_day == 'Wednesday':
+                        value['day_16'] = shift_group.wednesday_id and shift_group.wednesday_id.id or False
+                    elif name_day == 'Thursday':
+                        value['day_16'] = shift_group.thursday_id and shift_group.thursday_id.id or False
+                    elif name_day == 'Friday':
+                        value['day_16'] = shift_group.friday_id and shift_group.friday_id.id or False
+                    else:
+                        value['day_16'] = shift_group.saturday_id and shift_group.saturday_id.id or False
+                if num == 17:
+                    date = datetime.date (year, month, 17)
+                    name_day = date.strftime("%A")
+                    if name_day == 'Sunday':
+                        value['day_17'] = shift_group.sunday_id and shift_group.sunday_id.id or False
+                    elif name_day == 'Monday':
+                        value['day_17'] = shift_group.monday_id and shift_group.monday_id.id or False
+                    elif name_day == 'Tuesday':
+                        value['day_17'] = shift_group.tuesday_id and shift_group.tuesday_id.id or False
+                    elif name_day == 'Wednesday':
+                        value['day_17'] = shift_group.wednesday_id and shift_group.wednesday_id.id or False
+                    elif name_day == 'Thursday':
+                        value['day_17'] = shift_group.thursday_id and shift_group.thursday_id.id or False
+                    elif name_day == 'Friday':
+                        value['day_17'] = shift_group.friday_id and shift_group.friday_id.id or False
+                    else:
+                        value['day_17'] = shift_group.saturday_id and shift_group.saturday_id.id or False
+                if num == 18:
+                    date = datetime.date (year, month, 18)
+                    name_day = date.strftime("%A")
+                    if name_day == 'Sunday':
+                        value['day_18'] = shift_group.sunday_id and shift_group.sunday_id.id or False
+                    elif name_day == 'Monday':
+                        value['day_18'] = shift_group.monday_id and shift_group.monday_id.id or False
+                    elif name_day == 'Tuesday':
+                        value['day_18'] = shift_group.tuesday_id and shift_group.tuesday_id.id or False
+                    elif name_day == 'Wednesday':
+                        value['day_18'] = shift_group.wednesday_id and shift_group.wednesday_id.id or False
+                    elif name_day == 'Thursday':
+                        value['day_18'] = shift_group.thursday_id and shift_group.thursday_id.id or False
+                    elif name_day == 'Friday':
+                        value['day_18'] = shift_group.friday_id and shift_group.friday_id.id or False
+                    else:
+                        value['day_18'] = shift_group.saturday_id and shift_group.saturday_id.id or False
+                if num == 19:
+                    date = datetime.date (year, month, 19)
+                    name_day = date.strftime("%A")
+                    if name_day == 'Sunday':
+                        value['day_19'] = shift_group.sunday_id and shift_group.sunday_id.id or False
+                    elif name_day == 'Monday':
+                        value['day_19'] = shift_group.monday_id and shift_group.monday_id.id or False
+                    elif name_day == 'Tuesday':
+                        value['day_19'] = shift_group.tuesday_id and shift_group.tuesday_id.id or False
+                    elif name_day == 'Wednesday':
+                        value['day_19'] = shift_group.wednesday_id and shift_group.wednesday_id.id or False
+                    elif name_day == 'Thursday':
+                        value['day_19'] = shift_group.thursday_id and shift_group.thursday_id.id or False
+                    elif name_day == 'Friday':
+                        value['day_19'] = shift_group.friday_id and shift_group.friday_id.id or False
+                    else:
+                        value['day_19'] = shift_group.saturday_id and shift_group.saturday_id.id or False
+                if num == 20:
+                    date = datetime.date (year, month, 20)
+                    name_day = date.strftime("%A")
+                    if name_day == 'Sunday':
+                        value['day_20'] = shift_group.sunday_id and shift_group.sunday_id.id or False
+                    elif name_day == 'Monday':
+                        value['day_20'] = shift_group.monday_id and shift_group.monday_id.id or False
+                    elif name_day == 'Tuesday':
+                        value['day_20'] = shift_group.tuesday_id and shift_group.tuesday_id.id or False
+                    elif name_day == 'Wednesday':
+                        value['day_20'] = shift_group.wednesday_id and shift_group.wednesday_id.id or False
+                    elif name_day == 'Thursday':
+                        value['day_20'] = shift_group.thursday_id and shift_group.thursday_id.id or False
+                    elif name_day == 'Friday':
+                        value['day_20'] = shift_group.friday_id and shift_group.friday_id.id or False
+                    else:
+                        value['day_20'] = shift_group.saturday_id and shift_group.saturday_id.id or False
+                if num == 21:
+                    date = datetime.date (year, month, 21)
+                    name_day = date.strftime("%A")
+                    if name_day == 'Sunday':
+                        value['day_21'] = shift_group.sunday_id and shift_group.sunday_id.id or False
+                    elif name_day == 'Monday':
+                        value['day_21'] = shift_group.monday_id and shift_group.monday_id.id or False
+                    elif name_day == 'Tuesday':
+                        value['day_21'] = shift_group.tuesday_id and shift_group.tuesday_id.id or False
+                    elif name_day == 'Wednesday':
+                        value['day_21'] = shift_group.wednesday_id and shift_group.wednesday_id.id or False
+                    elif name_day == 'Thursday':
+                        value['day_21'] = shift_group.thursday_id and shift_group.thursday_id.id or False
+                    elif name_day == 'Friday':
+                        value['day_21'] = shift_group.friday_id and shift_group.friday_id.id or False
+                    else:
+                        value['day_21'] = shift_group.saturday_id and shift_group.saturday_id.id or False
+                if num == 22:
+                    date = datetime.date (year, month, 22)
+                    name_day = date.strftime("%A")
+                    if name_day == 'Sunday':
+                        value['day_22'] = shift_group.sunday_id and shift_group.sunday_id.id or False
+                    elif name_day == 'Monday':
+                        value['day_22'] = shift_group.monday_id and shift_group.monday_id.id or False
+                    elif name_day == 'Tuesday':
+                        value['day_22'] = shift_group.tuesday_id and shift_group.tuesday_id.id or False
+                    elif name_day == 'Wednesday':
+                        value['day_22'] = shift_group.wednesday_id and shift_group.wednesday_id.id or False
+                    elif name_day == 'Thursday':
+                        value['day_22'] = shift_group.thursday_id and shift_group.thursday_id.id or False
+                    elif name_day == 'Friday':
+                        value['day_22'] = shift_group.friday_id and shift_group.friday_id.id or False
+                    else:
+                        value['day_22'] = shift_group.saturday_id and shift_group.saturday_id.id or False
+                if num == 23:
+                    date = datetime.date (year, month, 23)
+                    name_day = date.strftime("%A")
+                    if name_day == 'Sunday':
+                        value['day_23'] = shift_group.sunday_id and shift_group.sunday_id.id or False
+                    elif name_day == 'Monday':
+                        value['day_23'] = shift_group.monday_id and shift_group.monday_id.id or False
+                    elif name_day == 'Tuesday':
+                        value['day_23'] = shift_group.tuesday_id and shift_group.tuesday_id.id or False
+                    elif name_day == 'Wednesday':
+                        value['day_23'] = shift_group.wednesday_id and shift_group.wednesday_id.id or False
+                    elif name_day == 'Thursday':
+                        value['day_23'] = shift_group.thursday_id and shift_group.thursday_id.id or False
+                    elif name_day == 'Friday':
+                        value['day_23'] = shift_group.friday_id and shift_group.friday_id.id or False
+                    else:
+                        value['day_23'] = shift_group.saturday_id and shift_group.saturday_id.id or False
+                if num == 24:
+                    date = datetime.date (year, month, 24)
+                    name_day = date.strftime("%A")
+                    if name_day == 'Sunday':
+                        value['day_24'] = shift_group.sunday_id and shift_group.sunday_id.id or False
+                    elif name_day == 'Monday':
+                        value['day_24'] = shift_group.monday_id and shift_group.monday_id.id or False
+                    elif name_day == 'Tuesday':
+                        value['day_24'] = shift_group.tuesday_id and shift_group.tuesday_id.id or False
+                    elif name_day == 'Wednesday':
+                        value['day_24'] = shift_group.wednesday_id and shift_group.wednesday_id.id or False
+                    elif name_day == 'Thursday':
+                        value['day_24'] = shift_group.thursday_id and shift_group.thursday_id.id or False
+                    elif name_day == 'Friday':
+                        value['day_24'] = shift_group.friday_id and shift_group.friday_id.id or False
+                    else:
+                        value['day_24'] = shift_group.saturday_id and shift_group.saturday_id.id or False
+                if num == 25:
+                    date = datetime.date (year, month, 25)
+                    name_day = date.strftime("%A")
+                    if name_day == 'Sunday':
+                        value['day_25'] = shift_group.sunday_id and shift_group.sunday_id.id or False
+                    elif name_day == 'Monday':
+                        value['day_25'] = shift_group.monday_id and shift_group.monday_id.id or False
+                    elif name_day == 'Tuesday':
+                        value['day_25'] = shift_group.tuesday_id and shift_group.tuesday_id.id or False
+                    elif name_day == 'Wednesday':
+                        value['day_25'] = shift_group.wednesday_id and shift_group.wednesday_id.id or False
+                    elif name_day == 'Thursday':
+                        value['day_25'] = shift_group.thursday_id and shift_group.thursday_id.id or False
+                    elif name_day == 'Friday':
+                        value['day_25'] = shift_group.friday_id and shift_group.friday_id.id or False
+                    else:
+                        value['day_25'] = shift_group.saturday_id and shift_group.saturday_id.id or False
+                if num == 26:
+                    date = datetime.date (year, month, 26)
+                    name_day = date.strftime("%A")
+                    if name_day == 'Sunday':
+                        value['day_26'] = shift_group.sunday_id and shift_group.sunday_id.id or False
+                    elif name_day == 'Monday':
+                        value['day_26'] = shift_group.monday_id and shift_group.monday_id.id or False
+                    elif name_day == 'Tuesday':
+                        value['day_26'] = shift_group.tuesday_id and shift_group.tuesday_id.id or False
+                    elif name_day == 'Wednesday':
+                        value['day_26'] = shift_group.wednesday_id and shift_group.wednesday_id.id or False
+                    elif name_day == 'Thursday':
+                        value['day_26'] = shift_group.thursday_id and shift_group.thursday_id.id or False
+                    elif name_day == 'Friday':
+                        value['day_26'] = shift_group.friday_id and shift_group.friday_id.id or False
+                    else:
+                        value['day_26'] = shift_group.saturday_id and shift_group.saturday_id.id or False
+                if num == 27:
+                    date = datetime.date (year, month, 27)
+                    name_day = date.strftime("%A")
+                    if name_day == 'Sunday':
+                        value['day_27'] = shift_group.sunday_id and shift_group.sunday_id.id or False
+                    elif name_day == 'Monday':
+                        value['day_27'] = shift_group.monday_id and shift_group.monday_id.id or False
+                    elif name_day == 'Tuesday':
+                        value['day_27'] = shift_group.tuesday_id and shift_group.tuesday_id.id or False
+                    elif name_day == 'Wednesday':
+                        value['day_27'] = shift_group.wednesday_id and shift_group.wednesday_id.id or False
+                    elif name_day == 'Thursday':
+                        value['day_27'] = shift_group.thursday_id and shift_group.thursday_id.id or False
+                    elif name_day == 'Friday':
+                        value['day_27'] = shift_group.friday_id and shift_group.friday_id.id or False
+                    else:
+                        value['day_27'] = shift_group.saturday_id and shift_group.saturday_id.id or False
+                if num == 28:
+                    date = datetime.date (year, month, 28)
+                    name_day = date.strftime("%A")
+                    if name_day == 'Sunday':
+                        value['day_28'] = shift_group.sunday_id and shift_group.sunday_id.id or False
+                    elif name_day == 'Monday':
+                        value['day_28'] = shift_group.monday_id and shift_group.monday_id.id or False
+                    elif name_day == 'Tuesday':
+                        value['day_28'] = shift_group.tuesday_id and shift_group.tuesday_id.id or False
+                    elif name_day == 'Wednesday':
+                        value['day_28'] = shift_group.wednesday_id and shift_group.wednesday_id.id or False
+                    elif name_day == 'Thursday':
+                        value['day_28'] = shift_group.thursday_id and shift_group.thursday_id.id or False
+                    elif name_day == 'Friday':
+                        value['day_28'] = shift_group.friday_id and shift_group.friday_id.id or False
+                    else:
+                        value['day_28'] = shift_group.saturday_id and shift_group.saturday_id.id or False
+                if num == 29:
+                    date = datetime.date (year, month, 29)
+                    name_day = date.strftime("%A")
+                    if name_day == 'Sunday':
+                        value['day_29'] = shift_group.sunday_id and shift_group.sunday_id.id or False
+                    elif name_day == 'Monday':
+                        value['day_29'] = shift_group.monday_id and shift_group.monday_id.id or False
+                    elif name_day == 'Tuesday':
+                        value['day_29'] = shift_group.tuesday_id and shift_group.tuesday_id.id or False
+                    elif name_day == 'Wednesday':
+                        value['day_29'] = shift_group.wednesday_id and shift_group.wednesday_id.id or False
+                    elif name_day == 'Thursday':
+                        value['day_29'] = shift_group.thursday_id and shift_group.thursday_id.id or False
+                    elif name_day == 'Friday':
+                        value['day_29'] = shift_group.friday_id and shift_group.friday_id.id or False
+                    else:
+                        value['day_29'] = shift_group.saturday_id and shift_group.saturday_id.id or False
+                if num == 30:
+                    date = datetime.date (year, month, 30)
+                    name_day = date.strftime("%A")
+                    if name_day == 'Sunday':
+                        value['day_30'] = shift_group.sunday_id and shift_group.sunday_id.id or False
+                    elif name_day == 'Monday':
+                        value['day_30'] = shift_group.monday_id and shift_group.monday_id.id or False
+                    elif name_day == 'Tuesday':
+                        value['day_30'] = shift_group.tuesday_id and shift_group.tuesday_id.id or False
+                    elif name_day == 'Wednesday':
+                        value['day_30'] = shift_group.wednesday_id and shift_group.wednesday_id.id or False
+                    elif name_day == 'Thursday':
+                        value['day_30'] = shift_group.thursday_id and shift_group.thursday_id.id or False
+                    elif name_day == 'Friday':
+                        value['day_30'] = shift_group.friday_id and shift_group.friday_id.id or False
+                    else:
+                        value['day_30'] = shift_group.saturday_id and shift_group.saturday_id.id or False
+                if num == 31:
+                    date = datetime.date (year, month, 31)
+                    name_day = date.strftime("%A")
+                    if name_day == 'Sunday':
+                        value['day_31'] = shift_group.sunday_id and shift_group.sunday_id.id or False
+                    elif name_day == 'Monday':
+                        value['day_31'] = shift_group.monday_id and shift_group.monday_id.id or False
+                    elif name_day == 'Tuesday':
+                        value['day_31'] = shift_group.tuesday_id and shift_group.tuesday_id.id or False
+                    elif name_day == 'Wednesday':
+                        value['day_31'] = shift_group.wednesday_id and shift_group.wednesday_id.id or False
+                    elif name_day == 'Thursday':
+                        value['day_31'] = shift_group.thursday_id and shift_group.thursday_id.id or False
+                    elif name_day == 'Friday':
+                        value['day_31'] = shift_group.friday_id and shift_group.friday_id.id or False
+                    else:
+                        value['day_31'] = shift_group.saturday_id and shift_group.saturday_id.id or False
+            value.update({'shift_day_from': False,'shift_day_to': False, 'shift_group_id':False})
+        return {'value': value}      
+                                                                     
+    def _check_employee_id(self, cr, uid, ids, context=None):
+        for shift_schedule in self.browse(cr, uid, ids, context=context):
+            if shift_schedule.monthly_work_id:
+                shift_schedule_ids = self.search(cr, uid, [('id','!=',shift_schedule.id),('employee_id','=',shift_schedule.employee_id.id),('monthly_work_id','=',shift_schedule.monthly_work_id.id)])
+                if shift_schedule_ids:  
+                    raise osv.except_osv(_('Warning!'),_('This employee: %s is selected!')%(shift_schedule.employee_id.name+' '+(shift_schedule.employee_id.last_name or '')))
+                    return False
+        return True
+    _constraints = [
+        (_check_employee_id, 'Identical Data', ['employee_id']),
+        
+    ]              
+    
+update_monthly_schedule_line()
+
+ #TPT START - BY RAKESHKUMAR - ON 22/02/2016 - FOR NEW SCREEN MONTHLY WORK SCHEDULE FOR MID MONTH JOINING EMPLOYEES
+ 

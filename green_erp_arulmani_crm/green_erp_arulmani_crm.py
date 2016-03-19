@@ -464,6 +464,8 @@ class crm_lead_line(osv.osv):
         'application_id': fields.many2one('crm.application','Application', ondelete='restrict'),
         'month': fields.char('Monthly Req. Qty',size=128),
         'year': fields.char('Yearly Req. Qty',size=128),
+        'month_qty': fields.float('Monthly Req. Qty',size=128),
+        'year_qty': fields.float('Yearly Req. Qty',size=128),
         'name': fields.text('Description'),
         'mapp_product': fields.function(_mapp_product, string='Product ID in char', multi='mobile1'), # tpt-bm- for mobile app implementation
         'mapp_uom': fields.function(_mapp_uom, string='UOM ID in char', multi='mobile2'), 

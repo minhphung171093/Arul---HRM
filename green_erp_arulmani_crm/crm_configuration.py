@@ -238,7 +238,7 @@ class res_partner(osv.osv):
                    '''% (time.id)
                 cr.execute(sql)
                 a = cr.fetchone()
-                if a:
+                if a and str(a) != '(None,)':
                     res[time.id]['last_inv_no'] = a[0]            
         return res 
     def _last_inv_date(self, cr, uid, ids, field_name, arg, context=None):
@@ -253,7 +253,7 @@ class res_partner(osv.osv):
                    '''% (time.id)
                 cr.execute(sql)
                 a = cr.fetchone()
-                if a[0]:
+                if a and str(a) != '(None,)':
                     date = datetime.strptime(a[0], DATE_FORMAT)
                     res[time.id]['last_inv_date'] = date.strftime('%d/%m/%Y')            
         return res 
@@ -298,8 +298,9 @@ class res_partner(osv.osv):
                    '''% (bp.id)
                 cr.execute(sql)
                 a = cr.fetchone()
-                date = datetime.strptime(a[0], DATE_FORMAT)
-                res[bp.id]['payment_due_date'] = date.strftime('%d/%m/%Y')        
+                if a and str(a) != '(None,)':
+                    date = datetime.strptime(a[0], DATE_FORMAT)
+                    res[bp.id]['payment_due_date'] = date.strftime('%d/%m/%Y')        
         return res 
     def _last_pay_amt(self, cr, uid, ids, field_name, arg, context=None):
         res = {}
@@ -315,7 +316,8 @@ class res_partner(osv.osv):
                    '''% (bp.id,bp.id)
                 cr.execute(sql)
                 a = cr.fetchone()
-                res[bp.id]['last_pay_amt'] = a[0]  
+                if a:
+                    res[bp.id]['last_pay_amt'] = a[0]  
         return res 
     def _last_pay_date(self, cr, uid, ids, field_name, arg, context=None):
         res = {}
@@ -329,8 +331,9 @@ class res_partner(osv.osv):
                    '''% (bp.id)
                 cr.execute(sql)
                 a = cr.fetchone()
-                date = datetime.strptime(a[0], DATE_FORMAT)
-                res[bp.id]['last_pay_date'] = date.strftime('%d/%m/%Y') 
+                if a and str(a) != '(None,)':
+                    date = datetime.strptime(a[0], DATE_FORMAT)
+                    res[bp.id]['last_pay_date'] = date.strftime('%d/%m/%Y') 
         return res 
     def _state_char(self, cr, uid, ids, field_name, arg, context=None):
         res = {}

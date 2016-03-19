@@ -2059,5 +2059,273 @@
             parent="menu_hr_leave_management" sequence="38" 
             />
         <!-- TPT-END -->
+        
+        <!-- TPT START - BY RAKESHKUMAR - ON 08/02/2016 - FOR NEW SCREEN MONTHLY WORK SCHEDULE SCREEN FOR MID MONTH JOINING EMPLOYEES
+		 -->
+	    <record id="view_update_monthly_schedule_search_vew" model="ir.ui.view">
+			<field name="name">update.monthly.schedule.search</field>
+			<field name="model">update.monthly.schedule</field>
+			<field name="arch" type="xml">
+				<search string="Update Work Schedule">
+					<field name="department_id"/>	
+					<field name="section_id"/>				
+				</search>
+			</field>
+		</record>
+
+        <record id="view_update_monthly_schedule_tree_vew" model="ir.ui.view">
+			<field name="name">update.monthly.schedule.tree</field>
+			<field name="model">update.monthly.schedule</field>
+			<field name="arch" type="xml">
+				<tree string="Update Work Schedule">
+				    <field name="employee_id" options="{'create': false, 'create_edit': false}"/>
+					<field name="department_id" options="{'create': false, 'create_edit': false}"/>
+					<field name="section_id" options="{'create': false, 'create_edit': false}"/>
+					<field name="year"/>
+					<field name="month"/>
+					<field name="create_date"/>
+					<field name="create_uid"/>
+					<field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue","done":"blue"}'/>
+				</tree>
+			</field>
+		</record>
+		
+
+		<record id="view_update_monthly_schedule_form_vew" model="ir.ui.view">
+            <field name="name">update.monthly.schedule.form</field>
+            <field name="model">update.monthly.schedule</field>
+            <field name="arch" type="xml">
+	            <form string="Update Work Schedule" version="7.0">
+	            	<header>
+	                    <button name="approve" states='draft' string="Approve" type="object" class="oe_highlight" />
+	                    <field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue","done":"blue"}'/>
+	                </header> 
+	            	<sheet>
+						<group col='4' colspan='2'>
+							<field name="employee_id" on_change="onchange_employee(employee_id)" options="{'create': false, 'create_edit': false}"/>
+							<field name="department_id" options="{'create': false, 'create_edit': false}"/>
+							<field name="section_id" domain="[('department_id','=',department_id)]" options="{'create': false, 'create_edit': false}"/>
+							<field name="year"/>
+							<field name="month"/>
+							<field name="create_date"/>
+							<field name="create_uid"/>
+						</group>
+						<notebook>
+							<page string = 'Update Shift Schedule'>
+								<button name="shift_schedule" string="Shift Schedule" states="draft,load" type="object" class="oe_highlight"/>
+								<field name="monthly_shift_line" nolabel='1' class='oe_green_erp_scroll' context="{'year': year,'month':month}">
+		                    		<tree create='false' edit='false'>
+		                    			<field name="num_of_month" invisible="1"/>
+		                    			<field name="employee_id"/>
+		                    			<field name="day_1" required='1'/>
+	                    				<field name="day_2"/>
+	                    				<field name="day_3"/>
+	                    				<field name="day_4"/>
+	                    				<field name="day_5"/>
+	                    				<field name="day_6"/>
+	                    				<field name="day_7"/>
+	                    				<field name="day_8"/>
+	                    				<field name="day_9"/>
+	                    				<field name="day_10"/>
+	                    				<field name="day_11"/>
+	                    				<field name="day_12"/>
+	                    				<field name="day_13"/>
+	                    				<field name="day_14"/>
+	                    				<field name="day_15"/>
+	                    				<field name="day_16"/>
+	                    				<field name="day_17"/>
+	                    				<field name="day_18"/>
+	                    				<field name="day_19"/>
+	                    				<field name="day_20"/>
+	                    				<field name="day_21"/>
+	                    				<field name="day_22"/>
+	                    				<field name="day_23"/>
+	                    				<field name="day_24"/>
+	                    				<field name="day_25"/>
+	                    				<field name="day_26"/>
+	                    				<field name="day_27"/>
+	                    				<field name="day_28"/>
+	                    				<field name="day_29" attrs="{'invisible':[('num_of_month','&lt;',29)]}"/>
+	                    				<field name="day_30" attrs="{'invisible':[('num_of_month','&lt;',30)]}"/>
+	                    				<field name="day_31" attrs="{'invisible':[('num_of_month','&lt;',31)]}"/>
+		                    		</tree>
+		                    		<form>
+		                    			<header>
+		                    				<button name="load" string="Load" type="object" invisible = "1" />
+		                    			</header>
+		                    			<group col='4' colspan='4'>
+			                    			<field name="num_of_month" on_change="onchange_monthly(num_of_month, shift_day_from, shift_day_to, work_shift_id,shift_group_id,month,year)" invisible="1"/>
+			                    			<field name="employee_id" options="{'create': false, 'create_edit': false}"/>
+			                    			<field name="month" invisible='1'/>
+											<field name="year" invisible='1'/>
+			                    		</group>
+			                    		<group col='4' colspan='2'>
+			                    			<group colspan='2'>
+			                    				<field name="shift_day_from" class="oe_green_erp_scroll_y" domain="[('name','&lt;=',num_of_month)]" options="{'limit':31,'create': false, 'create_edit': false}" on_change="onchange_monthly(num_of_month, shift_day_from, shift_day_to, work_shift_id,shift_group_id,month,year)"/>
+			                    				<field name="work_shift_id" options="{'create': false, 'create_edit': false}" on_change="onchange_monthly(num_of_month, shift_day_from, shift_day_to, work_shift_id,shift_group_id,month,year)"/>
+			                    			</group>
+			                    			<group colspan='2'>
+			                    				<field name="shift_day_to" class="oe_green_erp_scroll_y" domain="[('name','&lt;=',num_of_month)]" options="{'limit':31,'create': false, 'create_edit': false}" on_change="onchange_monthly(num_of_month, shift_day_from, shift_day_to, work_shift_id,shift_group_id,month,year)"/>
+			                    				<field name="shift_group_id" widget="selection"  on_change="onchange_monthly(num_of_month, shift_day_from, shift_day_to, work_shift_id,shift_group_id,month,year)"/>
+		                    				</group>
+		                    			</group>
+		                    			<group col='6' colspan='6'>
+			                    			<group colspan='2'>
+				                    			<div>
+					            					01. (<field name="name_of_day_1" class="oe_inline"/>):</div>
+												<div>
+					            					<field name="day_1" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
+												</div>					            				
+					            				<div>
+					            					02. (<field name="name_of_day_2" class="oe_inline"/>):</div><div>
+					            					<field name="day_2" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
+					            				</div>
+					            				<div>	
+					            					03. (<field name="name_of_day_3" class="oe_inline"/>):</div><div>
+				                    				<field name="day_3" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
+				                    			</div>
+					            				<div>
+				                    				04. (<field name="name_of_day_4" class="oe_inline"/>):</div><div>
+				                    				<field name="day_4" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
+				                    			</div>				
+					            				<div>
+				                    				05. (<field name="name_of_day_5" class="oe_inline"/>):</div><div>
+				                    				<field name="day_5" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
+				                    			</div>
+					            				<div>
+				                    				06. (<field name="name_of_day_6" class="oe_inline"/>):</div><div>
+				                    				<field name="day_6" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
+				                    			</div>
+					            				<div >
+				                    				07. (<field name="name_of_day_7" class="oe_inline"/>):</div><div>
+				                    				<field name="day_7" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
+				                				</div>
+					            				<div >
+				                    				08. (<field name="name_of_day_8" class="oe_inline"/>):</div><div>
+				                    				<field name="day_8" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
+				                    			</div>
+					            				<div >
+				                    				09. (<field name="name_of_day_9" class="oe_inline"/>):</div><div>
+				                    				<field name="day_9" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
+				                    			</div>
+					            				<div >
+				                    				10. (<field name="name_of_day_10" class="oe_inline"/>):</div><div>
+				                    				<field name="day_10" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
+					            				</div>
+				                			</group>
+				                			<group colspan='2'>
+				                				<div>
+					            					11. (<field name="name_of_day_11" class="oe_inline"/>):</div><div>
+					            					<field name="day_11" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
+					            				</div>
+					            				<div >
+					            					12. (<field name="name_of_day_12" class="oe_inline"/>):</div><div>
+					            					<field name="day_12" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
+					            				</div>
+					            				<div>	
+					            					13. (<field name="name_of_day_13" class="oe_inline"/>):</div><div>
+				                    				<field name="day_13" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
+				                    			</div>
+					            				<div>
+				                    				14. (<field name="name_of_day_14" class="oe_inline"/>):</div><div>
+				                    				<field name="day_14" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
+				                    			</div>
+					            				<div>
+				                    				15. (<field name="name_of_day_15" class="oe_inline"/>):</div><div>
+				                    				<field name="day_15" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
+				                    			</div>
+					            				<div>
+				                    				16. (<field name="name_of_day_16" class="oe_inline"/>):</div><div>
+				                    				<field name="day_16" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
+				                    			</div>
+					            				<div>
+				                    				17. (<field name="name_of_day_17" class="oe_inline"/>):</div><div>
+				                    				<field name="day_17" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
+				                				</div>
+					            				<div>
+				                    				18. (<field name="name_of_day_18" class="oe_inline"/>):</div><div>
+				                    				<field name="day_18" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
+				                    			</div>
+					            				<div>
+				                    				19. (<field name="name_of_day_19" class="oe_inline"/>):</div><div>
+				                    				<field name="day_19" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
+				                    			</div>
+					            				<div>
+				                    				20. (<field name="name_of_day_20" class="oe_inline"/>):</div><div>
+				                    				<field name="day_20" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
+					            				</div>
+				            				</group>
+				                			<group colspan='2'>
+				                				<div>
+					            					21. (<field name="name_of_day_21" class="oe_inline"/>):</div><div>
+					            					<field name="day_21" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
+					            				</div>
+					            				<div>
+					            					22. (<field name="name_of_day_22" class="oe_inline"/>):</div><div>
+					            					<field name="day_22" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
+					            				</div>
+					            				<div>	
+					            					23. (<field name="name_of_day_23" class="oe_inline"/>):</div><div>
+				                    				<field name="day_23" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
+				                    			</div>
+					            				<div>
+				                    				24. (<field name="name_of_day_24" class="oe_inline"/>):</div><div>
+				                    				<field name="day_24" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
+				                    			</div>
+					            				<div>
+				                    				25. (<field name="name_of_day_25" class="oe_inline"/>):</div><div>
+				                    				<field name="day_25" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
+				                    			</div>
+					            				<div>
+				                    				26. (<field name="name_of_day_26" class="oe_inline"/>):</div><div>
+				                    				<field name="day_26" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
+				                    			</div>
+					            				<div>
+				                    				27. (<field name="name_of_day_27" class="oe_inline"/>):</div><div>
+				                    				<field name="day_27" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
+				                				</div>
+					            				<div>
+				                    				28. (<field name="name_of_day_28" class="oe_inline"/>):</div><div>
+				                    				<field name="day_28" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
+				                    			</div>
+					            				<div attrs="{'invisible':[('num_of_month','&lt;',29)]}" options="{'create': false, 'create_edit': false}">
+				                    				29. (<field name="name_of_day_29" class="oe_inline"/>):</div><div attrs="{'invisible':[('num_of_month','&lt;',29)]}">
+				                    				<field name="day_29" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
+				                    			</div>
+					            				<div attrs="{'invisible':[('num_of_month','&lt;',30)]}" options="{'create': false, 'create_edit': false}">
+				                    				30. (<field name="name_of_day_30" class="oe_inline"/>):</div><div attrs="{'invisible':[('num_of_month','&lt;',30)]}">
+				                    				<field name="day_30" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
+					            				</div>
+				                				<div  attrs="{'invisible':[('num_of_month','&lt;',31)]}" options="{'create': false, 'create_edit': false}">
+				                    				31. (<field name="name_of_day_31" class="oe_inline"/>):</div><div attrs="{'invisible':[('num_of_month','&lt;',31)]}">
+				                    				<field name="day_31" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
+					            				</div>
+				                			</group>
+		                    			</group>
+		                    		</form>
+		                    	</field>
+                    		</page>
+						</notebook>   	
+		         	</sheet>
+		         </form>
+			</field>
+		</record>
+
+		<record id="action_update_monthly_schedule_form" model="ir.actions.act_window">
+            <field name="name">Update Work Schedule</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">update.monthly.schedule</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="context">{'search_for_monthly_work_sche_pri_auditor':1}</field>
+            <field name="view_id" ref="view_update_monthly_schedule_tree_vew"/>
+        </record>
+        
+        <menuitem action="action_update_monthly_schedule_form"
+            id="menu_action_update_monthly_schedule_form"
+            parent="menu_hr_leave_management" sequence="40"/>
+            
+<!--  TPT END BY RAKESHKUMAR - ON 22/02/2016 - FOR NEW SCREEN MONTHLY WORK SCHEDULE SCREEN FOR MID MONTH JOINING EMPLOYEES
+	 -->
 	</data>
 </openerp>
