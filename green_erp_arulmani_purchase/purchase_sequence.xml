@@ -385,6 +385,33 @@
             <field name="number_next_actual">000001</field>
             <field name="implementation">no_gap</field>
         </record>
+         <!-- Stock Adjustment - Increase-->
+		<record id="sequence_stock_adj_increase_code" model="ir.sequence.type">
+            <field name="name">Increase Stock Adjustment</field>
+            <field name="code">tpt.stock.adj.inc.import</field>
+        </record>
         
+        <record id="sequence_stock_adj_increase_item" model="ir.sequence">
+            <field name="name">Increase Stock Adjustment</field>
+            <field name="code">tpt.stock.adj.inc.import</field>
+            <field name="prefix">VVTI/SG/</field>
+            <field name="padding">6</field>
+            <field name="number_next_actual">000001</field>
+            <field name="implementation">no_gap</field>
+        </record>
+        <!-- Stock Adjustment - Decrease-->
+		<record id="sequence_stock_adj_decrease_code" model="ir.sequence.type">
+            <field name="name">Decrease Stock Adjustment</field>
+            <field name="code">tpt.stock.adj.dec.import</field>
+        </record>
+        
+        <record id="sequence_stock_adj_decrease_item" model="ir.sequence">
+            <field name="name">Decrease Stock Adjustment</field>
+            <field name="code">tpt.stock.adj.dec.import</field>
+            <field name="prefix">VVTI/SL/</field>
+            <field name="padding">6</field>
+            <field name="number_next_actual">000001</field>
+            <field name="implementation">no_gap</field>
+        </record>
 	</data>
 </openerp>

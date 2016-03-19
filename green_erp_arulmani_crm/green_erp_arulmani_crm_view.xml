@@ -331,8 +331,10 @@
                             		<field name="name"/>
                             		<!-- <field name="product_type"/>  TPT-BM-ON-10/02/2016 - TO HIDE PRD TYPE-->
                             		<field name="application_id" domain="[('product_id','=',product_id)]" options="{'create': false, 'create_edit': false}"/>
-                            		<field name="month" on_change="onchange_month(month)"/>
-                            		<field name="year" on_change="onchange_year(year)"/>
+                            		<!-- <field name="month" on_change="onchange_month(month)"/>
+                            		<field name="year" on_change="onchange_year(year)"/> -->
+                            		<field name="month_qty" />
+                            		<field name="year_qty"/>
                             		<field name="uom_id" widget="selection" />
                                 </tree>
                             </field>

@@ -6008,3 +6008,147 @@ class stock_inventory_line(osv.osv):
                 }
     
 stock_inventory_line()
+
+#TPT START - By TPT P.VINOTHKUMAR - ON 16/03/2015
+class stock_adjustment(osv.osv):
+    _name = "stock.adjustment"
+    
+    def _onhand_qty_store(self, cr, uid, ids, field_name, arg, context=None):
+        res = {}
+        for prod in self.browse(cr, uid, ids, context=context):
+            res[prod.id] = {
+                'onhand_qty_store': 0.0,
+            }
+            if prod.product_id.id : 
+                locat_id = 1
+                if prod.product_id.categ_id.name=='RawMaterials':
+                    locat_id = 15
+                if prod.product_id.categ_id.name=='Spares':
+                    locat_id = 14
+                if prod.product_id.categ_id.name =='FinishedProduct':   
+                    if prod.product_id.default_code in ('M0501010001','M0501010008','M0501010005'):
+                        locat_id=13
+                    if prod.product_id.default_code in ('M0501010002'): 
+                        locat_id=22   
+                sql = '''
+                select sum(foo.product_qty) as ton_sl from 
+                    (select l2.id as loc,st.prodlot_id,pu.id,st.product_qty
+                        from stock_move st 
+                            inner join stock_location l2 on st.location_dest_id= l2.id
+                            inner join product_uom pu on st.product_uom = pu.id
+                        where st.state='done' and st.product_id=%s and l2.usage = 'internal'
+                    union all
+                    select l1.id as loc,st.prodlot_id,pu.id,st.product_qty*-1
+                        from stock_move st 
+                            inner join stock_location l1 on st.location_id= l1.id
+                            inner join product_uom pu on st.product_uom = pu.id
+                        where st.state='done' and st.product_id=%s and l1.usage = 'internal'
+                    )foo
+                    where foo.loc in (%s)
+                '''%(prod.product_id.id,prod.product_id.id, locat_id) 
+                cr.execute(sql)
+                #print sql
+                a = cr.fetchone()
+                if a:
+                    time_total = a[0]                            
+                else:
+                    time_total=0.0
+            res[prod.id]['onhand_qty_store'] = time_total            
+        return res
+    
+    def create(self, cr, uid, vals, context=None):
+        if vals.get('doc_no','/')=='/':
+            sql = '''
+                select code from account_fiscalyear where '%s' between date_start and date_stop
+            '''%(time.strftime('%Y-%m-%d'))
+            cr.execute(sql)
+            fiscalyear = cr.dictfetchone()
+            if not fiscalyear:
+                raise osv.except_osv(_('Warning!'),_('Financial year has not been configured. !'))
+            else:
+                sequence = self.pool.get('ir.sequence').get(cr, uid, 'stock.adjustment')
+                vals['name'] =  sequence and sequence+'/'+fiscalyear['code'] or '/'
+            new_id = super(stock_adjustment, self).create(cr, uid, vals, context)
+
+            return new_id
+   
+    _columns = {
+                'create_uid': fields.many2one('res.users','Created By'),
+                'create_date': fields.date('Created Date'),
+                'location_id': fields.many2one('stock.location', 'Location', required=True),
+                'product_id': fields.many2one('product.product', 'Product', required=True),
+                'lot_id': fields.many2one('stock.production.lot', 'Batch No'),
+                'state':fields.selection([('draft', 'Draft'),('done', 'Approved'),('cancel', 'Cancelled')],'Status', readonly=True),
+                'adj_type': fields.selection([('increase', 'Increase'),
+                                            ('decrease', 'Decrease'),
+                                            ],'Adjustment Type',required = True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+               'onhand_qty_store': fields.function(_onhand_qty_store, store = True, type='float', digits=(16,3), string='Store On-Hand Qty', multi='test_qty1'),
+               'adj_qty': fields.float('Adj.Qty', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+               'name' : fields.char('Document No', readonly=True),      
+               'is_finish_product' : fields.boolean('Is TIO2/FSH'),      
+                }
+    _defaults = {
+        'state':'draft',  
+        'adj_type':'increase'  ,   
+        'is_finish_product':False       
+    }
+    
+    def onchange_products_id(self, cr, uid, ids,product_id=False, context=None):
+        vals = {}
+        if product_id:
+            product = self.pool.get('product.product').browse(cr, uid, product_id)
+            locat_id=self.pool.get('stock.location').search(cr, uid,[('id','=',1)]) 
+            if product.categ_id.cate_name == 'raw':
+                locat_id=self.pool.get('stock.location').search(cr, uid,[('id','=',15)])    
+            if product.categ_id.cate_name == 'spares':
+                locat_id=self.pool.get('stock.location').search(cr, uid,[('id','=',14)])
+            if product.categ_id.cate_name == 'finish':
+                if product.default_code in ('M0501010001','M0501010008','M0501010005'):
+                    locat_id=self.pool.get('stock.location').search(cr, uid,[('id','=',13)])
+                    #context.update({'is_finish_product':True})
+                    vals.update({'is_finish_product':True})
+                if product.default_code in ('M0501010002'): 
+                    locat_id=self.pool.get('stock.location').search(cr, uid,[('id','=',22)]) 
+                    #context.update({'is_finish_product':True})  
+                    vals.update({'is_finish_product':True})              
+            vals.update({'location_id':locat_id} )
+        return {'value': vals}    
+    
+    def stock_adjustment(self, cr, uid, ids, context=None):
+        stock_obj = self.pool.get('stock.move')
+        doc_no = ''
+        for line in self.browse(cr, uid, ids):
+            #TPT START - By TPT P.VINOTHKUMAR - ON 17/03/2015 for adding source and Dest location.
+            if line.adj_type=='increase': 
+                 location_id=5
+                 location_dest_id=line.location_id.id
+            if line.adj_type=='decrease':
+                 location_id=line.location_id.id
+                 location_dest_id=4     
+                     
+            stock_obj.create(cr, uid, {
+                               'product_id': line.product_id.id,
+                               'product_uom': line.product_id.uom_id.id,
+                               'price_unit': 0.00,
+                               'location_id': location_id or False,
+                               'location_dest_id': location_dest_id or False,
+                               'name':'/',
+                               'company_id':1,
+                               'product_name':line.product_id.name_template or '',
+                               'origin':'Stock Adjustment',
+                               'product_qty':line.adj_qty or 0.00,
+                               'state':'done',
+                               'prodlot_id':line.lot_id.id or False
+                               })
+            if line.adj_type=='increase':
+                doc_no = self.pool.get('ir.sequence').get(cr, uid, 'tpt.stock.adj.inc.import') or '/'
+            else:
+                doc_no = self.pool.get('ir.sequence').get(cr, uid, 'tpt.stock.adj.dec.import') or '/'
+            vals = {'state':'done',
+                    'name': doc_no 
+                    }
+            self.write(cr, uid, [line.id], vals, context=context)
+            
+            return True  
+ #END 
+stock_adjustment()
