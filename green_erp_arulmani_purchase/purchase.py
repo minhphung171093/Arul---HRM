@@ -6097,7 +6097,7 @@ class stock_adjustment(osv.osv):
                 raise osv.except_osv(_('Warning!'),_('Adjust Quantity is not greater than batch quantity'))
         #
         product = self.pool.get('product.product').browse(cr, uid, vals['product_id'])
-        locat_id=self.pool.get('stock.location').search(cr, uid,[('id','=',1)]) 
+        locat_id = 1 #self.pool.get('stock.location').search(cr, uid,[('id','=',1)]) 
         if product.categ_id.cate_name == 'raw':
             locat_id=15  
         if product.categ_id.cate_name == 'spares':
