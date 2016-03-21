@@ -2622,11 +2622,31 @@
 					<field name ="location_id"/>
 					<field name ="adj_type"/>
 					<field name ="adj_qty"/>
-					<!-- <field name="onhand_qty_store"/>-->
 					<field name ="create_date"/>
                 	<field name ="create_uid"/>
                 	<field name ="state"/>
 				</tree>
+			</field>
+		</record>
+		<record id="stock_adjustment_search_vew" model="ir.ui.view">
+			<field name="name">stock.adjustment.search</field>
+			<field name="model">stock.adjustment</field>
+			<field name="arch" type="xml">
+				<search string="Stock Adjustment">
+					<field name="adj_type"/>
+					<field name="product_id"/>
+					<field name="state"/>
+					<filter string="Increase" name="increase" icon="terp-personal" domain="[('adj_type','=','increase')]" context="{}"/>
+        			<filter string="Decrease" name="decrease" icon="terp-personal" domain="[('adj_type','=','decrease')]" context="{}"/>	
+					<filter string="Product" name="product_id"/>	
+					<filter string="Draft" name="draft" icon="terp-personal" domain="[('state','=','draft')]" context="{}"/>
+        			<filter string="Done" name="done" icon="terp-personal" domain="[('state','=','done')]" context="{}"/>			
+					<group expand="0" string="Group By...">
+						<filter string="Product" icon="terp-accessories-archiver" domain="[]" context="{'group_by':'product_id'}"/>
+                        <filter string="Adjustment Type" icon="terp-partner" domain="[]" context="{'group_by':'adj_type'}"/>                        
+                        <filter string="Status" icon="terp-partner" domain="[]"  context="{'group_by':'state'}"/>
+                    </group>
+				</search>
 			</field>
 		</record>
 
@@ -2645,16 +2665,19 @@
 		                 <group col='4' colspan='2'>
 							<field name="name"/>
 							<newline/>
-							<field name="product_id"  on_change="onchange_products_id(product_id)"  options="{'create': false, 'create_edit': false}"/>
-							<field name ="location_id"  options="{'create': false, 'create_edit': false}" />
-							<field name ="lot_id" attrs="{'invisible': [('is_finish_product','=',False)],'required':[('is_finish_product','!=',False)]}"
-							domain="[('product_id','=',product_id)]"
+							<field name="product_id"  on_change="onchange_products_id(product_id)" attrs="{'readonly': [('state','not in',('draft'))]}"  options="{'create': false, 'create_edit': false}"/>
+							<field name ="location_id" readonly="1" options="{'create': false, 'create_edit': false}" />
+							<field name ="lot_id" attrs="{'invisible': [('is_finish_product','=',False)],'required':[('is_finish_product','!=',False)],'readonly': [('state','not in',('draft'))] }"
+							domain="[('product_id','=',product_id)]" on_change="onchange_batch_no(lot_id)"
 							options="{'create': false, 'create_edit': false}" />
+							<field name ="batch_qty" attrs="{'invisible': [('is_finish_product','=',False)],'required':[('is_finish_product','!=',False)] }"
+							domain="[('product_id','=',product_id)]" />
 							<newline/>
 							<field name ="adj_type" attrs="{'readonly': [('state','not in',('draft'))]}" options="{'create': false, 'create_edit': false}" />
 							<newline/>
 							<field name ="adj_qty" attrs="{'readonly': [('state','not in',('draft'))]}"/> 
-							<field name="onhand_qty_store"/>
+							<!-- <field name="onhand_qty_store"/>  -->
+							<field name="onhand_qty"/>
                             <newline/>
 							<field name ="create_date" readonly='1'/>
                 			<field name ="create_uid"  readonly='1'/>

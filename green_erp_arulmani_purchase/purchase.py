@@ -6029,7 +6029,7 @@ class stock_adjustment(osv.osv):
                     if prod.product_id.default_code in ('M0501010001','M0501010008','M0501010005'):
                         locat_id=13
                     if prod.product_id.default_code in ('M0501010002'): 
-                        locat_id=22   
+                        locat_id=25   
                 sql = '''
                 select sum(foo.product_qty) as ton_sl from 
                     (select l2.id as loc,st.prodlot_id,pu.id,st.product_qty
@@ -6056,43 +6056,93 @@ class stock_adjustment(osv.osv):
             res[prod.id]['onhand_qty_store'] = time_total            
         return res
     
-    def create(self, cr, uid, vals, context=None):
-        if vals.get('doc_no','/')=='/':
-            sql = '''
-                select code from account_fiscalyear where '%s' between date_start and date_stop
-            '''%(time.strftime('%Y-%m-%d'))
-            cr.execute(sql)
-            fiscalyear = cr.dictfetchone()
-            if not fiscalyear:
-                raise osv.except_osv(_('Warning!'),_('Financial year has not been configured. !'))
-            else:
-                sequence = self.pool.get('ir.sequence').get(cr, uid, 'stock.adjustment')
-                vals['name'] =  sequence and sequence+'/'+fiscalyear['code'] or '/'
-            new_id = super(stock_adjustment, self).create(cr, uid, vals, context)
-
-            return new_id
+ 
    
     _columns = {
                 'create_uid': fields.many2one('res.users','Created By'),
                 'create_date': fields.date('Created Date'),
-                'location_id': fields.many2one('stock.location', 'Location', required=True),
+                'location_id': fields.many2one('stock.location', 'Location', readonly=True),
                 'product_id': fields.many2one('product.product', 'Product', required=True),
                 'lot_id': fields.many2one('stock.production.lot', 'Batch No'),
+                'batch_qty': fields.float('Batch Qty',digits=(16,3),readonly=True),
                 'state':fields.selection([('draft', 'Draft'),('done', 'Approved'),('cancel', 'Cancelled')],'Status', readonly=True),
                 'adj_type': fields.selection([('increase', 'Increase'),
                                             ('decrease', 'Decrease'),
                                             ],'Adjustment Type',required = True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
                'onhand_qty_store': fields.function(_onhand_qty_store, store = True, type='float', digits=(16,3), string='Store On-Hand Qty', multi='test_qty1'),
-               'adj_qty': fields.float('Adj.Qty', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+               'adj_qty': fields.float('Adjust Qty',digits=(16,3), states={'done': [('readonly', True)]}),
                'name' : fields.char('Document No', readonly=True),      
-               'is_finish_product' : fields.boolean('Is TIO2/FSH'),      
+               'is_finish_product' : fields.boolean('Is TIO2/FSH'),
+               'onhand_qty': fields.float('On-Hand Qty',digits=(16,3),readonly=True),
+                     
                 }
     _defaults = {
         'state':'draft',  
         'adj_type':'increase'  ,   
         'is_finish_product':False       
     }
-    
+#END 
+    #TPT START - By TPT P.VINOTHKUMAR - ON 19/03/2015 for checking adjust quantity is not greater than batch quantity for TIO2
+    def create(self, cr, uid, vals, context=None):
+        if 'product_id' in vals:
+            product = self.pool.get('product.product').browse(cr, uid, vals['product_id'])
+            vals['onhand_qty']= product.onhand_qty or 0 #batch.stock_available
+        if 'lot_id' in vals:
+            if vals['lot_id']:
+                batch = self.pool.get('stock.production.lot').browse(cr, uid, vals['lot_id'])
+                vals['batch_qty']= batch.stock_available or 0#batch.stock_available
+        if 'adj_qty' and 'batch_qty' and'product_id' in vals: 
+          if (vals['product_id']==4):  
+             if (vals['adj_qty']+vals['batch_qty']>1 ):
+                raise osv.except_osv(_('Warning!'),_('Adjust Quantity is not greater than batch quantity'))
+        #
+        product = self.pool.get('product.product').browse(cr, uid, vals['product_id'])
+        locat_id=self.pool.get('stock.location').search(cr, uid,[('id','=',1)]) 
+        if product.categ_id.cate_name == 'raw':
+            locat_id=15  
+        if product.categ_id.cate_name == 'spares':
+            locat_id=14
+        if product.categ_id.cate_name == 'finish':
+            if product.default_code in ('M0501010001','M0501010008','M0501010005'):
+                locat_id=13
+            if product.default_code in ('M0501010002'): 
+                locat_id=25
+        #
+        vals['location_id']= locat_id or False
+        #vals['onhand_qty']= 0 or 0.000
+        new_id = super(stock_adjustment, self).create(cr, uid, vals, context)
+        
+        return new_id
+    def write(self, cr, uid, ids, vals, context=None):
+        if 'product_id' in vals:
+            prod = self.pool.get('product.product').browse(cr, uid, vals['product_id'])
+            vals.update({'onhand_qty':prod.onhand_qty_store or 0} ) 
+        if 'lot_id' in vals:
+            batch = self.pool.get('stock.production.lot').browse(cr, uid, vals['lot_id'])
+            vals.update({'batch_qty':prod.onhand_qty_store or 0} ) 
+        if 'product_id' in vals:
+            if vals['product_id']:
+                product = self.pool.get('product.product').browse(cr, uid, vals['product_id'])
+                locat_id=self.pool.get('stock.location').search(cr, uid,[('id','=',1)]) 
+                if product.categ_id.cate_name == 'raw':
+                    locat_id=self.pool.get('stock.location').search(cr, uid,[('id','=',15)])    
+                if product.categ_id.cate_name == 'spares':
+                    locat_id=self.pool.get('stock.location').search(cr, uid,[('id','=',14)])
+                if product.categ_id.cate_name == 'finish':
+                    if product.default_code in ('M0501010001','M0501010008','M0501010005'):
+                        locat_id=self.pool.get('stock.location').search(cr, uid,[('id','=',13)])
+                        #context.update({'is_finish_product':True})
+                        vals.update({'is_finish_product':True})
+                    if product.default_code in ('M0501010002'): 
+                        locat_id=self.pool.get('stock.location').search(cr, uid,[('id','=',25)]) 
+                        #context.update({'is_finish_product':True})  
+                        vals.update({'is_finish_product':True})    
+                    vals.update({'onhand_qty':product.onhand_qty or 0.000 })          
+                vals.update({'location_id':locat_id[0] or 1} )   
+        new_write = super(stock_adjustment, self).write(cr, uid,ids, vals, context)
+        return new_write
+    #END
+    #TPT START - By TPT P.VINOTHKUMAR - ON 18/03/2015 for effect of change products
     def onchange_products_id(self, cr, uid, ids,product_id=False, context=None):
         vals = {}
         if product_id:
@@ -6108,12 +6158,24 @@ class stock_adjustment(osv.osv):
                     #context.update({'is_finish_product':True})
                     vals.update({'is_finish_product':True})
                 if product.default_code in ('M0501010002'): 
-                    locat_id=self.pool.get('stock.location').search(cr, uid,[('id','=',22)]) 
+                    locat_id=self.pool.get('stock.location').search(cr, uid,[('id','=',25)]) 
                     #context.update({'is_finish_product':True})  
-                    vals.update({'is_finish_product':True})              
-            vals.update({'location_id':locat_id} )
-        return {'value': vals}    
-    
+                    vals.update({'is_finish_product':True})    
+            #       
+            vals.update({'location_id':locat_id,
+                        'onhand_qty':product.onhand_qty_store or 0 
+                         } )
+        return {'value': vals} 
+    #END
+     #TPT START - By TPT P.VINOTHKUMAR - ON 19/03/2015 for effect of change batch number
+    def onchange_batch_no(self, cr, uid, ids,lot_id=False,batch_qty=False,context=None):
+        vals = {}
+        if lot_id:
+            batch = self.pool.get('stock.production.lot').browse(cr, uid, lot_id)
+            vals['batch_qty']= batch.stock_available or 0#batch.stock_available
+        return {'value': vals}         
+      #END     
+     #TPT START - By TPT P.VINOTHKUMAR - ON 17/03/2015 for insert records in stock move
     def stock_adjustment(self, cr, uid, ids, context=None):
         stock_obj = self.pool.get('stock.move')
         doc_no = ''
