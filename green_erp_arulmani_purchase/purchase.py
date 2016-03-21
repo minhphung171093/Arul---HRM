@@ -6075,7 +6075,7 @@ class stock_adjustment(osv.osv):
                'name' : fields.char('Document No', readonly=True),      
                'is_finish_product' : fields.boolean('Is TIO2/FSH'),
                'onhand_qty': fields.float('On-Hand Qty',digits=(16,3),readonly=True),
-               'reason' : fields.char('Reason', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+               'reason' : fields.char('Reason', size = 1024, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
                      
                 }
     _defaults = {
