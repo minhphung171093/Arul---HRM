@@ -2659,13 +2659,17 @@
 	                    <button name="stock_adjustment" states='draft' string="Approve" type="object" class="oe_highlight" 
 	                    groups="green_erp_arulmani_accounting.group_vvti_accounting_user,green_erp_arulmani_accounting.group_vvti_accounting_manager"
 	                    />
+	                    <button name="cancel" states='draft' string="Cancel" type="object" class="oe_highlight" 
+	                    groups="green_erp_arulmani_accounting.group_vvti_accounting_user,green_erp_arulmani_accounting.group_vvti_accounting_manager"
+	                    />
 	                    <field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue","done":"blue"}'/>
 	                </header>   
                 	<sheet>
 		                 <group col='4' colspan='2'>
 							<field name="name"/>
 							<newline/>
-							<field name="product_id"  on_change="onchange_products_id(product_id)" attrs="{'readonly': [('state','not in',('draft'))]}"  options="{'create': false, 'create_edit': false}"/>
+							<field name="product_categ_id" domain="[('cate_name','in',('raw', 'spares'))]" options="{'create': false, 'create_edit': false}"/>
+							<field name="product_id"  context="{'search_product_id':True, 'categ_id':product_categ_id}" on_change="onchange_products_id(product_id)" attrs="{'readonly': [('state','not in',('draft'))]}"  options="{'create': false, 'create_edit': false}"/>
 							<field name ="location_id" readonly="1" options="{'create': false, 'create_edit': false}" />
 							<field name ="lot_id" attrs="{'invisible': [('is_finish_product','=',False)],'required':[('is_finish_product','!=',False)],'readonly': [('state','not in',('draft'))] }"
 							domain="[('product_id','=',product_id)]" on_change="onchange_batch_no(lot_id)"
@@ -2679,6 +2683,7 @@
 							<!-- <field name="onhand_qty_store"/>  -->
 							<field name="onhand_qty"/>
                             <newline/>
+                            <field name="reason"/>
 							<field name ="create_date" readonly='1'/>
                 			<field name ="create_uid"  readonly='1'/>
                 			<field name ="is_finish_product" invisible='1'/>

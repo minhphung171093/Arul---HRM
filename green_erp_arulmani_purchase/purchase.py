@@ -6061,6 +6061,7 @@ class stock_adjustment(osv.osv):
     _columns = {
                 'create_uid': fields.many2one('res.users','Created By'),
                 'create_date': fields.date('Created Date'),
+                'product_categ_id': fields.many2one('product.category', 'Product Category', required=True),
                 'location_id': fields.many2one('stock.location', 'Location', readonly=True),
                 'product_id': fields.many2one('product.product', 'Product', required=True),
                 'lot_id': fields.many2one('stock.production.lot', 'Batch No'),
@@ -6074,6 +6075,7 @@ class stock_adjustment(osv.osv):
                'name' : fields.char('Document No', readonly=True),      
                'is_finish_product' : fields.boolean('Is TIO2/FSH'),
                'onhand_qty': fields.float('On-Hand Qty',digits=(16,3),readonly=True),
+               'reason' : fields.char('Reason', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
                      
                 }
     _defaults = {
@@ -6212,5 +6214,7 @@ class stock_adjustment(osv.osv):
             self.write(cr, uid, [line.id], vals, context=context)
             
             return True  
+    def cancel(self, cr, uid, ids, context=None): 
+        return self.write(cr, uid, ids,{'state':'cancel'})
  #END 
 stock_adjustment()
