@@ -125,21 +125,33 @@ class Parser(report_sxw.rml_parse):
                 )b where b.productrank=1
             '''%(date_from, date_to)
         self.cr.execute(sql)
-        return self.cr.dictfetchall()
+        #return self.cr.dictfetchall()
+        #TPT-BM - TO ADD THE JOURNAL ENTRIES WITH W-FORM REPORT - ON 23/03/2016
+        res = self.cr.dictfetchall()
+        sql = '''
+            select av.number as inv_doc, av.date date_invoice, null bill_number, null bill_date, null tax_name,
+                    null partnername, null tin,
+                    null productname, 0 vatbased_qty,0 as vatbased_amt,
+                    avl.amount as paid_amt_1, 0 as paid_amt,
+                    null uom 
+    
+            from account_voucher_line avl
+            inner join account_voucher av on avl.voucher_id=av.id
+            inner join account_account aa on avl.account_id=aa.id
+            inner join account_move am on av.move_id=am.id
+            where 
+            av.date between '%s' and '%s' and 
+            aa.code='0000119908'
+        '''%(date_from, date_to)
+        self.cr.execute(sql)       
+        res1 = self.cr.dictfetchall()
+        if res1:
+            res = res+res1
+        return res
+        #TPT-END
         
     
-    #def get_tax(self, invoice_line_tax_id):
-    #    tax_amounts = 0
-    #    tax_amounts = [r.amount for r in invoice_line_tax_id]
-    #    return tax_amounts
     
-    # def get_paid_tax(self, invoice_line_tax_id, total):
-    #   tax_paid = 0
-    #   if invoice_line_tax_id:
-    #        tax_amounts = [r.amount for r in invoice_line_tax_id]
-    #       for tax in tax_amounts:
-    #           tax_paid = tax*total/100
-    #   return round(tax_paid,2)
         
     
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
