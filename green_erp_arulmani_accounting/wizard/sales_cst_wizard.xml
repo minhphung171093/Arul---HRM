@@ -27,11 +27,15 @@ Sales CST Report : Display the  CST values for the selected date range -->
             <field name="view_mode">form</field>
             <field name="target">new</field>
         </record>
-        
+       <!-- 
        <menuitem id="menu_tpt_accounting" name="Accounting" parent="account.menu_finance" sequence="0" groups="green_erp_arulmani_sale.group_vvti_unit_account"/>
         <menuitem action="action_sales_cstreport"
             id="menu_action_sales_cstreport"
             parent="base.next_id_64" sequence="25"/>
+            -->  
+            <menuitem action="action_sales_cstreport"
+            id="menu_action_sales_cstreport"
+            parent="account.menu_finance_reporting" sequence="207"/>
 </data>
 </openerp>
 
