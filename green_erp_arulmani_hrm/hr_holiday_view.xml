@@ -2097,7 +2097,9 @@
             <field name="arch" type="xml">
 	            <form string="Update Work Schedule" version="7.0">
 	            	<header>
-	                    <button name="approve" states='draft' string="Approve" type="object" class="oe_highlight" />
+	                    <button name="approve" states='draft' string="Approve" type="object" 
+	                    groups="group_vvti_hrm_hr_manager,group_vvti_hrm_time_key_user"
+	                    class="oe_highlight" />
 	                    <field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue","done":"blue"}'/>
 	                </header> 
 	            	<sheet>
