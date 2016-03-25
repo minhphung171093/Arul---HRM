@@ -2667,6 +2667,7 @@
                 	<sheet>
 		                 <group col='4' colspan='2'>
 							<field name="name"/>
+							<field name="posting_date"/>
 							<newline/>
 							<field name="product_categ_id" domain="[('cate_name','in',('raw', 'spares'))]" options="{'create': false, 'create_edit': false}"/>
 							<field name="product_id"  context="{'search_product_id':True, 'categ_id':product_categ_id}" on_change="onchange_products_id(product_id)" attrs="{'readonly': [('state','not in',('draft'))]}"  options="{'create': false, 'create_edit': false}"/>

@@ -1816,6 +1816,8 @@
                     	<filter icon="terp-gtk-jump-to-ltr" string="Bank Receipt" domain="[('doc_type','=','bank_rec')]"/>
                     	<filter icon="terp-gtk-jump-to-ltr" string="Freight Invoice" domain="[('doc_type','=','freight')]"/>
                     	<filter icon="terp-gtk-jump-to-ltr" string="Production" domain="[('doc_type','=','product')]"/>
+                    	<filter icon="terp-gtk-jump-to-ltr" string="Stock Adjustment - Increase" domain="[('doc_type','=','stock_adj_inc')]"/>
+                    	<filter icon="terp-gtk-jump-to-ltr" string="Stock Adjustment - Decrease" domain="[('doc_type','=','stock_adj_dec')]"/>
                     </xpath>
                     <xpath expr="//filter[@string='Date']" position="after">
                     	<filter string="Document Type" icon="terp-go-month" domain="[]" context="{'group_by':'doc_type'}"/>
@@ -2065,6 +2067,8 @@
                     	<filter icon="terp-gtk-jump-to-ltr" string="Bank Receipt" domain="[('doc_type','=','bank_rec')]"/>
                     	<filter icon="terp-gtk-jump-to-ltr" string="Freight Invoice" domain="[('doc_type','=','freight')]"/>
                     	<filter icon="terp-gtk-jump-to-ltr" string="Production" domain="[('doc_type','=','product')]"/>
+                    	<filter icon="terp-gtk-jump-to-ltr" string="Stock Adjustment - Increase" domain="[('doc_type','=','stock_adj_inc')]"/>
+                    	<filter icon="terp-gtk-jump-to-ltr" string="Stock Adjustment - Decrease" domain="[('doc_type','=','stock_adj_dec')]"/>
                     </xpath>
                     <xpath expr="//filter[@string='Period']" position="after">
                     	<filter string="Document Type" icon="terp-go-month" domain="[]" context="{'group_by':'doc_type'}"/>

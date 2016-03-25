@@ -394,7 +394,10 @@ class account_move_line(osv.osv):
                                   ('product', 'Production'),
                                   ('staff_payroll', 'Staff Payroll'),
                                   ('freight', 'Freight Invoice'),
-                                  ('worker_payroll', 'Workers Payroll')], string="Document Type", readonly=True, select=True),
+                                  ('worker_payroll', 'Workers Payroll'),
+                                  ('stock_adj_inc', 'Stock Adjustment Increase'),
+                                  ('stock_adj_dec', 'Stock Adjustment Decrease')
+                                  ], string="Document Type", readonly=True, select=True),
     }
     
     def create(self, cr, uid, vals, context=None):
@@ -7494,7 +7497,9 @@ class account_move(osv.osv):
                                   ('product', 'Production'),
                                   ('staff_payroll', 'Staff Payroll'),
                                   ('freight', 'Freight Invoice'),
-                                  ('worker_payroll', 'Workers Payroll')],'Document Type'),  
+                                  ('worker_payroll', 'Workers Payroll'),
+                                  ('stock_adj_inc', 'Stock Adjustment Increase'),
+                                  ('stock_adj_dec', 'Stock Adjustment Decrease')],'Document Type'),  
         'material_issue_id': fields.many2one('tpt.material.issue','Material Issue',ondelete='restrict'), 
         'ed_invoice_id': fields.many2one('tpt.ed.invoice.positing','ED Invoice Posting',ondelete='restrict'),  
         'grn_id': fields.many2one('stock.picking','GRN',ondelete='restrict'),

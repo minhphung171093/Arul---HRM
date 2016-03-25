@@ -248,6 +248,10 @@ class Parser(report_sxw.rml_parse):
             return "Service Invoice"
         if doc_type == 'product':
             return "Production"
+        if doc_type == 'stock_adj_inc':
+            return "Stock Adjustment - Increase"
+        if doc_type == 'stock_adj_dec':
+            return "Stock Adjustment - Decrease"
         if doc_type == '':
             return "Journal Voucher"
         
