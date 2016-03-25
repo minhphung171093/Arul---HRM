@@ -420,7 +420,10 @@ class review_posting(osv.osv_memory):
                                   ('product', 'Production'),
                                   ('staff_payroll', 'Staff Payroll'),
                                   ('freight', 'Freight Invoice'),
-                                  ('worker_payroll', 'Workers Payroll')],'Document Type'), 
+                                  ('worker_payroll', 'Workers Payroll'),
+                                  ('stock_adj_inc', 'Stock Adjustment Increase'),
+                                  ('stock_adj_dec', 'Stock Adjustment Decrease')
+                                  ],'Document Type'), 
         'ref': fields.char('Reference', size=64),
         'date': fields.date('Date'),
     }

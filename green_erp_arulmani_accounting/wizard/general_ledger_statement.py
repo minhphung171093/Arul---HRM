@@ -35,7 +35,10 @@ class tpt_general_ledger_from(osv.osv):
                                   ('ser_inv', 'Service Invoice'),
                                   ('product', 'Production'),
                                   ('staff_payroll', 'Staff Payroll'),
-                                  ('worker_payroll', 'Workers Payroll')],'Document Type'),   
+                                  ('worker_payroll', 'Workers Payroll'),
+                                  ('stock_adj_inc', 'Stock Adjustment Increase'),
+                                  ('stock_adj_dec', 'Stock Adjustment Decrease')
+                                  ],'Document Type'),   
         'doc_no':fields.char('Document No',size=1024),
         'narration':fields.char('Narration',size=1024),
         'general_ledger_line': fields.one2many('tpt.general.ledger.line', 'ledger_id', 'General Line'),
@@ -117,7 +120,10 @@ class general_ledger_statement(osv.osv_memory):
                                   ('ser_inv', 'Service Invoice'),
                                   ('product', 'Production'),
                                   ('staff_payroll', 'Staff Payroll'),
-                                  ('worker_payroll', 'Workers Payroll')],'Document Type'),   
+                                  ('worker_payroll', 'Workers Payroll'),
+                                  ('stock_adj_inc', 'Stock Adjustment Increase'),
+                                  ('stock_adj_dec', 'Stock Adjustment Decrease')
+                                  ],'Document Type'),   
 #                 'doc_type':fields.selection([('cas_pay','Cash Payment'), ('cas_rec','Cash Receipts'), 
 #                                             ('bak_pay','Bank Payments'), ('bak_rec','Bank Receipts'), 
 #                                             ('sup_pay','Supplier Payments'),('cus_pay', 'Customer Payments'), 
@@ -321,6 +327,10 @@ class general_ledger_statement(osv.osv_memory):
                 return "Service Invoice"
             if doc_type == 'product':
                 return "Production"
+            if doc_type == 'stock_adj_inc':
+                return "Stock Adjustment - Increase"
+            if doc_type == 'stock_adj_dec':
+                return "Stock Adjustment - Decrease"
             if doc_type == '':
                 return "Journal Voucher"
         def get_invoice(cb):

@@ -6061,6 +6061,7 @@ class stock_adjustment(osv.osv):
     _columns = {
                 'create_uid': fields.many2one('res.users','Created By'),
                 'create_date': fields.date('Created Date'),
+                'posting_date': fields.date('Posting Date', required=True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
                 'product_categ_id': fields.many2one('product.category', 'Product Category', required=True),
                 'location_id': fields.many2one('stock.location', 'Location', readonly=True),
                 'product_id': fields.many2one('product.product', 'Product', required=True),
@@ -6211,9 +6212,91 @@ class stock_adjustment(osv.osv):
             vals = {'state':'done',
                     'name': doc_no 
                     }
-            self.write(cr, uid, [line.id], vals, context=context)
             
+            ### posting entries
+            account_move_obj = self.pool.get('account.move')
+            prod_obj = self.pool.get('product.product').browse(cr,uid,line.product_id.id) 
+            if not line.product_id.property_account_expense:
+                raise osv.except_osv(_('Warning!'),_('You need to define Purchase Expense Account for this product'))
+            if not line.product_id.product_asset_acc_id:
+                raise osv.except_osv(_('Warning!'),_('You need to define Purchase Asset Account for this product'))
+            expense = line.product_id.property_account_expense and line.product_id.property_account_expense.id or False
+            asset = line.product_id.product_asset_acc_id and line.product_id.product_asset_acc_id.id or False
+            
+            sql = '''
+                    select id from account_period where special = False and '%s' between date_start and date_stop and special is False
+                 
+                '''%(line.posting_date)
+            cr.execute(sql)
+            period_ids = [r[0] for r in cr.fetchall()]
+            #
+            if not period_ids:
+                raise osv.except_osv(_('Warning!'),_('Period is not null, please configure it in Period master !'))
+            #-----------
+            sql_journal = '''
+            select id from account_journal where code='STJ'
+            '''
+            cr.execute(sql_journal)
+            journal_ids = [r[0] for r in cr.fetchall()]
+            journal = self.pool.get('account.journal').browse(cr,uid,journal_ids[0])  
+            #---------------
+            avg_cost = 0
+            avg_cost_obj = self.pool.get('tpt.product.avg.cost')
+            avg_cost_ids = avg_cost_obj.search(cr, uid, [('product_id','=',line.product_id.id),('warehouse_id','=',line.location_id.id)])
+            if avg_cost_ids:
+                avg_cost_id = avg_cost_obj.browse(cr, uid, avg_cost_ids[0])
+                avg_cost = avg_cost_id.avg_cost  
+            #---------------
+            journal_line = [] 
+            doc_type = ''  
+            if line.adj_type=='increase':  
+                journal_line.append((0,0,{
+                    'name':doc_no or '', 
+                    'account_id': asset,                            
+                    'credit':0,
+                    'debit':line.adj_qty*avg_cost or 0.00,
+                    #'product_id':product_id,
+                    }))
+                journal_line.append((0,0,{
+                    'name':doc_no or '', 
+                    'account_id': expense,               
+                    'credit':line.adj_qty*avg_cost or 0.00,
+                    'debit':0,
+                    #'product_id':product_id,
+                    }))
+                doc_type = 'stock_adj_inc'
+            if line.adj_type=='decrease': 
+                journal_line.append((0,0,{
+                    'name':doc_no or '', 
+                    'account_id': expense,                            
+                    'credit':0,
+                    'debit':line.adj_qty*avg_cost or 0.00,
+                    #'product_id':product_id,
+                    }))
+                journal_line.append((0,0,{
+                    'name':doc_no or '', 
+                    'account_id': asset,               
+                    'credit':line.adj_qty*avg_cost or 0.00,
+                    'debit':0,
+                    #'product_id':product_id,
+                    }))
+                doc_type = 'stock_adj_dec'
+                      
+            value={
+                'journal_id':journal.id or False,
+                'period_id':period_ids[0] or False ,
+                'date': line.posting_date or False,
+                'line_id': journal_line,
+                'doc_type': doc_type or '',
+                'ref': doc_no or '',
+                }
+            new_jour_id = account_move_obj.create(cr,uid,value)
+            account_move_obj.button_validate(cr,uid, [new_jour_id], context)
+            
+            ###
+            self.write(cr, uid, [line.id], vals, context=context)
             return True  
+        
     def cancel(self, cr, uid, ids, context=None): 
         return self.write(cr, uid, ids,{'state':'cancel'})
  #END 
