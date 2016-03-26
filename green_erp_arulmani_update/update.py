@@ -3569,11 +3569,26 @@ class tpt_update_stock_move_report(osv.osv):
             move_obj.button_validate(cr,uid, [move_id], context)
         return self.write(cr, uid, ids, {'result':'Goods Issue Auto Posting Done'})  
     def prd_auto_posting(self, cr, uid, ids, context=None):
-        move_obj = self.pool.get('account.move')
-        move_ids = move_obj.search(cr, uid, [('state','=','draft'),('doc_type','=','product')])
-        for move_id in move_ids:           
-            move_obj.button_validate(cr,uid, [move_id], context)
-        return self.write(cr, uid, ids, {'result':'Production Auto Posting Done'})  
+        #=======================================================================
+        # move_obj = self.pool.get('account.move')
+        # move_ids = move_obj.search(cr, uid, [('state','=','draft'),('doc_type','=','product')])
+        # for move_id in move_ids:           
+        #     move_obj.button_validate(cr,uid, [move_id], context)
+        # return self.write(cr, uid, ids, {'result':'Production Auto Posting Done'})  
+        #=======================================================================
+        acc_obj = self.pool.get('account.invoice')
+        acc_line_obj = self.pool.get('account.invoice.line')
+        acc_ids = acc_obj.search(cr, uid, [('doc_type','=','supplier_invoice')])
+        invoice_id = acc_obj.browse(cr, uid, acc_ids)
+        #print len(acc_ids)
+        #i = 1
+        for inv_id in invoice_id:  
+            i = 1
+            for acc_line_id in inv_id.invoice_line:  
+                vals = {'line_no': i}
+                acc_line_obj.write(cr, uid, [acc_line_id.id], vals)
+                i+=1
+        return True
      
     def config_GRN_3451_3883(self, cr, uid, ids, context=None):
         move_obj = self.pool.get('account.move')
