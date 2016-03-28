@@ -447,7 +447,7 @@ class Parser(report_sxw.rml_parse):
                 'g1':tpt_g1,
                 'g2':tpt_g2,
                 #'total': a+b+c+g1+g2,
-                'total': tpt_a+tpt_b+tpt_c+tpt_g1+tpt_g2,
+                'total': tpt_a+tpt_b+tpt_c+tpt_g1+tpt_g2+tpt_total_shift_worked,
                 'c_off': c_off and c_off['sum_leave'] or '',
                 'c_l': c_l and c_l['sum_leave'] or '',
                 's_l': s_l and s_l['sum_leave'] or '',
@@ -459,7 +459,7 @@ class Parser(report_sxw.rml_parse):
                 'date_holiday_count':special_holiday_worked_count or '',
                 'perm_onduty_count':tpt_total_shift_worked, #onduty_g2_shift_count, # perm_onduty_count,
                 #'total_shift_worked':total_shift_worked,
-                'total_shift_worked':tpt_a+tpt_b+tpt_c+tpt_g1+tpt_g2+tpt_total_shift_worked # +perm_onduty_count,
+                'total_shift_worked':tpt_a+tpt_b+tpt_c+tpt_g1+tpt_g2 # +perm_onduty_count,
             })
         return res
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
