@@ -213,9 +213,13 @@
         	id="menu_action_daily_in_report"
         	parent="menu_hr_leave_management" sequence="40"/>
         	
-       <menuitem action="action_salary_bank_transfer_report"
+       <!-- <menuitem action="action_salary_bank_transfer_report"
             id="menu_action_salary_bank_transfer_report"
             parent="hr.menu_hr_main" sequence="49"/>
-            
+         -->
+         <menuitem action="action_salary_bank_transfer_report"
+            id="menu_action_salary_bank_transfer_report"
+            parent="account.menu_finance_reporting" sequence="210"/>
+                
     </data>
 </openerp>
