@@ -27,10 +27,14 @@ Purchase VAT Report : Display the Purchase VAT values for the selected date rang
             <field name="view_mode">form</field>
             <field name="target">new</field>
         </record>
-        
+        <!-- 
       <menuitem action="action_purchase_vatreport"
             id="menu_action_purchase_vatreport"
             parent="stock.menu_stock_warehouse_mgmt" sequence="67"/>
+             -->
+            <menuitem action="action_purchase_vatreport"
+            id="menu_action_purchase_vatreport"
+            parent="account.menu_finance_reporting" sequence="213"/>
     </data>
 </openerp>
 
