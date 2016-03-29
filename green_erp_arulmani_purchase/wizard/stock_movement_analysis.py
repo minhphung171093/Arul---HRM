@@ -32,6 +32,8 @@ class tpt_form_movement_analysis(osv.osv):
             cate_name = 'Raw Materials'
         if categ_name and categ_name == 'spares':
             cate_name = 'Spares'
+        if categ_name and categ_name == 'finish': #TPT-BM-ON 29/03/2016
+            cate_name = 'Finished Product'
         return cate_name
     
     def print_xls(self, cr, uid, ids, context=None):
@@ -1357,7 +1359,18 @@ class stock_movement_analysis(osv.osv_memory):
                 cr.execute(sql)
                 product_qty = cr.dictfetchone()
             return product_qty and product_qty['product_qty'] or 0
-
+        def finish_stock_value(product_id, location_id):
+            avg_cost = 0
+            #===================================================================
+            # avg_cost_obj = self.pool.get('tpt.product.avg.cost')
+            # avg_cost_ids = avg_cost_obj.search(cr, uid, [('product_id','=',product_id),('warehouse_id','=',location_id)])
+            # if avg_cost_ids:
+            #     avg_cost_id = avg_cost_obj.browse(cr, uid, avg_cost_ids[0])
+            #     avg_cost = avg_cost_id.avg_cost   
+            #===================================================================
+            prod_obj = self.pool.get('product.product')
+            prod_id = prod_obj.browse(cr, uid, product_id)
+            avg_cost = prod_id.standard_price or 0
         def get_consumption_value(o, product_id):
             date_from = o.date_from
             date_to = o.date_to
@@ -2330,7 +2343,126 @@ class stock_movement_analysis(osv.osv_memory):
                                                 
                                                 
         }))
-        
+        ###
+        if stock.categ_id.cate_name=='finish':
+            location_id=13
+            if stock.product_ids:
+                product = stock.product_ids
+                product_ids = [r.id for r in stock.product_ids]
+                product_ids = str(product_ids).replace("[", "")
+                product_ids = product_ids.replace("]", "")
+                if product_ids==4:
+                    location_id=13
+                elif product_ids==2:
+                    location_id=25
+                sql = ''' select pp.default_code, pp.name_template as name, pu.name uom, 
+                (SELECT sum(onhand_qty) onhand_qty From
+                (SELECT 
+                case when loc1.usage != 'internal' and loc2.usage = 'internal'
+                then stm.primary_qty else
+                case when loc1.usage = 'internal' and loc2.usage != 'internal'
+                then -1*stm.primary_qty 
+                else 0.0 end
+                end onhand_qty          
+                FROM stock_move stm 
+                join stock_location loc1 on stm.location_id=loc1.id
+                join stock_location loc2 on stm.location_dest_id=loc2.id
+                WHERE stm.state= 'done' and stm.product_id=pp.id and stm.date<'%(date_from)s')foo) as opening_stock,
+                ---------
+                0 as opening_stock_value,
+                --------
+                (select case when sum(st.product_qty)!=0 then sum(st.product_qty) else 0 end ton_sl
+                from stock_move st
+                join stock_location loc1 on st.location_id=loc1.id
+                join stock_location loc2 on st.location_dest_id=loc2.id
+                where st.state='done' and st.location_id=7 and location_dest_id=13
+                and st.product_id=pp.id
+                and st.state = 'done'
+                and st.date between '%(date_from)s' and '%(date_to)s') as receipt_qty,
+                 --------------
+                (select case when sum(st.product_qty*st.price_unit)!=0 then sum(st.product_qty*st.price_unit) else 0 end ton_sl
+                from stock_move st
+                join stock_location loc1 on st.location_id=loc1.id
+                join stock_location loc2 on st.location_dest_id=loc2.id
+                where st.state='done' and st.location_id=7 and location_dest_id=13
+                and st.product_id=pp.id
+                and st.state = 'done'
+                and st.date between '%(date_from)s' and '%(date_to)s') as receipt_value,
+                ---------
+                (select case when sum(st.product_qty)!=0 then sum(st.product_qty) else 0 end ton_sl
+                from stock_move st
+                join stock_location loc1 on st.location_id=loc1.id
+                join stock_location loc2 on st.location_dest_id=loc2.id
+                where st.state='done' and st.location_id=%(location_id)s and location_dest_id=9 
+                and st.product_id=pp.id
+                and st.state = 'done'
+                and st.date between '%(date_from)s' and '%(date_to)s') as consum_qty,
+                ---------
+                (select case when sum(st.product_qty*st.price_unit)!=0 then sum(st.product_qty*st.price_unit) else 0 end ton_sl
+                from stock_move st
+                join stock_location loc1 on st.location_id=loc1.id
+                join stock_location loc2 on st.location_dest_id=loc2.id
+                where st.state='done' and st.location_id=%(location_id)s and location_dest_id=9 
+                and st.product_id=pp.id
+                and st.state = 'done'
+                and st.date between '%(date_from)s' and '%(date_to)s') as consum_value,
+                ----------------
+                pp.id as product_id
+                
+                from product_product pp
+                inner join product_template pt on  pp.product_tmpl_id=pt.id
+                inner join product_uom pu on pt.uom_id=pu.id
+                where pp.id in (%(product_id)s)
+                order by pp.default_code
+                '''%{'date_from':stock.date_from,
+                    'date_to':stock.date_to,
+                    'location_id':location_id,
+                    #'location_dest_id':9,
+                    'product_id':product_ids
+                    }
+                cr.execute(sql) 
+                #print sql
+                '''
+                select case when sum(product_qty)!=0 then sum(product_qty) else 0 end ton_sl
+                from mrp_production where product_id=4 and date_planned between '2016-01-01' and '2016-01-31'
+                '''
+            else:
+                sql = ''' select pp.default_code, pp.name_template as name, pu.name uom, 
+                0 as opening_stock,
+                0 as opening_stock_value,
+                0 as receipt_qty,
+                0 as receipt_value,
+                0 as consum_qty,
+                0 as consum_value,
+                pp.id as product_id
+                
+                from product_product pp
+                inner join product_template pt on  pp.product_tmpl_id=pt.id
+                inner join product_uom pu on pt.uom_id=pu.id
+                where pp.cate_name='finish'
+                order by pp.default_code
+                '''%{#'date_from':stock.date_from,
+                    #'date_to':stock.date_to,
+                    #'location_id':14,
+                    #'product_id':product_ids
+                    }
+                cr.execute(sql)
+                
+            for line in cr.dictfetchall():
+                move_analysis_line.append((0,0,{
+                    'item_code': line['default_code'],
+                    'item_name': line['name'],
+                    'uom':line['uom'] or 0,
+                    'open_stock': line['opening_stock'] or 0,
+                    'open_value': line['opening_stock'] or 0 *finish_stock_value(line['product_id'], location_id) or 0,
+                    'receipt_qty':line['receipt_qty'] or 0,
+                    'receipt_value':line['receipt_value'] or 0,
+                    'consum_qty':line['consum_qty'] or 0,
+                    'consum_value': line['consum_value'] or 0 , 
+                    'close_stock':line['opening_stock']+line['receipt_qty']-line['consum_qty'] or 0,
+                    'close_value':line['opening_stock_value']+line['receipt_value']-line['consum_value'], 
+                    'product_id': line['product_id'] or False,                              
+                })) 
         ###
             
             
