@@ -7,7 +7,7 @@
 	        <field name="arch" type="xml">
 	            <form string="Stock Movement Analysis Report" version="7.0">
 	            	<group>
-	                <field name="categ_id" options="{'create': false, 'create_edit': false}" domain="[('cate_name','in',['raw','spares'])]" on_change = "onchange_categ_id(categ_id)"/>
+	                <field name="categ_id" options="{'create': false, 'create_edit': false}" domain="[('cate_name','in',['finish', 'raw','spares'])]" on_change = "onchange_categ_id(categ_id)"/>
 	               <!--  <field name="product_ids" widget = 'many2many_tags' 
 	                options="{'create': false, 'create_edit': false}" 
 	                context="{'search_product_id':True, 'categ_id':categ_id}"/>  -->
@@ -42,10 +42,14 @@
 	        <field name="target">new</field>
 	    </record>
 	    
-	    
-       <menuitem action="action_stock_movement_analysis_view" id="menu_action_stock_movement_analysis_view" parent="stock.menu_stock_warehouse_mgmt" sequence="51"/>
-
-	 
+	    <!-- 
+       <menuitem action="action_stock_movement_analysis_view" 
+       id="menu_action_stock_movement_analysis_view" parent="stock.menu_stock_warehouse_mgmt" sequence="51"/>
+ -->
+	  <menuitem action="action_stock_movement_analysis_view"
+            id="menu_action_stock_movement_analysis_view"
+            parent="base.next_id_73" 
+            sequence="3"/>
 	    
     </data>
 </openerp>

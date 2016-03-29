@@ -27,10 +27,15 @@
 	        <field name="target">new</field>
 	    </record>
 	    
-	    
-       <menuitem action="action_tpt_raw_stock_statement_view" id="menu_action_tpt_raw_stock_statement_view" parent="stock.menu_stock_warehouse_mgmt" sequence="53"/>
-
-	 
+	    <!-- 
+	           <menuitem action="action_tpt_raw_stock_statement_view" id="menu_action_tpt_raw_stock_statement_view"
+        parent="stock.menu_stock_warehouse_mgmt" sequence="53"/>
+ -->
+ `
+	 <menuitem action="action_tpt_raw_stock_statement_view"
+            id="menu_action_tpt_raw_stock_statement_view"
+            parent="base.next_id_73" 
+            sequence="5"/>
 	    
     </data>
 </openerp>

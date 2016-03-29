@@ -27,10 +27,13 @@ Purchase CST Report : Display the Purchase CSTvalues for the selected date range
             <field name="view_mode">form</field>
             <field name="target">new</field>
         </record>
-        
+        <!-- 
       <menuitem action="action_purchase_cstreport"
             id="menu_action_purchase_cstreport"
-            parent="stock.menu_stock_warehouse_mgmt" sequence="70"/>
+            parent="stock.menu_stock_warehouse_mgmt" sequence="70"/>-->
+             <menuitem action="action_purchase_cstreport"
+            id="menu_action_purchase_cstreport"
+            parent="account.menu_finance_reporting" sequence="212"/>
     </data>
 </openerp>
 
