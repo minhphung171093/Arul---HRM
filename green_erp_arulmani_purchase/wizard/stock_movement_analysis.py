@@ -1371,6 +1371,7 @@ class stock_movement_analysis(osv.osv_memory):
             prod_obj = self.pool.get('product.product')
             prod_id = prod_obj.browse(cr, uid, product_id)
             avg_cost = prod_id.standard_price or 0
+            return avg_cost or 0
         def get_consumption_value(o, product_id):
             date_from = o.date_from
             date_to = o.date_to
@@ -2389,23 +2390,17 @@ class stock_movement_analysis(osv.osv_memory):
                 and st.state = 'done'
                 and st.date between '%(date_from)s' and '%(date_to)s') as receipt_value,
                 ---------
-                (select case when sum(st.product_qty)!=0 then sum(st.product_qty) else 0 end ton_sl
-                from stock_move st
-                join stock_location loc1 on st.location_id=loc1.id
-                join stock_location loc2 on st.location_dest_id=loc2.id
-                where st.state='done' and st.location_id=%(location_id)s and location_dest_id=9 
-                and st.product_id=pp.id
-                and st.state = 'done'
-                and st.date between '%(date_from)s' and '%(date_to)s') as consum_qty,
+                (select case when sum(ail.quantity)!=0 then sum(ail.quantity) else 0 end quans from account_invoice_line ail
+                 inner join account_invoice ai on ail.invoice_id=ai.id
+                 where ai.state!='cancel' 
+                 and ail.product_id=pp.id
+                 and ai.date_invoice  between '%(date_from)s' and '%(date_to)s') as consum_qty,
                 ---------
-                (select case when sum(st.product_qty*st.price_unit)!=0 then sum(st.product_qty*st.price_unit) else 0 end ton_sl
-                from stock_move st
-                join stock_location loc1 on st.location_id=loc1.id
-                join stock_location loc2 on st.location_dest_id=loc2.id
-                where st.state='done' and st.location_id=%(location_id)s and location_dest_id=9 
-                and st.product_id=pp.id
-                and st.state = 'done'
-                and st.date between '%(date_from)s' and '%(date_to)s') as consum_value,
+                (select case when sum(ail.quantity*price_unit)!=0 then sum(ail.quantity*price_unit) else 0 end quans from account_invoice_line ail
+                 inner join account_invoice ai on ail.invoice_id=ai.id
+                 where ai.state!='cancel' 
+                 and ail.product_id=pp.id
+                 and ai.date_invoice  between '%(date_from)s' and '%(date_to)s') as consum_value,
                 ----------------
                 pp.id as product_id
                 
@@ -2444,14 +2439,9 @@ class stock_movement_analysis(osv.osv_memory):
                 ---------------------
                 0 as opening_stock_value,
                 -------------------
-               (select case when sum(st.product_qty)!=0 then sum(st.product_qty) else 0 end ton_sl
-                from stock_move st
-                join stock_location loc1 on st.location_id=loc1.id
-                join stock_location loc2 on st.location_dest_id=loc2.id
-                where st.state='done' and st.location_id=7 and location_dest_id=13
-                and st.product_id=pp.id
-                and st.state = 'done'
-                and st.date between '%(date_from)s' and '%(date_to)s') as receipt_qty,
+               (select case when sum(product_qty)!=0 then sum(product_qty) else 0 end ton_sl
+                from mrp_production where product_id=4 and 
+                date_planned between '%(date_from)s' and '%(date_to)s') as receipt_qty,
                  --------------
                 (select case when sum(st.product_qty*st.price_unit)!=0 then sum(st.product_qty*st.price_unit) else 0 end ton_sl
                 from stock_move st
@@ -2500,9 +2490,9 @@ class stock_movement_analysis(osv.osv_memory):
                     'item_name': line['name'],
                     'uom':line['uom'] or 0,
                     'open_stock': line['opening_stock'] or 0,
-                    'open_value': 0, #line['opening_stock'] or 0 * finish_stock_value(line['product_id'], location_id) or 0,
+                    'open_value': line['opening_stock'] or 0 * finish_stock_value(line['product_id'], location_id) or 0,
                     'receipt_qty':line['receipt_qty'] or 0,
-                    'receipt_value':line['receipt_value'] or 0,
+                    'receipt_value':line['receipt_qty'] or 0 * finish_stock_value(line['product_id'], location_id) or 0,
                     'consum_qty':line['consum_qty'] or 0,
                     'consum_value': line['consum_value'] or 0 , 
                     'close_stock':line['opening_stock'] or 0+line['receipt_qty']-line['consum_qty'] or 0,
