@@ -223,7 +223,7 @@ class Parser(report_sxw.rml_parse):
                          inner join account_move am on (am.id=av.move_id)
                          inner join account_move_line aml on (aml.move_id=av.move_id and aa.id = aml.account_id)
                          where am.state = 'posted' and aa.name ~ 'TDS' 
-                         and av.type not in ('payment','receipt')
+                         --and av.type not in ('payment','receipt')
                          and am.date between '%s' and '%s'
                         
         '''%(date_from,date_to)            

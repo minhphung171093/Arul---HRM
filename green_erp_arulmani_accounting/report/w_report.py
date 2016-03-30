@@ -41,6 +41,7 @@ class Parser(report_sxw.rml_parse):
             #'get_tax': self.get_tax,
             #'get_paid_tax': self.get_paid_tax,
             'convert_date': self.convert_date,
+            'tpt_get_invoice':self.tpt_get_invoice,
 #             'get_sale_line': self.get_sale_line,
         })
         
@@ -149,7 +150,56 @@ class Parser(report_sxw.rml_parse):
             res = res+res1
         return res
         #TPT-END
-        
+    def tpt_get_invoice(self):
+        res = {}
+        wizard_data = self.localcontext['data']['form']
+        date_from = wizard_data['date_from']
+        date_to = wizard_data['date_to']  
+        res = []
+        inv_obj = self.pool.get('account.invoice')
+        emp_obj = self.pool.get('hr.employee')
+        inv_line_obj = self.pool.get('account.invoice.line')
+        sql = '''
+        select  
+        ai.name as name, at.name tax_name,rs.name partnername, rs.tin, ai.bill_number, ai.bill_date,ai.date_invoice,
+        sum(ail.wform_tax_amt) as paid_amt_1,
+        0 as vatbased_qty, null as uom, null as productname, 0 as vatbased_amt
+        from account_invoice ai
+            inner join account_invoice_line ail on ai.id=ail.invoice_id
+            inner join account_invoice_line_tax ailt on (ailt.invoice_line_id=ail.id)
+            inner join account_tax at on (at.id=ailt.tax_id)
+            inner join res_partner rs on ai.partner_id=rs.id
+            where ai.date_invoice between '%s' and '%s' and
+            at.description ~'VAT' and ai.type='in_invoice'
+            and at.amount>0 and ai.doc_type<>'freight_invoice' and ai.state not in ('draft', 'cancel')
+            group by at.id, ai.name, rs.name, rs.tin, ai.bill_number, ai.bill_date, ai.date_invoice
+        order by ai.name
+        '''%(date_from, date_to)
+        self.cr.execute(sql)
+        res = self.cr.dictfetchall()
+        #print sql
+        sql = '''
+            select av.number as name, av.date date_invoice, null bill_number, null bill_date, null tax_name,
+                    null partnername, null tin,
+                    null productname, 0 vatbased_qty,0 as vatbased_amt,
+                    avl.amount as paid_amt_1, 0 as paid_amt,
+                    null uom 
+    
+            from account_voucher_line avl
+            inner join account_voucher av on avl.voucher_id=av.id
+            inner join account_account aa on avl.account_id=aa.id
+            inner join account_move am on av.move_id=am.id
+            where 
+            av.date between '%s' and '%s' and 
+            aa.code='0000119908'
+        '''%(date_from, date_to)
+        self.cr.execute(sql)
+        #print sql
+        #return self.cr.dictfetchall()
+        res1 = self.cr.dictfetchall()
+        if res1:
+            res = res+res1
+        return res  
     
     
         
