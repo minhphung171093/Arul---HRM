@@ -161,7 +161,7 @@ class Parser(report_sxw.rml_parse):
         inv_line_obj = self.pool.get('account.invoice.line')
         sql = '''
         select  
-        ai.name as name, at.name tax_name,rs.name partnername, rs.tin, ai.bill_number, ai.bill_date,ai.date_invoice,
+        ai.name as inv_doc, at.name tax_name,rs.name partnername, rs.tin, ai.bill_number, ai.bill_date,ai.date_invoice,
         sum(ail.wform_tax_amt) as paid_amt_1,
         0 as vatbased_qty, null as uom, null as productname, 0 as vatbased_amt
         from account_invoice ai
@@ -179,7 +179,7 @@ class Parser(report_sxw.rml_parse):
         res = self.cr.dictfetchall()
         #print sql
         sql = '''
-            select av.number as name, av.date date_invoice, null bill_number, null bill_date, null tax_name,
+            select av.number as inv_doc, av.date date_invoice, null bill_number, null bill_date, null tax_name,
                     null partnername, null tin,
                     null productname, 0 vatbased_qty,0 as vatbased_amt,
                     avl.amount as paid_amt_1, 0 as paid_amt,
