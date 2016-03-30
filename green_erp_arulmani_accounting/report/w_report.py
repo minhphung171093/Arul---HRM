@@ -170,11 +170,11 @@ class Parser(report_sxw.rml_parse):
             inner join account_tax at on (at.id=ailt.tax_id)
             inner join res_partner rs on ai.partner_id=rs.id
             where ai.date_invoice between '%s' and '%s' and
-            at.description like 'VAT%(P)' and ai.type='in_invoice'
+            at.description like '%s' and ai.type='in_invoice'
             and at.amount>0 and ai.doc_type<>'freight_invoice' and ai.state not in ('draft', 'cancel')
             group by at.id, ai.name, rs.name, rs.tin, ai.bill_number, ai.bill_date, ai.date_invoice
         order by ai.name
-        '''%(date_from, date_to)
+        '''%(date_from, date_to, "VAT%(P)")
         self.cr.execute(sql)
         res = self.cr.dictfetchall()
         #print sql
