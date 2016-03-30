@@ -114,8 +114,9 @@ class Parser(report_sxw.rml_parse):
                 select distinct hr.employee_id as emp_code,hr.name_related as emp_name,
                 j.name as desgn,d.name as dept,hst.work_date as work_date,hr.employee_category_id as emp_categ_id,hr.department_id as dept_id,
                 (select name from vsis_hr_employee_category where id=hr.employee_category_id) emp_cat,
-                hst.in_time, hst.out_time
-                from arul_hr_punch_in_out_time hst
+                hst.in_time, hst.out_time,hst.ref_in_time, hst.ref_out_time
+                 --from arul_hr_punch_in_out_time hst
+                from arul_hr_audit_shift_time hst
                 inner join hr_employee hr on (hr.id = hst.employee_id)
                 inner join hr_department d on (d.id = hr.department_id)
                 inner join hr_job j on (j.id = hr.job_id)

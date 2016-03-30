@@ -194,125 +194,7 @@ class service_tax_register(osv.osv_memory):
             account_obj = self.pool.get('account.account')
             act_abj = account_obj.browse(cr,uid,accountid)
             code = act_abj.code         
-            
-                    
-            # sum(ail.line_net*(at.amount/100))
-            #===================================================================
-            # sql = '''
-            #     select COALESCE(sum(a.debit),0) as debit from( 
-            #     select sum(aml.debit) as debit,ail.id
-            #     from account_invoice_line ail
-            #     join account_invoice ai on (ai.id=ail.invoice_id and ai.type = 'in_invoice')
-            #     JOIN account_invoice_line_tax ailt on (ailt.invoice_line_id=ail.id)
-            #     Join account_tax at on (at.id=ailt.tax_id and at.gl_account_id=%s)
-            #     join account_move_line aml on (aml.move_id=ai.move_id and aml.account_id=%s)
-            #     where at.description ~'STax' and at.amount>0
-            #     and ai.date_invoice <= '%s'
-            #     group by ail.id 
-            #     order by ail.id)a
-            # '''%(accountid,accountid,date_to)
-            #===================================================================
-            #===================================================================
-            # sql = '''
-            #     select COALESCE(sum(a.debit),0) as debit from( 
-            #     select sum(aml.debit) as debit,ail.id
-            #     from account_invoice_line ail
-            #     join account_invoice ai on (ai.id=ail.invoice_id and ai.type = 'in_invoice')
-            #     JOIN account_invoice_line_tax ailt on (ailt.invoice_line_id=ail.id)
-            #     Join account_tax at on (at.id=ailt.tax_id and at.gl_account_id=%s)
-            #     join account_move_line aml on (aml.move_id=ai.move_id and aml.account_id=%s)
-            #     where at.description ~'STax' and at.amount>0
-            #     and ai.date_invoice <= '%s'
-            #     group by ail.id 
-            #     order by ail.id)a
-            # '''%(accountid,accountid,date_to)
-            #===================================================================
-            
-#===============================================================================
-# #             if accountid == '402':
-# #                 sql = '''
-# #                     select COALESCE(sum(a.debit),0) as taxamount from(
-# #                     select sum(aml.debit) as debit,aml.id
-# #                     from account_move_line aml
-# #                     inner join account_move am on (am.id=aml.move_id)
-# #                     join account_invoice ai on (ai.move_id=am.id and ai.type = 'in_invoice')
-# #                     join account_invoice_line ail on (ail.invoice_id = ai.id)
-# #                     join account_invoice_line_tax ailt on (ailt.invoice_line_id=ail.id)
-# #                     join account_tax at on (at.id=ailt.tax_id)
-# #                     where at.description ~'STax' and at.amount>0 and aml.account_id in (402)
-# #                     and am.date <= '%s'
-# #                     group by aml.id 
-# #                     order by aml.id)a
-# #                 '''%(date_to)
-# #             for move in cr.dictfetchall():
-# #                     total = move['debit']
-# #                     return total or 0.00
-#===============================================================================
-            
-            #===================================================================
-            # if code == '0000119905':
-            #     sql = '''
-            #         select COALESCE(sum(a.debit),0) as debit from(
-            #         select sum(aml.debit) as debit,aml.id
-            #         from account_move_line aml
-            #         inner join account_move am on (am.id=aml.move_id)
-            #         join account_invoice ai on (ai.move_id=am.id and ai.type = 'in_invoice')
-            #         join account_invoice_line ail on (ail.invoice_id = ai.id)
-            #         join account_invoice_line_tax ailt on (ailt.invoice_line_id=ail.id)
-            #         join account_tax at on (at.id=ailt.tax_id)
-            #         where at.description ~'STax' and at.amount>0 and aml.account_id in (402)
-            #         and am.date <= '%s'
-            #         group by aml.id 
-            #         order by aml.id)a
-            #     '''%(date_to)
-            #     cr.execute(sql)
-            #     for move in cr.dictfetchall():
-            #             total = move['debit']
-            #             return total or 0.00
-            #     
-            # 
-            # elif code == '0000119925':
-            #     sql = '''
-            #         select COALESCE(sum(a.debit),0) as debit from(
-            #         select sum(aml.debit) as debit,aml.id
-            #         from account_move_line aml
-            #         inner join account_move am on (am.id=aml.move_id)
-            #         join account_invoice ai on (ai.move_id=am.id and ai.type = 'in_invoice')
-            #         join account_invoice_line ail on (ail.invoice_id = ai.id)
-            #         join account_invoice_line_tax ailt on (ailt.invoice_line_id=ail.id)
-            #         join account_tax at on (at.id=ailt.tax_id)
-            #         where at.description ~'STax' and at.amount>0 and aml.account_id in (506)
-            #         and am.date <= '%s'
-            #         group by aml.id 
-            #         order by aml.id)a
-            #     '''%(date_to)
-            #     cr.execute(sql)
-            #     for move in cr.dictfetchall():
-            #             total = move['debit']
-            #             return total or 0.00
-            #     
-            # elif code == '0000119926':
-            #     sql = '''
-            #         select COALESCE(sum(a.debit),0) as debit from(
-            #         select sum(aml.debit) as debit,aml.id
-            #         from account_move_line aml
-            #         inner join account_move am on (am.id=aml.move_id)
-            #         join account_invoice ai on (ai.move_id=am.id and ai.type = 'in_invoice')
-            #         join account_invoice_line ail on (ail.invoice_id = ai.id)
-            #         join account_invoice_line_tax ailt on (ailt.invoice_line_id=ail.id)
-            #         join account_tax at on (at.id=ailt.tax_id)
-            #         where at.description ~'STax' and at.amount>0 and aml.account_id in (507)
-            #         and am.date <= '%s'
-            #         group by aml.id 
-            #         order by aml.id)a
-            #     '''%(date_to)
-            #     cr.execute(sql)
-            #     for move in cr.dictfetchall():
-            #         total = move['debit']
-            #         return total or 0.00    
-            #     
-            # else: 
-            #===================================================================
+           
                 
             sql = '''
                     select COALESCE(sum(a.debit),0) as debit from(
@@ -334,87 +216,7 @@ class service_tax_register(osv.osv_memory):
                 return total or 0.00
             
         
-        #=======================================================================
-        # def get_tax_amnt(o,line):
-        #     lineid = line                       
-        #     accountid = o.account_id.id            
-        #                 
-        #     #===================================================================
-        #     # sql = '''
-        #     #     select COALESCE(aml.debit,0) as debit from account_invoice_line ail
-        #     #     join account_invoice ai on (ai.id = ail.invoice_id)
-        #     #     join account_move am on (am.id = ai.move_id)
-        #     #     join account_move_line aml on (aml.move_id = am.id and aml.account_id=%s)
-        #     #     where ail.id = %s
-        #     # '''%(accountid,lineid)
-        #     #===================================================================
-        #     #===================================================================
-        #     # 
-        #     #     sql = '''
-        #     #         select sum(aml.debit) as debit 
-        #     #         from account_move_line aml
-        #     #         inner join account_move am on (am.id=aml.move_id)
-        #     #         inner join account_account aa on (aa.id=aml.account_id and aa.id=%s)
-        #     #         join account_invoice i on (i.move_id=am.id and i.type = 'in_invoice')
-        #     #         where aml.debit>0 and am.state in ('posted') 
-        #     #         where ail.id = %s
-        #     #     '''%(accountid,lineid)
-        #     #===================================================================
-        #     
-        #     if accountid == 506:  
-        #         sql = '''
-        #                 select COALESCE((select COALESCE(aml.debit,0) as debit 
-        #                 from account_move_line aml
-        #                 inner join account_move am on (am.id=aml.move_id)
-        #                 inner join account_account aa on (aa.id=aml.account_id and aa.id in (402,506))
-        #                 join account_invoice i on (i.move_id=am.id and i.type = 'in_invoice')
-        #                 where aml.debit>0 and am.state in ('posted') 
-        #                 and aml.id = %s),0)
-        #              '''%(accountid,lineid)
-        #         cr.execute(sql)
-        #         for move in cr.dictfetchall():
-        #             if move['debit']:
-        #                  debit = move['debit']                            
-        #                  return debit or 0.00
-        #             else:
-        #                  return 0.00
-        #              
-        #     if accountid == 507:  
-        #         sql = '''
-        #                 select COALESCE((select COALESCE(aml.debit,0) as debit 
-        #                 from account_move_line aml
-        #                 inner join account_move am on (am.id=aml.move_id)
-        #                 inner join account_account aa on (aa.id=aml.account_id and aa.id in (402,507))
-        #                 join account_invoice i on (i.move_id=am.id and i.type = 'in_invoice')
-        #                 where aml.debit>0 and am.state in ('posted') 
-        #                 and aml.id = %s),0)
-        #              '''%(accountid,lineid)
-        #         cr.execute(sql)
-        #         for move in cr.dictfetchall():
-        #             if move['debit']:
-        #                  debit = move['debit']                            
-        #                  return debit or 0.00
-        #             else:
-        #                  return 0.00
-        #              
-        #     else:
-        #         sql = '''
-        #                 select COALESCE((select COALESCE(aml.debit,0) as debit 
-        #                 from account_move_line aml
-        #                 inner join account_move am on (am.id=aml.move_id)
-        #                 inner join account_account aa on (aa.id=aml.account_id and aa.id = %s)
-        #                 join account_invoice i on (i.move_id=am.id and i.type = 'in_invoice')
-        #                 where aml.debit>0 and am.state in ('posted') 
-        #                 and aml.id = %s),0)
-        #              '''%(accountid,lineid)
-        #         cr.execute(sql)
-        #         for move in cr.dictfetchall():
-        #             if move['debit']:
-        #                  debit = move['debit']                            
-        #                  return debit or 0.00
-        #             else:
-        #                  return 0.00     
-        #=======================================================================
+       
         
         
         def get_debit_balance(o):
@@ -426,69 +228,7 @@ class service_tax_register(osv.osv_memory):
             code = act_abj.code
             openbalance = 0.0
                            
-            
-        #=======================================================================
-        #     if code == '0000119905':
-        #         sql = '''
-        #             select sum(aml.credit) as debit 
-        #             from account_move_line aml
-        #             inner join account_move am on (am.id=aml.move_id)
-        #             inner join account_account aa on (aa.id=aml.account_id and aa.id in (402))
-        #             join account_invoice i on (i.move_id=am.id and i.type = 'in_invoice')
-        #             where aml.debit>0 and am.state in ('posted') and am.date between '%s' and '%s'
-        #             '''%(date_from,date_to)
-        #         cr.execute(sql)
-        #         for move in cr.dictfetchall():
-        #             if move['debit']:
-        #                 openbalance += move['debit']                        
-        #         return openbalance or 0.00
-        #     
-        #     elif code == '0000119925':
-        #          
-        #         sql = '''
-        #             select sum(aml.credit) as debit 
-        #             from account_move_line aml
-        #             inner join account_move am on (am.id=aml.move_id)
-        #             inner join account_account aa on (aa.id=aml.account_id and aa.id in (506))
-        #             join account_invoice i on (i.move_id=am.id and i.type = 'in_invoice')
-        #             where aml.debit>0 and am.state in ('posted') and am.date between '%s' and '%s'
-        #             '''%(date_from,date_to)
-        #         cr.execute(sql)
-        #         for move in cr.dictfetchall():
-        #             if move['debit']:
-        #                 openbalance += move['debit']                        
-        #         return openbalance or 0.00
-        # 
-        #     elif code == '0000119926':
-        #          
-        #         sql = '''
-        #             select sum(aml.credit) as debit 
-        #             from account_move_line aml
-        #             inner join account_move am on (am.id=aml.move_id)
-        #             inner join account_account aa on (aa.id=aml.account_id and aa.id in (507))
-        #             join account_invoice i on (i.move_id=am.id and i.type = 'in_invoice')
-        #             where aml.debit>0 and am.state in ('posted') and am.date between '%s' and '%s'
-        #             '''%(date_from,date_to)
-        #         cr.execute(sql)
-        #         for move in cr.dictfetchall():
-        #             if move['debit']:
-        #                 openbalance += move['debit']                        
-        #         return openbalance or 0.00
-        #     
-        #     else:
-        #=======================================================================
-                
-                
-            #===================================================================
-            # sql = '''
-            #         select sum(aml.credit) as debit 
-            #         from account_move_line aml
-            #         inner join account_move am on (am.id=aml.move_id)
-            #         inner join account_account aa on (aa.id=aml.account_id and aa.id = %s)
-            #         join account_invoice i on (i.move_id=am.id and i.type = 'in_invoice')
-            #         where aml.debit>0 and am.state in ('posted') and am.date between '%s' and '%s'
-            #         '''%(account_id,date_from,date_to)
-            #===================================================================
+      
             sql = '''
                     select sum(aml.credit) as debit 
                     from account_move_line aml
@@ -516,103 +256,7 @@ class service_tax_register(osv.osv_memory):
             code = act_abj.code
             openbalance = 0.0
             
-            #===================================================================
-            # sql = '''
-            #     select COALESCE(sum(a.taxamt),0) as taxamount from( 
-            #     select case when COALESCE(sum(ail.line_net*(at.amount/100)), 0) = 0 then 0
-            #     else sum(ail.line_net*(at.amount/100)) end as taxamt,ail.id
-            #     from account_invoice_line ail
-            #     join account_invoice ai on (ai.id=ail.invoice_id and ai.type = 'in_invoice')
-            #     JOIN account_invoice_line_tax ailt on (ailt.invoice_line_id=ail.id)
-            #     Join account_tax at on (at.id=ailt.tax_id and at.gl_account_id=%s)
-            #     where at.description ~'STax' and at.amount>0
-            #     and ai.date_invoice<'%s'
-            #     group by ail.id 
-            #     order by ail.id)a
-            #     '''%(account_id.id,date_from)
-            #===================================================================
-            #===================================================================
-            # sql = '''
-            #     select COALESCE(sum(a.debit),0) as taxamount from( 
-            #     select sum(aml.debit) as debit,ail.id
-            #     from account_invoice_line ail
-            #     join account_invoice ai on (ai.id=ail.invoice_id and ai.type = 'in_invoice')
-            #     JOIN account_invoice_line_tax ailt on (ailt.invoice_line_id=ail.id)
-            #     Join account_tax at on (at.id=ailt.tax_id and at.gl_account_id=%s)
-            #     join account_move_line aml on (aml.move_id=ai.move_id and aml.account_id=%s)
-            #     where at.description ~'STax' and at.amount>0
-            #     and ai.date_invoice<'%s'
-            #     group by ail.id 
-            #     order by ail.id)a
-            #     '''%(account_id.id,account_id.id,date_from)
-            #===================================================================
-            
-            #===================================================================
-            # if code == '0000119905':
-            #     sql = '''
-            #         select COALESCE(sum(a.debit),0) as taxamount from(
-            #         select sum(aml.debit) as debit,aml.id
-            #         from account_move_line aml
-            #         inner join account_move am on (am.id=aml.move_id)
-            #         join account_invoice ai on (ai.move_id=am.id and ai.type = 'in_invoice')
-            #         join account_invoice_line ail on (ail.invoice_id = ai.id)
-            #         join account_invoice_line_tax ailt on (ailt.invoice_line_id=ail.id)
-            #         join account_tax at on (at.id=ailt.tax_id)
-            #         where at.description ~'STax' and at.amount>0 and aml.account_id in (402)
-            #         and am.date < '%s'
-            #         group by aml.id 
-            #         order by aml.id)a
-            #         '''%(date_from)
-            #     cr.execute(sql)
-            #     for move in cr.dictfetchall():
-            #         if move['taxamount']:
-            #             openbalance += move['taxamount']                    
-            #             return openbalance or 0.00
-            # 
-            # elif code == '0000119925':            
-            #     sql = '''
-            #         select COALESCE(sum(a.debit),0) as taxamount from(
-            #         select sum(aml.debit) as debit,aml.id
-            #         from account_move_line aml
-            #         inner join account_move am on (am.id=aml.move_id)
-            #         join account_invoice ai on (ai.move_id=am.id and ai.type = 'in_invoice')
-            #         join account_invoice_line ail on (ail.invoice_id = ai.id)
-            #         join account_invoice_line_tax ailt on (ailt.invoice_line_id=ail.id)
-            #         join account_tax at on (at.id=ailt.tax_id)
-            #         where at.description ~'STax' and at.amount>0 and aml.account_id in (506)
-            #         and am.date < '%s'
-            #         group by aml.id 
-            #         order by aml.id)a
-            #         '''%(date_from)
-            #     cr.execute(sql)
-            #     for move in cr.dictfetchall():
-            #         if move['taxamount']:
-            #             openbalance += move['taxamount']                    
-            #             return openbalance or 0.00
-            #         
-            # elif code == '0000119926':            
-            #     sql = '''
-            #         select COALESCE(sum(a.debit),0) as taxamount from(
-            #         select sum(aml.debit) as debit,aml.id
-            #         from account_move_line aml
-            #         inner join account_move am on (am.id=aml.move_id)
-            #         join account_invoice ai on (ai.move_id=am.id and ai.type = 'in_invoice')
-            #         join account_invoice_line ail on (ail.invoice_id = ai.id)
-            #         join account_invoice_line_tax ailt on (ailt.invoice_line_id=ail.id)
-            #         join account_tax at on (at.id=ailt.tax_id)
-            #         where at.description ~'STax' and at.amount>0 and aml.account_id in (507)
-            #         and am.date < '%s'
-            #         group by aml.id 
-            #         order by aml.id)a
-            #         '''%(date_from)
-            #     cr.execute(sql)
-            #     for move in cr.dictfetchall():
-            #         if move['taxamount']:
-            #             openbalance += move['taxamount']                    
-            #             return openbalance or 0.00            
-            # 
-            # else:
-            #===================================================================
+           
                 
             sql = '''
                     select COALESCE(sum(a.debit),0) as taxamount from(
@@ -646,87 +290,7 @@ class service_tax_register(osv.osv_memory):
             balance = 0.0
             
             
-            #===================================================================
-            # sql = '''
-            #     select COALESCE(sum(a.taxamt),0) as taxamount from( 
-            #     select case when COALESCE(sum(ail.line_net*(at.amount/100)), 0) = 0 then 0
-            #     else sum(ail.line_net*(at.amount/100)) end as taxamt,ail.id
-            #     from account_invoice_line ail
-            #     join account_invoice ai on (ai.id=ail.invoice_id and ai.type = 'in_invoice')
-            #     JOIN account_invoice_line_tax ailt on (ailt.invoice_line_id=ail.id)
-            #     Join account_tax at on (at.id=ailt.tax_id and at.gl_account_id=%s)
-            #     where at.description ~'STax' and at.amount>0
-            #     and ai.date_invoice between '%s' and '%s'
-            #     group by ail.id 
-            #     order by ail.id)a
-            #     '''%(account_id.id,date_from,date_to)
-            #===================================================================
-            
-            
-            #===================================================================
-            # if code == '0000119905':
-            #     sql = '''
-            #         select COALESCE(sum(a.debit),0) as debit from( 
-            #         select sum(aml.debit) as debit,ail.id
-            #         from account_invoice_line ail
-            #         join account_invoice ai on (ai.id=ail.invoice_id and ai.type = 'in_invoice')
-            #         JOIN account_invoice_line_tax ailt on (ailt.invoice_line_id=ail.id)
-            #         Join account_tax at on (at.id=ailt.tax_id and at.gl_account_id in (402))
-            #         join account_move_line aml on (aml.move_id=ai.move_id and aml.account_id in (402))
-            #         where at.description ~'STax' and at.amount>0
-            #         and ai.date_invoice between '%s' and '%s'
-            #         group by ail.id 
-            #         order by ail.id)a
-            #         '''%(date_from,date_to)
-            #     
-            #     cr.execute(sql)
-            #     for move in cr.dictfetchall():
-            #         total += move['debit']               
-            #     return round(total,0) or 0.00
-            #     
-            #     
-            # 
-            # elif code == '0000119925':
-            #     sql = '''
-            #         select COALESCE(sum(a.debit),0) as debit from( 
-            #         select sum(aml.debit) as debit,ail.id
-            #         from account_invoice_line ail
-            #         join account_invoice ai on (ai.id=ail.invoice_id and ai.type = 'in_invoice')
-            #         JOIN account_invoice_line_tax ailt on (ailt.invoice_line_id=ail.id)
-            #         Join account_tax at on (at.id=ailt.tax_id and at.gl_account_id in (506))
-            #         join account_move_line aml on (aml.move_id=ai.move_id and aml.account_id in (506))
-            #         where at.description ~'STax' and at.amount>0
-            #         and ai.date_invoice between '%s' and '%s'
-            #         group by ail.id 
-            #         order by ail.id)a
-            #         '''%(date_from,date_to)
-            #     
-            #     cr.execute(sql)
-            #     for move in cr.dictfetchall():
-            #         total += move['debit']               
-            #     return round(total,0) or 0.00
-            # 
-            # elif code == '0000119926':
-            #     sql = '''
-            #         select COALESCE(sum(a.debit),0) as debit from( 
-            #         select sum(aml.debit) as debit,ail.id
-            #         from account_invoice_line ail
-            #         join account_invoice ai on (ai.id=ail.invoice_id and ai.type = 'in_invoice')
-            #         JOIN account_invoice_line_tax ailt on (ailt.invoice_line_id=ail.id)
-            #         Join account_tax at on (at.id=ailt.tax_id and at.gl_account_id in (507))
-            #         join account_move_line aml on (aml.move_id=ai.move_id and aml.account_id in (507))
-            #         where at.description ~'STax' and at.amount>0
-            #         and ai.date_invoice between '%s' and '%s'
-            #         group by ail.id 
-            #         order by ail.id)a
-            #         '''%(date_from,date_to)
-            #     
-            #     cr.execute(sql)
-            #     for move in cr.dictfetchall():
-            #         total += move['debit']               
-            #     return round(total,0) or 0.00
-            # else:
-            #===================================================================
+           
                 
             sql = '''
                     select COALESCE(sum(a.debit),0) as debit from( 
@@ -786,11 +350,45 @@ class service_tax_register(osv.osv_memory):
             invoice_ids = [r[0] for r in cr.fetchall()]
             return invoice_obj.browse(cr,uid,invoice_ids)        
            
-        
+        def get_voucher(o): #TPT-BM-for adding journal voucher with service tax report on 30/03/2016
+            res = {}
+            date_from = o.date_from
+            date_to = o.date_to
+            account_id = o.account_id.id            
+            account_obj = self.pool.get('account.account')
+            act_abj = account_obj.browse(cr,uid,account_id)
+            code = act_abj.code
+            invoice_obj = self.pool.get('account.move.line')
+           
+            sql = '''
+                select av.date as date, null as bill_no, null as bill_date,
+            av.number as number, null as invoice_id, null as party_name,
+            null as partner_id, 0 as open_bal, 0 as taxable_amount, 
+            null as service_tax_rate, avl.amount as service_tax, 
+            0 as total, 0 as debit, 0 as closing_bal
+    
+            from account_voucher_line avl
+            inner join account_voucher av on avl.voucher_id=av.id
+            inner join account_account aa on avl.account_id=aa.id
+            inner join account_move am on av.move_id=am.id
+            where aa.id=%s  
+            '''%(account_id)
+            if date_from and date_to is False:
+                str = " and av.date <= %s"%(date_from)
+                sql = sql+str
+            if date_to and date_from is False:
+                str = " and av.date <= %s"%(date_to)
+                sql = sql+str
+            if date_to and date_from:
+                str = " and av.date between '%s' and '%s'"%(date_from,date_to)
+                sql = sql+str                      
+            cr.execute(sql)   
+            return cr.dictfetchall()
         cr.execute('delete from tpt_service_tax')
         sr_obj = self.pool.get('tpt.service.tax')
         sr = self.browse(cr, uid, ids[0])
         sr_line = []
+        sr_line_voucher = []
         openbalance=get_opening_balance(sr)
         debit_total=get_debit_balance(sr)
         temp_taxamt = 0.00
@@ -827,7 +425,26 @@ class service_tax_register(osv.osv_memory):
                 temp_taxamt+=line.debit or 0.00                
             #temp_taxamt+=(line.line_net * (tax_amt/100))
             #temp_taxamt+=get_tax_amnt(sr,line.id)
-        
+        ### Adding Journal Entries
+        for line in get_voucher(sr):
+            sr_line_voucher.append((0,0,{
+                'date': line['date'], 
+                'bill_no': line['bill_no'], 
+                'bill_date': line['bill_date'], 
+                'number': line['number'],  
+                'invoice_id': line['invoice_id'], 
+                'party_name': line['party_name'], 
+                'partner_id': line['partner_id'], 
+                'open_bal': line['open_bal'],      
+                'taxable_amount': line['taxable_amount'], 
+                'service_tax_rate': line['service_tax_rate'], 
+                'service_tax': line['service_tax'], 
+                'total': line['total'] or 0.00,
+                'debit': 0.00,
+                'closing_bal': line['closing_bal'] or 0.00, #Added by TPT-Y
+            }))
+            temp_taxamt+=line['debit'] or 0.00 
+        sr_line = sr_line + sr_line_voucher #TPT_BM_30/03/2016
         sr_line.append((0,0,{
              #'open_bal':openbalance+temp_taxamt,
             #'total':round(openbalance+temp_taxamt,0) or 0.00, #get_tot_closing_bal(sr),

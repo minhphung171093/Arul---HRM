@@ -63,8 +63,10 @@ class tpt_daily_filo_time_line(osv.osv_memory):
         'desgn': fields.char('Designation', size = 1024),
         'dept': fields.char('Department', size = 1024),
         'emp_cat': fields.char('Employee Category', size = 1024),
-        'in_time': fields.char('In Time', size = 1024),
-        'out_time': fields.char('Out Time', size = 1024),
+        'in_time': fields.char('Audit Punch In', size = 1024),
+        'out_time': fields.char('Audit Punch Out', size = 1024),
+        'ref_in_time': fields.char('Machine Punch In', size = 1024),
+        'ref_out_time': fields.char('Machine Punch Out', size = 1024),
         'work_day': fields.date('Work Date'),  
         'seq_no': fields.float('Seq'), 
  }
@@ -127,8 +129,9 @@ class tpt_daily_filo_time(osv.osv_memory):
                 select distinct hr.employee_id as emp_code,hr.name_related as emp_name,
                 j.name as desgn,d.name as dept,hst.work_date as work_date,hr.employee_category_id as emp_categ_id,hr.department_id as dept_id,
                 (select name from vsis_hr_employee_category where id=hr.employee_category_id) emp_cat,
-                hst.in_time, hst.out_time
-                from arul_hr_punch_in_out_time hst
+                hst.in_time, hst.out_time, hst.ref_in_time, hst.ref_out_time
+                --from arul_hr_punch_in_out_time hst
+                from arul_hr_audit_shift_time hst
                 inner join hr_employee hr on (hr.id = hst.employee_id)
                 inner join hr_department d on (d.id = hr.department_id)
                 inner join hr_job j on (j.id = hr.job_id)
@@ -159,6 +162,8 @@ class tpt_daily_filo_time(osv.osv_memory):
                 'emp_cat': line['emp_cat'],
                 'in_time':  line['in_time'], #get_time_in_out(line['work_date'],line['emp_categ_id'],line['dept_id'],'in_time') or 0,  #line['in_time'],
                 'out_time':  line['out_time'], #get_time_in_out(line['work_date'],line['emp_categ_id'],line['dept_id'],'out_time') or 0, #line['out_time'],
+                'ref_in_time':  line['ref_in_time'], 
+                'ref_out_time':  line['ref_out_time'],
                 'work_day': line['work_date'],
                
             }))
