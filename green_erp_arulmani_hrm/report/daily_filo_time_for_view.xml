@@ -78,7 +78,9 @@
 		                			<field name="emp_name"/>		                			
 		                			<field name="desgn"/>
 		                			<field name="dept"/>		                			
-		                			<field name="emp_cat"/>		                			
+		                			<field name="emp_cat"/>	
+		                			<field name="ref_in_time" widget = "float_time"/>
+		                			<field name="ref_out_time" widget = "float_time"/>	                			
 		                			<field name="in_time" widget = "float_time"/>
 		                			<field name="out_time" widget = "float_time"/>
 		                			<field name="work_day"/>

@@ -92,7 +92,7 @@
 		                			<field name="date"/>
 		                			<field name="bill_no"/>                			
 		                			<field name="bill_date"/>
-		                			<!-- <field name="number"/>   -->
+		                			<field name="number"/>  
 		                			<field name="invoice_id"/> 
 		                			<field name="partner_id"/> 
 		                			<!-- <field name="party_name"/>  -->
