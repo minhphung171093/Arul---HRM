@@ -213,6 +213,7 @@
                             <field name="discount" invisible = '1' groups="sale.group_discount_per_so_line"/>
                             <field name="invoice_line_tax_id" widget="many2many_tags" context="{'type':parent.type}"
                                 domain="[('parent_id','=',False),('company_id', '=', parent.company_id)]"/>
+                            <field name="wform_tax_amt"/>
                             <field name="price_subtotal"/>
                         </tree>
                     </field>

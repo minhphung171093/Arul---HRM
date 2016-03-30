@@ -3701,18 +3701,47 @@ class tpt_update_stock_move_report(osv.osv):
         #     move_obj.button_validate(cr,uid, [move_id], context)
         # return self.write(cr, uid, ids, {'result':'Production Auto Posting Done'})  
         #=======================================================================
+        #=======================================================================
+        # acc_obj = self.pool.get('account.invoice')
+        # acc_line_obj = self.pool.get('account.invoice.line')
+        # acc_ids = acc_obj.search(cr, uid, [('doc_type','=','supplier_invoice')])
+        # invoice_id = acc_obj.browse(cr, uid, acc_ids)
+        # #print len(acc_ids)
+        # #i = 1
+        # for inv_id in invoice_id:  
+        #     i = 1
+        #     for acc_line_id in inv_id.invoice_line:  
+        #         vals = {'line_no': i}
+        #         acc_line_obj.write(cr, uid, [acc_line_id.id], vals)
+        #         i+=1
+        # return True
+        #=======================================================================
         acc_obj = self.pool.get('account.invoice')
         acc_line_obj = self.pool.get('account.invoice.line')
+        inv_tax_obj = self.pool.get('account.invoice.line.tax')
         acc_ids = acc_obj.search(cr, uid, [('doc_type','=','supplier_invoice')])
         invoice_id = acc_obj.browse(cr, uid, acc_ids)
-        #print len(acc_ids)
-        #i = 1
-        for inv_id in invoice_id:  
-            i = 1
-            for acc_line_id in inv_id.invoice_line:  
-                vals = {'line_no': i}
-                acc_line_obj.write(cr, uid, [acc_line_id.id], vals)
-                i+=1
+        sql = '''
+        select ail.id from account_invoice_line ail
+         inner join account_invoice ai on ail.invoice_id=ai.id
+         where ai.doc_type='supplier_invoice_without'          
+         and ail.id not in (
+        select invoice_line_id from account_invoice_line_tax where invoice_line_id in (
+         select ail.id from account_invoice_line ail
+         inner join account_invoice ai on ail.invoice_id=ai.id
+         where ai.doc_type='supplier_invoice_without'
+         )
+        )
+        '''
+        cr.execute(sql)
+        inv_ids = [r[0] for r in cr.fetchall()]
+        for line in acc_line_obj.browse(cr, uid, inv_ids):
+            print line.tax_id
+            if line.tax_id:
+                sql = '''
+                insert into account_invoice_line_tax (invoice_line_id, tax_id) values (%s, %s)
+                '''%(line.id, line.tax_id and line.tax_id.id)
+                cr.execute(sql)
         return True
      
     def config_GRN_3451_3883(self, cr, uid, ids, context=None):
