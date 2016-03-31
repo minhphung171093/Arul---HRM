@@ -203,14 +203,14 @@ class tds_form_report(osv.osv_memory):
                         ai.name as invoicedocno, ai.date_invoice as postingdate,
                         ai.bill_number as bill_no,ai.bill_date as bill_date,
                         ail.amount_basic as base_amnt, at.name as tax_deduction, 
-                        --cast(round((ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
+                        --cast(round((ail.amount_basic)*at.amount/100,2) As decimal(8, 2)) as tdsamount, 
                         case when  am.doc_type='freight' then
                         case when ail.fright_fi_type='3' then
                         cast(round((cast(coalesce(ail.fright,0) As decimal(8,2))*quantity)*at.amount/100,0) As decimal(8, 2))
                         else
                         cast(round((cast(coalesce(ail.fright,0) As decimal(8,2)))*at.amount/100,0) As decimal(8, 2))
                         end
-                        else cast(round((ail.amount_basic)*at.amount/100,0) As decimal(8, 2))
+                        else cast(round((ail.amount_basic)*at.amount/100,2) As decimal(8, 2))
                         end as tdsamount,
                         ai.vendor_ref as ven_ref, ai.number as gl_doc,at.section as sec
                         from account_invoice_line ail
