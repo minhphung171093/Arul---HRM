@@ -254,9 +254,22 @@ class tpt_notification(osv.osv):
         'state':'draft',
     }
     def create(self, cr, uid, vals, context=None):
-        if vals.get('name','/')=='/':
-            sequence = self.pool.get('ir.sequence').get(cr, uid, 'tpt.notification.seq')
-            vals['name'] =  sequence
+#         if vals.get('name','/')=='/':
+#             sequence = self.pool.get('ir.sequence').get(cr, uid, 'tpt.notification.seq')
+#             vals['name'] =  sequence
+        #TPT START - By P.Vinothkumar - ON 29/03/2016 - FOR (Modify Document Sequence change)
+        if 'notif_type' in vals:
+            sql = '''
+                select code from account_fiscalyear where '%s' between date_start and date_stop
+            '''%(time.strftime('%Y-%m-%d'))
+            cr.execute(sql)
+            fiscalyear = cr.dictfetchone()
+            if not fiscalyear:
+                raise osv.except_osv(_('Warning!'),_('Financial year has not been configured. !'))
+            if vals.get('name','/')=='/':
+                sequence = self.pool.get('ir.sequence').get(cr, uid, 'tpt.notification.seq') or '/'
+                vals['name'] =  sequence and sequence+'/'+fiscalyear['code'] or '/'
+          #TPT END
         new_id = super(tpt_notification, self).create(cr, uid, vals, context=context)
         if vals.get('notif_type',False)=='break':
             sql = '''
@@ -519,9 +532,22 @@ class tpt_maintenance_oder(osv.osv):
         'state':'draft',
     }
     def create(self, cr, uid, vals, context=None):
-        if vals.get('name','/')=='/':
-            sequence = self.pool.get('ir.sequence').get(cr, uid, 'tpt.maintenance.oder.seq')
-            vals['name'] =  sequence
+#         if vals.get('name','/')=='/':
+#             sequence = self.pool.get('ir.sequence').get(cr, uid, 'tpt.maintenance.oder.seq')
+#             vals['name'] =  sequence
+     #TPT START - By P.Vinothkumar - ON 29/03/2016 - FOR (Modify Document Sequence change)
+        if 'notif_type' in vals:
+            sql = '''
+                select code from account_fiscalyear where '%s' between date_start and date_stop
+            '''%(time.strftime('%Y-%m-%d'))
+            cr.execute(sql)
+            fiscalyear = cr.dictfetchone()
+            if not fiscalyear:
+                raise osv.except_osv(_('Warning!'),_('Financial year has not been configured. !'))
+            if vals.get('name','/')=='/':
+                sequence = self.pool.get('ir.sequence').get(cr, uid, 'tpt.maintenance.oder.seq') or '/'
+                vals['name'] =  sequence and sequence+'/'+fiscalyear['code'] or '/'
+          #TPT END
         new_id = super(tpt_maintenance_oder, self).create(cr, uid, vals, context=context)
         return new_id
     

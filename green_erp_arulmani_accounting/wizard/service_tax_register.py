@@ -461,7 +461,7 @@ class service_tax_register(osv.osv_memory):
         
         sr_line.append((0,0,{            
             'service_tax_rate' : 'Total',   
-            'service_tax': get_total(get_invoice(sr)) or 0.00,     #get_total_service_tax(sr),
+            'service_tax': temp_taxamt, #TPT_BM ON 30/03/2016 #get_total(get_invoice(sr)) or 0.00,     #get_total_service_tax(sr),
                  
             
         }))        

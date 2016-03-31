@@ -1728,8 +1728,21 @@ class tpt_purchase_quotation(osv.osv):
 #         return {'value': {'purchase_quotation_line': rfq_no_line}}
     
     def create(self, cr, uid, vals, context=None):
-        if vals.get('name','/')=='/':
-            vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'purchase.quotation') or '/'
+#         if vals.get('name','/')=='/':
+#             vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'purchase.quotation') or '/'
+    #TPT START - By P.Vinothkumar - ON 29/03/2016 - FOR (Modify Document Sequence change)
+        if 'rfq_no_id' in vals:
+            sql = '''
+                select code from account_fiscalyear where '%s' between date_start and date_stop
+            '''%(time.strftime('%Y-%m-%d'))
+            cr.execute(sql)
+            fiscalyear = cr.dictfetchone()
+            if not fiscalyear:
+                raise osv.except_osv(_('Warning!'),_('Financial year has not been configured. !'))
+            if vals.get('name','/')=='/':
+                sequence = self.pool.get('ir.sequence').get(cr, uid, 'purchase.quotation') or '/'
+                vals['name'] =  sequence and sequence+'/'+fiscalyear['code'] or '/'
+           #TPT End
         if 'rfq_no_id' in vals:
             cate = self.pool.get('tpt.request.for.quotation').browse(cr, uid, vals['rfq_no_id'])
             vals.update({
@@ -3158,8 +3171,20 @@ class purchase_order(osv.osv):
         return {'value':vals,'warning':warning}
    
     def _prepare_order_picking(self, cr, uid, order, context=None):
-        return {
-            'name': self.pool.get('ir.sequence').get(cr, uid, 'stock.picking.in'),
+        #TPT START - By P.Vinothkumar - ON 29/03/2016 - FOR (Modify Document Sequence change)
+            sql = '''
+                select code from account_fiscalyear where '%s' between date_start and date_stop
+            '''%(time.strftime('%Y-%m-%d'))
+            cr.execute(sql)
+            fiscalyear = cr.dictfetchone()
+            if not fiscalyear:
+                raise osv.except_osv(_('Warning!'),_('Financial year has not been configured. !'))
+            sequence = self.pool.get('ir.sequence').get(cr, uid, 'stock.picking.in') or '/'
+            GRN_No =  sequence and sequence+'/'+fiscalyear['code'] or '/'
+          ##TPT END
+            return {
+            #'name': self.pool.get('ir.sequence').get(cr, uid, 'stock.picking.in'),
+            'name': GRN_No,
             'origin': order.name + ((order.origin and (':' + order.origin)) or ''),
             'date': self.date_to_datetime(cr, uid, order.date_order, context),
             'partner_id': order.partner_id.id,
@@ -4588,8 +4613,21 @@ class tpt_request_for_quotation(osv.osv):
         return True
     
     def create(self, cr, uid, vals, context=None):
-        if vals.get('name','/')=='/':
-            vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.rfq.import') or '/'
+#         if vals.get('name','/')=='/':
+#             vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.rfq.import') or '/'
+        #TPT START - By P.Vinothkumar - ON 29/03/2016 - FOR (Modify Document Sequence change)
+        if 'po_document_type' in vals:
+            sql = '''
+                select code from account_fiscalyear where '%s' between date_start and date_stop
+            '''%(time.strftime('%Y-%m-%d'))
+            cr.execute(sql)
+            fiscalyear = cr.dictfetchone()
+            if not fiscalyear:
+                raise osv.except_osv(_('Warning!'),_('Financial year has not been configured. !'))
+            if vals.get('name','/')=='/':
+                sequence = self.pool.get('ir.sequence').get(cr, uid, 'tpt.rfq.import') or '/'
+                vals['name'] =  sequence and sequence+'/'+fiscalyear['code'] or '/'
+          #TPT END
         new_id = super(tpt_request_for_quotation, self).create(cr, uid, vals, context)
         rfq = self.browse(cr,uid,new_id)
 #         for line in rfq.rfq_line:
