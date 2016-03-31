@@ -368,6 +368,45 @@ class Parser(report_sxw.rml_parse):
             self.cr.execute(sql)
             invoice_ids = [r[0] for r in self.cr.fetchall()]
             return invoice_obj.browse(self.cr,self.uid,invoice_ids)
+        
+    def get_voucher(self):
+            wizard_data = self.localcontext['data']['form']
+            date_from = wizard_data['date_from']
+            date_to = wizard_data['date_to']
+            accountid = wizard_data['account_id']                       
+            account_obj = self.pool.get('account.account')
+            act_abj = account_obj.browse(self.cr,self.uid,accountid[0])               
+            code = act_abj.id            
+            invoice_obj = self.pool.get('account.move.line')
+            
+           
+            sql = '''
+                        select aml.id
+                        from account_move_line aml
+                        inner join account_move am on (am.id=aml.move_id)
+                        join account_invoice ai on (ai.move_id=am.id and ai.type = 'in_invoice')
+                        join account_invoice_line ail on (ail.invoice_id = ai.id and aml.name = ail.name)
+                        join account_invoice_line_tax ailt on (ailt.invoice_line_id=ail.id)
+                        join account_tax at on (at.id=ailt.tax_id)
+                        where at.description ~'STax' and at.amount>0
+                        and at.is_stax_report = 't'                                                       
+                        '''
+            if date_from and date_to is False:
+                    str = " and am.date <= %s"%(date_from)
+                    sql = sql+str
+            if date_to and date_from is False:
+                    str = " and am.date <= %s"%(date_to)
+                    sql = sql+str
+            if date_to and date_from:
+                    str = " and am.date between '%s' and '%s'"%(date_from,date_to)
+                    sql = sql+str
+            if accountid[0]:
+                    str = "  and aml.account_id = %s "%(accountid[0])
+                    sql = sql+str
+            sql=sql+" order by aml.id"
+            self.cr.execute(sql)
+            invoice_ids = [r[0] for r in self.cr.fetchall()]
+            return invoice_obj.browse(self.cr,self.uid,invoice_ids)
    
     def get_tax(self, invoice_line_tax_id):
         tax_amounts = 0

@@ -4,7 +4,7 @@
     	<record id="service_tax_report" model="ir.actions.report.xml">
 	        <field name="name">service_tax_report</field>
 	        <field name="type">ir.actions.report.xml</field>
-	        <field name="model">service.tax.register</field>
+	        <field name="model">tpt.service.tax</field>
 	        <field name="report_name">service_tax_report</field>
 	        <field name="report_type">aeroo</field>
 	        <field name="in_format">oo-ods</field>
@@ -20,7 +20,7 @@
 			auto="True" 
 			menu="False"
 			id="service_tax_report" 
-			model="service.tax.register" 
+			model="tpt.service.tax" 
 			name="service_tax_report"
 	        string="Service Tax Register Report"
 	        rml="green_erp_arulmani_accounting/report/service_tax_report.ods"/>
@@ -44,7 +44,7 @@
 			auto="True" 
 			menu="False"
 			id="service_tax_report_pdf" 
-			model="service.tax.register" 
+			model="tpt.service.tax" 
 			name="service_tax_report_pdf"
 	        string="Service Tax Register Report"
 	        rml="green_erp_arulmani_accounting/report/service_tax_report.ods"/>	
