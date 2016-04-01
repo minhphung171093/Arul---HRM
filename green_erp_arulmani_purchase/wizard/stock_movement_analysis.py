@@ -2344,18 +2344,37 @@ class stock_movement_analysis(osv.osv_memory):
                                                 
                                                 
         }))
-        ###
         if stock.categ_id.cate_name=='finish':
             location_id=13
+            res = []
+            res1 = []
             if stock.product_ids:
                 product = stock.product_ids
                 product_ids = [r.id for r in stock.product_ids]
                 product_ids = str(product_ids).replace("[", "")
                 product_ids = product_ids.replace("]", "")
-                if product_ids==4:
-                    location_id=13
-                elif product_ids==2:
-                    location_id=25
+                for product1 in product_ids:
+                    if product_ids=='2': 
+                        location_id=25 #FSH
+                    elif product_ids=='3': 
+                        location_id=26 #Ferric Sulphate
+                    elif product_ids=='4': 
+                        location_id=13  #TIO2
+                    elif product_ids=='5': 
+                        location_id=27  #Effluent 
+                    elif product_ids=='6': 
+                        location_id=23  #Physical Locations / VVTi Pigments / Production Line / Raw Material   
+                    elif product_ids=='7':  
+                        location_id=23  #Physical Locations / VVTi Pigments / Production Line / Raw Material      
+                    elif product_ids=='9':  
+                        location_id=13  #TIO2 
+                    elif product_ids=='10745':  
+                       location_id=23  #Physical Locations / VVTi Pigments / Production Line / Raw Material 
+                    elif product_ids=='12906':  
+                       location_id=24  #Other        
+                    elif product_ids=='13030':  
+                       location_id=24  #Other   
+                        
                 sql = ''' select pp.default_code, pp.name_template as name, pu.name uom, 
                 (SELECT sum(onhand_qty) onhand_qty From
                 (SELECT 
@@ -2372,23 +2391,13 @@ class stock_movement_analysis(osv.osv_memory):
                 ---------
                 0 as opening_stock_value,
                 --------
-                (select case when sum(st.product_qty)!=0 then sum(st.product_qty) else 0 end ton_sl
-                from stock_move st
-                join stock_location loc1 on st.location_id=loc1.id
-                join stock_location loc2 on st.location_dest_id=loc2.id
-                where st.state='done' and st.location_id=7 and location_dest_id=13
-                and st.product_id=pp.id
-                and st.state = 'done'
-                and st.date between '%(date_from)s' and '%(date_to)s') as receipt_qty,
+                (select case when sum(product_qty)!=0 then sum(product_qty) else 0 end ton_sl
+                from mrp_production where product_id=%(product_id)s and 
+                date_planned between '%(date_from)s' and '%(date_to)s') as receipt_qty,
                  --------------
-                (select case when sum(st.product_qty*st.price_unit)!=0 then sum(st.product_qty*st.price_unit) else 0 end ton_sl
-                from stock_move st
-                join stock_location loc1 on st.location_id=loc1.id
-                join stock_location loc2 on st.location_dest_id=loc2.id
-                where st.state='done' and st.location_id=7 and location_dest_id=13
-                and st.product_id=pp.id
-                and st.state = 'done'
-                and st.date between '%(date_from)s' and '%(date_to)s') as receipt_value,
+                (select case when sum(product_qty)!=0 then sum(product_qty) else 0 end ton_sl
+                from mrp_production where product_id=%(product_id)s and 
+                date_planned between '%(date_from)s' and '%(date_to)s') as receipt_value,
                 ---------
                 (select case when sum(ail.quantity)!=0 then sum(ail.quantity) else 0 end quans from account_invoice_line ail
                  inner join account_invoice ai on ail.invoice_id=ai.id
@@ -2415,88 +2424,129 @@ class stock_movement_analysis(osv.osv_memory):
                     #'location_dest_id':9,
                     'product_id':product_ids
                     }
-                cr.execute(sql) 
+                cr.execute(sql)
+                res = cr.dictfetchall() 
                 #print sql
                 '''
                 select case when sum(product_qty)!=0 then sum(product_qty) else 0 end ton_sl
                 from mrp_production where product_id=4 and date_planned between '2016-01-01' and '2016-01-31'
                 '''
             else:
-                sql = ''' select pp.default_code, pp.name_template as name, pu.name uom, 
-                ---------------------
-                (SELECT sum(onhand_qty) onhand_qty From
-                (SELECT 
-                case when loc1.usage != 'internal' and loc2.usage = 'internal'
-                then stm.primary_qty else
-                case when loc1.usage = 'internal' and loc2.usage != 'internal'
-                then -1*stm.primary_qty 
-                else 0.0 end
-                end onhand_qty          
-                FROM stock_move stm 
-                join stock_location loc1 on stm.location_id=loc1.id
-                join stock_location loc2 on stm.location_dest_id=loc2.id
-                WHERE stm.state= 'done' and stm.product_id=pp.id and stm.date<'%(date_from)s')foo) as opening_stock,
-                ---------------------
-                0 as opening_stock_value,
-                -------------------
-               (select case when sum(product_qty)!=0 then sum(product_qty) else 0 end ton_sl
-                from mrp_production where product_id=4 and 
-                date_planned between '%(date_from)s' and '%(date_to)s') as receipt_qty,
-                 --------------
-                (select case when sum(st.product_qty*st.price_unit)!=0 then sum(st.product_qty*st.price_unit) else 0 end ton_sl
-                from stock_move st
-                join stock_location loc1 on st.location_id=loc1.id
-                join stock_location loc2 on st.location_dest_id=loc2.id
-                where st.state='done' and st.location_id=7 and location_dest_id=13
-                and st.product_id=pp.id
-                and st.state = 'done'
-                and st.date between '%(date_from)s' and '%(date_to)s') as receipt_value,
-                ---------
-                (select case when sum(st.product_qty)!=0 then sum(st.product_qty) else 0 end ton_sl
-                from stock_move st
-                join stock_location loc1 on st.location_id=loc1.id
-                join stock_location loc2 on st.location_dest_id=loc2.id
-                where st.state='done' and st.location_id=%(location_id)s and location_dest_id=9 
-                and st.product_id=pp.id
-                and st.state = 'done'
-                and st.date between '%(date_from)s' and '%(date_to)s') as consum_qty,
-                ---------
-                (select case when sum(st.product_qty*st.price_unit)!=0 then sum(st.product_qty*st.price_unit) else 0 end ton_sl
-                from stock_move st
-                join stock_location loc1 on st.location_id=loc1.id
-                join stock_location loc2 on st.location_dest_id=loc2.id
-                where st.state='done' and st.location_id=%(location_id)s and location_dest_id=9 
-                and st.product_id=pp.id
-                and st.state = 'done'
-                and st.date between '%(date_from)s' and '%(date_to)s') as consum_value,
-                ----------------
-                pp.id as product_id
+                prod_obj = self.pool.get('product.product')
+                prod_ids = prod_obj.search(cr, uid, [('cate_name', '=', 'finish')])
+                for product_ids in prod_ids:
+                    #product_ids = product_ids.id
+                    if product_ids=='2': 
+                        location_id=25 #FSH
+                    elif product_ids=='3': 
+                        location_id=26 #Ferric Sulphate
+                    elif product_ids=='4': 
+                        location_id=13  #TIO2
+                    elif product_ids=='5': 
+                        location_id=27  #Effluent 
+                    elif product_ids=='6': 
+                        location_id=23  #Physical Locations / VVTi Pigments / Production Line / Raw Material   
+                    elif product_ids=='7':  
+                        location_id=23  #Physical Locations / VVTi Pigments / Production Line / Raw Material      
+                    elif product_ids=='9':  
+                        location_id=13  #TIO2 
+                    elif product_ids=='10745':  
+                       location_id=23  #Physical Locations / VVTi Pigments / Production Line / Raw Material 
+                    elif product_ids=='12906':  
+                       location_id=24  #Other        
+                    elif product_ids=='13030':  
+                       location_id=24  #Other   
+                    sql = ''' select pp.default_code, pp.name_template as name, pu.name uom, 
+                    ---------------------
+                    (SELECT sum(onhand_qty) onhand_qty From
+                    (SELECT 
+                    case when loc1.usage != 'internal' and loc2.usage = 'internal'
+                    then stm.primary_qty else
+                    case when loc1.usage = 'internal' and loc2.usage != 'internal'
+                    then -1*stm.primary_qty 
+                    else 0.0 end
+                    end onhand_qty          
+                    FROM stock_move stm 
+                    join stock_location loc1 on stm.location_id=loc1.id
+                    join stock_location loc2 on stm.location_dest_id=loc2.id
+                    WHERE stm.state= 'done' and stm.product_id=pp.id and stm.date<'%(date_from)s')foo) as opening_stock,
+                    ---------------------
+                    0 as opening_stock_value,
+                    -------------------
+                   (select case when sum(product_qty)!=0 then sum(product_qty) else 0 end ton_sl
+                    from mrp_production where product_id='%(product_id)s' and 
+                    date_planned between '%(date_from)s' and '%(date_to)s') as receipt_qty,
+                     --------------
+                    (select case when sum(st.product_qty*st.price_unit)!=0 then sum(st.product_qty*st.price_unit) else 0 end ton_sl
+                    from stock_move st
+                    join stock_location loc1 on st.location_id=loc1.id
+                    join stock_location loc2 on st.location_dest_id=loc2.id
+                    where st.state='done' and st.location_id=7 and location_dest_id=13
+                    and st.product_id=pp.id
+                    and st.state = 'done'
+                    and st.date between '%(date_from)s' and '%(date_to)s') as receipt_value,
+                    ---------
+                    (select case when sum(ail.quantity)!=0 then sum(ail.quantity) else 0 end quans from account_invoice_line ail
+                     inner join account_invoice ai on ail.invoice_id=ai.id
+                     where ai.state!='cancel' 
+                     and ail.product_id=pp.id
+                     and ai.date_invoice  between '%(date_from)s' and '%(date_to)s') as consum_qty,
+                    ---------
+                    (select case when sum(ail.quantity)!=0 then sum(ail.quantity) else 0 end quans from account_invoice_line ail
+                     inner join account_invoice ai on ail.invoice_id=ai.id
+                     where ai.state!='cancel' 
+                     and ail.product_id=pp.id
+                     and ai.date_invoice  between '%(date_from)s' and '%(date_to)s') as consum_value,
+                    ----------------
+                    pp.id as product_id
+                    
+                    from product_product pp
+                    inner join product_template pt on  pp.product_tmpl_id=pt.id
+                    inner join product_uom pu on pt.uom_id=pu.id
+                    where pp.cate_name='finish' and pp.id=%(product_id)s
+                    order by pp.default_code
+                    '''%{'date_from':stock.date_from,
+                        'date_to':stock.date_to,
+                        'location_id':location_id,
+                        'product_id':product_ids
+                        }
+                    cr.execute(sql)
+                    res_in = cr.dictfetchall()
+                    res1 = res1 + res_in
+                res = res + res1
                 
-                from product_product pp
-                inner join product_template pt on  pp.product_tmpl_id=pt.id
-                inner join product_uom pu on pt.uom_id=pu.id
-                where pp.cate_name='finish'
-                order by pp.default_code
-                '''%{'date_from':stock.date_from,
-                    'date_to':stock.date_to,
-                    'location_id':14,
-                    #'product_id':product_ids
-                    }
-                cr.execute(sql)
+            for line in res:
+                open_value = 0.0
+                receipt_value = 0.0
+                consum_value = 0.0
+                close_value = 0.0
+                close_stock = 0.0
                 
-            for line in cr.dictfetchall():
+                open_stock = 0
+                receipt_qty = 0
+                consum_qty =0
+                open_stock = line['opening_stock'] or 0
+                receipt_qty = line['receipt_qty'] or 0
+                consum_qty = line['consum_qty'] or 0
+                
+                
+                open_value = open_stock * finish_stock_value(line['product_id'], location_id)
+                receipt_value = receipt_qty * finish_stock_value(line['product_id'], location_id)                
+                consum_value = consum_qty * finish_stock_value(line['product_id'], location_id)
+                
                 move_analysis_line.append((0,0,{
                     'item_code': line['default_code'],
                     'item_name': line['name'],
                     'uom':line['uom'] or 0,
-                    'open_stock': line['opening_stock'] or 0,
-                    'open_value': line['opening_stock'] or 0 * finish_stock_value(line['product_id'], location_id) or 0,
-                    'receipt_qty':line['receipt_qty'] or 0,
-                    'receipt_value':line['receipt_qty'] or 0 * finish_stock_value(line['product_id'], location_id) or 0,
-                    'consum_qty':line['consum_qty'] or 0,
-                    'consum_value': line['consum_value'] or 0 , 
-                    'close_stock':line['opening_stock'] or 0+line['receipt_qty']-line['consum_qty'] or 0,
-                    'close_value':line['opening_stock_value']+line['receipt_value']-line['consum_value'], 
+                    'open_stock': line['opening_stock'],
+                    'open_value': open_value, #line['opening_stock'] or 0 * finish_stock_value(line['product_id'], location_id) or 0,
+                    'receipt_qty':line['receipt_qty'],
+                    'receipt_value':receipt_value, #line['receipt_qty'] or 0 * finish_stock_value(line['product_id'], location_id) or 0,
+                    'consum_qty':line['consum_qty'],
+                    'consum_value': consum_value, #line['consum_value'] or 0 , 
+                    'close_stock':open_stock + receipt_qty - consum_qty or 0,
+                    #'close_value':line['opening_stock_value']+line['receipt_value']-line['consum_value'],
+                    'close_value': open_value + receipt_value - consum_value, # Modified by P.VINOTHKUMAR for calculate close_value on 01/04/2016@6:33PM
                     'product_id': line['product_id'] or False,                              
                 })) 
         ###
