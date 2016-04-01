@@ -268,10 +268,11 @@ class ed_type_pop_up(osv.osv_memory):
                                    'debit': debit,
                                    'credit': 0,
                                            }))
-                
-                account_ids = self.pool.get('account.account').search(cr, uid, [('code','in',['0000119922'])])
+                #TPT-BM-ON 01/04/2016-TO CHANGE CR GL TYPE AS PER FS
+                #account_ids = self.pool.get('account.account').search(cr, uid, [('code','in',['0000119922'])]) 
+                account_ids = self.pool.get('account.account').search(cr, uid, [('code','in',['0000119915'])]) 
                 if not account_ids:
-                    raise osv.except_osv(_('Warning!'),_('Account is not null, please configure Account with code is 0000119922 in Account master !'))
+                    raise osv.except_osv(_('Warning!'),_('Account is not null, please configure Account with code is 0000119915 in Account master !'))
                 credit = ed_type.invoice_id.excise_duty
                 positing_line.append((0,0,{
                                    'gl_account_id': account_ids[0],
