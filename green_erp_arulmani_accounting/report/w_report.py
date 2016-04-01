@@ -163,7 +163,7 @@ class Parser(report_sxw.rml_parse):
         select  
         ai.name as inv_doc, at.description tax_name,rs.name partnername, rs.tin, ai.bill_number, ai.bill_date,ai.date_invoice,
         sum(ail.wform_tax_amt) as paid_amt_1,
-        0 as vatbased_qty, null as uom, null as productname, 0 as vatbased_amt, sp.name grn,ai.number as number
+        sum(ail.quantity) as vatbased_qty, null as uom, ail.name as productname, sum(ail.line_net) as vatbased_amt, sp.name grn,ai.number as number
         from account_invoice ai
             inner join account_invoice_line ail on ai.id=ail.invoice_id
             inner join account_invoice_line_tax ailt on (ailt.invoice_line_id=ail.id)
@@ -173,18 +173,20 @@ class Parser(report_sxw.rml_parse):
             where ai.date_invoice between '%s' and '%s' and
             at.description like '%s' and ai.type='in_invoice'
             and at.amount>0 and ai.doc_type<>'freight_invoice' and ai.state not in ('draft', 'cancel')
-            group by at.id, ai.name, rs.name, rs.tin, ai.bill_number, ai.bill_date, ai.date_invoice, sp.name,ai.number
+            group by at.id, ai.name, rs.name, rs.tin, ai.bill_number, ai.bill_date, ai.date_invoice, 
+            sp.name,ai.number, ail.name
         order by ai.name
         '''%(date_from, date_to, "VAT%(P)")
         self.cr.execute(sql)
         res = self.cr.dictfetchall()
         #print sql
         sql = '''
-            select av.number as inv_doc, av.date date_invoice, null bill_number, null bill_date, null tax_name,
-                    null partnername, null tin,
-                    null productname, 0 vatbased_qty,0 as vatbased_amt,
-                    avl.amount as paid_amt_1, 0 as paid_amt,
-                    null uom, null as grn, null as number
+            select av.name as inv_doc, av.date date_invoice, null bill_number, null bill_date, 
+            null tax_name,
+            null partnername, null tin,
+            null productname, 0 vatbased_qty,0 as vatbased_amt,
+            avl.amount as paid_amt_1, 0 as paid_amt,
+            null uom, null as grn, av.number as number
     
             from account_voucher_line avl
             inner join account_voucher av on avl.voucher_id=av.id
