@@ -64,8 +64,21 @@ class tpt_form_are_1(osv.osv):
         return self.write(cr, uid, ids,{'state':'cancel'})
     
     def create(self, cr, uid, vals, context=None):
-        if vals.get('name','/')=='/':
-            vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.form.area.1.import') or '/'
+#         if vals.get('name','/')=='/':
+#             vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.form.area.1.import') or '/'
+         #TPT START - By P.Vinothkumar - ON 29/03/2016 - FOR (Modify Document Sequence change)
+        if 'excise_duty_id' in vals:
+            sql = '''
+                select code from account_fiscalyear where '%s' between date_start and date_stop
+            '''%(time.strftime('%Y-%m-%d'))
+            cr.execute(sql)
+            fiscalyear = cr.dictfetchone()
+            if not fiscalyear:
+                raise osv.except_osv(_('Warning!'),_('Financial year has not been configured. !'))
+            if vals.get('name','/')=='/':
+                sequence = self.pool.get('ir.sequence').get(cr, uid,'tpt.form.area.1.import') or '/'
+                vals['name'] =  sequence and sequence+'/'+fiscalyear['code'] or '/'
+          #TPT END
         return super(tpt_form_are_1, self).create(cr, uid, vals, context=context)
     def print_are1(self, cr, uid, ids, context=None):
         '''
@@ -177,9 +190,22 @@ class tpt_form_are_3(osv.osv):
         return {'value':vals}    
 
     def create(self, cr, uid, vals, context=None):
-        if vals.get('name','/')=='/':
-            vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.form.area.3.import') or '/'
-        return super(tpt_form_are_3, self).create(cr, uid, vals, context=context)
+#         if vals.get('name','/')=='/':
+#             vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.form.area.3.import') or '/'
+        #TPT START - By P.Vinothkumar - ON 29/03/2016 - FOR (Modify Document Sequence change)
+          if 'excise_duty_id' in vals:
+            sql = '''
+                select code from account_fiscalyear where '%s' between date_start and date_stop
+            '''%(time.strftime('%Y-%m-%d'))
+            cr.execute(sql)
+            fiscalyear = cr.dictfetchone()
+            if not fiscalyear:
+                raise osv.except_osv(_('Warning!'),_('Financial year has not been configured. !'))
+            if vals.get('name','/')=='/':
+                sequence = self.pool.get('ir.sequence').get(cr, uid, 'tpt.form.area.3.import') or '/'
+                vals['name'] =  sequence and sequence+'/'+fiscalyear['code'] or '/'
+          #TPT END  
+            return super(tpt_form_are_3, self).create(cr, uid, vals, context=context)
     
     def print_are3(self, cr, uid, ids, context=None):
         '''

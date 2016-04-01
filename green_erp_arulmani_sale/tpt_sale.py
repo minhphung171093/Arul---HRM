@@ -357,8 +357,21 @@ class sale_order(osv.osv):
         return True
     
     def create(self, cr, uid, vals, context=None):
-        if vals.get('name','/')=='/':
-            vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.sale.order.import') or '/'
+        #if vals.get('name','/')=='/':
+            #vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.sale.order.import') or '/'
+        #TPT START - By P.Vinothkumar - ON 29/03/2016 - FOR (Modify Document Sequence change)
+        if 'document_type' in vals:
+            sql = '''
+                select code from account_fiscalyear where '%s' between date_start and date_stop
+            '''%(time.strftime('%Y-%m-%d'))
+            cr.execute(sql)
+            fiscalyear = cr.dictfetchone()
+            if not fiscalyear:
+                raise osv.except_osv(_('Warning!'),_('Financial year has not been configured. !'))
+            if vals.get('name','/')=='/':
+                sequence = self.pool.get('ir.sequence').get(cr, uid, 'tpt.sale.order.import') or '/'
+                vals['name'] =  sequence and sequence+'/'+fiscalyear['code'] or '/'
+          #TPT END    
         ###TPT
         if 'blanket_id' in vals:
             blanket = self.pool.get('tpt.blanket.order').browse(cr, uid, vals['blanket_id'])
@@ -867,17 +880,28 @@ class sale_order(osv.osv):
             'price_unit': line.product_id.standard_price or 0.0
         }
 
-    def _prepare_order_picking(self, cr, uid, order, context=None):
-        pick_name = self.pool.get('ir.sequence').get(cr, uid, 'stock.picking.out')
-        product_obj = self.pool.get('product.product')
-        for line in order.order_line:
-            if line.product_id and not line.product_id.warehouse_id.id:
+    def _prepare_order_picking(self,cr,uid,order,context=None):
+        #pick_name = self.pool.get('ir.sequence').get(cr, uid, 'stock.picking.out')
+        #TPT START - By P.Vinothkumar - ON 29/03/2016 - FOR (Modify Document Sequence change)
+            sql = '''
+                select code from account_fiscalyear where '%s' between date_start and date_stop
+            '''%(time.strftime('%Y-%m-%d'))
+            cr.execute(sql)
+            fiscalyear = cr.dictfetchone()
+            if not fiscalyear:
+                raise osv.except_osv(_('Warning!'),_('Financial year has not been configured. !'))
+            sequence = self.pool.get('ir.sequence').get(cr, uid, 'stock.picking.out') or '/'
+            pick_name =  sequence and sequence+'/'+fiscalyear['code'] or '/'
+          #TPT END
+            product_obj = self.pool.get('product.product')
+            for line in order.order_line:
+             if line.product_id and not line.product_id.warehouse_id.id:
 #                 product = product_obj.search(cr,uid,line.product_id.id)
 #                 if product and not product.warehouse_id.id:
                 raise osv.except_osv(_('Warning!'),_('Sale Warehouse is not null, please configure it in Product Master!'))
             else:
                 warehouse = line.product_id.warehouse_id.id
-        return {
+            return {
             'name': pick_name,
             'origin': order.name,
             'date': self.date_to_datetime(cr, uid, order.date_order, context),
@@ -1358,8 +1382,21 @@ class tpt_blanket_order(osv.osv):
         return True 
     #TPT
     def create(self, cr, uid, vals, context=None):
-        if vals.get('name','/')=='/':
-            vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.blanked.order.import') or '/'
+        #if vals.get('name','/')=='/':
+            #vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.blanked.order.import') or '/'
+        #TPT START - By P.Vinothkumar - ON 29/03/2016 - FOR (Modify Document Sequence change)
+        if 'document_type' in vals:
+            sql = '''
+                select code from account_fiscalyear where '%s' between date_start and date_stop
+            '''%(time.strftime('%Y-%m-%d'))
+            cr.execute(sql)
+            fiscalyear = cr.dictfetchone()
+            if not fiscalyear:
+                raise osv.except_osv(_('Warning!'),_('Financial year has not been configured. !'))
+            if vals.get('name','/')=='/':
+                sequence = self.pool.get('ir.sequence').get(cr, uid, 'tpt.blanked.order.import') or '/'
+                vals['name'] =  sequence and sequence+'/'+fiscalyear['code'] or '/'
+          #TPT END    
         if 'customer_id' in vals:
             customer = self.pool.get('res.partner').browse(cr, uid, vals['customer_id'])
             ###TPT
@@ -1902,9 +1939,22 @@ class tpt_batch_request(osv.osv):
 #         return {'value': vals}
     
     def create(self, cr, uid, vals, context=None):
-        if vals.get('name','/')=='/':
-            vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.batch.req.import') or '/'
+        #if vals.get('name','/')=='/':
+            #vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.batch.req.import') or '/'
+    #TPT START - By P.Vinothkumar - ON 29/03/2016 - FOR (Modify Document Sequence change)        
         if 'sale_order_id' in vals:
+            sql = '''
+                select code from account_fiscalyear where '%s' between date_start and date_stop
+            '''%(time.strftime('%Y-%m-%d'))
+            cr.execute(sql)
+            fiscalyear = cr.dictfetchone()
+            if not fiscalyear:
+                raise osv.except_osv(_('Warning!'),_('Financial year has not been configured. !'))
+            if vals.get('name','/')=='/':
+                sequence = self.pool.get('ir.sequence').get(cr, uid, 'tpt.batch.req.import') or '/'
+                vals['name'] =  sequence and sequence+'/'+fiscalyear['code'] or '/'
+          #TPT END    
+        #if 'sale_order_id' in vals:
             sale = self.pool.get('sale.order').browse(cr, uid, vals['sale_order_id'])
             product_lines = []
             for line in sale.order_line:
