@@ -48,7 +48,10 @@ class Parser(report_sxw.rml_parse):
           'get_sales_cst':self.get_sales_cst, 
           'convert_date':self.convert_date,
           'get_total':self.get_total,          # Added  on 10/02/2016 by P.VINOTHKUMAR
-          'get_csttotal':self.get_csttotal     # Added  on 10/02/2016 by P.VINOTHKUMAR
+          'get_csttotal':self.get_csttotal,     # Added  on 10/02/2016 by P.VINOTHKUMAR
+          'get_tax':self.get_tax, # Added on 02/04/2016 by P.VINOTHKUMAR
+          'get_invoice_type':self.get_invoice_type,# Added on 02/04/2016 by P.VINOTHKUMAR
+          'get_application':self.get_application,# Added on 02/04/2016 by P.VINOTHKUMAR
         })
         
     def get_date_from(self):
@@ -71,6 +74,27 @@ class Parser(report_sxw.rml_parse):
         for line in self.get_sales_cst():
            sum += line['salesvalue']
         return sum
+    def get_tax(self):   # Added on 02/04/2016 by P.VINOTHKUMAR
+       #if tax:
+       tax1 = ''
+       wizard_data = self.localcontext['data']['form']
+       tax =wizard_data['tax']
+       if tax:
+           tax1=tax[1] or ''
+       return tax1
+    
+    def get_invoice_type(self): # Added on 02/04/2016 by P.VINOTHKUMAR
+        wizard_data = self.localcontext['data']['form']
+        invoice_type =wizard_data['order_type']
+        return invoice_type or ''
+     
+    def get_application(self): # Added on 02/04/2016 by P.VINOTHKUMAR
+        application1 = ''
+        wizard_data = self.localcontext['data']['form']
+        application =wizard_data['application']
+        if application:
+               application1=application[1] or ''
+        return application1 
    # The following method is added on 10/02/2016 by P.VINOTHKUMAR 
     def get_csttotal(self):
         sum = 0.00
@@ -82,11 +106,18 @@ class Parser(report_sxw.rml_parse):
         wizard_data = self.localcontext['data']['form']
         date_from = wizard_data['date_from']
         date_to = wizard_data['date_to']
+        order_type=wizard_data['order_type']
+        tax=wizard_data['tax']
+        application=wizard_data['application']
         cst_paid=0.0
         sql='''  
                     select
+                    pr.name_template as material,
                     rp.name as customer,
                     rp.tin as tinno,
+                    case when ai.invoice_type='domestic' then 'Domestic/Indirect Export' when 
+                    ai.invoice_type='export' then 'Export' else '-'
+                    end as invoicetype,  
                     case
                     when pc.name='FinishedProduct' then '2001'
                     else '-' end as commoditycode,
@@ -94,34 +125,45 @@ class Parser(report_sxw.rml_parse):
                     ai.date_invoice as invoicedate,
                     'F' as category,
                     at.description as rate,
-                    s.amount_untaxed as salesvalue,
-                    case when coalesce(s.amount_tax,0)=0 then 0 else s.amount_tax end as cst_paid
-                    from sale_order_line sl
-                    join sale_order s on s.id=sl.order_id
-                    join account_invoice ai on ai.sale_id=s.id
-                    join res_partner rp on rp.id=s.partner_id
-                    join product_product pr on pr.id=sl.product_id
+                    ai.amount_untaxed as salesvalue,
+                    ai.amount_tax as cst_paid
+                    from account_invoice_line ail
+                    join account_invoice ai on ail.invoice_id=ai.id
+                    join crm_application app on app.id=ail.application_id
+                    join res_partner rp on rp.id=ai.partner_id
+                    join product_product pr on pr.id=ail.product_id
                     join product_category pc on pc.cate_name=pr.cate_name
-                    join account_tax at on s.sale_tax_id=at.id
-                    where ai.date_invoice::date between '%s' and '%s' and s.state='done'
-                    and at.description like 'CST%s(S)' order by customer
-        '''%(date_from, date_to,'%')
+                    join account_tax at on ai.sale_tax_id=at.id
+                    where ai.date_invoice between '%s' and '%s' and ai.state not in ('draft', 'done')
+        '''%(date_from, date_to)
+        if order_type:
+             sql += " and ai.invoice_type='%s'"%order_type
+        if tax:
+             sql += " and at.id=%s"%tax[0]
+        if not tax:
+            sql += " and at.description like 'CST%s(S)'"%('%')
+        if application:
+            sql += " and  app.id=%s"%application[0]   
+        sql += " order by customer"  
+        #print sql
         self.cr.execute(sql)
         res = []
         s_no = 1
         for line in self.cr.dictfetchall():
              res.append({
-                        's_no':s_no,
-                        'customer': line['customer'] or '',
-                        'tinno': line['tinno'] or '',
-                        'commoditycode': line['commoditycode'] or '',
-                        'invoiceno': line['invoiceno'] or '',
-                        'invoicedate': line['invoicedate'] or '',
-                        'salesvalue': line['salesvalue'] or '', 
-                        'rate': line['rate'] or '', 
-                        'category': line['category'] or '', #  Added this line on 10/02/2016 by P.VINOTHKUMAR  
-                        'cst_paid': line['cst_paid'] or 0.00,               
-                        })
+                's_no':s_no,
+                'customer': line['customer'] or '',
+                'tinno': line['tinno'] or '',
+                'commoditycode': line['commoditycode'] or '',
+                'invoiceno': line['invoiceno'] or '',
+                'invoicedate': line['invoicedate'] or '',
+                'invoicetype': line['invoicetype'] or '',
+                'material': line['material'] or '',
+                'salesvalue': line['salesvalue'] or '', 
+                'rate': line['rate'] or '', 
+                'category': line['category'] or '', #  Added this line on 10/02/2016 by P.VINOTHKUMAR  
+                'cst_paid': line['cst_paid'] or 0.00,               
+                })
              s_no += 1
         return res 
     
