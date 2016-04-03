@@ -32,16 +32,16 @@
 	        <field name="target">new</field>
 	    </record>
 	    
-	    <!--        <menuitem action="action_stock_on_hand_report_view" id="menu_action_stock_on_hand_report_view" 
+	           <menuitem action="action_stock_on_hand_report_view" id="menu_action_stock_on_hand_report_view" 
        parent="stock.menu_stock_warehouse_mgmt" sequence="15"/>
--->
+ <!-- 
 	 <menuitem action="action_stock_on_hand_report_view"
             id="menu_action_stock_on_hand_report_view"
             parent="base.next_id_73" 
             sequence="2"
             groups="green_erp_arulmani_sale.group_vvti_sale_user,green_erp_arulmani_purchase.group_vvti_purchase_user,green_erp_arulmani_purchase.group_vvti_purchase_store_user,green_erp_arulmani_sale.group_vvti_marketing_user,green_erp_arulmani_accounting.group_vvti_accounting_user,green_erp_arulmani_production.group_vvti_production_user"
             />
-	    
+	    -->
     </data>
 </openerp>
 
