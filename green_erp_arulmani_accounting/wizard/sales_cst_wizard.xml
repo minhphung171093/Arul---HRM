@@ -11,7 +11,7 @@ Sales CST Report : Display the  CST values for the selected date range -->
                 	<group col='4' colspan='2'>
 	                    <field name='date_from'/>   
 	                    <field name='date_to'/>
-	                    <field name='order_type'/>    
+	                    <!-- <field name='order_type'/>     -->
 	                    <field name='tax' domain="[('type_tax_use','=','sale')]" options="{'create': false, 'create_edit': false}"/>  
 	                    <field name='application' domain="[('product_id','=',2)]" options="{'create': false, 'create_edit': false}"/>                 
                  	</group>
