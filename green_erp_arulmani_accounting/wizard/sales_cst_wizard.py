@@ -15,13 +15,13 @@ DATE_FORMAT = "%Y-%m-%d"
 class sales_cstreport(osv.osv_memory):
     _name = "sales.cstreport"
     _columns = {
-                'date_from': fields.date('From Date', required = True),
-                'date_to': fields.date('To Date', required = True),   
-                 'order_type':fields.selection([('domestic','Domestic/Indirect Export'),('export','Export')],'Invoice Type'),
-                #'tax':fields.many2one('account.tax','Tax', domain="[('type_tax_use','=','sales')]",), 
-                'tax':fields.many2one('account.tax','Tax'), # Added on 02/04/2016 by P.VINOTHKUMAR
-                'application': fields.many2one('crm.application', 'Application'), # Added on 02/04/2016 by P.VINOTHKUMAR
-                }
+        'date_from': fields.date('From Date', required = True),
+        'date_to': fields.date('To Date', required = True),   
+        'order_type':fields.selection([('domestic','Domestic/Indirect Export'),('export','Export')],'Invoice Type'),
+        #'tax':fields.many2one('account.tax','Tax', domain="[('type_tax_use','=','sales')]",), 
+        'tax':fields.many2one('account.tax','Tax'), # Added on 02/04/2016 by P.VINOTHKUMAR
+        'application': fields.many2one('crm.application', 'Application'), # Added on 02/04/2016 by P.VINOTHKUMAR
+        }
     
     def print_report(self, cr, uid, ids, context=None):
         if context is None:
