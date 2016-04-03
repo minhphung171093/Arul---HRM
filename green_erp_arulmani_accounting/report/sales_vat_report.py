@@ -124,32 +124,27 @@ class Parser(report_sxw.rml_parse):
             else '-' end as commoditycode,
             ai.vvt_number as invoiceno,
             ai.date_invoice as invoicedate,
-            CASE
-              when at.description='VAT 1%s (S)' then '1'
-              when at.description='VAT 2%s (S)' then '2'
-              when at.description='VAT 5%s (S)' then '5'
-              when at.description='VAT 0%s (S) - Indirect Export' then '0'
-              when at.description='VAT 0%s (S) - Domestic' then '0'  else 'VAT' end as rate,  
-            s.amount_untaxed as salesvalue,
-            case when coalesce(s.amount_tax,0)=0 then 0 else s.amount_tax end as vat_paid
-            from sale_order_line sl
-            join sale_order s on s.id=sl.order_id 
-            join account_invoice ai on ai.sale_id=s.id
-            join account_invoice_line ail on ail.invoice_id=ai.id
-            join crm_application app on app.id=ail.application_id
-            join res_partner rp on rp.id=s.partner_id
-            join product_product pr on pr.id=sl.product_id
-            join product_category pc on pc.cate_name=pr.cate_name
-            join account_tax at on s.sale_tax_id=at.id
-            where ai.date_invoice::date between '%s' and '%s' and s.state='done' 
-            and at.description like 'VAT%s(S)'
-        '''%('%','%','%','%','%',date_from, date_to,'%')
+            at.amount as rate,  
+            ai.amount_untaxed as salesvalue,
+            ai.amount_tax as vat_paid
+            from account_invoice_line ail
+                    join account_invoice ai on ail.invoice_id=ai.id
+                    join crm_application app on app.id=ail.application_id
+                    join res_partner rp on rp.id=ai.partner_id
+                    join product_product pr on pr.id=ail.product_id
+                    join product_category pc on pc.cate_name=pr.cate_name
+                    join account_tax at on ai.sale_tax_id=at.id
+            where ai.date_invoice between '%s' and '%s' and ai.state not in ('draft', 'done')
+            --and at.description like 'VAT%s(S)%s'
+        '''%(date_from, date_to,'%', '%')
         if order_type:
              sql += " and ai.invoice_type='%s'"%order_type
         if  tax:
-             sql += " and at.id='%s'"%tax[0]
+             sql += " and at.id=%s"%tax[0]
+        if not tax:
+            sql += " and at.description like 'VAT%s(S)%s'"%('%','%')
         if application:
-            sql += " and  app.id='%s'"%application[0]   
+            sql += " and  app.id=%s"%application[0]   
         sql += " order by customer"
         self.cr.execute(sql)
         res = []

@@ -141,7 +141,7 @@ class Parser(report_sxw.rml_parse):
         if tax:
              sql += " and at.id=%s"%tax[0]
         if not tax:
-            sql += " and at.description like 'CST%s(S)'"%('%')
+            sql += " and at.description like 'CST%s(S)%s'"%('%', '%')
         if application:
             sql += " and  app.id=%s"%application[0]   
         sql += " order by customer"  
