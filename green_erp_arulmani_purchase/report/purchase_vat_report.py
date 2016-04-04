@@ -67,73 +67,107 @@ class Parser(report_sxw.rml_parse):
         wizard_data = self.localcontext['data']['form']
         date_from = wizard_data['date_from']
         date_to = wizard_data['date_to']
+        #TPT START - By P.VINOTHKUMAR - ON 04/04/2016 - FOR (mismatch Purchase vat report with GL)
         sql='''
             select a.supplier, a.tinno, a.commoditycode, a.invoiceno, a.invoicedate, a.rate,
-            sum(a.ed+a.pf+a.basicamt) as purchase_value,
-            sum(a.ed+a.pf+a.basicamt*a.amount/100) as vat_paid, a.poname,
+            sum(a.ed+a.pf+a.aed+a.basicamt+a.wform_tax_amt) as purchase_value,
+            sum(a.wform_tax_amt) as vat_paid, a.poname,
            'B' as category
             from
             (select 
             rp.name as supplier,
             rp.tin as tinno,
-            at.description as rate,
+            t.description as rate,
             pc.name,
-            pl.product_qty,
-            p.name as poname,
-            pl.price_unit,
+            t.amount,
+            ail.quantity,
+            ai.name as poname,
+            ail.price_unit,
+            ai.doc_type,
+            ai.state,
             ai.bill_number as invoiceno,
             ai.bill_date as invoicedate,
+            ai.date_invoice,
             case 
             when pc.name='Spares' then 2025
             when pc.name='Consumables' then 2025
             when pc.name='Assets' then 2025
             else 2067 end as commoditycode,
             case 
-            when ed_type='1' then (pl.product_qty * pl.price_unit) * ed/100
-            when ed_type='2' then ed
-            when ed_type='3' then (pl.product_qty * pl.ed)
-            else ed end as ed,
+            when ail.ed_type='1' then (ail.quantity * ail.price_unit) * ail.ed/100
+            when ail.ed_type='2' then ail.ed
+            when ail.ed_type='3' then (ail.quantity * ail.ed)
+            else ail.ed end as ed,
             case 
-            when p_f_type='1' then (pl.product_qty * pl.price_unit) * p_f/100
-            when p_f_type='2' then p_f
-            when p_f_type='3' then (pl.product_qty * pl.p_f)
-            else p_f end as pf,
-            at.amount,
-            pl.price_unit as priceunit,
-            pl.product_qty as productqty,
-            pl.ed_type as ed1,
-            pl.p_f_type as pf1,
-            (pl.price_unit * pl.product_qty)-(pl.price_unit * pl.product_qty * discount/100) as basicamt
-            from purchase_order_line pl
-            join purchase_order p on p.id=pl.order_id 
-            join account_invoice ai on ai.purchase_id=p.id
-            join res_partner rp on rp.id=p.partner_id
-            join product_product pr on pr.id=pl.product_id
+            when ail.p_f_type='1' then (ail.quantity * ail.price_unit) * ail.p_f/100
+            when ail.p_f_type='2' then ail.p_f
+            when ail.p_f_type='3' then (ail.quantity * ail.p_f)
+            else ail.p_f end as pf,
+            ail.price_unit as priceunit,
+            ail.quantity as productqty,
+            ail.ed_type as ed1,
+            ail.p_f_type as pf1,
+            ail.wform_tax_amt,
+            case when ail.aed_id_1 is null then 0 else ail.aed_id_1 end as aed,
+            (ail.price_unit * ail.quantity)-(ail.price_unit * ail.quantity * ail.discount/100) as basicamt
+            from 
+            account_invoice ai
+            join account_invoice_line ail on ai.id=ail.invoice_id
+            join res_partner rp on rp.id=ai.partner_id
+            join product_product pr on pr.id=ail.product_id
             join product_category pc on pc.cate_name=pr.cate_name
-            join purchase_order_taxe pot on pl.id=pot.ord_id
-            join account_tax at on pot.tax_id=at.id
-            where p.date_order::date between '%s' and '%s' and p.state='done' 
-            and at.is_vat_report=true)a group by a.Rate,a.supplier,a.tinno,a.commoditycode,
-            a.invoiceno,a.invoicedate,a.poname order by a.supplier
-
-        '''%(date_from, date_to)
+            join account_invoice_line_tax ailt on (ailt.invoice_line_id=ail.id)
+            join account_tax t on t.id=ailt.tax_id
+            where
+             ai.date_invoice::date between '%s' and '%s' and
+             ai.state not in ('draft', 'done') and
+            ai.doc_type='supplier_invoice'
+            and t.is_vat_report=true)a group by a.Rate,a.supplier,a.tinno,a.commoditycode,a.amount,
+            a.invoiceno,a.invoicedate,a.poname,a.date_invoice order by a.supplier
+     '''%(date_from, date_to)
+        #TPT END
         self.cr.execute(sql);
-        res = []
-        s_no = 1
-        for line in self.cr.dictfetchall():
-             res.append({
-                        's_no':s_no,
-                        'supplier': line['supplier'] or '',
-                        'tinno': line['tinno'] or '',
-                        'commoditycode': line['commoditycode'] or '',
-                        'invoiceno': line['invoiceno'] or '',
-                        'invoicedate': line['invoicedate'] or '',  
-                        'rate': line['rate'] or '', 
-                        'purchase_value': line['purchase_value'] or '', 
-                        'vat_paid': line['vat_paid'] or '',
-                        'category': line['category'] or '',
-                                         
-                        })
-             s_no += 1
-        return res  
-    
+        res = self.cr.dictfetchall()
+        #print sql
+        sql = '''
+            select av.number as inv_doc, av.date date_invoice, null bill_number, null bill_date, null tax_name,
+                    null supplier, null tinno,
+                    null productname, 0 vatbased_qty,0 as vatbased_amt,
+                    avl.amount as vat_paid, 0 as paid_amt,
+                    null uom, null as grn, null as number,null as rate, null as name, 
+                    null commoditycode, null ed,null pf, null priceunit,
+                    null productqty,null invoiceno, null invoicedate,null rate,
+            null as purchase_value,
+            --null as vat_paid, 
+            null as poname,
+           'B' as category
+            from account_voucher_line avl
+            inner join account_voucher av on avl.voucher_id=av.id
+            inner join account_account aa on avl.account_id=aa.id
+            inner join account_move am on av.move_id=am.id
+            where 
+            av.date between '%s' and '%s' and 
+            aa.code='0000119908'
+        '''%(date_from, date_to)
+        self.cr.execute(sql)
+        res1 = self.cr.dictfetchall()
+        if res1:
+            res = res+res1            
+        res_set = []
+        for line in res:
+            s_no = 1
+            res_set.append({
+                's_no':s_no,
+                'supplier': line['supplier'] or '',
+                'tinno': line['tinno'] or '',
+                'commoditycode': line['commoditycode'] or '',
+                'invoiceno': line['invoiceno'] or '',
+                'invoicedate': line['invoicedate'] or '',  
+                'rate': line['rate'] or '', 
+                'purchase_value': line['purchase_value'] or '', 
+                'vat_paid': line['vat_paid'] or '',
+                'category': line['category'] or '',
+                                 
+                })
+            s_no += 1
+        return res_set  

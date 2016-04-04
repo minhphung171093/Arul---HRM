@@ -427,7 +427,7 @@ class service_tax_register(osv.osv_memory):
                 temp_taxamt+=line.debit or 0.00                
             #temp_taxamt+=(line.line_net * (tax_amt/100))
             #temp_taxamt+=get_tax_amnt(sr,line.id)
-        ### Adding Journal Entries
+        ### Adding Journal Entries       
         for line in get_voucher(sr):
             sr_line_voucher.append((0,0,{
                 'date': line['date'], 
@@ -445,7 +445,7 @@ class service_tax_register(osv.osv_memory):
                 'debit': 0.00,
                 'closing_bal': line['closing_bal'] or 0.00, #Added by TPT-Y
             }))
-            temp_taxamt+=line['debit'] or 0.00 
+            temp_taxamt+=line['service_tax'] or 0.00                 
         sr_line = sr_line + sr_line_voucher #TPT_BM_30/03/2016
         sr_line.append((0,0,{
              #'open_bal':openbalance+temp_taxamt,
