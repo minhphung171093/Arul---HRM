@@ -349,6 +349,7 @@ class service_tax_register(osv.osv_memory):
                     sql = sql+str
             sql=sql+" order by aml.id"                                       
             cr.execute(sql)
+            print sql
             invoice_ids = [r[0] for r in cr.fetchall()]
             return invoice_obj.browse(cr,uid,invoice_ids)        
            
@@ -385,6 +386,7 @@ class service_tax_register(osv.osv_memory):
                 str = " and av.date between '%s' and '%s'"%(date_from,date_to)
                 sql = sql+str                      
             cr.execute(sql)   
+            print sql
             return cr.dictfetchall()
         cr.execute('delete from tpt_service_tax')
         sr_obj = self.pool.get('tpt.service.tax')
@@ -427,7 +429,7 @@ class service_tax_register(osv.osv_memory):
                 temp_taxamt+=line.debit or 0.00                
             #temp_taxamt+=(line.line_net * (tax_amt/100))
             #temp_taxamt+=get_tax_amnt(sr,line.id)
-        ### Adding Journal Entries
+        ### Adding Journal Entries       
         for line in get_voucher(sr):
             sr_line_voucher.append((0,0,{
                 'date': line['date'], 
@@ -445,7 +447,7 @@ class service_tax_register(osv.osv_memory):
                 'debit': 0.00,
                 'closing_bal': line['closing_bal'] or 0.00, #Added by TPT-Y
             }))
-            temp_taxamt+=line['debit'] or 0.00 
+            temp_taxamt+=line['service_tax'] or 0.00                 
         sr_line = sr_line + sr_line_voucher #TPT_BM_30/03/2016
         sr_line.append((0,0,{
              #'open_bal':openbalance+temp_taxamt,
