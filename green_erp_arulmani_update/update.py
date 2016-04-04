@@ -3599,12 +3599,12 @@ class tpt_update_stock_move_report(osv.osv):
         sql = '''
         select ail.id from account_invoice_line ail
          inner join account_invoice ai on ail.invoice_id=ai.id
-         where ai.doc_type='supplier_invoice_without'          
+         where ai.doc_type in ('supplier_invoice_without', 'freight_invoice')             
          and ail.id not in (
         select invoice_line_id from account_invoice_line_tax where invoice_line_id in (
          select ail.id from account_invoice_line ail
          inner join account_invoice ai on ail.invoice_id=ai.id
-         where ai.doc_type='supplier_invoice_without'
+         where ai.doc_type in ('supplier_invoice_without', 'freight_invoice')   
          )
         )
         '''
