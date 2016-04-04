@@ -3596,15 +3596,29 @@ class tpt_update_stock_move_report(osv.osv):
         inv_tax_obj = self.pool.get('account.invoice.line.tax')
         acc_ids = acc_obj.search(cr, uid, [('doc_type','=','supplier_invoice')])
         invoice_id = acc_obj.browse(cr, uid, acc_ids)
+        #=======================================================================
+        # sql = '''
+        # select ail.id from account_invoice_line ail
+        #  inner join account_invoice ai on ail.invoice_id=ai.id
+        #  where ai.doc_type in ('supplier_invoice_without', 'freight_invoice')             
+        #  and ail.id not in (
+        # select invoice_line_id from account_invoice_line_tax where invoice_line_id in (
+        #  select ail.id from account_invoice_line ail
+        #  inner join account_invoice ai on ail.invoice_id=ai.id
+        #  where ai.doc_type in ('supplier_invoice_without', 'freight_invoice')   
+        #  )
+        # )
+        # '''
+        #=======================================================================
         sql = '''
         select ail.id from account_invoice_line ail
          inner join account_invoice ai on ail.invoice_id=ai.id
-         where ai.doc_type in ('supplier_invoice_without', 'freight_invoice')             
+         where ai.doc_type='freight_invoice'          
          and ail.id not in (
         select invoice_line_id from account_invoice_line_tax where invoice_line_id in (
          select ail.id from account_invoice_line ail
          inner join account_invoice ai on ail.invoice_id=ai.id
-         where ai.doc_type in ('supplier_invoice_without', 'freight_invoice')   
+         where ai.doc_type='freight_invoice'
          )
         )
         '''
