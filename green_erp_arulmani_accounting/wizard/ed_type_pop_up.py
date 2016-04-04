@@ -258,7 +258,9 @@ class ed_type_pop_up(osv.osv_memory):
             
             #
             if ed_type.ed_type == 'raw_ed_12.5':
-                account_ids = self.pool.get('account.account').search(cr, uid, [('code','in',['0000119904'])])
+                #TPT-BM-ON 04/04/2016-TO CHANGE CR GL TYPE AS USER REQUEST- FS GL IS INCORRECT
+                #account_ids = self.pool.get('account.account').search(cr, uid, [('code','in',['0000119904'])])
+                account_ids = self.pool.get('account.account').search(cr, uid, [('code','in',['0000119902'])])
                 if not account_ids:
                     raise osv.except_osv(_('Warning!'),_('Account is not null, please configure Account with code is 0000119904 in Account master !'))
                 debit = ed_type.invoice_id.excise_duty
