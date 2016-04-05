@@ -758,6 +758,7 @@
                                     <field name="tax_service_credit" on_change = "onchange_tax_credit(tax_id, tax_service_credit)" options="{'create': false, 'create_edit': false}"/>
                                     <field name="fright"/>
                                     <field name="fright_type"/>
+                                    <field name="wform_tax_amt"/>
                                     <field name="line_net"/>
                                     <field name="price_subtotal" invisible = '1'/>
                                 </tree>
