@@ -1384,7 +1384,7 @@ class account_invoice_line(osv.osv):
         'aed_id_1': fields.float('AED'),
         'po_line_id': fields.many2one('purchase.order.line', 'purchase order line'),
         'line_no': fields.integer('SI.No'),
-        'wform_tax_amt':fields.function(wform_supplier_invo, store = False, multi='deltas1' ,string='Tax Amt'),
+        'wform_tax_amt':fields.function(wform_supplier_invo, store = True, multi='deltas1' ,string='Tax Amt'),
         
     }
     _defaults = {
