@@ -136,7 +136,7 @@ class Parser(report_sxw.rml_parse):
                     avl.amount as vat_paid, 0 as paid_amt,
                     null uom, null as grn, null as number,null as rate, null as name, 
                     null commoditycode, null ed,null pf, null priceunit,
-                    null productqty,null invoiceno, null invoicedate,null rate,
+                    null productqty,av.reference as invoiceno, av.date invoicedate,'0000119908 GL' as rate,
             null as purchase_value,
             --null as vat_paid, 
             null as poname,
@@ -154,8 +154,8 @@ class Parser(report_sxw.rml_parse):
         if res1:
             res = res+res1            
         res_set = []
+        s_no = 1
         for line in res:
-            s_no = 1
             res_set.append({
                 's_no':s_no,
                 'supplier': line['supplier'] or '',
