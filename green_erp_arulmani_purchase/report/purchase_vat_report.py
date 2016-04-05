@@ -121,7 +121,7 @@ class Parser(report_sxw.rml_parse):
             where
              ai.date_invoice::date between '%s' and '%s' and
              ai.state not in ('draft', 'done') and
-            ai.doc_type='supplier_invoice'
+            ai.doc_type not in('freight_invoice')
             and t.is_vat_report=true)a group by a.Rate,a.supplier,a.tinno,a.commoditycode,a.amount,
             a.invoiceno,a.invoicedate,a.poname,a.date_invoice order by a.supplier
      '''%(date_from, date_to)
@@ -137,7 +137,7 @@ class Parser(report_sxw.rml_parse):
                     null uom, null as grn, null as number,null as rate, null as name, 
                     null commoditycode, null ed,null pf, null priceunit,
                     null productqty,av.reference as invoiceno, av.date invoicedate,'0000119908 GL' as rate,
-            null as purchase_value,
+            av.tpt_amount_total as purchase_value,
             --null as vat_paid, 
             null as poname,
            'B' as category
@@ -166,8 +166,7 @@ class Parser(report_sxw.rml_parse):
                 'rate': line['rate'] or '', 
                 'purchase_value': line['purchase_value'] or '', 
                 'vat_paid': line['vat_paid'] or '',
-                'category': line['category'] or '',
-                                 
+                'category': line['category'] or '',                  
                 })
             s_no += 1
         return res_set  

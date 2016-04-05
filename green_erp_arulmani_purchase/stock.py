@@ -1329,8 +1329,19 @@ class account_invoice_line(osv.osv):
             else:
                 amount_fright = line.fright
             tax_amounts = [r.amount for r in line.invoice_line_tax_id]
-            for tax in tax_amounts:
-                amount_total_tax += tax/100
+            percent = 0.000
+            for tax_line in line.invoice_line_tax_id:
+                if tax_line.is_swachh_bharat is True:
+                    percent = 14.000
+                else:
+                    percent  = tax_line.amount
+                
+                
+            #===================================================================
+            # for tax in tax_amounts:
+            #     amount_total_tax += tax/100
+            #===================================================================
+            amount_total_tax += percent/100
             ###
             amount_total_tax = (amount_basic + amount_p_f + amount_ed+line.aed_id_1)*(amount_total_tax)
             ###
@@ -1373,7 +1384,7 @@ class account_invoice_line(osv.osv):
         'aed_id_1': fields.float('AED'),
         'po_line_id': fields.many2one('purchase.order.line', 'purchase order line'),
         'line_no': fields.integer('SI.No'),
-        'wform_tax_amt':fields.function(wform_supplier_invo, store = True, multi='deltas1' ,string='Tax Amt'),
+        'wform_tax_amt':fields.function(wform_supplier_invo, store = False, multi='deltas1' ,string='Tax Amt'),
         
     }
     _defaults = {

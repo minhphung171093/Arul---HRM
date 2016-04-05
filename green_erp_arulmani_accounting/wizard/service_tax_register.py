@@ -321,20 +321,17 @@ class service_tax_register(osv.osv_memory):
             act_abj = account_obj.browse(cr,uid,account_id)
             code = act_abj.code
             invoice_obj = self.pool.get('account.move.line')
-            
-            
-           
             sql = '''
-                        select aml.id
-                        from account_move_line aml
-                        inner join account_move am on (am.id=aml.move_id)
-                        join account_invoice ai on (ai.move_id=am.id and ai.type = 'in_invoice')
-                        join account_invoice_line ail on (ail.invoice_id = ai.id and aml.name = ail.name)
-                        join account_invoice_line_tax ailt on (ailt.invoice_line_id=ail.id)
-                        join account_tax at on (at.id=ailt.tax_id)
-                        where at.amount>0
-                        and at.is_stax_report = 't'                                                   
-                        '''
+                select aml.id
+                from account_move_line aml
+                inner join account_move am on (am.id=aml.move_id)
+                join account_invoice ai on (ai.move_id=am.id and ai.type = 'in_invoice')
+                join account_invoice_line ail on (ail.invoice_id = ai.id and aml.name = ail.name)
+                join account_invoice_line_tax ailt on (ailt.invoice_line_id=ail.id)
+                join account_tax at on (at.id=ailt.tax_id)
+                where at.amount>0
+                and at.is_stax_report = 't'                                                   
+                '''
             if date_from and date_to is False:
                     str = " and am.date <= %s"%(date_from)
                     sql = sql+str
@@ -349,7 +346,7 @@ class service_tax_register(osv.osv_memory):
                     sql = sql+str
             sql=sql+" order by aml.id"                                       
             cr.execute(sql)
-            print sql
+            #print sql
             invoice_ids = [r[0] for r in cr.fetchall()]
             return invoice_obj.browse(cr,uid,invoice_ids)        
            
@@ -366,7 +363,7 @@ class service_tax_register(osv.osv_memory):
             sql = '''
                 select av.date as date, null as bill_no, null as bill_date,
             av.number as number, null as invoice_id, null as party_name,
-            null as partner_id, 0 as open_bal, 0 as taxable_amount, 
+            null as partner_id, 0 as open_bal, av.tpt_amount_total as taxable_amount, 
             null as service_tax_rate, avl.amount as service_tax, 
             0 as total, 0 as debit, 0 as closing_bal
     
@@ -386,7 +383,7 @@ class service_tax_register(osv.osv_memory):
                 str = " and av.date between '%s' and '%s'"%(date_from,date_to)
                 sql = sql+str                      
             cr.execute(sql)   
-            print sql
+            #print sql
             return cr.dictfetchall()
         cr.execute('delete from tpt_service_tax')
         sr_obj = self.pool.get('tpt.service.tax')
