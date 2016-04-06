@@ -129,7 +129,7 @@ class Parser(report_sxw.rml_parse):
             ai.amount_tax as vat_paid
             from account_invoice_line ail
                     join account_invoice ai on ail.invoice_id=ai.id
-                    join crm_application app on app.id=ail.application_id
+                    --join crm_application app on app.id=ail.application_id
                     join res_partner rp on rp.id=ai.partner_id
                     join product_product pr on pr.id=ail.product_id
                     join product_category pc on pc.cate_name=pr.cate_name
@@ -144,7 +144,7 @@ class Parser(report_sxw.rml_parse):
         if not tax:
             sql += " and at.description like 'VAT%s(S)%s'"%('%','%')
         if application:
-            sql += " and  app.id=%s"%application[0]   
+            sql += " and  ail.application_id=%s"%application[0]   
         sql += " order by customer"
         self.cr.execute(sql)
         res = []

@@ -349,6 +349,40 @@ class service_tax_register(osv.osv_memory):
             #print sql
             invoice_ids = [r[0] for r in cr.fetchall()]
             return invoice_obj.browse(cr,uid,invoice_ids)        
+        
+        def get_invoice_w(o):
+            res = {}
+            date_from = o.date_from
+            date_to = o.date_to
+            account_id = o.account_id.id            
+            account_obj = self.pool.get('account.account')
+            act_abj = account_obj.browse(cr,uid,account_id)
+            code = act_abj.code
+            sql = '''
+                select ai.name as inv_name, ai.date_invoice as invoice_date, ai.bill_number as bill_no, ai.bill_date, 
+                rs.name as partner, ail.line_net as linenet,at.description as desc,ai.id as invoice_id,
+                COALESCE(ail.freight,0) as frieght_1,COALESCE(ail.fright,0) as frieght_2,
+                ai.doc_type, rs.id as partner_id,
+                ail.wform_tax_amt as stax_amt from account_invoice_line ail
+                inner join account_invoice ai on ail.invoice_id=ai.id
+                join account_invoice_line_tax ailt on (ailt.invoice_line_id=ail.id)
+                inner join account_tax at on (at.id=ailt.tax_id)
+                inner join res_partner rs on ai.partner_id=rs.id
+                where at.amount>0
+                and at.is_stax_report = 't'                                            
+                '''
+            if date_from and date_to is False:
+                str = " and ai.date_invoice <= %s"%(date_from)
+                sql = sql+str
+            if date_to and date_from is False:
+                str = " and ai.date_invoice <= %s"%(date_to)
+                sql = sql+str
+            if date_to and date_from:
+                str = " and ai.date_invoice between '%s' and '%s'"%(date_from,date_to)
+                sql = sql+str
+            sql=sql+" order by ai.name"                                       
+            cr.execute(sql)
+            return cr.dictfetchall()       
            
         def get_voucher(o): #TPT-BM-for adding journal voucher with service tax report on 30/03/2016
             res = {}
@@ -394,7 +428,6 @@ class service_tax_register(osv.osv_memory):
         debit_total=get_debit_balance(sr)
         temp_taxamt = 0.00
         for line in get_invoice(sr):
-            
                 sr_line.append((0,0,{
                     'date': get_invoice_details(sr,line.id,'invdate'), #line.move_id.invoice_id.date_invoice or False,
                     'bill_no': get_invoice_details(sr,line.id,'billno'), #line.invoice_id.bill_number or False,
@@ -403,29 +436,38 @@ class service_tax_register(osv.osv_memory):
                     'invoice_id': get_invoice_details(sr,line.id,'invoice_id') or False, #line.invoice_id.name or False,
                     'party_name': get_invoice_details(sr,line.id,'partner') or False, #line.invoice_id.partner_id and line.invoice_id.partner_id.id or False,
                     'partner_id': get_invoice_details(sr,line.id,'partner_id') or False,
-                    #'open_bal': round(openbalance+temp_taxamt,0) or 0.00,        #netamt
                     'open_bal': openbalance+temp_taxamt or 0.00,        
-                    #'taxable_amount': round(get_invoice_details(sr,line.id,'netamt'),0) or 0.00, #line.line_net,
                     'taxable_amount': get_invoice_details(sr,line.id,'netamt') or 0.00,
                     'service_tax_rate': get_invoice_details(sr,line.id,'tax'), # get_tax_rate_desc(get_tax_rate_id(line.move_id)),
-                    #'service_tax': line.line_net * (tax_amt/100), #Commented by YuVi on 28/07/15, for avoid roundoff issue
-                    #'service_tax': round(line.line_net * (tax_amt/100),0), #Added by YuVi on 28/07/15, for avoid roundoff issue
-                    'service_tax': line.debit or 0.00,#line.debit or 0.00,
-                    #'total': round(openbalance+temp_taxamt+line.debit,0) or 0.00, #Added by TPT-Y
-                    'total': openbalance+temp_taxamt+line.debit or 0.00,
-                    #'total': openbalance+temp_taxamt+(line.line_net * (tax_amt/100)), #Commented by YuVi on 28/07/15, for avoid roundoff issue
-                    #'total': round(openbalance+temp_taxamt+(line.line_net * (tax_amt/100)),0), #Added by YuVi on 28/07/15, for avoid roundoff issue
-                    'debit': 0.00,
-                    #'closing_bal': round(openbalance+temp_taxamt+line.debit,0) or 0.00, #Added by TPT-Y
+                    'service_tax': line.debit or 0.00,#line.debit or 0.00,                   
+                    'total': openbalance+temp_taxamt+line.debit or 0.00,                   
+                    'debit': 0.00,                    
                     'closing_bal': openbalance+temp_taxamt+line.debit or 0.00, #Added by TPT-Y
-                    #'debit_1' : 0.00,
-                    #'debit_2' : 0.00,
-                    #'closing_bal': openbalance+temp_taxamt+(line.line_net * (tax_amt/100)), #Added by YuVi on 28/07/15, for avoid roundoff issue
-                    #'closing_bal': round(openbalance+temp_taxamt+(line.line_net * (tax_amt/100)),0), #Added by YuVi on 28/07/15, for avoid roundoff issue
                 }))
                 temp_taxamt+=line.debit or 0.00                
             #temp_taxamt+=(line.line_net * (tax_amt/100))
-            #temp_taxamt+=get_tax_amnt(sr,line.id)
+        
+        #TPT-BM
+        #=======================================================================
+        # for line in get_invoice_w(sr):
+        #     sr_line.append((0,0,{
+        #         'date': line['invoice_date'],
+        #         'bill_no': line['bill_no'],
+        #         'bill_date': line['bill_date'],
+        #         'number': line['inv_name'], 
+        #         'invoice_id': line['invoice_id'],
+        #         'party_name': line['partner'],
+        #         'partner_id': line['partner_id'] or False,     
+        #         'open_bal': openbalance+temp_taxamt or 0.00,                          
+        #         'taxable_amount': line['partner_id'] or 0.00,
+        #         'service_tax_rate': line['partner_id'] or 0.00,                  
+        #         'service_tax': line['stax_amt'] or 0.00,
+        #         'total': openbalance+temp_taxamt+line['stax_amt'] or 0.00,                 
+        #         'debit': 0.00,                   
+        #         'closing_bal': openbalance+temp_taxamt+line['stax_amt'] or 0.00,
+        #     }))
+        #     temp_taxamt+=line['stax_amt'] or 0.00                
+        #=======================================================================
         ### Adding Journal Entries       
         for line in get_voucher(sr):
             sr_line_voucher.append((0,0,{
