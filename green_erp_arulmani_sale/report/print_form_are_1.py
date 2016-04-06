@@ -62,7 +62,10 @@ class Parser(report_sxw.rml_parse):
         inr_comma_format = locale.format("%.0f", amt, grouping=True)
         return inr_comma_format
     def get_arename(self,name):
-        name = name[13:17]          
+        if len(name)==19:
+            name = name[11:14] 
+        else:
+            name = name[13:17]          
         return name
     def get_copy(self,is_original,is_duplicate,is_triplicate,is_quadruplicate,is_extra):
         type = ''
