@@ -71,7 +71,7 @@ class Parser(report_sxw.rml_parse):
         sql='''
             select a.supplier, a.tinno, a.commoditycode, a.invoiceno, a.invoicedate, a.rate,
             sum(a.ed+a.pf+a.aed+a.basicamt+a.wform_tax_amt) as purchase_value,
-            sum(a.wform_tax_amt) as vat_paid, a.poname,
+            sum(a.wform_tax_amt) as vat_paid, a.poname,a.number,
            'B' as category
             from
             (select 
@@ -84,6 +84,7 @@ class Parser(report_sxw.rml_parse):
             ai.name as poname,
             ail.price_unit,
             ai.doc_type,
+            ai.number,
             ai.state,
             ai.bill_number as invoiceno,
             ai.bill_date as invoicedate,
@@ -123,7 +124,7 @@ class Parser(report_sxw.rml_parse):
              ai.state not in ('draft', 'done') and
             ai.doc_type not in('freight_invoice')
             and t.is_vat_report=true)a group by a.Rate,a.supplier,a.tinno,a.commoditycode,a.amount,
-            a.invoiceno,a.invoicedate,a.poname,a.date_invoice order by a.supplier
+            a.invoiceno,a.invoicedate,a.poname,a.date_invoice,a.number order by a.supplier
      '''%(date_from, date_to)
         #TPT END
         self.cr.execute(sql);
@@ -166,7 +167,8 @@ class Parser(report_sxw.rml_parse):
                 'rate': line['rate'] or '', 
                 'purchase_value': line['purchase_value'] or '', 
                 'vat_paid': line['vat_paid'] or '',
-                'category': line['category'] or '',                  
+                'category': line['category'] or '', 
+                'number': line['number'] or '',                 
                 })
             s_no += 1
         return res_set  

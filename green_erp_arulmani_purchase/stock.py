@@ -1385,7 +1385,7 @@ class account_invoice_line(osv.osv):
                     tax_credit_amount = base*(line.tax_credit and line.tax_credit.amount/100 or 0)
                     tax_tds_amount = base*(line.tds_id_2 and line.tds_id_2.amount/100 or 0)
                     
-                res[line.id]['wform_tax_amt'] = tax_debit_amount-tax_credit_amount
+                res[line.id]['wform_tax_amt'] = tax_debit_amount
 #                 res[line.id]['line_net'] = tax_tds_amount
         return res   
     _columns = {
@@ -1409,7 +1409,7 @@ class account_invoice_line(osv.osv):
         'aed_id_1': fields.float('AED'),
         'po_line_id': fields.many2one('purchase.order.line', 'purchase order line'),
         'line_no': fields.integer('SI.No'),
-        'wform_tax_amt':fields.function(wform_supplier_invo, store = True, multi='deltas1' ,string='Tax Amt'),
+        'wform_tax_amt':fields.function(wform_supplier_invo, type='float', store = True, multi='deltas1' ,string='Tax Amt'),
         
     }
     _defaults = {
