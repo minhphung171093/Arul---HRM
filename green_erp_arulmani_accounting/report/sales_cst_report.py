@@ -134,7 +134,7 @@ class Parser(report_sxw.rml_parse):
                     join product_product pr on pr.id=ail.product_id
                     join product_category pc on pc.cate_name=pr.cate_name
                     join account_tax at on ai.sale_tax_id=at.id
-                    where ai.date_invoice between '%s' and '%s' and ai.state not in ('draft', 'done')
+                    where ai.type='out_invoice' and ai.date_invoice between '%s' and '%s' and ai.state not in ('draft', 'done')
         '''%(date_from, date_to)
         if order_type:
              sql += " and ai.invoice_type='%s'"%order_type
