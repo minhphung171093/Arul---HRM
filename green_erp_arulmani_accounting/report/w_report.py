@@ -162,7 +162,7 @@ class Parser(report_sxw.rml_parse):
         sql = '''
         select  
         ai.name as inv_doc, at.description tax_name,rs.name partnername, rs.tin, ai.bill_number, ai.bill_date,ai.date_invoice,
-        sum(ail.wform_tax_amt) as paid_amt_1,
+        case when sum(ail.wform_tax_amt)>0 then sum(ail.wform_tax_amt) else 0 end  as paid_amt_1,
         sum(ail.quantity) as vatbased_qty, null as uom, ail.name as productname, sum(ail.line_net) as vatbased_amt, sp.name grn,ai.number as number
         from account_invoice ai
             inner join account_invoice_line ail on ai.id=ail.invoice_id
@@ -192,7 +192,7 @@ class Parser(report_sxw.rml_parse):
             inner join account_voucher av on avl.voucher_id=av.id
             inner join account_account aa on avl.account_id=aa.id
             inner join account_move am on av.move_id=am.id
-            where 
+            where avl.type='dr' and
             av.date between '%s' and '%s' and 
             aa.code='0000119908'
         '''%(date_from, date_to)
