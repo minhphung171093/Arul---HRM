@@ -121,7 +121,7 @@ class Parser(report_sxw.rml_parse):
             join account_tax t on t.id=ailt.tax_id
             where
              ai.date_invoice::date between '%s' and '%s' and
-             ai.state not in ('draft', 'done') and
+             ai.state not in ('draft', 'cancel') and
             ai.doc_type not in('freight_invoice')
             and t.is_vat_report=true)a group by a.Rate,a.supplier,a.tinno,a.commoditycode,a.amount,
             a.invoiceno,a.invoicedate,a.poname,a.date_invoice,a.number order by a.supplier
