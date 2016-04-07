@@ -405,7 +405,7 @@ class service_tax_register(osv.osv_memory):
             inner join account_voucher av on avl.voucher_id=av.id
             inner join account_account aa on avl.account_id=aa.id
             inner join account_move am on av.move_id=am.id
-            where aa.id=%s  
+            where avl.type='dr' and aa.id=%s  
             '''%(account_id)
             if date_from and date_to is False:
                 str = " and av.date <= %s"%(date_from)

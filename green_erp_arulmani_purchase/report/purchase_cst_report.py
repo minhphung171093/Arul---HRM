@@ -46,6 +46,8 @@ class Parser(report_sxw.rml_parse):
           'get_date_from':self.get_date_from,
           'get_date_to':self.get_date_to, 
           'get_cst':self.get_cst, 
+          'get_total':self.get_total,
+          'get_csttotal':self.get_csttotal,
          'convert_date':self.convert_date,
         })
     def get_date_from(self):
@@ -63,13 +65,25 @@ class Parser(report_sxw.rml_parse):
         date = datetime.strptime(wizard_data['date_to'], DATE_FORMAT)
         return date.strftime('%d/%m/%Y') 
     
+    def get_total(self):
+        sum = 0.00
+        for line in self.get_cst():
+           sum += line['purchase_value']
+        return sum
+    
+    def get_csttotal(self):
+        sum = 0.00
+        for line in self.get_cst():
+           sum += line['cst_paid']
+        return sum
+    
     def get_cst(self):
         wizard_data = self.localcontext['data']['form']
         date_from = wizard_data['date_from']
         date_to = wizard_data['date_to']
         sql='''
             select a.supplier, a.city, a.tinno, a.commoditycode, a.invoiceno, a.invoicedate, a.rate, a.po_no, a.po_date,
-            sum(a.ed+a.pf+a.basicamt) as purchase_value,
+            sum(a.ed+a.pf+a.basicamt) as purchase_value,a.number,
             sum((a.ed+a.pf+a.basicamt)*a.amount/100) as cst_paid,
             sum((a.ed+a.pf+a.basicamt) + (a.ed+a.pf+a.basicamt)*a.amount/100) as totalvalue,
            'J' as category,a.descriptions from
@@ -82,6 +96,7 @@ class Parser(report_sxw.rml_parse):
             at.description as rate,
             pc.name,
             pl.product_qty,
+            ai.number,
             pl.price_unit,
             pl.description as descriptions,
             ai.bill_number as invoiceno,
@@ -111,15 +126,41 @@ class Parser(report_sxw.rml_parse):
             join product_category pc on pc.cate_name=pr.cate_name
             join purchase_order_taxe pot on pl.id=pot.ord_id
             join account_tax at on pot.tax_id=at.id
-            where p.date_order::date between '%s' and '%s' and p.state='done' 
+            where p.date_order::date between '%s' and '%s' and p.state not in('draft','cancel')
             and at.description like 'CST%s(P)')a group by a.Rate,a.supplier,a.tinno,a.commoditycode,a.city,a.po_no,a.po_date,
-            a.invoiceno,a.invoicedate,a.descriptions order by a.supplier
+            a.invoiceno,a.invoicedate,a.descriptions,a.number order by a.supplier
         '''%(date_from, date_to, '%')
         self.cr.execute(sql);
-        res = []
+        res = self.cr.dictfetchall()
+        #print sql
+        sql = '''
+            select av.number as inv_doc, av.date date_invoice, null bill_number, null bill_date, null tax_name,
+                    null supplier, null tinno,null invoicetype,null material,null number,null city,
+                    null productname, 0 vatbased_qty,0 as vatbased_amt,0.00 as salesvalue,null po_no,null po_date,
+                    avl.amount as cst_paid, 0 as paid_amt,
+                    null uom, null as grn, null as number,null as rate, null as name, 
+                    null commoditycode, null ed,null pf, null priceunit,
+                    null productqty,av.reference as invoiceno, av.date invoicedate,'0000119908 GL' as rate,null totalvalue, null descriptions,
+            0 as purchase_value,
+            --null as vat_paid, 
+            null as poname,
+           'J' as category
+            from account_voucher_line avl
+            inner join account_voucher av on avl.voucher_id=av.id
+            inner join account_account aa on avl.account_id=aa.id
+            inner join account_move am on av.move_id=am.id
+            where 
+            av.date between '%s' and '%s' and 
+            aa.code='0000119907'
+        '''%(date_from, date_to)
+        self.cr.execute(sql)
+        res1 = self.cr.dictfetchall()
+        if res1:
+            res = res+res1            
+        res_set = []
         s_no = 1
-        for line in self.cr.dictfetchall():
-             res.append({
+        for line in res:
+             res_set.append({
                         's_no':s_no,
                         'supplier': line['supplier'] or '',
                         'city':line['city'] or '',
@@ -129,13 +170,14 @@ class Parser(report_sxw.rml_parse):
                         'invoicedate': line['invoicedate'] or '',
                         'po_no': line['po_no'] or '',
                         'po_date': line['po_date'] or '', 
-                        'purchase_value': line['purchase_value'] or '', 
+                        'purchase_value': line['purchase_value'] or 0.00, 
                         'rate': line['rate'] or '', 
-                        'cst_paid': line['cst_paid'] or '',
+                        'cst_paid': line['cst_paid'] or 0.00,
                         'totalvalue': line['totalvalue'] or '',
                         'category': line['category'] or '',
-                        'descriptions': line['descriptions'] or '',                 
+                        'descriptions': line['descriptions'] or '', 
+                        'number': line['number'] or '',                
                         })
              s_no += 1
-        return res  
+        return res_set 
     
