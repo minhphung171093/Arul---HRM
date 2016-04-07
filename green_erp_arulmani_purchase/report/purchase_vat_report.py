@@ -46,7 +46,9 @@ class Parser(report_sxw.rml_parse):
           'get_date_from':self.get_date_from,
           'get_date_to':self.get_date_to, 
           'get_vat':self.get_vat, 
-         'convert_date':self.convert_date,
+          'get_total':self.get_total,  # Add  on 07/04/2016 by P.VINOTHKUMAR
+          'get_vattotal':self.get_vattotal, # Add  on 07/04/2016 by P.VINOTHKUMAR
+          'convert_date':self.convert_date,
         })
     def get_date_from(self):
         wizard_data = self.localcontext['data']['form']
@@ -63,10 +65,24 @@ class Parser(report_sxw.rml_parse):
         date = datetime.strptime(wizard_data['date_to'], DATE_FORMAT)
         return date.strftime('%d/%m/%Y') 
     
+    def get_total(self):
+        sum = 0.00
+        for line in self.get_vat():
+           sum += line['purchase_value']
+        return sum
+    
+    def get_vattotal(self):
+        sum = 0.00
+        for line in self.get_vat():
+           sum += line['vat_paid']
+        return sum
+    
     def get_vat(self):
         wizard_data = self.localcontext['data']['form']
         date_from = wizard_data['date_from']
         date_to = wizard_data['date_to']
+        vat_paid=0.0
+        #purchase_value=0.00
         #TPT START - By P.VINOTHKUMAR - ON 04/04/2016 - FOR (mismatch Purchase vat report with GL)
         sql='''
             select a.supplier, a.tinno, a.commoditycode, a.invoiceno, a.invoicedate, a.rate,
@@ -165,8 +181,8 @@ class Parser(report_sxw.rml_parse):
                 'invoiceno': line['invoiceno'] or '',
                 'invoicedate': line['invoicedate'] or '',  
                 'rate': line['rate'] or '', 
-                'purchase_value': line['purchase_value'] or '', 
-                'vat_paid': line['vat_paid'] or '',
+                'purchase_value': line['purchase_value'] or 0.00, 
+                'vat_paid': line['vat_paid'] or 0.00,
                 'category': line['category'] or '', 
                 'number': line['number'] or '',                 
                 })

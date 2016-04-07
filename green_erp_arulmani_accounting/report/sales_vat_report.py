@@ -109,7 +109,9 @@ class Parser(report_sxw.rml_parse):
         order_type=wizard_data['order_type']
         tax=wizard_data['tax']
         application=wizard_data['application']
-        vat_paid=0.0
+        vat_paid=0.00
+        sales_value=0.00
+        #sales_value=0.00
         sql='''
             select 
             pr.name_template as material,
@@ -125,6 +127,7 @@ class Parser(report_sxw.rml_parse):
             ai.vvt_number as invoiceno,
             ai.date_invoice as invoicedate,
             at.amount as rate,  
+            ai.number,
             ai.amount_untaxed as salesvalue,
             ai.amount_tax as vat_paid
             from account_invoice_line ail
@@ -134,7 +137,7 @@ class Parser(report_sxw.rml_parse):
                     join product_product pr on pr.id=ail.product_id
                     join product_category pc on pc.cate_name=pr.cate_name
                     join account_tax at on ai.sale_tax_id=at.id
-            where ai.type='out_invoice' and ai.state not in ('draft','cancel') and ai.date_invoice between '%s' and '%s' and ai.state not in ('draft', 'done')
+            where ai.type='out_invoice' and ai.date_invoice between '%s' and '%s' and ai.state not in ('draft', 'cancel')
             --and at.description like 'VAT%s(S)%s'
         '''%(date_from, date_to,'%', '%')
         if order_type:
@@ -146,16 +149,13 @@ class Parser(report_sxw.rml_parse):
         if application:
             sql += " and  ail.application_id=%s"%application[0]   
         sql += " order by customer"
-        self.cr.execute(sql)
-        # Add condition by p.vinothkumar on 07/04/2016
-        #TPT END
         self.cr.execute(sql);
         res = self.cr.dictfetchall()
         #print sql
         sql = '''
             select av.number as inv_doc, av.date date_invoice, null bill_number, null bill_date, null tax_name,
-                    null supplier, null tinno,
-                    null productname, 0 vatbased_qty,0 as vatbased_amt,
+                    null customer, null tinno,null invoicetype,null material,
+                    null productname, 0 vatbased_qty,0 as vatbased_amt,av.tpt_amount_total salesvalue,
                     avl.amount as vat_paid, 0 as paid_amt,
                     null uom, null as grn, null as number,null as rate, null as name, 
                     null commoditycode, null ed,null pf, null priceunit,
@@ -163,14 +163,14 @@ class Parser(report_sxw.rml_parse):
             av.tpt_amount_total as purchase_value,
             --null as vat_paid, 
             null as poname,
-           'B' as category
+           'F' as category
             from account_voucher_line avl
             inner join account_voucher av on avl.voucher_id=av.id
             inner join account_account aa on avl.account_id=aa.id
             inner join account_move am on av.move_id=am.id
             where 
             av.date between '%s' and '%s' and 
-            aa.code='0000119908'
+            aa.code='0000119906'
         '''%(date_from, date_to)
         self.cr.execute(sql)
         res1 = self.cr.dictfetchall()
@@ -178,8 +178,8 @@ class Parser(report_sxw.rml_parse):
             res = res+res1            
         res_set = []
         s_no = 1
-        for line in self.cr.dictfetchall():
-             res.append({
+        for line in res:
+             res_set.append({
                         's_no':s_no,
                         'customer': line['customer'] or '',
                         'tinno': line['tinno'] or '',
@@ -188,10 +188,11 @@ class Parser(report_sxw.rml_parse):
                         'invoicedate': line['invoicedate'] or '',
                         'invoicetype': line['invoicetype'] or '',
                         'material': line['material'] or '',
-                        'salesvalue': line['salesvalue'] or '', 
+                        'salesvalue': line['salesvalue'] or 0.00, 
                         'rate': line['rate'] or '', 
                         'vat_paid': line['vat_paid'] or 0.00,  #  Added this line on 10/02/2016 by P.VINOTHKUMAR 
-                        'category': line['category'] or '',            
+                        'category': line['category'] or '',
+                        'number': line['number'] or '',            
                         })
              s_no += 1
         return res_set 
