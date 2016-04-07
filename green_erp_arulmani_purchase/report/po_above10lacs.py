@@ -104,7 +104,7 @@ class Parser(report_sxw.rml_parse):
                 join product_product pr on pr.id=pl.product_id
                 join product_uom uom on uom.id=pl.product_uom
                 join product_category pc on pc.cate_name=pr.cate_name
-                where pl.line_net>=1000000 and p.state='done' 
+                where pl.line_net>=1000000 and p.state in('done','approved') --- modified by P.vinothkumar  on 07-04-2016
                 and EXTRACT(month FROM p.date_order)='%s' 
                 and EXTRACT(year FROM p.date_order)='%s' 
                 '''%(int(month),int(year))
@@ -154,7 +154,7 @@ class Parser(report_sxw.rml_parse):
                 join product_product pr on pr.id=pl.product_id
                 join product_uom uom on uom.id=pl.product_uom
                 join product_category pc on pc.cate_name=pr.cate_name
-                where pl.line_net>=1000000 and p.state='done' 
+                where pl.line_net>=1000000 and p.state in('done','approved') --- modified by P.vinothkumar  on 07-04-2016
                 and EXTRACT(month FROM p.date_order)='%s' 
                 and EXTRACT(year FROM p.date_order)='%s' 
                 '''%(int(month),int(year))
