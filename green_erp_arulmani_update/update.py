@@ -3632,22 +3632,42 @@ class tpt_update_stock_move_report(osv.osv):
                 '''%(line.id, line.tax_id and line.tax_id.id)
                 cr.execute(sql)
         return True
-     
-    def config_GRN_3451_3883(self, cr, uid, ids, context=None):
-        move_obj = self.pool.get('account.move')
-        partner_obj = self.pool.get('res.partner')
-        #=======================================================================
-        # partner_ids = partner_obj.search(cr, uid, [('vendor_code','in',['1200001218','1200001037','1200000581','1100000137','1200000946','1200000790',
-        #                                                                 '1200001230','1200001132','1200000680','1200000668','1100000277'])])
-        #=======================================================================
-         
-        partner_ids = partner_obj.search(cr, uid, [('vendor_code','in',['1200001260'])])
     
-        for partner_id in partner_ids:
-            move_ids = move_obj.search(cr, uid, [('partner_id','in',[partner_id]), ('state','=','draft'),('doc_type','=','grn')])
-            for move_id in move_ids:           
-                move_obj.button_validate(cr,uid, [move_id], context)
-        return self.write(cr, uid, ids, {'result':'GRN Auto Posting Done'})   
+    def config_GRN_3451_3883(self, cr, uid, ids, context=None):
+        acc_line_obj = self.pool.get('account.invoice.line')
+        #move_ids = acc_line_obj.search(cr, uid, [('type','=','in_invoice')])
+        sql = '''
+        select ail.id from account_invoice_line ail
+             inner join account_invoice ai on ail.invoice_id=ai.id
+             where ai.type='in_invoice'
+        '''
+        cr.execute(sql)
+        inv_ids = [r[0] for r in cr.fetchall()]
+        for move_id in acc_line_obj.browse(cr, uid, inv_ids):
+            #print move_id.wform_tax_amt
+            sql = '''
+            update account_invoice_line set tpt_tax_amt=%s where id=%s
+            '''%(move_id.wform_tax_amt, move_id.id)
+            cr.execute(sql)
+            #print sql
+        return self.write(cr, uid, ids, {'result':'Tax Amount Corrections Done'})   
+    #===========================================================================
+    # def config_GRN_3451_3883(self, cr, uid, ids, context=None):
+    #     move_obj = self.pool.get('account.move')
+    #     partner_obj = self.pool.get('res.partner')
+    #     #=======================================================================
+    #     # partner_ids = partner_obj.search(cr, uid, [('vendor_code','in',['1200001218','1200001037','1200000581','1100000137','1200000946','1200000790',
+    #     #                                                                 '1200001230','1200001132','1200000680','1200000668','1100000277'])])
+    #     #=======================================================================
+    #      
+    #     partner_ids = partner_obj.search(cr, uid, [('vendor_code','in',['1200001260'])])
+    # 
+    #     for partner_id in partner_ids:
+    #         move_ids = move_obj.search(cr, uid, [('partner_id','in',[partner_id]), ('state','=','draft'),('doc_type','=','grn')])
+    #         for move_id in move_ids:           
+    #             move_obj.button_validate(cr,uid, [move_id], context)
+    #     return self.write(cr, uid, ids, {'result':'GRN Auto Posting Done'})   
+    #===========================================================================
    
 #===============================================================================
 #     def config_GRN_3451_3883(self, cr, uid, ids, context=None):
