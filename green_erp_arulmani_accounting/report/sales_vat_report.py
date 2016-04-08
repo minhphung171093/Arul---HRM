@@ -159,7 +159,7 @@ class Parser(report_sxw.rml_parse):
                     avl.amount as vat_paid, 0 as paid_amt,
                     null uom, null as grn, null as number,null as rate, null as name, 
                     null commoditycode, null ed,null pf, null priceunit,
-                    null productqty,av.reference as invoiceno, av.date invoicedate,'0000119908 GL' as rate,
+                    null productqty,av.reference as invoiceno, av.date invoicedate,'0000219606 GL' as rate,
             av.tpt_amount_total as purchase_value,
             --null as vat_paid, 
             null as poname,

@@ -13,6 +13,7 @@ from openerp import netsvc
 
 class stock_picking(osv.osv):
     _inherit = "stock.picking"
+    #_order = "create_date desc" 
     _columns = {
         'cons_loca':fields.many2one('res.partner','Consignee Location',readonly = True),
         'warehouse':fields.many2one('stock.location','Warehouse'),
