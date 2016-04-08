@@ -86,8 +86,8 @@ class Parser(report_sxw.rml_parse):
         #TPT START - By P.VINOTHKUMAR - ON 04/04/2016 - FOR (mismatch Purchase vat report with GL)
         sql='''
             select a.supplier, a.tinno, a.commoditycode, a.invoiceno, a.invoicedate, a.rate,
-            sum(a.ed+a.pf+a.aed+a.basicamt+a.tax_amt) as purchase_value,
-            sum(a.tax_amt) as vat_paid, a.poname,a.number,
+            sum(a.ed+a.pf+a.aed+a.basicamt+a.tpt_tax_amt) as purchase_value,
+            sum(a.tpt_tax_amt) as vat_paid, a.poname,a.number,
            'B' as category
             from
             (select 
@@ -124,7 +124,7 @@ class Parser(report_sxw.rml_parse):
             ail.quantity as productqty,
             ail.ed_type as ed1,
             ail.p_f_type as pf1,
-            ail.tax_amt,
+            ail.tpt_tax_amt,
             case when ail.aed_id_1 is null then 0 else ail.aed_id_1 end as aed,
             (ail.price_unit * ail.quantity)-(ail.price_unit * ail.quantity * ail.discount/100) as basicamt
             from 
