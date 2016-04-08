@@ -363,7 +363,7 @@ class service_tax_register(osv.osv_memory):
                 rs.name as partner, ail.line_net as linenet,at.description as desc,ai.id as invoice_id,
                 COALESCE(ail.freight,0) as frieght_1,COALESCE(ail.fright,0) as frieght_2,
                 ai.doc_type, rs.id as partner_id,
-                ail.wform_tax_amt as stax_amt from account_invoice_line ail
+                ail.tax_amt as stax_amt from account_invoice_line ail
                 inner join account_invoice ai on ail.invoice_id=ai.id
                 join account_invoice_line_tax ailt on (ailt.invoice_line_id=ail.id)
                 inner join account_tax at on (at.id=ailt.tax_id)

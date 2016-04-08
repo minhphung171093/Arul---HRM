@@ -1387,7 +1387,74 @@ class account_invoice_line(osv.osv):
                     
                 res[line.id]['wform_tax_amt'] = tax_debit_amount
 #                 res[line.id]['line_net'] = tax_tds_amount
-        return res   
+        return res  
+    def tax_supplier_invo(self, cr, uid, ids, field_name, args, context=None):
+        res = {}
+        amount_basic = 0.0
+        amount_p_f=0.0
+        amount_ed=0.0
+        amount_fright=0.0
+           
+        for line in self.browse(cr,uid,ids,context=context):
+            res[line.id] = {
+                    'tax_amt': 0.0,
+                }  
+            amount_total_tax=0.0
+            amount_basic = (line.quantity * line.price_unit)-((line.quantity * line.price_unit)*line.disc/100)
+            if line.p_f_type == '1':
+               amount_p_f = amount_basic * (line.p_f/100)
+            elif line.p_f_type == '2':
+                amount_p_f = line.p_f
+            elif line.p_f_type == '3':
+                amount_p_f = line.p_f * line.quantity
+            else:
+                amount_p_f = line.p_f
+            if line.ed_type == '1':
+               amount_ed = (amount_basic + amount_p_f) * (line.ed/100)
+            elif line.ed_type == '2':
+                amount_ed = line.ed
+            elif line.ed_type == '3':
+                amount_ed = line.ed * line.quantity
+            else:
+                amount_ed = line.ed
+            if line.fright_type == '1':
+               amount_fright = (amount_basic + amount_p_f + amount_ed) * (line.fright/100)
+            elif line.fright_type == '2':
+                amount_fright = line.fright
+            elif line.fright_type == '3':
+                amount_fright = line.fright * line.quantity
+            else:
+                amount_fright = line.fright
+            tax_amounts = [r.amount for r in line.invoice_line_tax_id]
+            percent = 0.000
+            for tax_line in line.invoice_line_tax_id:
+                if tax_line.is_swachh_bharat is True:
+                    percent = 14.000
+                else:
+                    percent  = tax_line.amount
+                
+            amount_total_tax += percent/100
+            ###
+            amount_total_tax = (amount_basic + amount_p_f + amount_ed+line.aed_id_1)*(amount_total_tax)
+            ###
+            #res[line.id]['wform_tax_amt'] = amount_total_tax+amount_fright+amount_ed+amount_p_f+amount_basic+line.aed_id_1
+            res[line.id]['tax_amt'] = amount_total_tax
+            
+            if line.invoice_id.sup_inv_id and line.invoice_id.type=='in_invoice':
+                if line.fright_fi_type == '2':
+                    base = line.fright
+                    tax_debit_amount = base*(line.tax_id and line.tax_id.amount/100 or 0)
+                    tax_credit_amount = base*(line.tax_credit and line.tax_credit.amount/100 or 0)
+                    tax_tds_amount = base*(line.tds_id_2 and line.tds_id_2.amount/100 or 0)
+                else:
+                    base = line.fright*line.quantity
+                    tax_debit_amount = base*(line.tax_id and line.tax_id.amount/100 or 0)
+                    tax_credit_amount = base*(line.tax_credit and line.tax_credit.amount/100 or 0)
+                    tax_tds_amount = base*(line.tds_id_2 and line.tds_id_2.amount/100 or 0)
+                    
+                res[line.id]['tax_amt'] = tax_debit_amount
+#                 res[line.id]['line_net'] = tax_tds_amount
+        return res 
     _columns = {
         'invoice_line_tax_id': fields.many2many('account.tax', 'account_invoice_line_tax', 'invoice_line_id', 'tax_id', 'Taxes', domain=[('parent_id','=',False)]),
         'gl_code_id': fields.many2one('account.account', 'GL Code'),
@@ -1410,6 +1477,7 @@ class account_invoice_line(osv.osv):
         'po_line_id': fields.many2one('purchase.order.line', 'purchase order line'),
         'line_no': fields.integer('SI.No'),
         'wform_tax_amt':fields.function(wform_supplier_invo, type='float', store = True, multi='deltas1' ,string='Tax Amt'),
+        'tax_amt':fields.function(tax_supplier_invo, type='float', store = True, multi='deltas_2' ,string='Tax Amt.'),
         
     }
     _defaults = {
