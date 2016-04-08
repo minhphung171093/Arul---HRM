@@ -1859,7 +1859,7 @@ tpt_test_report_line()
 
 class tpt_batch_request(osv.osv):
     _name = "tpt.batch.request"
-    _order = 'name desc'
+    _order = 'create_date desc'
     
     _columns = {
         'name': fields.char('Request No', size = 1024,readonly=True, required = True , states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
