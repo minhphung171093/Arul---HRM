@@ -1397,7 +1397,7 @@ class account_invoice_line(osv.osv):
            
         for line in self.browse(cr,uid,ids,context=context):
             res[line.id] = {
-                    'tax_amt': 0.0,
+                    'tpt_tax_amt': 0.0,
                 }  
             amount_total_tax=0.0
             amount_basic = (line.quantity * line.price_unit)-((line.quantity * line.price_unit)*line.disc/100)
@@ -1438,7 +1438,7 @@ class account_invoice_line(osv.osv):
             amount_total_tax = (amount_basic + amount_p_f + amount_ed+line.aed_id_1)*(amount_total_tax)
             ###
             #res[line.id]['wform_tax_amt'] = amount_total_tax+amount_fright+amount_ed+amount_p_f+amount_basic+line.aed_id_1
-            res[line.id]['tax_amt'] = amount_total_tax
+            res[line.id]['tpt_tax_amt'] = amount_total_tax
             
             if line.invoice_id.sup_inv_id and line.invoice_id.type=='in_invoice':
                 if line.fright_fi_type == '2':
@@ -1452,7 +1452,7 @@ class account_invoice_line(osv.osv):
                     tax_credit_amount = base*(line.tax_credit and line.tax_credit.amount/100 or 0)
                     tax_tds_amount = base*(line.tds_id_2 and line.tds_id_2.amount/100 or 0)
                     
-                res[line.id]['tax_amt'] = tax_debit_amount
+                res[line.id]['tpt_tax_amt'] = tax_debit_amount
 #                 res[line.id]['line_net'] = tax_tds_amount
         return res 
     _columns = {
@@ -1477,7 +1477,7 @@ class account_invoice_line(osv.osv):
         'po_line_id': fields.many2one('purchase.order.line', 'purchase order line'),
         'line_no': fields.integer('SI.No'),
         'wform_tax_amt':fields.function(wform_supplier_invo, type='float', store = True, multi='deltas1' ,string='Tax Amt'),
-        'tax_amt':fields.function(tax_supplier_invo, type='float', store = True, multi='deltas_2' ,string='Tax Amt.'),
+        'tpt_tax_amt':fields.function(tax_supplier_invo, type='float', store = False, multi='taxamt' ,string='Tax Amt.'),
         
     }
     _defaults = {
