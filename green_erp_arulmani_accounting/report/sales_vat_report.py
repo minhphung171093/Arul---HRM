@@ -170,7 +170,7 @@ class Parser(report_sxw.rml_parse):
             inner join account_move am on av.move_id=am.id
             where 
             av.date between '%s' and '%s' and 
-            aa.code='0000119906'
+            aa.code='0000219606'
         '''%(date_from, date_to)
         self.cr.execute(sql)
         res1 = self.cr.dictfetchall()
