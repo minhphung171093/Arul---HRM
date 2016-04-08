@@ -203,29 +203,29 @@ class Parser(report_sxw.rml_parse):
         
         
         sql = '''
-                         select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
-                         case when av.type = 'receipt' then 'Receipt'
-                         when av.type = 'payment' then 'Payment'
-                         when av.type = 'sale' then 'Sale'
-                         when av.type = 'purchase' then 'Purchase' 
-                         when av.type = 'receipt' then 'Receipt'
-                         else '' end as officialwitholdingtax,
-                         null as witholdingtaxsection,null as tds_id,av.name as invoicedocno,av.date as postingdate,
-                         null as bill_no,null as bill_date,
-                         0.00 as base_amnt,null as tax_deduction,
-                         COALESCE(aml.credit,0.00) as tdsamount,
-                         av.reference as ven_ref,av.number as gl_doc,null as sec
-                         from account_voucher av
-                         join account_journal aj on (aj.id = av.journal_id)
-                         join res_partner bp on (bp.id=av.partner_id)
-                         inner join account_voucher_line avl on av.id=avl.voucher_id
-                         inner join account_account aa on avl.account_id=aa.id
-                         inner join account_move am on (am.id=av.move_id)
-                         inner join account_move_line aml on (aml.move_id=av.move_id and aa.id = aml.account_id)
-                         where --am.state = 'posted' and 
-                         aa.name ~ 'TDS' 
-                         --and av.type not in ('payment','receipt')
-                         and am.date between '%s' and '%s'
+             select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
+             case when av.type = 'receipt' then 'Receipt'
+             when av.type = 'payment' then 'Payment'
+             when av.type = 'sale' then 'Sale'
+             when av.type = 'purchase' then 'Purchase' 
+             when av.type = 'receipt' then 'Receipt'
+             else '' end as officialwitholdingtax,
+             null as witholdingtaxsection,null as tds_id,av.name as invoicedocno,av.date as postingdate,
+             null as bill_no,null as bill_date,
+             0.00 as base_amnt,null as tax_deduction,
+             COALESCE(aml.credit,0.00) as tdsamount,
+             av.reference as ven_ref,av.number as gl_doc,null as sec
+             from account_voucher av
+             join account_journal aj on (aj.id = av.journal_id)
+             join res_partner bp on (bp.id=av.partner_id)
+             inner join account_voucher_line avl on av.id=avl.voucher_id
+             inner join account_account aa on avl.account_id=aa.id
+             inner join account_move am on (am.id=av.move_id)
+             inner join account_move_line aml on (aml.move_id=av.move_id and aa.id = aml.account_id)
+             where --am.state = 'posted' and 
+             aa.name ~ 'TDS' 
+             --and av.type not in ('payment','receipt')
+             and am.date between '%s' and '%s'
                         
         '''%(date_from,date_to)            
         if vendor:
