@@ -529,7 +529,7 @@
                                         domain="[('parent_id','=',False),('company_id', '=', parent.company_id)]" invisible = '1'/>
                                     <field name="fright"/>
                                     <field name="fright_type" invisible = '1'/>
-                                    <field name="wform_tax_amt"/>
+                                    <field name="tax_amt"/>
                                     <field name="line_net"/>
                                     <field name="price_subtotal" invisible = '1'/>
                                 </tree>
@@ -767,7 +767,7 @@
                                     <field name="tax_service_credit" on_change = "onchange_tax_credit(tax_id, tax_service_credit)" options="{'create': false, 'create_edit': false}"/>
                                     <field name="fright"/>
                                     <field name="fright_type"/>
-                                    <field name="wform_tax_amt"/>
+                                    <field name="tax_amt"/>
                                     <field name="line_net"/>
                                     <field name="price_subtotal" invisible = '1'/>
                                 </tree>
@@ -999,7 +999,7 @@
                                     <field name="tds_id_2" invisible = '0' options="{'create': false, 'create_edit': false}" />
                                     <field name="fright" invisible = '0'/>
                                     <field name="fright_fi_type" invisible = '0' required='1'/>
-                                    <field name="wform_tax_amt"/>
+                                    <field name="tax_amt"/>
                                     <field name="line_net"/>
                                     <field name="price_subtotal" invisible = '1'/>
                                 </tree>
