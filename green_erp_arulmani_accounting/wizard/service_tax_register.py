@@ -322,14 +322,14 @@ class service_tax_register(osv.osv_memory):
             code = act_abj.code
             invoice_obj = self.pool.get('account.move.line')
             sql = '''
-                select aml.id
+                select distinct aml.id
                 from account_move_line aml
                 inner join account_move am on (am.id=aml.move_id)
                 join account_invoice ai on (ai.move_id=am.id and ai.type = 'in_invoice')
                 join account_invoice_line ail on (ail.invoice_id = ai.id and aml.name = ail.name)
                 join account_invoice_line_tax ailt on (ailt.invoice_line_id=ail.id)
                 join account_tax at on (at.id=ailt.tax_id)
-                where at.amount>0
+                where at.amount>0 and aml.account_id=402 
                 and at.is_stax_report = 't'                                                   
                 '''
             if date_from and date_to is False:
