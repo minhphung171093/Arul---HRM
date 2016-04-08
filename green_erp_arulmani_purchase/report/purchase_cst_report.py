@@ -140,7 +140,7 @@ class Parser(report_sxw.rml_parse):
                     avl.amount as cst_paid, 0 as paid_amt,
                     null uom, null as grn, null as number,null as rate, null as name, 
                     null commoditycode, null ed,null pf, null priceunit,
-                    null productqty,av.reference as invoiceno, av.date invoicedate,'0000119908 GL' as rate,null totalvalue, null descriptions,
+                    null productqty,av.reference as invoiceno, av.date invoicedate,'0000219607 GL' as rate,null totalvalue, null descriptions,
             0 as purchase_value,
             --null as vat_paid, 
             null as poname,

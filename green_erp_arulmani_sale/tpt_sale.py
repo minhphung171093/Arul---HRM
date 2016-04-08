@@ -77,7 +77,7 @@ product_product()
 
 class sale_order(osv.osv):
     _inherit = "sale.order"    
-    _order = "name desc" #"blanket_id"
+    _order = "create_date desc" #"blanket_id"
     
     def init(self, cr):
         sql = '''
