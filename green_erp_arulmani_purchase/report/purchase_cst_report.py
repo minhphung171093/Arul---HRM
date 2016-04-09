@@ -135,7 +135,7 @@ class Parser(report_sxw.rml_parse):
         #print sql
         sql = '''
             select av.number as number, av.date date_invoice, null bill_number, null bill_date, null tax_name,
-                    null supplier, null tinno,null invoicetype,null material,null number,null city,
+                    rs.name supplier, null tinno,null invoicetype,null material,null number,null city,
                     null productname, 0 vatbased_qty,0 as vatbased_amt,0.00 as salesvalue,null po_no,null po_date,
                     avl.amount as cst_paid, 0 as paid_amt,
                     null uom, null as grn, null as number,null as rate, null as name, 
@@ -149,6 +149,7 @@ class Parser(report_sxw.rml_parse):
             inner join account_voucher av on avl.voucher_id=av.id
             inner join account_account aa on avl.account_id=aa.id
             inner join account_move am on av.move_id=am.id
+            inner join res_partner rs on av.partner_id=rs.id
             where 
             av.date between '%s' and '%s' and 
             aa.code='0000219607'

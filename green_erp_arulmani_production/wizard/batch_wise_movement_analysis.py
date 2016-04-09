@@ -325,7 +325,7 @@ class review_batch_wise_movement_analysis_line(osv.osv):
     _columns = {
         'master_id':fields.many2one('review.batch.wise.movement.analysis','Report'),
         'production_date': fields.char('Production Date', size=1024),
-        'production_dec': fields.char('Production Dec No', size=1024),
+        'production_dec': fields.char('Production Doc No', size=1024),
         'batch_date':fields.char('Batch Date', size=1024),
         'batch_no':fields.char('Batch No', size=1024),
         'delivery_date':fields.char('Delivery Date', size=1024),

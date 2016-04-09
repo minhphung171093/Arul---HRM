@@ -396,7 +396,7 @@ class service_tax_register(osv.osv_memory):
            
             sql = '''
                 select av.date as date, null as bill_no, null as bill_date,
-            av.number as number, null as invoice_id, null as party_name,
+            av.number as number, null as invoice_id, rs.name as party_name,
             null as partner_id, 0 as open_bal, av.tpt_amount_total as taxable_amount, 
             null as service_tax_rate, avl.amount as service_tax, 
             0 as total, 0 as debit, 0 as closing_bal
@@ -405,6 +405,7 @@ class service_tax_register(osv.osv_memory):
             inner join account_voucher av on avl.voucher_id=av.id
             inner join account_account aa on avl.account_id=aa.id
             inner join account_move am on av.move_id=am.id
+            inner join res_partner rs on av.partner_id=rs.id
             where avl.type='dr' and aa.id=%s  
             '''%(account_id)
             if date_from and date_to is False:
