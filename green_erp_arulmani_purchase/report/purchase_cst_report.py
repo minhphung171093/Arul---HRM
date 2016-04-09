@@ -126,7 +126,7 @@ class Parser(report_sxw.rml_parse):
             join product_category pc on pc.cate_name=pr.cate_name
             join purchase_order_taxe pot on pl.id=pot.ord_id
             join account_tax at on pot.tax_id=at.id
-            where p.date_order::date between '%s' and '%s' and p.state not in('draft','cancel')
+            where ai.date_invoice::date between '%s' and '%s' and ai.state not in('draft','cancel')
             and at.description like 'CST%s(P)')a group by a.Rate,a.supplier,a.tinno,a.commoditycode,a.city,a.po_no,a.po_date,
             a.invoiceno,a.invoicedate,a.descriptions,a.number order by a.supplier
         '''%(date_from, date_to, '%')

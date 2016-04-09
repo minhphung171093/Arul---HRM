@@ -101,6 +101,12 @@ class Parser(report_sxw.rml_parse):
         for line in self.get_sales_cst():
            sum += line['cst_paid']
         return sum
+    def get_app(self, app_id):
+        app = ''
+        app_obj = self.pool.get('crm.application')
+        app_ids = app_obj.browse(self.cr, self.uid, app_id)
+        app = app_ids.name
+        return app
      #  Query modified on 10/02/2016 by P.VINOTHKUMAR      
     def get_sales_cst(self):
         wizard_data = self.localcontext['data']['form']
@@ -127,7 +133,7 @@ class Parser(report_sxw.rml_parse):
                     'F' as category,
                     at.description as rate,
                     ai.amount_untaxed as salesvalue,
-                    ai.amount_tax as cst_paid
+                    ai.amount_tax as cst_paid, ail.application_id app_id
                     from account_invoice_line ail
                     join account_invoice ai on ail.invoice_id=ai.id
                     --join crm_application app on app.id=ail.application_id
@@ -161,7 +167,7 @@ class Parser(report_sxw.rml_parse):
             av.tpt_amount_total as purchase_value,
             --null as vat_paid, 
             null as poname,
-           'F' as category
+           'F' as category, null as app_id
             from account_voucher_line avl
             inner join account_voucher av on avl.voucher_id=av.id
             inner join account_account aa on avl.account_id=aa.id
@@ -190,7 +196,8 @@ class Parser(report_sxw.rml_parse):
                 'rate': line['rate'] or '', 
                 'category': line['category'] or '', #  Added this line on 10/02/2016 by P.VINOTHKUMAR  
                 'cst_paid': line['cst_paid'] or 0.00, 
-                'number': line['number'] or '',              
+                'number': line['number'] or '',    
+                'app':self.get_app(line['app_id']) or ''            
                 })
              s_no += 1
         return res_set 
