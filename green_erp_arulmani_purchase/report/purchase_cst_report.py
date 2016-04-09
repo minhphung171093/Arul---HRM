@@ -117,7 +117,8 @@ class Parser(report_sxw.rml_parse):
             when p_f_type='3' then (pl.product_qty * pl.p_f)
             else p_f end as pf,
             at.amount,
-            (pl.price_unit * pl.product_qty)-(pl.price_unit * pl.product_qty * discount/100) as basicamt
+            (pl.price_unit * pl.product_qty)-(pl.price_unit * pl.product_qty * discount/100) as basicamt, 
+            'dr' as type
             from purchase_order_line pl
             join purchase_order p on p.id=pl.order_id 
             join account_invoice ai on ai.purchase_id=p.id
@@ -134,17 +135,17 @@ class Parser(report_sxw.rml_parse):
         res = self.cr.dictfetchall()
         #print sql
         sql = '''
-            select av.number as number, av.date date_invoice, av.ref bill_number, null bill_date, null tax_name,
+            select av.number as number, av.date date_invoice, av.reference bill_number, null bill_date, null tax_name,
                     rs.name supplier, rs.tin tinno,null invoicetype,null material,null number,null city,
                     null productname, 0 vatbased_qty,0 as vatbased_amt,av.tpt_amount_total as salesvalue,null po_no,null po_date,
                     avl.amount as cst_paid, 0 as paid_amt,
                     null uom, null as grn, null as number,null as rate, null as name, 
                     null commoditycode, null ed,null pf, null priceunit,
                     null productqty,av.reference as invoiceno, av.date invoicedate,'0000219607 GL' as rate,null totalvalue, null descriptions,
-            0 as purchase_value,
+            av.tpt_amount_total-avl.amount as purchase_value,
             --null as vat_paid, 
             null as poname,
-           'J' as category
+           'J' as category, avl.type
             from account_voucher_line avl
             inner join account_voucher av on avl.voucher_id=av.id
             inner join account_account aa on avl.account_id=aa.id
@@ -173,7 +174,8 @@ class Parser(report_sxw.rml_parse):
                         'po_date': line['po_date'] or '', 
                         'purchase_value': line['purchase_value'] or 0.00, 
                         'rate': line['rate'] or '', 
-                        'cst_paid': line['cst_paid'] or 0.00,
+                        #'cst_paid': line['cst_paid'] or 0.00,
+                        'cst_paid': -line['cst_paid'] if line['type'] == 'cr' else line['cst_paid'] or 0.00,
                         'totalvalue': line['totalvalue'] or '',
                         'category': line['category'] or '',
                         'descriptions': line['descriptions'] or '', 
