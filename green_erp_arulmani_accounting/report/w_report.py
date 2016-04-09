@@ -179,11 +179,11 @@ class Parser(report_sxw.rml_parse):
         '''%(date_from, date_to, "VAT%(P)")
         self.cr.execute(sql)
         res = self.cr.dictfetchall()
-        #print sql
+        
         sql = '''
             select av.name as inv_doc, av.date date_invoice, null bill_number, null bill_date, 
             null tax_name,
-            rs.name partnername, null tin,
+            rs.name partnername, rs.tin,
             null productname, 0 vatbased_qty,av.tpt_amount_total as vatbased_amt,
             avl.amount as paid_amt_1, 0 as paid_amt,
             null uom, null as grn, av.number as number
@@ -197,9 +197,7 @@ class Parser(report_sxw.rml_parse):
             av.date between '%s' and '%s' and 
             aa.code='0000119908'
         '''%(date_from, date_to)
-        self.cr.execute(sql)
-        #print sql
-        #return self.cr.dictfetchall()
+        self.cr.execute(sql)        
         res1 = self.cr.dictfetchall()
         if res1:
             res = res+res1

@@ -161,7 +161,7 @@ class Parser(report_sxw.rml_parse):
         #print sql
         sql = '''
             select av.number as inv_doc, av.date date_invoice, null bill_number, null bill_date, null tax_name,
-                    rs.name customer, null tinno,null invoicetype,null material,
+                    rs.name customer, rs.tin tinno,null invoicetype,null material,
                     null productname, 0 vatbased_qty,0 as vatbased_amt,av.tpt_amount_total salesvalue,
                     avl.amount as vat_paid, 0 as paid_amt,
                     null uom, null as grn, av.number as number,null as rate, null as name, 
