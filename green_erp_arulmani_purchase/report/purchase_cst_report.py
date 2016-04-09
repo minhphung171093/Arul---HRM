@@ -86,7 +86,7 @@ class Parser(report_sxw.rml_parse):
             sum(a.ed+a.pf+a.basicamt) as purchase_value,a.number,
             sum((a.ed+a.pf+a.basicamt)*a.amount/100) as cst_paid,
             sum((a.ed+a.pf+a.basicamt) + (a.ed+a.pf+a.basicamt)*a.amount/100) as totalvalue,
-           'J' as category,a.descriptions from
+           'J' as category,a.descriptions, a.type from
             (select 
             rp.name as supplier,
             rp.city,
@@ -118,7 +118,7 @@ class Parser(report_sxw.rml_parse):
             else p_f end as pf,
             at.amount,
             (pl.price_unit * pl.product_qty)-(pl.price_unit * pl.product_qty * discount/100) as basicamt, 
-            'dr' as type
+            cast('dr' as text) as type
             from purchase_order_line pl
             join purchase_order p on p.id=pl.order_id 
             join account_invoice ai on ai.purchase_id=p.id
@@ -129,7 +129,7 @@ class Parser(report_sxw.rml_parse):
             join account_tax at on pot.tax_id=at.id
             where ai.date_invoice::date between '%s' and '%s' and ai.state not in('draft','cancel')
             and at.description like 'CST%s(P)')a group by a.Rate,a.supplier,a.tinno,a.commoditycode,a.city,a.po_no,a.po_date,
-            a.invoiceno,a.invoicedate,a.descriptions,a.number order by a.supplier
+            a.invoiceno,a.invoicedate,a.descriptions,a.number,a.type order by a.supplier
         '''%(date_from, date_to, '%')
         self.cr.execute(sql);
         res = self.cr.dictfetchall()
@@ -144,8 +144,8 @@ class Parser(report_sxw.rml_parse):
                     null productqty,av.reference as invoiceno, av.date invoicedate,'0000219607 GL' as rate,null totalvalue, null descriptions,
             av.tpt_amount_total-avl.amount as purchase_value,
             --null as vat_paid, 
-            null as poname,
-           'J' as category, avl.type
+            null as poname, avl.type as type,
+           'J' as category
             from account_voucher_line avl
             inner join account_voucher av on avl.voucher_id=av.id
             inner join account_account aa on avl.account_id=aa.id
@@ -156,6 +156,7 @@ class Parser(report_sxw.rml_parse):
             aa.code='0000219607'
         '''%(date_from, date_to)
         self.cr.execute(sql)
+        #print sql
         res1 = self.cr.dictfetchall()
         if res1:
             res = res+res1            

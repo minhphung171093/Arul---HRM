@@ -88,7 +88,7 @@ class Parser(report_sxw.rml_parse):
             select a.supplier, a.tinno, a.commoditycode, a.invoiceno, a.invoicedate, a.rate,
             sum(a.ed+a.pf+a.aed+a.basicamt+a.tpt_tax_amt) as purchase_value,
             sum(a.tpt_tax_amt) as vat_paid, a.poname,a.number,
-           'B' as category
+           'B' as category, a.type
             from
             (select 
             rp.name as supplier,
@@ -127,7 +127,7 @@ class Parser(report_sxw.rml_parse):
             ail.tpt_tax_amt,
             case when ail.aed_id_1 is null then 0 else ail.aed_id_1 end as aed,
             (ail.price_unit * ail.quantity)-(ail.price_unit * ail.quantity * ail.discount/100) as basicamt,
-            'dr' as type
+            cast('dr' as text) as type
             from 
             account_invoice ai
             join account_invoice_line ail on ai.id=ail.invoice_id
@@ -141,7 +141,7 @@ class Parser(report_sxw.rml_parse):
              ai.state not in ('draft', 'cancel') and
             ai.doc_type not in('freight_invoice')
             and t.is_vat_report=true)a group by a.Rate,a.supplier,a.tinno,a.commoditycode,a.amount,
-            a.invoiceno,a.invoicedate,a.poname,a.date_invoice,a.number order by a.supplier
+            a.invoiceno,a.invoicedate,a.poname,a.date_invoice,a.number,a.type order by a.supplier
      '''%(date_from, date_to)
         #TPT END
         self.cr.execute(sql);
@@ -158,7 +158,7 @@ class Parser(report_sxw.rml_parse):
             av.tpt_amount_total-avl.amount as purchase_value,
             --null as vat_paid, 
             null as poname,
-           'B' as category, avl.type
+           'B' as category, avl.type as type
             from account_voucher_line avl
             inner join account_voucher av on avl.voucher_id=av.id
             inner join account_account aa on avl.account_id=aa.id
