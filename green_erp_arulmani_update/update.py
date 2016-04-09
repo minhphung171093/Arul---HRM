@@ -3644,7 +3644,7 @@ class tpt_update_stock_move_report(osv.osv):
         cr.execute(sql)
         inv_ids = [r[0] for r in cr.fetchall()]
         for move_id in acc_line_obj.browse(cr, uid, inv_ids):
-            #print move_id.wform_tax_amt
+            #print move_id.id or 0.00
             sql = '''
             update account_invoice_line set tpt_tax_amt=%s where id=%s
             '''%(move_id.wform_tax_amt, move_id.id)
