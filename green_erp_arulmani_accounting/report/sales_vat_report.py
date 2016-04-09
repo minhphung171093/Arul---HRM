@@ -136,7 +136,7 @@ class Parser(report_sxw.rml_parse):
             at.description as rate,
             ai.number,
             ai.amount_untaxed as salesvalue,
-            ai.amount_tax as vat_paid, ail.application_id app_id
+            ai.amount_tax as vat_paid, ail.application_id app_id, 'cr' as type
             from account_invoice_line ail
                     join account_invoice ai on ail.invoice_id=ai.id
                     --join crm_application app on app.id=ail.application_id
@@ -165,12 +165,12 @@ class Parser(report_sxw.rml_parse):
                     null productname, 0 vatbased_qty,0 as vatbased_amt,av.tpt_amount_total salesvalue,
                     avl.amount as vat_paid, 0 as paid_amt,
                     null uom, null as grn, av.number as number,null as rate, null as name, 
-                    null commoditycode, null ed,null pf, null priceunit,
+                    2001 commoditycode, null ed,null pf, null priceunit,
                     null productqty,av.reference as invoiceno, av.date invoicedate,'0000219606 GL' as rate,
             av.tpt_amount_total as purchase_value,
             --null as vat_paid, 
             null as poname,
-           'F' as category, null as app_id
+           'F' as category, null as app_id, avl.type
             from account_voucher_line avl
             inner join account_voucher av on avl.voucher_id=av.id
             inner join account_account aa on avl.account_id=aa.id
@@ -198,7 +198,8 @@ class Parser(report_sxw.rml_parse):
                         'material': line['material'] or '',
                         'salesvalue': line['salesvalue'] or 0.00, 
                         'rate': line['rate'] or '', 
-                        'vat_paid': line['vat_paid'] or 0.00,  #  Added this line on 10/02/2016 by P.VINOTHKUMAR 
+                        #'vat_paid': line['vat_paid'] or 0.00,  #  Added this line on 10/02/2016 by P.VINOTHKUMAR 
+                        'vat_paid': -line['vat_paid'] if line['type'] == 'dr' else line['vat_paid'] or 0.00,
                         'category': line['category'] or '',
                         'number': line['number'] or '',  
                         'app':self.get_app(line['app_id']) or ''             

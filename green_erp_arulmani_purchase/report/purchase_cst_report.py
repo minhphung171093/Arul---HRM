@@ -117,7 +117,7 @@ class Parser(report_sxw.rml_parse):
             when p_f_type='3' then (pl.product_qty * pl.p_f)
             else p_f end as pf,
             at.amount,
-            (pl.price_unit * pl.product_qty)-(pl.price_unit * pl.product_qty * discount/100) as basicamt
+            (pl.price_unit * pl.product_qty)-(pl.price_unit * pl.product_qty * discount/100) as basicamt, 'dr' as type
             from purchase_order_line pl
             join purchase_order p on p.id=pl.order_id 
             join account_invoice ai on ai.purchase_id=p.id
@@ -144,7 +144,7 @@ class Parser(report_sxw.rml_parse):
             0 as purchase_value,
             --null as vat_paid, 
             null as poname,
-           'J' as category
+           'J' as category, avl.type
             from account_voucher_line avl
             inner join account_voucher av on avl.voucher_id=av.id
             inner join account_account aa on avl.account_id=aa.id
@@ -173,7 +173,8 @@ class Parser(report_sxw.rml_parse):
                         'po_date': line['po_date'] or '', 
                         'purchase_value': line['purchase_value'] or 0.00, 
                         'rate': line['rate'] or '', 
-                        'cst_paid': line['cst_paid'] or 0.00,
+                        #'cst_paid': line['cst_paid'] or 0.00,
+                        'cst_paid': -line['cst_paid'] if line['type'] == 'cr' else line['cst_paid'] or 0.00,
                         'totalvalue': line['totalvalue'] or '',
                         'category': line['category'] or '',
                         'descriptions': line['descriptions'] or '', 

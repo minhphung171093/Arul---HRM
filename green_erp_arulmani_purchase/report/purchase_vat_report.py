@@ -126,7 +126,8 @@ class Parser(report_sxw.rml_parse):
             ail.p_f_type as pf1,
             ail.tpt_tax_amt,
             case when ail.aed_id_1 is null then 0 else ail.aed_id_1 end as aed,
-            (ail.price_unit * ail.quantity)-(ail.price_unit * ail.quantity * ail.discount/100) as basicamt
+            (ail.price_unit * ail.quantity)-(ail.price_unit * ail.quantity * ail.discount/100) as basicamt,
+            'dr' as type
             from 
             account_invoice ai
             join account_invoice_line ail on ai.id=ail.invoice_id
@@ -157,7 +158,7 @@ class Parser(report_sxw.rml_parse):
             av.tpt_amount_total as purchase_value,
             --null as vat_paid, 
             null as poname,
-           'B' as category
+           'B' as category, avl.type
             from account_voucher_line avl
             inner join account_voucher av on avl.voucher_id=av.id
             inner join account_account aa on avl.account_id=aa.id
@@ -183,7 +184,8 @@ class Parser(report_sxw.rml_parse):
                 'invoicedate': line['invoicedate'] or '',  
                 'rate': line['rate'] or '', 
                 'purchase_value': line['purchase_value'] or 0.00, 
-                'vat_paid': line['vat_paid'] or 0.00,
+                #'vat_paid': line['vat_paid'] or 0.00,
+                'vat_paid': -line['vat_paid'] if line['type'] == 'cr' else line['vat_paid'] or 0.00,
                 'category': line['category'] or '', 
                 'number': line['number'] or '',                 
                 })
