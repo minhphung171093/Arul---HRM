@@ -134,9 +134,9 @@ class Parser(report_sxw.rml_parse):
         res = self.cr.dictfetchall()
         #print sql
         sql = '''
-            select av.number as number, av.date date_invoice, null bill_number, null bill_date, null tax_name,
-                    rs.name supplier, null tinno,null invoicetype,null material,null number,null city,
-                    null productname, 0 vatbased_qty,0 as vatbased_amt,0.00 as salesvalue,null po_no,null po_date,
+            select av.number as number, av.date date_invoice, av.ref bill_number, null bill_date, null tax_name,
+                    rs.name supplier, rs.tin tinno,null invoicetype,null material,null number,null city,
+                    null productname, 0 vatbased_qty,0 as vatbased_amt,av.tpt_amount_total as salesvalue,null po_no,null po_date,
                     avl.amount as cst_paid, 0 as paid_amt,
                     null uom, null as grn, null as number,null as rate, null as name, 
                     null commoditycode, null ed,null pf, null priceunit,
