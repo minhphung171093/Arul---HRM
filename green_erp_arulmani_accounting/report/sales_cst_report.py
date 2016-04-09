@@ -132,7 +132,11 @@ class Parser(report_sxw.rml_parse):
                     ai.date_invoice as invoicedate,
                     'F' as category,
                     at.description as rate,
-                    ai.amount_untaxed as salesvalue,
+                    --ai.amount_untaxed as salesvalue,
+                    case when ai.invoice_type='domestic' then ai.amount_untaxed when 
+                    ai.invoice_type='export' then ai.amount_total_inr else ai.amount_untaxed
+                    end as salesvalue,  
+                    
                     ai.amount_tax as cst_paid, ail.application_id app_id, 'cr' as type
                     from account_invoice_line ail
                     join account_invoice ai on ail.invoice_id=ai.id
@@ -159,7 +163,7 @@ class Parser(report_sxw.rml_parse):
         sql = '''
             select av.number as inv_doc, av.date date_invoice, null bill_number, null bill_date, null tax_name,
                     rs.name customer, rs.tin tinno,null invoicetype,null material,
-                    null productname, 0 vatbased_qty,0 as vatbased_amt,0.00 as salesvalue,
+                    null productname, 0 vatbased_qty,0 as vatbased_amt,av.tpt_amount_total-avl.amount as salesvalue,
                     avl.amount as cst_paid, 0 as paid_amt,
                     null uom, null as grn,number,null as rate, null as name, 
                     2001 commoditycode, null ed,null pf, null priceunit,

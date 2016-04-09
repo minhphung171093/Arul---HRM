@@ -117,7 +117,8 @@ class Parser(report_sxw.rml_parse):
             when p_f_type='3' then (pl.product_qty * pl.p_f)
             else p_f end as pf,
             at.amount,
-            (pl.price_unit * pl.product_qty)-(pl.price_unit * pl.product_qty * discount/100) as basicamt, 'dr' as type
+            (pl.price_unit * pl.product_qty)-(pl.price_unit * pl.product_qty * discount/100) as basicamt, 
+            'dr' as type
             from purchase_order_line pl
             join purchase_order p on p.id=pl.order_id 
             join account_invoice ai on ai.purchase_id=p.id
@@ -134,14 +135,14 @@ class Parser(report_sxw.rml_parse):
         res = self.cr.dictfetchall()
         #print sql
         sql = '''
-            select av.number as number, av.date date_invoice, av.ref bill_number, null bill_date, null tax_name,
+            select av.number as number, av.date date_invoice, av.reference bill_number, null bill_date, null tax_name,
                     rs.name supplier, rs.tin tinno,null invoicetype,null material,null number,null city,
                     null productname, 0 vatbased_qty,0 as vatbased_amt,av.tpt_amount_total as salesvalue,null po_no,null po_date,
                     avl.amount as cst_paid, 0 as paid_amt,
                     null uom, null as grn, null as number,null as rate, null as name, 
                     null commoditycode, null ed,null pf, null priceunit,
                     null productqty,av.reference as invoiceno, av.date invoicedate,'0000219607 GL' as rate,null totalvalue, null descriptions,
-            0 as purchase_value,
+            av.tpt_amount_total-avl.amount as purchase_value,
             --null as vat_paid, 
             null as poname,
            'J' as category, avl.type
