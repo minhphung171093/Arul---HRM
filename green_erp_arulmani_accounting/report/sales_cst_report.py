@@ -117,35 +117,35 @@ class Parser(report_sxw.rml_parse):
         application=wizard_data['application']
         cst_paid=0.0
         sql='''  
-                    select
-                    pr.name_template as material,
-                    rp.name as customer,
-                    ai.number,
-                    rp.tin as tinno,
-                    case when ai.invoice_type='domestic' then 'Domestic/Indirect Export' when 
-                    ai.invoice_type='export' then 'Export' else '-'
-                    end as invoicetype,  
-                    case
-                    when pc.name='FinishedProduct' then '2001'
-                    else '-' end as commoditycode,
-                    ai.vvt_number as invoiceno,
-                    ai.date_invoice as invoicedate,
-                    'F' as category,
-                    at.description as rate,
-                    --ai.amount_untaxed as salesvalue,
-                    case when ai.invoice_type='domestic' then ai.amount_untaxed when 
-                    ai.invoice_type='export' then ai.amount_total_inr else ai.amount_untaxed
-                    end as salesvalue,  
-                    
-                    ai.amount_tax as cst_paid, ail.application_id app_id, 'cr' as type
-                    from account_invoice_line ail
-                    join account_invoice ai on ail.invoice_id=ai.id
-                    --join crm_application app on app.id=ail.application_id
-                    join res_partner rp on rp.id=ai.partner_id
-                    join product_product pr on pr.id=ail.product_id
-                    join product_category pc on pc.cate_name=pr.cate_name
-                    join account_tax at on ai.sale_tax_id=at.id
-                    where ai.type='out_invoice' and ai.state not in ('draft','cancel') and ai.date_invoice between '%s' and '%s' and ai.state not in ('draft', 'done')
+            select
+            pr.name_template as material,
+            rp.name as customer,
+            ai.number,
+            rp.tin as tinno,
+            case when ai.invoice_type='domestic' then 'Domestic/Indirect Export' when 
+            ai.invoice_type='export' then 'Export' else '-'
+            end as invoicetype,  
+            case
+            when pc.name='FinishedProduct' then '2001'
+            else '-' end as commoditycode,
+            ai.vvt_number as invoiceno,
+            ai.date_invoice as invoicedate,
+            'F' as category,
+            at.description as rate,
+            --ai.amount_untaxed as salesvalue,
+            case when ai.invoice_type='domestic' then ai.amount_untaxed when 
+            ai.invoice_type='export' then ai.amount_total_inr else ai.amount_untaxed
+            end as salesvalue,  
+            
+            ai.amount_tax as cst_paid, ail.application_id app_id, 'cr' as type
+            from account_invoice_line ail
+            join account_invoice ai on ail.invoice_id=ai.id
+            --join crm_application app on app.id=ail.application_id
+            join res_partner rp on rp.id=ai.partner_id
+            join product_product pr on pr.id=ail.product_id
+            join product_category pc on pc.cate_name=pr.cate_name
+            join account_tax at on ai.sale_tax_id=at.id
+            where ai.type='out_invoice' and ai.state not in ('draft','cancel') and ai.date_invoice between '%s' and '%s' and ai.state not in ('draft', 'done')
         '''%(date_from, date_to)
         if order_type:
              sql += " and ai.invoice_type='%s'"%order_type
