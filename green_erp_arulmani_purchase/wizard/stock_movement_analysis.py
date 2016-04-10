@@ -2376,18 +2376,8 @@ class stock_movement_analysis(osv.osv_memory):
                        location_id=24  #Other   
                         
                 sql = ''' select pp.default_code, pp.name_template as name, pu.name uom, 
-                (SELECT sum(onhand_qty) onhand_qty From
-                (SELECT 
-                case when loc1.usage != 'internal' and loc2.usage = 'internal'
-                then stm.primary_qty else
-                case when loc1.usage = 'internal' and loc2.usage != 'internal'
-                then -1*stm.primary_qty 
-                else 0.0 end
-                end onhand_qty          
-                FROM stock_move stm 
-                join stock_location loc1 on stm.location_id=loc1.id
-                join stock_location loc2 on stm.location_dest_id=loc2.id
-                WHERE stm.state= 'done' and stm.product_id=pp.id and stm.date<'%(date_from)s')foo) as opening_stock,
+                (select sum(product_qty) from stock_move where product_id=pp.id and sale_line_id is null and date < '%(date_from)s'
+                ) as opening_stock,
                 ---------
                 0 as opening_stock_value,
                 --------
@@ -2476,18 +2466,8 @@ class stock_movement_analysis(osv.osv_memory):
                        location_id=24  #Other   
                     sql = ''' select pp.default_code, pp.name_template as name, pu.name uom, 
                     ---------------------
-                    (SELECT sum(onhand_qty) onhand_qty From
-                    (SELECT 
-                    case when loc1.usage != 'internal' and loc2.usage = 'internal'
-                    then stm.primary_qty else
-                    case when loc1.usage = 'internal' and loc2.usage != 'internal'
-                    then -1*stm.primary_qty 
-                    else 0.0 end
-                    end onhand_qty          
-                    FROM stock_move stm 
-                    join stock_location loc1 on stm.location_id=loc1.id
-                    join stock_location loc2 on stm.location_dest_id=loc2.id
-                    WHERE stm.state= 'done' and stm.product_id=pp.id and stm.date<'%(date_from)s')foo) as opening_stock,
+                    (select sum(product_qty) from stock_move where product_id=%(product_id)s and sale_line_id is null and date < '%(date_from)s'
+                    ) as opening_stock,
                     ---------------------
                     0 as opening_stock_value,
                     -------------------
