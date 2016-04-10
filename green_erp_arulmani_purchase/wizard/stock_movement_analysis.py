@@ -326,7 +326,7 @@ class tpt_movement_analysis_line(osv.osv):
                 select * from account_move where doc_type in ('good', 'grn', 'product', 'freight') 
                     and date between '%(date_from)s' and '%(date_to)s'
                     and ( id in (select move_id from account_move_line where (move_id in (select move_id from account_invoice where to_char(date_invoice, 'YYYY-MM-DD') between '%(date_from)s' and '%(date_to)s' and id in (select invoice_id from account_invoice_line where product_id=%(product_id)s)))
-                        or (LEFT(name,17) in (select name from stock_picking where id in (select picking_id from stock_move where to_char(date, 'YYYY-MM-DD') between '%(date_from)s' and '%(date_to)s' and product_id=%(product_id)s)))
+                        or (ref in (select name from stock_picking where id in (select picking_id from stock_move where to_char(date, 'YYYY-MM-DD') between '%(date_from)s' and '%(date_to)s' and product_id=%(product_id)s)))
                     ) or material_issue_id in (select id from tpt_material_issue where date_expec between '%(date_from)s' and '%(date_to)s' and warehouse in (%(location_row_id)s,%(location_spare_id)s) and id in (select material_issue_id from tpt_material_issue_line where product_id=%(product_id)s)) 
                         )
                         or product_dec in (select id from mrp_production where date_planned between '%(date_from)s' and '%(date_to)s' and id in (select production_id from mrp_production_move_ids where move_id in (select id from stock_move where product_id = %(product_id)s and location_id in (%(location_row_id)s,%(location_spare_id)s) ))
@@ -343,7 +343,7 @@ class tpt_movement_analysis_line(osv.osv):
                 if line['doc_type'] == 'grn':
                     sql = '''
                         select * from stock_move
-                        where  picking_id in (select id from stock_picking where name in (select LEFT(name,17) from account_move_line where move_id = %s) and product_id = %s)
+                        where  picking_id in (select id from stock_picking where name in (select ref from account_move_line where move_id = %s) and product_id = %s)
                     '''%(line['id'], product_id.id)
                     cr.execute(sql)
                     for move in cr.dictfetchall():
@@ -398,7 +398,7 @@ class tpt_movement_analysis_line(osv.osv):
                     name = qty['name']        
             if move_type == 'grn':
                 sql = '''
-                   select name from stock_picking where name in (select LEFT(name,17) from account_move_line where move_id = %s) 
+                   select name from stock_picking where name in (select ref from account_move_line where move_id = %s) 
                 '''%(move_id)
                 cr.execute(sql)
                 for qty in cr.dictfetchall():
@@ -429,7 +429,7 @@ class tpt_movement_analysis_line(osv.osv):
                     date = product['create_date']        
             if move_type == 'grn':
                 sql = '''
-                   select create_date from stock_picking where name in (select LEFT(name,17) from account_move_line where move_id = %s) 
+                   select create_date from stock_picking where name in (select ref from account_move_line where move_id = %s) 
                 '''%(move_id)
                 cr.execute(sql)
                 for picking in cr.dictfetchall():
@@ -471,7 +471,7 @@ class tpt_movement_analysis_line(osv.osv):
                 if move_type == 'grn':
                     sql = '''
                         select * from stock_move
-                        where picking_id in (select id from stock_picking where name in (select LEFT(name,17) from account_move_line where move_id = %s)) 
+                        where picking_id in (select id from stock_picking where name in (select ref from account_move_line where move_id = %s)) 
                         and product_id = %s and ((id in (select need_inspec_id from tpt_quanlity_inspection where state in ('done', 'remaining')) and action_taken='need') or action_taken='direct') order by si_no
                     '''%(move_id, product_id.id)
                     cr.execute(sql)
@@ -519,7 +519,7 @@ class tpt_movement_analysis_line(osv.osv):
                 if move_type == 'grn':
                     sql = '''
                         select * from stock_move
-                        where picking_id in (select id from stock_picking where name in (select LEFT(name,17) from account_move_line where move_id = %s)) 
+                        where picking_id in (select id from stock_picking where name in (select ref from account_move_line where move_id = %s)) 
                         and product_id = %s and ((id in (select need_inspec_id from tpt_quanlity_inspection where state in ('done', 'remaining')) and action_taken='need') or action_taken='direct') order by si_no
                     '''%(move_id, product_id.id)
                     cr.execute(sql)
@@ -599,7 +599,7 @@ class tpt_movement_analysis_line(osv.osv):
                
                if move_type == 'grn':
                    sql = '''
-                       select * from stock_move where picking_id in (select id from stock_picking where name in (select LEFT(name,17) from account_move_line where move_id = %s))
+                       select * from stock_move where picking_id in (select id from stock_picking where name in (select ref from account_move_line where move_id = %s))
                    '''%(move_id) 
                    cr.execute(sql)
                    for line in cr.dictfetchall():
@@ -664,7 +664,7 @@ class tpt_movement_analysis_line(osv.osv):
                        hand_quantity = inventory['ton_sl'] or 0
                        total_cost = inventory['total_cost'] or 0
                    sql = '''
-                       select * from stock_move where picking_id in (select id from stock_picking where name in (select LEFT(name,17) from account_move_line where move_id = %s))
+                       select * from stock_move where picking_id in (select id from stock_picking where name in (select ref from account_move_line where move_id = %s))
                    '''%(move_id) 
                    cr.execute(sql)
                    for line in cr.dictfetchall():
@@ -1626,7 +1626,7 @@ class stock_movement_analysis(osv.osv_memory):
                 select * from account_move where doc_type in ('good', 'grn', 'product', 'freight') 
                     and date between '%(date_from)s' and '%(date_to)s'
                     and ( id in (select move_id from account_move_line where (move_id in (select move_id from account_invoice where to_char(date_invoice, 'YYYY-MM-DD') between '%(date_from)s' and '%(date_to)s' and id in (select invoice_id from account_invoice_line where product_id=%(product_id)s)))
-                        or (LEFT(name,17) in (select name from stock_picking where id in (select picking_id from stock_move where to_char(date, 'YYYY-MM-DD') between '%(date_from)s' and '%(date_to)s' and product_id=%(product_id)s)))
+                        or (ref in (select name from stock_picking where id in (select picking_id from stock_move where to_char(date, 'YYYY-MM-DD') between '%(date_from)s' and '%(date_to)s' and product_id=%(product_id)s)))
                     ) or material_issue_id in (select id from tpt_material_issue where date_expec between '%(date_from)s' and '%(date_to)s' and warehouse in (%(location_row_id)s,%(location_spare_id)s) and id in (select material_issue_id from tpt_material_issue_line where product_id=%(product_id)s)) 
                         )
                         or product_dec in (select id from mrp_production where date_planned between '%(date_from)s' and '%(date_to)s' and id in (select production_id from mrp_production_move_ids where move_id in (select id from stock_move where product_id = %(product_id)s and location_id in (%(location_row_id)s,%(location_spare_id)s) ))
@@ -1645,7 +1645,7 @@ class stock_movement_analysis(osv.osv_memory):
                 if line['doc_type'] == 'grn':
                     sql = '''
                         select * from stock_move
-                        where  picking_id in (select id from stock_picking where name in (select LEFT(name,17) from account_move_line where move_id = %s) and product_id = %s)
+                        where  picking_id in (select id from stock_picking where name in (select ref from account_move_line where move_id = %s) and product_id = %s)
                     '''%(line['id'], product_id.id)
                     cr.execute(sql)
                     for move in cr.dictfetchall():
@@ -1690,7 +1690,7 @@ class stock_movement_analysis(osv.osv_memory):
                     name = qty['doc_no']
             if move_type == 'grn':
                 sql = '''
-                   select name from stock_picking where name in (select LEFT(name,17) from account_move_line where move_id = %s) 
+                   select name from stock_picking where name in (select ref from account_move_line where move_id = %s) 
                 '''%(move_id)
                 cr.execute(sql)
                 for qty in cr.dictfetchall():
@@ -1726,7 +1726,7 @@ class stock_movement_analysis(osv.osv_memory):
                 if move_type == 'grn':
                     sql = '''
                         select * from stock_move
-                        where picking_id in (select id from stock_picking where name in (select LEFT(name,17) from account_move_line where move_id = %s)) 
+                        where picking_id in (select id from stock_picking where name in (select ref from account_move_line where move_id = %s)) 
                         and product_id = %s and ((id in (select need_inspec_id from tpt_quanlity_inspection where state in ('done', 'remaining')) and action_taken='need') or action_taken='direct') order by si_no
                     '''%(move_id, product_id.id)
                     cr.execute(sql)
@@ -1774,7 +1774,7 @@ class stock_movement_analysis(osv.osv_memory):
                 if move_type == 'grn':
                     sql = '''
                         select * from stock_move
-                        where picking_id in (select id from stock_picking where name in (select LEFT(name,17) from account_move_line where move_id = %s)) 
+                        where picking_id in (select id from stock_picking where name in (select ref from account_move_line where move_id = %s)) 
                         and product_id = %s and ((id in (select need_inspec_id from tpt_quanlity_inspection where state in ('done', 'remaining')) and action_taken='need') or action_taken='direct') order by si_no
                     '''%(move_id, product_id.id)
                     cr.execute(sql)
@@ -1885,7 +1885,7 @@ class stock_movement_analysis(osv.osv_memory):
                        hand_quantity = inventory['ton_sl'] or 0
                        total_cost = inventory['total_cost'] or 0
                    sql = '''
-                       select * from stock_move where picking_id in (select id from stock_picking where name in (select LEFT(name,17) from account_move_line where move_id = %s))
+                       select * from stock_move where picking_id in (select id from stock_picking where name in (select ref from account_move_line where move_id = %s))
                    '''%(move_id) 
                    cr.execute(sql)
                    for line in cr.dictfetchall():
@@ -1950,7 +1950,7 @@ class stock_movement_analysis(osv.osv_memory):
                        hand_quantity = inventory['ton_sl'] or 0
                        total_cost = inventory['total_cost'] or 0
                    sql = '''
-                       select * from stock_move where picking_id in (select id from stock_picking where name in (select LEFT(name,17) from account_move_line where move_id = %s))
+                       select * from stock_move where picking_id in (select id from stock_picking where name in (select ref from account_move_line where move_id = %s))
                    '''%(move_id) 
                    cr.execute(sql)
                    for line in cr.dictfetchall():
