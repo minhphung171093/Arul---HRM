@@ -82,55 +82,69 @@ class Parser(report_sxw.rml_parse):
         date_from = wizard_data['date_from']
         date_to = wizard_data['date_to']
         sql='''
-            select a.supplier, a.city, a.tinno, a.commoditycode, a.invoiceno, a.invoicedate, a.rate, a.po_no, a.po_date,
-            sum(a.ed+a.pf+a.basicamt) as purchase_value,a.number,
-            sum((a.ed+a.pf+a.basicamt)*a.amount/100) as cst_paid,
-            sum((a.ed+a.pf+a.basicamt) + (a.ed+a.pf+a.basicamt)*a.amount/100) as totalvalue,
-           'J' as category,a.descriptions, a.type from
+            select a.supplier, a.tinno, a.commoditycode, a.invoiceno, a.invoicedate, a.rate descriptions,
+            sum(a.ed+a.pf+a.aed+a.basicamt+a.tpt_tax_amt) as totalvalue,a.rate,
+            sum(a.ed+a.pf+a.aed+a.basicamt+a.tpt_tax_amt) as purchase_value,
+            sum(a.tpt_tax_amt) as cst_paid, a.poname,a.number, 
+           'B' as category, a.type, a.city, a.po_no, a.po_date
+            from
             (select 
-            rp.name as supplier,
-            rp.city,
+            rp.name as supplier, rp.city, po.name po_no,po.date_order po_date,
             rp.tin as tinno,
-            p.name as po_no,
-            p.date_order as po_date,
-            at.description as rate,
+            t.description as rate,
             pc.name,
-            pl.product_qty,
+            t.amount,
+            ail.quantity,
+            ai.name as poname,
+            ail.price_unit,
+            ai.doc_type,
             ai.number,
-            pl.price_unit,
-            pl.description as descriptions,
+            ai.state,
             ai.bill_number as invoiceno,
             ai.bill_date as invoicedate,
+            ai.date_invoice,
             case 
             when pc.name='Spares' then 2025
             when pc.name='Consumables' then 2025
             when pc.name='Assets' then 2025
             else 2067 end as commoditycode,
             case 
-            when ed_type='1' then (pl.product_qty * pl.price_unit) * ed/100
-            when ed_type='2' then ed
-            when ed_type='3' then (pl.product_qty * pl.ed)
-            else ed end as ed,
+            when ail.ed_type='1' then (ail.quantity * ail.price_unit) * ail.ed/100
+            when ail.ed_type='2' then ail.ed
+            when ail.ed_type='3' then (ail.quantity * ail.ed)
+            else ail.ed end as ed,
             case 
-            when p_f_type='1' then (pl.product_qty * pl.price_unit) * p_f/100
-            when p_f_type='2' then p_f
-            when p_f_type='3' then (pl.product_qty * pl.p_f)
-            else p_f end as pf,
-            at.amount,
-            (pl.price_unit * pl.product_qty)-(pl.price_unit * pl.product_qty * discount/100) as basicamt, 
+            when ail.p_f_type='1' then (ail.quantity * ail.price_unit) * ail.p_f/100
+            when ail.p_f_type='2' then ail.p_f
+            when ail.p_f_type='3' then (ail.quantity * ail.p_f)
+            else ail.p_f end as pf,
+            ail.price_unit as priceunit,
+            ail.quantity as productqty,
+            ail.ed_type as ed1,
+            ail.p_f_type as pf1,
+            ail.tpt_tax_amt,
+            case when ail.aed_id_1 is null then 0 else ail.aed_id_1 end as aed,
+            (ail.price_unit * ail.quantity)-(ail.price_unit * ail.quantity * ail.discount/100) as basicamt,
             cast('dr' as text) as type
-            from purchase_order_line pl
-            join purchase_order p on p.id=pl.order_id 
-            join account_invoice ai on ai.purchase_id=p.id
-            join res_partner rp on rp.id=p.partner_id
-            join product_product pr on pr.id=pl.product_id
+            from 
+            account_invoice ai
+            join account_invoice_line ail on ai.id=ail.invoice_id
+            join res_partner rp on rp.id=ai.partner_id
+            join product_product pr on pr.id=ail.product_id
             join product_category pc on pc.cate_name=pr.cate_name
-            join purchase_order_taxe pot on pl.id=pot.ord_id
-            join account_tax at on pot.tax_id=at.id
-            where ai.date_invoice::date between '%s' and '%s' and ai.state not in('draft','cancel')
-            and at.description like 'CST%s(P)')a group by a.Rate,a.supplier,a.tinno,a.commoditycode,a.city,a.po_no,a.po_date,
-            a.invoiceno,a.invoicedate,a.descriptions,a.number,a.type order by a.supplier
-        '''%(date_from, date_to, '%')
+            join account_invoice_line_tax ailt on (ailt.invoice_line_id=ail.id)
+            join account_tax t on t.id=ailt.tax_id
+            join purchase_order po on ai.purchase_id=po.id
+            where
+             ai.date_invoice::date between '%s' and '%s' and
+             ai.state not in ('draft', 'cancel') and
+            ai.doc_type not in('freight_invoice')
+            and t.description like 'CST%s(P)%s' --t.is_vat_report=true
+            )a group by a.Rate,a.supplier,a.tinno,a.commoditycode,a.amount,
+            a.invoiceno,a.invoicedate,a.poname,a.date_invoice,a.number,a.type, a.city, a.po_no,
+            a.po_date order by a.supplier
+          
+        '''%(date_from, date_to, '%', '%')
         self.cr.execute(sql);
         res = self.cr.dictfetchall()
         #print sql
@@ -139,7 +153,7 @@ class Parser(report_sxw.rml_parse):
                     rs.name supplier, rs.tin tinno,null invoicetype,null material,null number,null city,
                     null productname, 0 vatbased_qty,0 as vatbased_amt,av.tpt_amount_total as salesvalue,null po_no,null po_date,
                     avl.amount as cst_paid, 0 as paid_amt,
-                    null uom, null as grn, null as number,null as rate, null as name, 
+                    null as city, null uom, null as grn, null as number,null as rate, null as name, 
                     null commoditycode, null ed,null pf, null priceunit,
                     null productqty,av.reference as invoiceno, av.date invoicedate,'0000219607 GL' as rate,null totalvalue, null descriptions,
             av.tpt_amount_total-avl.amount as purchase_value,
