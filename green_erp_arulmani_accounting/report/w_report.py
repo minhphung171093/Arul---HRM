@@ -163,18 +163,19 @@ class Parser(report_sxw.rml_parse):
         select  
         ai.name as inv_doc, at.description tax_name,rs.name partnername, rs.tin, ai.bill_number, ai.bill_date,ai.date_invoice,
         case when sum(ail.tpt_tax_amt)>0 then sum(ail.tpt_tax_amt) else 0 end  as paid_amt_1,
-        sum(ail.quantity) as vatbased_qty, null as uom, ail.name as productname, sum(ail.line_net) as vatbased_amt, sp.name grn,ai.number as number
+        sum(ail.quantity) as vatbased_qty, pu.name as uom, ail.name as productname, sum(ail.line_net) as vatbased_amt, sp.name grn,ai.number as number
         from account_invoice ai
             inner join account_invoice_line ail on ai.id=ail.invoice_id
             inner join account_invoice_line_tax ailt on (ailt.invoice_line_id=ail.id)
             inner join account_tax at on (at.id=ailt.tax_id)
             inner join res_partner rs on ai.partner_id=rs.id
             inner join stock_picking sp on ai.grn_no=sp.id
+            inner join product_uom pu on ail.uos_id=pu.id
             where ai.date_invoice between '%s' and '%s' and
             at.description like '%s' and ai.type='in_invoice'
             and at.amount>0 and ai.doc_type<>'freight_invoice' and ai.state not in ('draft', 'cancel')
             group by at.id, ai.name, rs.name, rs.tin, ai.bill_number, ai.bill_date, ai.date_invoice, 
-            sp.name,ai.number, ail.name
+            sp.name,ai.number, ail.name, pu.name
         order by ai.name
         '''%(date_from, date_to, "VAT%(P)")
         self.cr.execute(sql)
