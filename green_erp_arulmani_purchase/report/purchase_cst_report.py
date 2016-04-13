@@ -127,7 +127,7 @@ class Parser(report_sxw.rml_parse):
             ail.p_f_type as pf1,
             ail.tpt_tax_amt,
             case when ail.aed_id_1 is null then 0 else ail.aed_id_1 end as aed,
-            (ail.price_unit * ail.quantity)-(ail.price_unit * ail.quantity * ail.discount/100) as basicamt,
+            (ail.price_unit * ail.quantity)-(ail.price_unit * ail.quantity * ail.disc/100) as basicamt,
             cast('dr' as text) as type
             from 
             account_invoice ai
@@ -150,7 +150,7 @@ class Parser(report_sxw.rml_parse):
         '''%(date_from, date_to, '%', '%')
         self.cr.execute(sql);
         res = self.cr.dictfetchall()
-        print sql
+        #print sql
         sql = '''
             select av.number as number, av.date date_invoice, av.reference bill_number, null bill_date, null tax_name,
                     rs.name supplier, rs.tin tinno,null invoicetype,null material,null number,null city,
