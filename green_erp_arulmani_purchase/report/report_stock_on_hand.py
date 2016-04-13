@@ -62,6 +62,28 @@ class Parser(report_sxw.rml_parse):
               'get_prod':self.get_prod, #TPT-BM
     
         })
+    ###
+    def get_avg_cost(self, product_id, categ, std_price):
+        avg_cost = 0
+        if categ=='raw':
+            location_id=15
+        elif categ=='spares':
+            location_id=14
+        elif categ=='finish':
+            if product_id==4 or product_id==9:
+                location_id=13
+            elif product_id==2:
+                location_id=25
+            else:
+                location_id=24
+        avg_cost_obj = self.pool.get('tpt.product.avg.cost')        
+        avg_cost_ids = avg_cost_obj.search(self.cr, self.uid, [('product_id','=',product_id),('warehouse_id','=',location_id)])
+        if avg_cost_ids:
+            avg_cost_id = avg_cost_obj.browse(self.cr, self.uid, avg_cost_ids[0])
+            avg_cost = avg_cost_id.avg_cost or 0
+        if categ=='finish':
+            avg_cost = std_price
+        return avg_cost
     ##TPT-START - TO ADDRESS PERFORMANCE ISSUE - By BalamuruganPurushothaman on 02/09/2015
     def get_prod(self): 
         sql = '''
@@ -198,7 +220,7 @@ class Parser(report_sxw.rml_parse):
                         where st.state='done' and st.product_id = pp.id and 
                         st.location_id =(select id from stock_location where name='Raw Material' and 
                         usage='internal' and location_id=(select id from stock_location where name='Production Line'))
-                    )foo) pl_rm
+                    )foo) pl_rm, pp.id product_id, pp.cate_name as categ
                      
             from product_product pp
             inner join product_template pt on pp.product_tmpl_id=pt.id 
@@ -251,7 +273,7 @@ class Parser(report_sxw.rml_parse):
                  'min_stock': line['min_stock'] or 0,
                  'max_stock': line['max_stock'] or 0,
                  're_stock': line['re_stock'] or 0,
-                 'unit_price': line['standard_price'] or 0,
+                 'unit_price': self.get_avg_cost(line['product_id'], line['categ'],line['standard_price']),#line['standard_price'] or 0,
                  'onhand_qty_blocklist': line['block_qty'] or 0 ,
                  'onhand_qty_pl_other': line['pl_others'] or 0,
                  'onhand_qty_qa_ins': line['ins_qty'] or 0 , 
