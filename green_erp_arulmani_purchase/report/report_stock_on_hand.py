@@ -84,7 +84,7 @@ class Parser(report_sxw.rml_parse):
         if categ=='finish':
             avg_cost = std_price
         return avg_cost
-    def get_avg_cost(self, product_id, categ, std_price):
+    def get_lastpo_cost(self, product_id, categ, std_price):
         sql = '''
                 select case when price_unit>0 then price_unit else 0 end avg_cost from purchase_order_line where id = (
                 select max(id) from purchase_order_line pol
@@ -96,7 +96,7 @@ class Parser(report_sxw.rml_parse):
         if avg:
             avg_cost=avg['avg_cost']
         if categ=='finish':
-            avg_cost = std_price
+            avg_cost = 0.00
         return float(avg_cost)
     ##TPT-START - TO ADDRESS PERFORMANCE ISSUE - By BalamuruganPurushothaman on 02/09/2015
     def get_prod(self): 
