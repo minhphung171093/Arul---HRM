@@ -617,7 +617,7 @@ class stock_on_hand_report(osv.osv_memory):
                         where st.state='done' and st.product_id = pp.id and 
                         st.location_id =(select id from stock_location where name='Raw Material' and 
                         usage='internal' and location_id=(select id from stock_location where name='Production Line'))
-                    )foo) pl_rm
+                    )foo) pl_rm, pp.id product_id, pp.cate_name as categ
             
             
             from product_product pp
@@ -658,6 +658,28 @@ class stock_on_hand_report(osv.osv_memory):
             cr.execute(sql)
             return cr.dictfetchall()
         ###
+        def get_avg_cost(product_id, categ, std_price):
+            avg_cost = 0
+            if categ=='raw':
+                location_id=15
+            elif categ=='spares':
+                location_id=14
+            elif categ=='finish':
+                if product_id==4 or product_id==9:
+                    location_id=13
+                elif product_id==2:
+                    location_id=25
+                else:
+                    location_id=24
+            avg_cost_obj = self.pool.get('tpt.product.avg.cost')        
+            avg_cost_ids = avg_cost_obj.search(cr, uid, [('product_id','=',product_id),('warehouse_id','=',location_id)])
+            if avg_cost_ids:
+                avg_cost_id = avg_cost_obj.browse(cr, uid, avg_cost_ids[0])
+                avg_cost = avg_cost_id.avg_cost or 0
+            if categ=='finish':
+                avg_cost = std_price
+            return avg_cost
+        ###
         cr.execute('delete from tpt_stock_on_hand')
         stock_obj = self.pool.get('tpt.stock.on.hand')
         stock = self.browse(cr, uid, ids[0])
@@ -673,7 +695,7 @@ class stock_on_hand_report(osv.osv_memory):
                  'min_stock': line['min_stock'] or '',
                  'max_stock': line['max_stock'] or '',
                  're_stock': line['re_stock'] or '',
-                 'unit_price': line['standard_price'] or '',
+                 'unit_price': get_avg_cost(line['product_id'], line['categ'],line['standard_price']),#line['standard_price'] or '',
                  'onhand_qty_blocklist': line['block_qty'] or '' ,
                  'onhand_qty_pl_other': line['pl_others'] or '',
                  'onhand_qty_qa_ins': line['ins_qty'] or '' , 
