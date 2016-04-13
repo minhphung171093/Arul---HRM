@@ -55,7 +55,8 @@ class tpt_stock_on_hand_line(osv.osv):
         'min_stock': fields.float('MRP Min Stock',digits=(16,3)),
         'max_stock': fields.float('MRP Max Stock',digits=(16,3)),
         're_stock': fields.float('MRP Re-Order Stock',digits=(16,3)),
-        'unit_price': fields.float('Unit Price',),
+        'unit_price': fields.float('Unit Price(Avg Cost)',),
+        'po_price': fields.float('Last PO Price',),
         
         'onhand_qty_blocklist': fields.float('Block List',digits=(16,3)),
         'onhand_qty_pl_other': fields.float('Production Line / Other',digits=(16,3)),   
@@ -659,26 +660,39 @@ class stock_on_hand_report(osv.osv_memory):
             return cr.dictfetchall()
         ###
         def get_avg_cost(product_id, categ, std_price):
-#             avg_cost = 0
-#             if categ=='raw':
-#                 location_id=15
-#             elif categ=='spares':
-#                 location_id=14
-#             elif categ=='finish':
-#                 if product_id==4 or product_id==9:
-#                     location_id=13
-#                 elif product_id==2:
-#                     location_id=25
-#                 else:
-#                     location_id=24
-#             avg_cost_obj = self.pool.get('tpt.product.avg.cost')        
-#             avg_cost_ids = avg_cost_obj.search(cr, uid, [('product_id','=',product_id),('warehouse_id','=',location_id)])
-#             if avg_cost_ids:
-#                 avg_cost_id = avg_cost_obj.browse(cr, uid, avg_cost_ids[0])
-#                 avg_cost = avg_cost_id.avg_cost or 0
-#             if categ=='finish':
-#                 avg_cost = std_price
-#             return avg_cost
+            avg_cost = 0
+            if categ=='raw':
+                location_id=15
+            elif categ=='spares':
+                location_id=14
+            elif categ=='finish':
+                if product_id==4 or product_id==9:
+                    location_id=13
+                elif product_id==2:
+                    location_id=25
+                else:
+                    location_id=24
+            avg_cost_obj = self.pool.get('tpt.product.avg.cost')        
+            avg_cost_ids = avg_cost_obj.search(cr, uid, [('product_id','=',product_id),('warehouse_id','=',location_id)])
+            if avg_cost_ids:
+                avg_cost_id = avg_cost_obj.browse(cr, uid, avg_cost_ids[0])
+                avg_cost = avg_cost_id.avg_cost or 0
+            if categ=='finish':
+                avg_cost = std_price
+        def get_lastpo_cost(product_id, categ, std_price):
+            sql = '''
+                select case when price_unit>0 then price_unit else 0 end avg_cost from purchase_order_line where id = (
+                select max(id) from purchase_order_line pol
+                where pol.product_id=%s)
+            '''%(product_id)
+            cr.execute(sql)
+            avg = cr.dictfetchone()
+            avg_cost = 0
+            if avg:
+                avg_cost=avg['avg_cost']
+            if categ=='finish':
+                avg_cost = std_price
+            return float(avg_cost)
             sql = '''
                 select case when price_unit>0 then price_unit else 0 end avg_cost from purchase_order_line where id = (
                 select max(id) from purchase_order_line pol
@@ -709,6 +723,7 @@ class stock_on_hand_report(osv.osv_memory):
                  'max_stock': line['max_stock'] or '',
                  're_stock': line['re_stock'] or '',
                  'unit_price': get_avg_cost(line['product_id'], line['categ'],line['standard_price']),#line['standard_price'] or '',
+                 'po_price': get_lastpo_cost(line['product_id'], line['categ'],line['standard_price']),
                  'onhand_qty_blocklist': line['block_qty'] or '' ,
                  'onhand_qty_pl_other': line['pl_others'] or '',
                  'onhand_qty_qa_ins': line['ins_qty'] or '' , 

@@ -82,6 +82,7 @@
 		                			<field name="code"/>
 		                			<field name="description"/>
 		                			<field name="unit_price"/>
+		                			<field name="po_price"/>
 		                			<field name="uom"/>
 		                			<field name="bin_loc"/>
 		                			<field name="onhand_qty"/>  
