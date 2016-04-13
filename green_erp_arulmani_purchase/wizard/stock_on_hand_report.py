@@ -659,26 +659,39 @@ class stock_on_hand_report(osv.osv_memory):
             return cr.dictfetchall()
         ###
         def get_avg_cost(product_id, categ, std_price):
+#             avg_cost = 0
+#             if categ=='raw':
+#                 location_id=15
+#             elif categ=='spares':
+#                 location_id=14
+#             elif categ=='finish':
+#                 if product_id==4 or product_id==9:
+#                     location_id=13
+#                 elif product_id==2:
+#                     location_id=25
+#                 else:
+#                     location_id=24
+#             avg_cost_obj = self.pool.get('tpt.product.avg.cost')        
+#             avg_cost_ids = avg_cost_obj.search(cr, uid, [('product_id','=',product_id),('warehouse_id','=',location_id)])
+#             if avg_cost_ids:
+#                 avg_cost_id = avg_cost_obj.browse(cr, uid, avg_cost_ids[0])
+#                 avg_cost = avg_cost_id.avg_cost or 0
+#             if categ=='finish':
+#                 avg_cost = std_price
+#             return avg_cost
+            sql = '''
+                select case when price_unit>0 then price_unit else 0 end avg_cost from purchase_order_line where id = (
+                select max(id) from purchase_order_line pol
+                where pol.product_id=%s)
+            '''%(product_id)
+            cr.execute(sql)
+            avg = cr.dictfetchone()
             avg_cost = 0
-            if categ=='raw':
-                location_id=15
-            elif categ=='spares':
-                location_id=14
-            elif categ=='finish':
-                if product_id==4 or product_id==9:
-                    location_id=13
-                elif product_id==2:
-                    location_id=25
-                else:
-                    location_id=24
-            avg_cost_obj = self.pool.get('tpt.product.avg.cost')        
-            avg_cost_ids = avg_cost_obj.search(cr, uid, [('product_id','=',product_id),('warehouse_id','=',location_id)])
-            if avg_cost_ids:
-                avg_cost_id = avg_cost_obj.browse(cr, uid, avg_cost_ids[0])
-                avg_cost = avg_cost_id.avg_cost or 0
+            if avg:
+                avg_cost=avg['avg_cost']
             if categ=='finish':
                 avg_cost = std_price
-            return avg_cost
+            return float(avg_cost)
         ###
         cr.execute('delete from tpt_stock_on_hand')
         stock_obj = self.pool.get('tpt.stock.on.hand')
