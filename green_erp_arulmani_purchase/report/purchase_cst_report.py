@@ -82,9 +82,9 @@ class Parser(report_sxw.rml_parse):
         date_from = wizard_data['date_from']
         date_to = wizard_data['date_to']
         sql='''
-            select a.supplier, a.tinno, a.commoditycode, a.invoiceno, a.invoicedate, a.rate descriptions,
+            select a.supplier, a.tinno, a.commoditycode, a.invoiceno, a.invoicedate, a.prd descriptions,
             sum(a.ed+a.pf+a.aed+a.basicamt+a.tpt_tax_amt) as totalvalue,a.rate,
-            sum(a.ed+a.pf+a.aed+a.basicamt+a.tpt_tax_amt) as purchase_value,
+            sum(a.basicamt+a.ed+a.aed+a.pf) as purchase_value,
             sum(a.tpt_tax_amt) as cst_paid, a.poname,a.number, 
            'B' as category, a.type, a.city, a.po_no, a.po_date
             from
@@ -94,7 +94,7 @@ class Parser(report_sxw.rml_parse):
             t.description as rate,
             pc.name,
             t.amount,
-            ail.quantity,
+            ail.quantity,ail.name as prd,
             ai.name as poname,
             ail.price_unit,
             ai.doc_type,
@@ -108,16 +108,19 @@ class Parser(report_sxw.rml_parse):
             when pc.name='Consumables' then 2025
             when pc.name='Assets' then 2025
             else 2067 end as commoditycode,
+            
             case 
             when ail.ed_type='1' then (ail.quantity * ail.price_unit) * ail.ed/100
             when ail.ed_type='2' then ail.ed
             when ail.ed_type='3' then (ail.quantity * ail.ed)
             else ail.ed end as ed,
+            
             case 
             when ail.p_f_type='1' then (ail.quantity * ail.price_unit) * ail.p_f/100
             when ail.p_f_type='2' then ail.p_f
             when ail.p_f_type='3' then (ail.quantity * ail.p_f)
             else ail.p_f end as pf,
+            
             ail.price_unit as priceunit,
             ail.quantity as productqty,
             ail.ed_type as ed1,
@@ -142,12 +145,12 @@ class Parser(report_sxw.rml_parse):
             and t.description like 'CST%s(P)%s' --t.is_vat_report=true
             )a group by a.Rate,a.supplier,a.tinno,a.commoditycode,a.amount,
             a.invoiceno,a.invoicedate,a.poname,a.date_invoice,a.number,a.type, a.city, a.po_no,
-            a.po_date order by a.supplier
+            a.po_date, a.basicamt, a.prd order by a.supplier
           
         '''%(date_from, date_to, '%', '%')
         self.cr.execute(sql);
         res = self.cr.dictfetchall()
-        #print sql
+        print sql
         sql = '''
             select av.number as number, av.date date_invoice, av.reference bill_number, null bill_date, null tax_name,
                     rs.name supplier, rs.tin tinno,null invoicetype,null material,null number,null city,
