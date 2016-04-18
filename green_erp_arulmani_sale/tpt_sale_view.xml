@@ -167,11 +167,11 @@
 						<field name="name" />
 						<field name="customer_id" options="{'create': false, 'create_edit': false}"/>
 						<field name="invoice_address" />
-						<field name="document_type" />
-						<field name="payment_term_id" options="{'create': false, 'create_edit': false}"/>						
+						<!--<field name="document_type" /> -->	
+						<field name="payment_term_id"/> 					
 						<field name="bo_date" />
 						<field name="po_date" /> 						
-						<field name="exp_delivery_date" />						
+						<!-- <field name="exp_delivery_date" />-->				
 						<field name="quotaion_no" invisible='1'/>						
 						<field name="sale_tax_id" options="{'create': false, 'create_edit': false}"/>
 						<field name="order_type" />

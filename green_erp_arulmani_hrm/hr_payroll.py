@@ -274,6 +274,7 @@ class arul_hr_payroll_employee_structure(osv.osv):
     	 'create_date': fields.datetime('Created Date',readonly = True),
     	 'write_date': fields.datetime('Updated Date',readonly = True),
     	 'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
+         'write_uid': fields.many2one('res.users','Updated By',ondelete='restrict',readonly = True),
     
     	 'history_line': fields.one2many('arul.hr.payroll.employee.structure','history_id','Histories',readonly = True),
              'history_id': fields.many2one('arul.hr.payroll.employee.structure','Histories Line', ondelete='cascade'),

@@ -230,6 +230,7 @@
 							<field name ="create_date"/>
 							<field name ="write_date"/>
 							<field name ="create_uid"/>
+							<field name ="write_uid"/>
 						</group>
 						<group string = "Earning Structure">
 							<field name="payroll_earning_structure_line" nolabel='1' on_change="onchange_structure_line(payroll_earning_structure_line,employee_category_id,sub_category_id)">
@@ -311,9 +312,9 @@
 		                    		<field name ="employee_id"/>
 			                		<field name ="employee_category_id"/>
 			                		<field name ="sub_category_id"/>
-							<!--<field name ="create_date"/>-->
-							<field name ="payroll_earning_structure_line"/>
-							<field name ="payroll_other_deductions_line"/>
+									<field name ="create_date" string="Modified On"/>
+									<field name ="payroll_earning_structure_line"/>
+									<field name ="payroll_other_deductions_line"/>
 			                </tree>		
 		                    </field>
 	                  	</group>

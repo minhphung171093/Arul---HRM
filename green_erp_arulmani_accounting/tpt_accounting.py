@@ -4820,17 +4820,18 @@ class account_voucher(osv.osv):
     
     def _tpt_sub_total(self, cr, uid, ids, name, args, context=None):
         if not ids: return {}
-        currency_obj = self.pool.get('res.currency')
+        #currency_obj = self.pool.get('res.currency')
         res = {}
         debit = credit = 0.0
         for voucher in self.browse(cr, uid, ids, context=context):
-            sign = voucher.type == 'payment' and -1 or 1
-            for l in voucher.line_dr_ids:
-                debit += l.amount
-            for l in voucher.line_cr_ids:
-                credit += l.amount
-            currency = voucher.currency_id or voucher.company_id.currency_id
-            res[voucher.id] =  credit
+            res[voucher.id] = {
+                        'tpt_amount_total': 0.0
+                        }
+            for dr in voucher.line_dr_ids:
+                debit += dr.amount
+            for cr in voucher.line_cr_ids:
+                credit += cr.amount
+            res[voucher.id]['tpt_amount_total'] =  credit
         return res
     def _amount_all_credit_debit(self, cr, uid, ids, field_name, args, context=None):
         res = {}
@@ -4854,6 +4855,12 @@ class account_voucher(osv.osv):
             res[line.id]['total_diff'] = val3
         return res
     ###
+    def _get_partner(self, cr, uid, context=None):
+        if context is None: context = {}
+        #context.set('partner_id', False)
+        context['partner_id'] = False
+        return context.get('partner_id', False)
+        #return False
     _columns = {
         'name': fields.char( 'Journal no.',size = 256),
         'memo':fields.char('Memo', size=256, readonly=True, states={'draft':[('readonly',False)]}),
@@ -4896,7 +4903,7 @@ class account_voucher(osv.osv):
         'cost_center_id':fields.many2one('tpt.cost.center','Cost Center'),
         'tpt_exchange_rate':fields.float('Realization Rate', digits=(12,14),),#TPT
         'tpt_sub_total_amt':fields.float('Total'),#TPT
-        'tpt_amount_total': fields.function(_tpt_sub_total, type='float', readonly=True, store = True, string='Total' ),#TPT
+        'tpt_amount_total': fields.function(_tpt_sub_total, type='float', readonly=True, store = True, string='Total', multi='sub_total' ),#TPT
         'purchase_id':fields.many2one('purchase.order','PO Number'),
         'tpt_bank_re':fields.boolean('Bank Reconciliation Updated'),
         
@@ -4905,9 +4912,10 @@ class account_voucher(osv.osv):
         'credit_total':fields.function(_amount_all_credit_debit, type='float', string='Credit'),
         'debit_total':fields.function(_amount_all_credit_debit, type='float', string='Debit'),
         'total_diff':fields.function(_amount_all_credit_debit, type='float', string='Diff: Cr-Db'),
-       
+        'partner_id':fields.many2one('res.partner', 'Partner',  states={'draft':[('readonly',False)]}),
+        'tpt_partner_id':fields.many2one('res.partner', 'Partner',  states={'draft':[('readonly',False)]}),
         }
-    
+   
     def voucher_print_button(self, cr, uid, ids, context={}):
         '''This function prints the Journal Voucher in Accounting'''
         for this_id in self.browse(cr, uid, ids, context):
@@ -4985,6 +4993,7 @@ class account_voucher(osv.osv):
         'tpt_currency_id': _get_tpt_currency,
         'is_tpt_currency': _get_is_tpt_currency,
         'status': 'unreconcile',
+        'partner_id': 1,
     }
     
     def _check_sum_amount(self, cr, uid, ids, context=None):
@@ -5050,7 +5059,11 @@ class account_voucher(osv.osv):
     def create(self, cr, uid, vals, context=None):
         if vals.get('name','/')=='/':
             vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.journal.voucher.sequence') or '/'
-        
+        if 'tpt_partner_id' in vals:
+            vals.update({'partner_id':vals['tpt_partner_id']
+                     })
+        else:
+            vals['tpt_partner_id']=vals['partner_id']
         new_id = super(account_voucher, self).create(cr, uid, vals, context)
             
         if context is None:
