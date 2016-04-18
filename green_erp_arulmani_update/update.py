@@ -3632,25 +3632,59 @@ class tpt_update_stock_move_report(osv.osv):
                 '''%(line.id, line.tax_id and line.tax_id.id)
                 cr.execute(sql)
         return True
-    
     def config_GRN_3451_3883(self, cr, uid, ids, context=None):
-        acc_line_obj = self.pool.get('account.invoice.line')
-        #move_ids = acc_line_obj.search(cr, uid, [('type','=','in_invoice')])
+        jl_obj = self.pool.get('account.voucher')
+        debit = credit = 0.0
         sql = '''
-        select ail.id from account_invoice_line ail
-             inner join account_invoice ai on ail.invoice_id=ai.id
-             where ai.type='in_invoice'
+        select id from account_voucher --where id between 1 and 1000 order by id
         '''
         cr.execute(sql)
         inv_ids = [r[0] for r in cr.fetchall()]
-        for move_id in acc_line_obj.browse(cr, uid, inv_ids):
-            #print move_id.id or 0.00
-            sql = '''
-            update account_invoice_line set tpt_tax_amt=%s where id=%s
-            '''%(move_id.wform_tax_amt, move_id.id)
+        a = 0
+        for voucher in jl_obj.browse(cr, uid, inv_ids):
+            #===================================================================
+            # for dr in voucher.line_dr_ids:
+            #     debit += dr.amount
+            # for cr in voucher.line_cr_ids:
+            #     credit += cr.amount
+            #===================================================================
+            sql = '''select case when sum(amount)>0 then sum(amount) else 0 end as sum from account_voucher_line where type='cr' and voucher_id=%s
+            '''%(voucher.id)
             cr.execute(sql)
-            #print sql
-        return self.write(cr, uid, ids, {'result':'Tax Amount Corrections Done'})   
+            res = cr.fetchone()
+            if res:
+                credit = res[0]
+            if float(credit)!=float(voucher.tpt_amount_total):
+                sql = '''
+                update account_voucher set tpt_amount_total=%s where id=%s
+                '''%(credit, voucher.id)
+                #print sql
+                a+=1
+        print a
+            #cr.execute(sql)
+            
+            #jl_obj.write(cr, uid, [voucher.id], {'tpt_amount_total':credit or 0})  
+        return True   
+    #===========================================================================
+    # def config_GRN_3451_3883(self, cr, uid, ids, context=None):
+    #     acc_line_obj = self.pool.get('account.invoice.line')
+    #     sql = '''
+    #     select ail.id from account_invoice_line ail
+    #          inner join account_invoice ai on ail.invoice_id=ai.id
+    #          where ai.type='in_invoice'
+    #     '''
+    #     cr.execute(sql)
+    #     inv_ids = [r[0] for r in cr.fetchall()]
+    #     for move_id in acc_line_obj.browse(cr, uid, inv_ids):
+    #         #print move_id.id or 0.00
+    #         sql = '''
+    #         update account_invoice_line set tpt_tax_amt=%s where id=%s
+    #         '''%(move_id.wform_tax_amt, move_id.id)
+    #         cr.execute(sql)
+    #         #print sql
+    #     return self.write(cr, uid, ids, {'result':'Tax Amount Corrections Done'})   
+    #===========================================================================
+    
     #===========================================================================
     # def config_GRN_3451_3883(self, cr, uid, ids, context=None):
     #     move_obj = self.pool.get('account.move')
