@@ -3765,7 +3765,7 @@ class tpt_update_stock_move_report(osv.osv):
         inspec_obj = self.pool.get('tpt.quanlity.inspection')
         picking_obj = self.pool.get('stock.picking')
         move_obj = self.pool.get('account.move')
-        for grn in ['VVTi/GRN/00006806']:# ['VVTi/GRN/00007438']:#['VVTi/GRN/00004321']:  #['VVTi/GRN/00003451','VVTi/GRN/00003883']
+        for grn in ['VVTi/GRN/00010472']:# ['VVTi/GRN/00007438']:#['VVTi/GRN/00004321']:  #['VVTi/GRN/00003451','VVTi/GRN/00003883']
             sql = '''
                 select id from stock_picking where name = '%s'
             '''%(grn)
@@ -3814,7 +3814,7 @@ class tpt_update_stock_move_report(osv.osv):
                 picking_obj.action_revert_done(cr, uid, [num], context)
  
          
-        return self.write(cr, uid, ids, {'result':'config GRN 6806 Done'})  
+        return self.write(cr, uid, ids, {'result':'config GRN 00010472 Done'})  
     
     def update_price_unit_for_production_declaration(self, cr, uid, ids, context=None):
         if context is None:
