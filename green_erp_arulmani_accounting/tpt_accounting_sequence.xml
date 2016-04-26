@@ -28,11 +28,41 @@
         <record id="tpt_sequence_supplier_invoice_item" model="ir.sequence">
             <field name="name">Supplier Invoice</field>
             <field name="code">tpt.supplier.invoice.sequence</field>
-            <field name="prefix">VVTI/SI/</field>
+            <field name="prefix">VVTI/SU/</field>
             <field name="padding">5</field>
             <field name="number_next_actual">10001</field>
             <field name="implementation">no_gap</field>
         </record>
+  <!-- Supplier Invoice without PO -->
+        <record id="tpt_sequence_supplier_invoice_notpo" model="ir.sequence.type">
+            <field name="name">supplier invoice not po</field>
+            <field name="code">sup.invoice.not.po</field>
+        </record>
+        
+        <record id="tpt_sequence_supplier_invoice_notpo_item" model="ir.sequence">
+            <field name="name">supplier invoice not po</field>
+            <field name="code">sup.invoice.not.po</field>
+            <field name="prefix">VVTI/SUPO/</field>
+            <field name="padding">5</field>
+            <field name="number_next_actual">10001</field>
+            <field name="implementation">no_gap</field>
+        </record>   
+        
+    <!-- service invoice -->
+        <record id="tpt_sequence_service_invoice" model="ir.sequence.type">
+            <field name="name">service invoice</field>
+            <field name="code">service.invoice</field>
+        </record>
+        
+        <record id="tpt_sequence_service_invoice_item" model="ir.sequence">
+            <field name="name">service invoice</field>
+            <field name="code">service.invoice</field>
+            <field name="prefix">VVTI/SI/</field>
+            <field name="padding">5</field>
+            <field name="number_next_actual">10001</field>
+            <field name="implementation">no_gap</field>
+        </record>        
+        
         
 <!-- Journal Voucher -->
         <record id="tpt_sequence_journal_voucher" model="ir.sequence.type">
@@ -43,9 +73,9 @@
         <record id="tpt_sequence_journal_voucher_item" model="ir.sequence">
             <field name="name">Journal Voucher</field>
             <field name="code">tpt.journal.voucher.sequence</field>
-            <field name="prefix">%(year)s/</field>
-            <field name="padding">5</field>
-            <field name="number_next_actual">00001</field>
+            <field name="prefix">VVTI/JV/</field> <!-- modified on 16 april -->
+            <field name="padding">4</field>
+            <field name="number_next_actual">0001</field>
             <field name="implementation">standard</field>
             <field name="auto_reset">True</field>
             <field name="reset_period">year</field>
@@ -202,7 +232,318 @@
             <field name="number_next_actual">1</field>
             <field name="implementation">no_gap</field>
         </record>
+ <!-- TPT START - By P.VINOTHKUMAR - ON 13/04/2016 - FOR (Adding sequence details) -->      
+<!-- Customer Invoice Posting -->
+        <record id="tpt_sequence_customer_invoice_posting" model="ir.sequence.type">
+            <field name="name">Customer Invoice Posting</field>
+            <field name="code">account.customer.invoice</field>
+        </record>
         
-              
+        <record id="tpt_sequence_customer_invoice_posting_item" model="ir.sequence">
+            <field name="name">Customer Invoice Posting</field>
+            <field name="code">account.customer.invoice</field>
+            <field name="prefix">CI/</field>
+            <field name="padding">4</field>
+            <field name="number_next_actual">1</field>
+            <field name="implementation">no_gap</field>
+        </record> 
+<!-- Delivery Order Posting -->
+        <record id="tpt_sequence_delivery_order_posting" model="ir.sequence.type">
+            <field name="name">Account Delivery Order</field>
+            <field name="code">account.do.import</field>
+        </record>
+        
+        <record id="tpt_sequence_delivery_order_posting_item" model="ir.sequence">
+            <field name="name">Account Delivery Order</field>
+            <field name="code">account.do.import</field>
+            <field name="prefix">DO/</field>
+            <field name="padding">5</field>
+            <field name="number_next_actual">1</field>
+            <field name="implementation">no_gap</field>
+        </record> 
+ <!-- Customer Payment Posting -->
+        <record id="tpt_customer_payment_posting" model="ir.sequence.type">
+            <field name="name">Customer Payment Account</field>
+            <field name="code">customer.payment.account</field>
+        </record>
+        
+        <record id="tpt_customer_payment_posting_item" model="ir.sequence">
+            <field name="name">Customer Payment Account</field>
+            <field name="code">customer.payment.account</field>
+            <field name="prefix">CUP/</field>
+            <field name="padding">4</field>
+            <field name="number_next_actual">1</field>
+            <field name="implementation">no_gap</field>
+        </record>   
+   <!-- GRN account Posting -->
+        <record id="tpt_grn_account_posting" model="ir.sequence.type">
+            <field name="name">grn account</field>
+            <field name="code">grn.posting.account</field>
+        </record>
+        
+        <record id="tpt_grn_account_posting_item" model="ir.sequence">
+            <field name="name">grn account</field>
+            <field name="code">grn.posting.account</field>
+            <field name="prefix">GRN/</field>
+            <field name="padding">5</field>
+            <field name="number_next_actual">1</field>
+            <field name="implementation">no_gap</field>
+        </record>           
+   <!-- Supplier invoice Posting(withpo) -->
+        <record id="tpt_supplier_invoice_posting" model="ir.sequence.type">
+            <field name="name">supplier invoice accounting(withpo)</field>
+            <field name="code">account.supplier.invoice.withpo</field>
+        </record>
+        
+        <record id="tpt_supplier_invoice_posting_item" model="ir.sequence">
+            <field name="name">supplier invoice accounting(withpo)</field>
+            <field name="code">account.supplier.invoice.withpo</field>
+            <field name="prefix">SUPO/</field>
+            <field name="padding">5</field>
+            <field name="number_next_actual">1</field>
+            <field name="implementation">no_gap</field>
+        </record>
+    <!-- Supplier invoice Posting(withoutpo) -->
+        <record id="tpt_sup_inv_account_notpo" model="ir.sequence.type">
+            <field name="name">account sup invoice(not po)</field>
+            <field name="code">account.supplier.invoice.notpo</field>
+        </record>
+        
+        <record id="tpt_sup_inv_account_notpo_item" model="ir.sequence">
+            <field name="name">account sup invoice(not po)</field>
+            <field name="code">account.supplier.invoice.notpo</field>
+            <field name="prefix">SU/</field>
+            <field name="padding">5</field>
+            <field name="number_next_actual">1</field>
+            <field name="implementation">no_gap</field>
+        </record>      
+        
+    <!-- Freight invoice Posting -->
+        <record id="tpt_freight_invoice_posting" model="ir.sequence.type">
+            <field name="name">account freight invoice</field>
+            <field name="code">account.freight.invoice</field>
+        </record>
+        
+        <record id="tpt_freight_invoice_posting_item" model="ir.sequence">
+            <field name="name">account freight invoice</field>
+            <field name="code">account.freight.invoice</field>
+            <field name="prefix">FI/</field>
+            <field name="padding">5</field>
+            <field name="number_next_actual">1</field>
+            <field name="implementation">no_gap</field>
+        </record> 
+        
+   <!-- Service invoice Posting -->
+        <record id="tpt_service_invoice_posting" model="ir.sequence.type">
+            <field name="name">account service invoice</field>
+            <field name="code">account.service.invoice</field>
+        </record>
+        
+        <record id="tpt_service_invoice_posting_item" model="ir.sequence">
+            <field name="name">account service invoice</field>
+            <field name="code">account.service.invoice</field>
+            <field name="prefix">SI/</field>
+            <field name="padding">5</field>
+            <field name="number_next_actual">1</field>
+            <field name="implementation">no_gap</field>
+        </record> 
+    <!-- Supplier payments -->
+        <record id="tpt_supplier_payment" model="ir.sequence.type">
+            <field name="name">account supplier payment</field>
+            <field name="code">account.supplier.payment</field>
+        </record>
+        
+        <record id="tpt_supplier_payment_item" model="ir.sequence">
+            <field name="name">account supplier payment</field>
+            <field name="code">account.supplier.payment</field>
+            <field name="prefix">SUP/</field>
+            <field name="padding">5</field>
+            <field name="number_next_actual">1</field>
+            <field name="implementation">no_gap</field>
+        </record>
+     <!-- Production Accounting-->
+        <record id="tpt_account_production" model="ir.sequence.type">
+            <field name="name">account production</field>
+            <field name="code">account.production</field>
+        </record>
+        
+        <record id="tpt_account_production_item" model="ir.sequence">
+            <field name="name">account production</field>
+            <field name="code">account.production</field>
+            <field name="prefix">PRD/</field>
+            <field name="padding">4</field>
+            <field name="number_next_actual">1</field>
+            <field name="implementation">no_gap</field>
+        </record>
+       <!-- Goods Issue-->
+        <record id="tpt_account_gissue" model="ir.sequence.type">
+            <field name="name">account goodsissue</field>
+            <field name="code">account.gissue</field>
+        </record>
+        
+        <record id="tpt_account_gissue_item" model="ir.sequence">
+            <field name="name">account goodsissue</field>
+            <field name="code">account.gissue</field>
+            <field name="prefix">MI/</field>
+            <field name="padding">5</field>
+            <field name="number_next_actual">1</field>
+            <field name="implementation">no_gap</field>
+        </record>  
+        <!-- Bank Payment-->
+        <record id="tpt_account_bank_payment" model="ir.sequence.type">
+            <field name="name">account bank payment</field>
+            <field name="code">account.bank.payment</field>
+        </record>
+        <!-- Bank Payment--> 
+        <record id="tpt_account_bank_payment_item" model="ir.sequence">
+            <field name="name">account bank payment</field>
+            <field name="code">account.bank.payment</field>
+            <field name="prefix">BP/</field>
+            <field name="padding">4</field>
+            <field name="number_next_actual">1</field>
+            <field name="implementation">no_gap</field>
+        </record>
+        <!-- Bank Receipt-->
+        <record id="tpt_account_bank_receipt" model="ir.sequence.type">
+            <field name="name">account bank receipt</field>
+            <field name="code">account.bank.receipt</field>
+        </record>
+        <!-- Bank Receipt--> 
+        <record id="tpt_account_bank_receipt_item" model="ir.sequence">
+            <field name="name">account bank receipt</field>
+            <field name="code">account.bank.receipt</field>
+            <field name="prefix">BR/</field>
+            <field name="padding">4</field>
+            <field name="number_next_actual">1</field>
+            <field name="implementation">no_gap</field>
+        </record>
+        <!-- Cash Payment-->
+        <record id="tpt_account_cash_payment" model="ir.sequence.type">
+            <field name="name">account cash payment</field>
+            <field name="code">account.cash.payment</field>
+        </record>
+        <!-- Cash Payment--> 
+        <record id="tpt_account_cash_payment_item" model="ir.sequence">
+            <field name="name">account cash payment</field>
+            <field name="code">account.cash.payment</field>
+            <field name="prefix">CP/</field>
+            <field name="padding">5</field>
+            <field name="number_next_actual">1</field>
+            <field name="implementation">no_gap</field>
+        </record>
+        <!-- Cash Receipt-->
+        <record id="tpt_account_cash_receipt" model="ir.sequence.type">
+            <field name="name">account cash receipt</field>
+            <field name="code">account.cash.receipt</field>
+        </record>
+        <!-- Cash Receipt--> 
+        <record id="tpt_account_cash_receipt_item" model="ir.sequence">
+            <field name="name">account cash receipt</field>
+            <field name="code">account.cash.receipt</field>
+            <field name="prefix">CR/</field>
+            <field name="padding">5</field>
+            <field name="number_next_actual">1</field>
+            <field name="implementation">no_gap</field>
+        </record>
+        <!-- account journal voucher-->
+        <record id="tpt_account_journal_voucher" model="ir.sequence.type">
+            <field name="name">account journal voucher</field>
+            <field name="code">account.journal.voucher</field>
+        </record>
+        <!-- account journal voucher--> 
+        <record id="tpt_account_journal_voucher_item" model="ir.sequence">
+            <field name="name">account journal voucher</field>
+            <field name="code">account.journal.voucher</field>
+            <field name="prefix">JV/</field>
+            <field name="padding">4</field>
+            <field name="number_next_actual">1</field>
+            <field name="implementation">no_gap</field>
+        </record>
+        <!-- stock adjustment increase account-->
+        <record id="tpt_stock_adj_inc_account" model="ir.sequence.type">
+            <field name="name">account stock increase</field>
+            <field name="code">account.stock.increase</field>
+        </record>
+        <!-- stock adjustment increase account--> 
+        <record id="tpt_stock_adj_inc_account_item" model="ir.sequence">
+            <field name="name">account stock increase</field>
+            <field name="code">account.stock.increase</field>
+            <field name="prefix">SAI/</field>
+            <field name="padding">5</field>
+            <field name="number_next_actual">1</field>
+            <field name="implementation">no_gap</field>
+        </record>
+        <!-- stock adjustment decrease account-->
+        <record id="tpt_stock_adj_dec_account" model="ir.sequence.type">
+            <field name="name">account stock decrease</field>
+            <field name="code">account.stock.decrease</field>
+        </record>
+        <!-- stock adjustment decrease account--> 
+        <record id="tpt_stock_adj_dec_account_item" model="ir.sequence">
+            <field name="name">account stock decrease</field>
+            <field name="code">account.stock.decrease</field>
+            <field name="prefix">SAD/</field>
+            <field name="padding">5</field>
+            <field name="number_next_actual">1</field>
+            <field name="implementation">no_gap</field>
+        </record>
+        <!-- Bank Payment Document No-->
+        <record id="tpt_bank_payment" model="ir.sequence.type">
+            <field name="name">tpt bank payment</field>
+            <field name="code">tpt.bank.payment</field>
+        </record>
+        <!-- Bank Payment Document No--> 
+        <record id="tpt_bank_payment_item" model="ir.sequence">
+            <field name="name">tpt bank payment</field>
+            <field name="code">tpt.bank.payment</field>
+            <field name="prefix">VVTI/BP/</field>
+            <field name="padding">4</field>
+            <field name="number_next_actual">1</field>
+            <field name="implementation">no_gap</field>
+        </record>
+        <!-- Bank Receipt Document No-->
+        <record id="tpt_bank_receipt" model="ir.sequence.type">
+            <field name="name">tpt bank receipt</field>
+            <field name="code">tpt.bank.receipt</field>
+        </record>
+        <!-- Bank Receipt Document No--> 
+        <record id="tpt_bank_receipt_item" model="ir.sequence">
+            <field name="name">tpt bank receipt</field>
+            <field name="code">tpt.bank.receipt</field>
+            <field name="prefix">VVTI/BR/</field>
+            <field name="padding">4</field>
+            <field name="number_next_actual">1</field>
+            <field name="implementation">no_gap</field>
+        </record>    
+        <!-- Cash Payment Document No-->
+        <record id="tpt_cash_payment" model="ir.sequence.type">
+            <field name="name">tpt cash payment</field>
+            <field name="code">tpt.cash.payment</field>
+        </record>
+        <!-- Cash Payment Document No--> 
+        <record id="tpt_cash_payment_item" model="ir.sequence">
+            <field name="name">tpt cash payment</field>
+            <field name="code">tpt.cash.payment</field>
+            <field name="prefix">VVTI/CP/</field>
+            <field name="padding">4</field>
+            <field name="number_next_actual">1</field>
+            <field name="implementation">no_gap</field>
+        </record>
+        <!-- Cash Receipt Document No-->
+        <record id="tpt_cash_receipt" model="ir.sequence.type">
+            <field name="name">tpt cash receipt</field>
+            <field name="code">tpt.cash.receipt</field>
+        </record>
+        <!-- Cash Receipt Document No--> 
+        <record id="tpt_cash_receipt_item" model="ir.sequence">
+            <field name="name">tpt cash receipt</field>
+            <field name="code">tpt.cash.receipt</field>
+            <field name="prefix">VVTI/CR/</field>
+            <field name="padding">4</field>
+            <field name="number_next_actual">1</field>
+            <field name="implementation">no_gap</field>
+        </record>                                                                                
+      
+     <!-- TPT END -->      
 	</data>
 </openerp>

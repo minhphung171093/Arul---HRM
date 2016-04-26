@@ -15,7 +15,10 @@ from openerp import netsvc
 class stock_picking(osv.osv):
     _inherit = "stock.picking"
     _columns = {
-        'document_type':fields.selection([('raw','VV Raw material PO'),('asset','VV Asset PO'),('standard','VV Standard PO'),('local','VV Local PO'),('return','VV Return PO'),('service','VV Service PO'),('out','VV Out Service PO')],'PO Document Type'),
+        'document_type':fields.selection([('raw','VV Raw material PO'),('asset','VV Asset PO'),('standard','VV Standard PO'),('local','VV Local PO'),
+                                          ('return','VV Return PO'),('service','VV Service PO(Project)'),
+                                          ('service_qty','VV Service PO(Qty)'),('service_amt','VV Service PO(amt)'),
+                                          ('out','VV Out Service PO')],'PO Document Type'),
         'warehouse':fields.many2one('stock.location','Warehouse'),
         'po_date': fields.datetime('PO Date'),        
         'gate_in_pass_no':fields.many2one('tpt.gate.in.pass','Gate In Pass No'),
@@ -1147,6 +1150,8 @@ class account_invoice(osv.osv):
         'doc_type':fields.selection([('supplier_invoice','Supplier Invoice'),
                                      ('supplier_invoice_without','Supplier Invoice (Without PO)'),
                                      ('service_invoice','Service Invoice'),
+                                     ('service_invoice_qty','Service Invoice(Qty Based)'),
+                                     ('service_invoice_amt','Service Invoice(Amt Based)'),
                                      ('freight_invoice','Freight Invoice')
                                      ],('Doc Type')),
         }
@@ -1478,6 +1483,7 @@ class account_invoice_line(osv.osv):
         'line_no': fields.integer('SI.No'),
         'wform_tax_amt':fields.function(wform_supplier_invo, type='float', store = False, multi='deltas1' ,string='Tax Amt'),
         'tpt_tax_amt':fields.function(tax_supplier_invo, type='float', store = True, multi='taxamt' ,string='Tax Amt.'),
+        #'third_party_id': fields.many2one('tpt.third.service.entry', 'Service Entry'),
         
     }
     _defaults = {

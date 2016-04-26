@@ -505,7 +505,19 @@ class stock_picking(osv.osv):
         new_write = super(stock_picking, self).write(cr, 1,ids, vals, context)
         account_move_obj = self.pool.get('account.move')
         period_obj = self.pool.get('account.period')
-#         stock_picking_in = self.pool.get('stock.picking.in').browse(cr,uid,vals['backorder_id'])
+        #TPT START - By P.VINOTHKUMAR - ON 11/04/2015 - FOR (Generate document sequence for DO Account postings)
+        sql = '''
+        select code from account_fiscalyear where '%s' between date_start and date_stop
+        '''%(time.strftime('%Y-%m-%d'))
+        cr.execute(sql)
+        fiscalyear = cr.dictfetchone()
+        if not fiscalyear:
+            raise osv.except_osv(_('Warning!'),_('Financial year has not been configured. !'))
+        else:
+            sequence = self.pool.get('ir.sequence').get(cr, uid, 'account.do.import')
+        vals['name'] =  sequence and sequence+'/'+fiscalyear['code'] or '/'
+        name=vals['name'] 
+        # TPT END
         for line in self.browse(cr,uid,ids):
             if 'state' in vals and line.type == 'in' and line.state=='done':
                 debit = 0.0
@@ -531,6 +543,13 @@ class stock_picking(osv.osv):
                 cr.execute(sql_journal)
                 journal_ids = [r[0] for r in cr.fetchall()]
                 journal = self.pool.get('account.journal').browse(cr,uid,journal_ids[0])
+                ##
+                #TPT START - By P.VINOTHKUMAR - ON 12/04/2015 - FOR (Generate document sequence for GRN Account postings)
+                sequence = self.pool.get('ir.sequence').get(cr, uid, 'grn.posting.account')
+                vals['name'] = sequence and sequence+'/'+fiscalyear['code'] or '/'
+                name=vals['name'] 
+                #TPT END
+                ##
 #                     if not line.warehouse.gl_pos_verification_id:
 #                         raise osv.except_osv(_('Warning!'),_('Account Warehouse is not null, please configure it in Warehouse Location master !'))
             #sinh but toan
@@ -615,6 +634,7 @@ class stock_picking(osv.osv):
                     'doc_type':'grn',
                     'grn_id':line.id,
                     'ref': line.name,
+                    'name':name, # added by P.VINOTHKUMAR ON 08/04/2016
                     }
                 new_jour_id = account_move_obj.create(cr,uid,value)
                 auto_ids = self.pool.get('tpt.auto.posting').search(cr, uid, [])
@@ -724,6 +744,7 @@ class stock_picking(osv.osv):
                     'line_id': journal_line,
                     'doc_type':'do',
                     'ref': line.name,
+                    'name':name, # added by P.VINOTHKUMAR ON 08/04/2016
                     }
                 new_jour_id = account_move_obj.create(cr,uid,value)
                 auto_ids = self.pool.get('tpt.auto.posting').search(cr, uid, [])
@@ -929,6 +950,36 @@ class account_invoice(osv.osv):
                           'tds_id': vendor or False,
                       }
                     service_line.append((0,0,rs))
+            if purchase.po_document_type == 'service_qty':
+                vals['doc_type']='service_invoice_qty'
+                sql = '''
+                    select case when sum(quantity)!=0 then sum(quantity) else 0 end quantity from account_invoice_line where invoice_id in (select id from account_invoice where purchase_id = %s and state!='cancel') and po_line_id = %s
+                '''%(purchase_id, line.id)
+                cr.execute(sql)
+                quantity = cr.dictfetchone()['quantity']
+                if line.product_qty > quantity:
+                    rs = {
+                          'product_id': line.product_id and line.product_id.id or False,
+                          'name': line.description,
+                          'quantity': line.product_qty - quantity or False,
+                          'uos_id': line.product_uom and line.product_uom.id or False,
+                          'price_unit': line.price_unit or False,
+                          'disc': line.discount or False,
+                          'p_f': line.p_f or False,
+                          'p_f_type':line.p_f_type or False,
+                          'ed':line.ed or False,
+                          'ed_type':line.ed_type or False,
+        #                   'taxes_id': [(6,0,[line.tax_id and line.tax_id.id])],
+                          'taxe_id': taxes_ids[0],
+                          'invoice_line_tax_id': [(6,0,taxes_ids)],
+                          'fright':line.fright or False,
+                          'fright_type':line.fright_type or False,
+                          'line_net': line.line_net or False,
+                          'account_id':line.product_id and line.product_id.purchase_acc_id and line.product_id.purchase_acc_id.id or False,
+                          'po_line_id': line.id,
+                          'tds_id': vendor or False,
+                      }
+                    service_line.append((0,0,rs))
             else:
                 rs = {
                       'product_id': line.product_id and line.product_id.id or False,
@@ -951,14 +1002,116 @@ class account_invoice(osv.osv):
                       'tds_id': vendor or False,
                       }
                 service_line.append((0,0,rs))
-        vals = {
+        vals.update({
                 'partner_id':purchase.partner_id and purchase.partner_id.id or False,
                 'vendor_ref':purchase.partner_ref or False,
                 'invoice_line': service_line,
                 'currency_id':purchase.currency_id and purchase.currency_id.id or False,
-                }
+                #'account_id':416
+                })
         return {'value': vals}
-    
+    def onchange_service_purchase_id(self, cr, uid, ids,purchase_id=False, context=None):
+        vals = {}
+        if purchase_id:
+            for line in self.browse(cr, uid, ids):
+                sql = '''
+                    delete from account_invoice_line where invoice_id = %s
+                '''%(line.id)
+                cr.execute(sql)
+        service_line = []
+        purchase = self.pool.get('purchase.order').browse(cr, uid, purchase_id)
+        vendor = purchase.partner_id.tds_id.id
+        for line in purchase.order_line:
+            taxes_ids = [t.id for t in line.taxes_id]
+            if purchase.po_document_type == 'service':
+                sql = '''
+                    select case when sum(quantity)!=0 then sum(quantity) else 0 end quantity from account_invoice_line where invoice_id in (select id from account_invoice where purchase_id = %s and state!='cancel') and po_line_id = %s
+                '''%(purchase_id, line.id)
+                cr.execute(sql)
+                quantity = cr.dictfetchone()['quantity']
+                if line.product_qty > quantity:
+                    rs = {
+                          'product_id': line.product_id and line.product_id.id or False,
+                          'name': line.description,
+                          'quantity': line.product_qty - quantity or False,
+                          'uos_id': line.product_uom and line.product_uom.id or False,
+                          'price_unit': line.price_unit or False,
+                          'disc': line.discount or False,
+                          'p_f': line.p_f or False,
+                          'p_f_type':line.p_f_type or False,
+                          'ed':line.ed or False,
+                          'ed_type':line.ed_type or False,
+        #                   'taxes_id': [(6,0,[line.tax_id and line.tax_id.id])],
+                          'taxe_id': taxes_ids[0],
+                          'invoice_line_tax_id': [(6,0,taxes_ids)],
+                          'fright':line.fright or False,
+                          'fright_type':line.fright_type or False,
+                          'line_net': line.line_net or False,
+                          'account_id':line.product_id and line.product_id.purchase_acc_id and line.product_id.purchase_acc_id.id or False,
+                          'po_line_id': line.id,
+                          'tds_id': vendor or False,
+                      }
+                    service_line.append((0,0,rs))
+            if purchase.po_document_type == 'service_qty':
+                vals['doc_type']='service_invoice_qty'
+                sql = '''
+                    select case when sum(quantity)!=0 then sum(quantity) else 0 end quantity from account_invoice_line where invoice_id in (select id from account_invoice where purchase_id = %s and state!='cancel') and po_line_id = %s
+                '''%(purchase_id, line.id)
+                cr.execute(sql)
+                quantity = cr.dictfetchone()['quantity']
+                if line.product_qty > quantity:
+                    rs = {
+                          'product_id': line.product_id and line.product_id.id or False,
+                          'name': line.description,
+                          'quantity': line.product_qty - quantity or False,
+                          'uos_id': line.product_uom and line.product_uom.id or False,
+                          'price_unit': line.price_unit or False,
+                          'disc': line.discount or False,
+                          'p_f': line.p_f or False,
+                          'p_f_type':line.p_f_type or False,
+                          'ed':line.ed or False,
+                          'ed_type':line.ed_type or False,
+        #                   'taxes_id': [(6,0,[line.tax_id and line.tax_id.id])],
+                          'taxe_id': taxes_ids[0],
+                          'invoice_line_tax_id': [(6,0,taxes_ids)],
+                          'fright':line.fright or False,
+                          'fright_type':line.fright_type or False,
+                          'line_net': line.line_net or False,
+                          'account_id':line.product_id and line.product_id.purchase_acc_id and line.product_id.purchase_acc_id.id or False,
+                          'po_line_id': line.id,
+                          'tds_id': vendor or False,
+                      }
+                    service_line.append((0,0,rs))
+            else:
+                rs = {
+                      'product_id': line.product_id and line.product_id.id or False,
+                      'name': line.description,
+                      'quantity': line.product_qty or False,
+                      'uos_id': line.product_uom and line.product_uom.id or False,
+                      'price_unit': line.price_unit or False,
+                      'disc': line.discount or False,
+                      'p_f': line.p_f or False,
+                      'p_f_type':line.p_f_type or False,
+                      'ed':line.ed or False,
+                      'ed_type':line.ed_type or False,
+    #                   'taxes_id': [(6,0,[line.tax_id and line.tax_id.id])],
+                      'taxe_id': taxes_ids[0],
+                      'invoice_line_tax_id': [(6,0,taxes_ids)],
+                      'fright':line.fright or False,
+                      'fright_type':line.fright_type or False,
+                      'line_net': line.line_net or False,
+                      'account_id':line.product_id and line.product_id.purchase_acc_id and line.product_id.purchase_acc_id.id or False,
+                      'tds_id': vendor or False,
+                      }
+                service_line.append((0,0,rs))
+        vals.update({
+                'partner_id':purchase.partner_id and purchase.partner_id.id or False,
+                'vendor_ref':purchase.partner_ref or False,
+                #'invoice_line': service_line,
+                'currency_id':purchase.currency_id and purchase.currency_id.id or False,
+                #'account_id':416
+                })
+        return {'value': vals}
     def onchange_service_tds(self, cr, uid, ids, is_tds_applicable, purchase_id, context=None):
         vals = {}     
         if purchase_id:
@@ -1154,16 +1307,51 @@ class account_invoice(osv.osv):
                 }
         return {'value': vals}
     def create(self, cr, uid, vals, context=None):
+        sql = '''
+        select code from account_fiscalyear where '%s' between date_start and date_stop
+       '''%(time.strftime('%Y-%m-%d'))
+        cr.execute(sql)
+        fiscalyear = cr.dictfetchone()
+        if not fiscalyear:
+                raise osv.except_osv(_('Warning!'),_('Financial year has not been configured. !'))
         if vals.get('type','')=='in_invoice' and 'purchase_id' in vals and 'sup_inv_id' not in vals:
-            vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.supplier.invoice.sequence') or '/'
-            vals['doc_type']='service_invoice'
+#             vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.supplier.invoice.sequence') or '/'
+#             vals['doc_type']='service_invoice'
+             #TPT START - By P.Vinothkumar - ON 29/03/2016 - FOR (Modify Document Sequence change)
+             sequence = self.pool.get('ir.sequence').get(cr, uid, 'tpt.supplier.invoice.sequence') or '/'
+             vals['name'] =  sequence and sequence+'/'+fiscalyear['code'] or '/'
+           #TPT END
+        if vals.get('type','')=='in_invoice' and 'purchase_id' in vals and 'vendor_ref' in vals and 'sup_inv_id' not in vals:
+#             vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.supplier.invoice.sequence') or '/'
+#             vals['doc_type']='service_invoice'
+             #TPT START - By P.Vinothkumar - ON 29/03/2016 - FOR (Modify Document Sequence change)
+             sequence = self.pool.get('ir.sequence').get(cr, uid, 'service.invoice') or '/'
+             vals['name'] =  sequence and sequence+'/'+fiscalyear['code'] or '/'
+             if context.get('default_doc_type', False)=='service_invoice_qty':
+                vals['doc_type']='service_invoice_qty'   
+             if context.get('default_doc_type', False)=='service_invoice_amt':
+                vals['doc_type']='service_invoice_amt'
+           #TPT END   
+           
         if vals.get('type','')=='in_invoice' and 'purchase_id' not in vals and 'sup_inv_id' not in vals:
-            vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.supplier.invoice.sequence') or '/'
-            vals['doc_type']='supplier_invoice_without'
+#             vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.supplier.invoice.sequence') or '/'
+#             vals['doc_type']='supplier_invoice_without'
+              #TPT START - By P.Vinothkumar - ON 29/03/2016 - FOR (Modify Document Sequence change)
+              if 'doc_type' in vals:
+                  if vals.get('name','/')=='/':
+                      sequence = self.pool.get('ir.sequence').get(cr, uid, 'sup.invoice.not.po') or '/'
+                      vals['name'] =  sequence and sequence+'/'+fiscalyear['code'] or '/'
+                      #TPT END
+
         if vals.get('type','')=='in_invoice' and 'sup_inv_id' in vals and vals['sup_inv_id']:
-            vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.si.freight.sequence') or '/'
-            vals['doc_type']='freight_invoice'
-            for seq,line in enumerate(self.browse(cr, uid, vals['sup_inv_id']).invoice_line):
+#             vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.si.freight.sequence') or '/'
+#             vals['doc_type']='freight_invoice'
+              #TPT START - By P.Vinothkumar - ON 29/03/2016 - FOR (Modify Document Sequence change)
+              if vals.get('name','/')=='/':
+                  sequence = self.pool.get('ir.sequence').get(cr, uid, 'tpt.si.freight.sequence') or '/'
+                  vals['name'] =  sequence and sequence+'/'+fiscalyear['code'] or '/'
+                      #TPT END
+              for seq,line in enumerate(self.browse(cr, uid, vals['sup_inv_id']).invoice_line):
                 bp_obj = self.pool.get('res.partner').browse(cr, uid, vals['partner_id'])
                 vals['invoice_line'][seq][2].update({
                     'product_id': line.product_id.id,
@@ -1488,7 +1676,7 @@ class account_invoice(osv.osv):
                 iml += invoice_line_obj.move_line_aed(cr, uid, inv.id)
                 name = inv['name'] or inv['supplier_invoice_number'] or '/'
                 if inv.purchase_id:
-                    if inv.purchase_id.po_document_type != 'service':
+                    if inv.purchase_id.po_document_type not in ('service','service_qty','service_amt'):
                         # sup inv
                         iml += invoice_line_obj.move_line_fright_change_si(cr, uid, inv.id)
                         #iml += invoice_line_obj.move_line_amount_untaxed(cr, uid, inv.id) #TPT-COMMENTED BY BM - ON 26/12/2015
@@ -1542,6 +1730,28 @@ class account_invoice(osv.osv):
 #                         iml += invoice_line_obj.move_line_amount_tax_without_po_deducte(cr, uid, inv.id)
                         iml += invoice_line_obj.move_line_amount_tax_credit(cr, uid, inv.id) #TPT-COMMENTED - BM
 #                         iml += invoice_line_obj.move_line_amount_tax_deducte_credit(cr, uid, inv.id) 
+                        iml += invoice_line_obj.move_line_tds_amount_without_po(cr, uid, inv.id) 
+                        iml += invoice_line_obj.move_line_amount_round_off(cr, uid, inv.id)
+                    #TPT_BM on 22/04/2016
+                    #if inv.purchase_id.po_document_type == 'service_qty':
+                    if inv.purchase_id.po_document_type in ('service_qty', 'service_amt'):
+                        # service qty based inv
+                        iml += invoice_line_obj.move_line_fright(cr, uid, inv.id)
+                        iml += invoice_line_obj.move_line_amount_untaxed_ser_qty_amt(cr, uid, inv.id) 
+                        description = ''
+                        flag = False
+                        flag1 = False
+                        
+                        inv_id = self.pool.get('account.invoice').browse(cr, uid, inv.id)
+                        for line in inv_id.invoice_line:   
+                            if line.tax_id and line.tax_id.is_swachh_bharat is True: 
+                                flag=True                          
+                        if flag is True:
+                            iml += invoice_line_obj.move_line_amount_tax_sbc_14(cr, uid, inv.id)
+                            iml += invoice_line_obj.move_line_amount_tax_swachh_bharat_cess_5(cr, uid, inv.id)
+                        else:
+                            iml += invoice_line_obj.move_line_amount_tax(cr, uid, inv.id)                           
+                        iml += invoice_line_obj.move_line_amount_tax_credit(cr, uid, inv.id) #TPT-COMMENTED - BM 
                         iml += invoice_line_obj.move_line_tds_amount_without_po(cr, uid, inv.id) 
                         iml += invoice_line_obj.move_line_amount_round_off(cr, uid, inv.id)
                 else:
@@ -1753,22 +1963,73 @@ class account_invoice(osv.osv):
                 move['period_id'] = period_id
                 for i in line:
                     i[2]['period_id'] = period_id
-            if (inv.type == 'out_invoice'):
+            ##TPT-VINOTH
+            vals={}            
+            sql = '''
+            select code from account_fiscalyear where '%s' between date_start and date_stop
+            '''%(time.strftime('%Y-%m-%d'))
+            cr.execute(sql)
+            fiscalyear = cr.dictfetchone()
+            if not fiscalyear:
+                raise osv.except_osv(_('Warning!'),_('Financial year has not been configured. !'))            
+            if (inv.type == 'out_invoice'): # Modified by P.VINOTHKUMAR on 11th April 2016     
                 move['doc_type'] = 'cus_inv'
+                move['ref'] = inv.vvt_number
+                #TPT START - By P.VINOTHKUMAR - ON 11/04/2015 - FOR (Generate document sequence for Customer Invoice Account postings)
+                sequence = self.pool.get('ir.sequence').get(cr, uid, 'account.customer.invoice')
+                vals['name'] = sequence and sequence+'/'+fiscalyear['code'] or '/'
+                CInvoice_account=vals['name'] 
+                # TPT END
+                move['name']=CInvoice_account
                 move['ref'] = inv.vvt_number
             if (inv.type == 'in_invoice'):
                 if inv.purchase_id:
                     if inv.purchase_id.po_document_type == 'service':
-                        move['doc_type'] = 'ser_inv'
+                            move['doc_type'] = 'ser_inv'
+                            #TPT START - By P.VINOTHKUMAR - ON 13/04/2015 - FOR (Generate document sequence for service invoice account postings)
+                            sequence = self.pool.get('ir.sequence').get(cr, uid, 'account.service.invoice')
+                            #vals['name']='SI/'+fiscalyear['code']+'/'+sequence
+                            vals['name'] = sequence and sequence+'/'+fiscalyear['code'] or '/'
+                            Service_invoice_account=vals['name'] 
+                            move['name']=Service_invoice_account
+                            move['ref'] = inv.name
                     else:
-                        move['doc_type'] = 'sup_inv_po'
-                        move['ref'] = inv.grn_no.name
-                else:
+                            move['doc_type'] = 'sup_inv_po'
+                            move['ref'] = inv.name
+                            #TPT START - By P.VINOTHKUMAR - ON 11/04/2016 - FOR (Generate document sequence for supplier invoice with po Account postings)
+                            sequence = self.pool.get('ir.sequence').get(cr, uid, 'account.supplier.invoice.withpo')
+                            #vals['name']='SUPO/'+fiscalyear['code']+'/'+sequence
+                            vals['name'] = sequence and sequence+'/'+fiscalyear['code'] or '/'
+                            SInvoice_account_withpo=vals['name'] 
+                            move['name']=SInvoice_account_withpo
+                            move['ref'] = inv.grn_no.name
+                            
+    #                 else:
+    #                     move['doc_type'] = 'sup_inv'
+                elif not inv.sup_inv_id:
                     move['doc_type'] = 'sup_inv'
-                    
-                if inv.sup_inv_id:
+                    move['ref'] = inv.name
+          #TPT START - By P.VINOTHKUMAR - ON 13/04/2016 - FOR (Generate document sequence for supplier Invoice without PO Account postings)
+                    sequence = self.pool.get('ir.sequence').get(cr, uid, 'account.supplier.invoice.notpo')
+                    #vals['name']='SU/'+fiscalyear['code']+'/'+sequence
+                    vals['name'] = sequence and sequence+'/'+fiscalyear['code'] or '/'
+                    SInvoice_account_notpo=vals['name'] 
+                    move['name']=SInvoice_account_notpo
+                    move['ref'] = inv.name
+                        
+    #                 if inv.sup_inv_id:
+    #                     move['doc_type'] = 'freight'
+                else:
                     move['doc_type'] = 'freight'
-  
+                    move['ref'] = inv.name
+          #TPT START - By P.VINOTHKUMAR - ON 13/04/2016 - FOR (Generate document sequence for Freight Invoice Account postings)
+                    sequence = self.pool.get('ir.sequence').get(cr, uid, 'account.freight.invoice')
+                    #vals['name']='FI/'+fiscalyear['code']+'/'+sequence
+                    vals['name'] = sequence and sequence+'/'+fiscalyear['code'] or '/'
+                    FInvoice_account=vals['name'] 
+                    move['name']=FInvoice_account
+                    move['ref'] = inv.name
+      
             ctx.update(invoice=inv)
             if context.get('tpt_review_posting',False):
                 return move
@@ -1788,56 +2049,58 @@ class account_invoice(osv.osv):
                 if move.name =='/':
                     new_name = False
                     journal = move.journal_id
-    
-#                     if invoice and invoice.internal_number:
-#                         new_name = invoice.internal_number
-#                     else:
-                    if journal.sequence_id:
-                        c = {'fiscalyear_id': move.period_id.fiscalyear_id.id}
-                        new_name = obj_sequence.next_by_id(cr, uid, journal.sequence_id.id, c)
-                    else:
-                        raise osv.except_osv(_('Error!'), _('Please define a sequence on the journal.'))
-                    if new_name:
-                        move_obj.write(cr, uid, [move.id], {'name':new_name})
-                    # auto posting for journal entry
-                    auto_ids = self.pool.get('tpt.auto.posting').search(cr, uid, [])
-                    if auto_ids:
-                        auto_id = self.pool.get('tpt.auto.posting').browse(cr, uid, auto_ids[0], context=context)
-                        if inv.type == 'in_invoice' and not inv.sup_inv_id:
-                            if inv.purchase_id:
-                                if auto_id.supplier_invoice and inv.purchase_id.po_document_type != 'service':
-                                    # sup invoice
-                                    try:
-                                        move_obj.button_validate(cr,uid, [move.id], context)
-                                    except:
-                                        pass
-                                if auto_id.service_invoice and inv.purchase_id.po_document_type == 'service':
-                                    # service invoice
-                                    try:
-                                        move_obj.button_validate(cr,uid, [move.id], context)
-                                    except:
-                                        pass
-                            else:
-                                if auto_id.supplier_invoice_without:
-                                    # sup invoice without po
-                                    try:
-                                        move_obj.button_validate(cr,uid, [move.id], context)
-                                    except:
-                                        pass
-                        if inv.type == 'in_invoice' and inv.sup_inv_id:
-                            if auto_id.freight_invoice:
-                                # freight invoice
+        
+        #                     if invoice and invoice.internal_number:
+        #                         new_name = invoice.internal_number
+        #                     else:
+    #         if journal.sequence_id:
+    #             c = {'fiscalyear_id': move.period_id.fiscalyear_id.id}
+    #             new_name = obj_sequence.next_by_id(cr, uid, journal.sequence_id.id, c)
+    #         else:
+    #             raise osv.except_osv(_('Error!'), _('Please define a sequence on the journal.'))
+    #         if new_name:
+    #             move_obj.write(cr, uid, [move.id], {'name':new_name})
+            # auto posting for journal entry
+            #TPT START - By P.VINOTHKUMAR - ON 13/04/2016 - FOR (validate account postings for Customer invoice)
+            auto_ids = self.pool.get('tpt.auto.posting').search(cr, uid, [])
+            if auto_ids:
+                auto_id = self.pool.get('tpt.auto.posting').browse(cr, uid, auto_ids[0], context=context)
+                if inv.type == 'in_invoice' and not inv.sup_inv_id:
+                    if inv.purchase_id:
+                        if auto_id.supplier_invoice and inv.purchase_id.po_document_type != 'service':
+                          # sup invoice
+                          try:
+                              move_obj.button_validate(cr,uid, [move.id], context)
+                          except:
+                              pass
+                        if auto_id.service_invoice and inv.purchase_id.po_document_type == 'service':
+                          # service invoice
+                          try:
+                              move_obj.button_validate(cr,uid, [move.id], context)
+                          except:
+                              pass
+                        else:
+                            if auto_id.supplier_invoice_without:
+                          # sup invoice without po
                                 try:
                                     move_obj.button_validate(cr,uid, [move.id], context)
                                 except:
                                     pass
-                        if inv.type == 'out_invoice':
-                            if auto_id.customer_invoice:
-                                # customer invoice
-                                try:
-                                    move_obj.button_validate(cr,uid, [move.id], context)
-                                except:
-                                    pass
+                if inv.type == 'in_invoice' and inv.sup_inv_id:
+                    if auto_id.freight_invoice:
+                      # freight invoice
+                      try:
+                          move_obj.button_validate(cr,uid, [move.id], context)
+                      except:
+                          pass
+                if inv.type == 'out_invoice':
+            
+                  if CInvoice_account==vals['name']:
+                        # customer invoice
+                    try:
+                        move_obj.button_validate(cr,uid, [move.id], context)
+                    except:
+                        pass
 #             move_obj.post(cr, uid, [move_id], context=ctx)
             
         self._log_event(cr, uid, ids)
@@ -1969,10 +2232,66 @@ class account_invoice(osv.osv):
 
     
 account_invoice()
- 
+#TPT-BM ON 22/04/2016 - MAINTENANCE MODULE CHANGES
+#tpt_third_service_entry calss in defined here to avoid throwing error while upgrading module, 
+#since the hierarchy of upgrade is Accounting, Maintenance module
+class tpt_third_service_entry(osv.osv):
+    _name = "tpt.third.service.entry"
+    _columns = {
+        'write_date': fields.datetime('Updated on',readonly = True),  
+    }
+tpt_third_service_entry() 
+class tpt_third_service_entry_line(osv.osv):
+    _name = "tpt.third.service.entry.line"
+    _columns = {
+        'write_date': fields.datetime('Updated on',readonly = True),     
+    }
+tpt_third_service_entry_line()     
+#  
 class account_invoice_line(osv.osv):
     _inherit = "account.invoice.line"
     
+    _columns = {
+        'third_party_id': fields.many2one('tpt.third.service.entry', 'Service Entry'), #TPT-BM ON 22/04/2016 - MAINTENANCE MODULE CHANGES
+        'third_party_line_id': fields.many2one('tpt.third.service.entry.line', 'Service Entry Line'), #TPT-BM ON 25/04/2016 - MAINTENANCE MODULE CHANGES
+    }
+    #TPT-BM-25/04/2016-MAINTENACE MODULE CHANGES
+    def create(self, cr, uid, vals, context=None):
+        if 'third_party_line_id' in vals:
+            third_party_line = self.pool.get('tpt.third.service.entry.line').browse(cr, uid, vals['third_party_line_id'], context=context)
+            vals.update({
+                'price_unit': third_party_line.price_unit or 0,
+                'quantity': third_party_line.product_uom_qty or 0,
+                'uos_id': third_party_line.uom_id and third_party_line.uom_id.id or False,
+                         })
+        return super(account_invoice_line, self).create(cr, uid, vals, context)
+    
+    def write(self, cr, uid, ids, vals, context=None):
+        if 'third_party_line_id' in vals:
+            third_party_line = self.pool.get('tpt.third.service.entry.line').browse(cr, uid, vals['third_party_line_id'], context=context)
+            vals.update({
+                'price_unit': third_party_line.price_unit or 0,
+                'quantity': third_party_line.product_uom_qty or 0,
+                'uos_id': third_party_line.uom_id and third_party_line.uom_id.id or False,
+                         })
+        new_write = super(account_invoice_line, self).write(cr, uid,ids, vals, context)
+        return new_write
+    #TPT END
+    def onchange_third_party_line_id(self, cr, uid, ids, third_party_line_id, context=None):
+        if not third_party_line_id:
+            return {'value': {
+                'price_unit': False,
+                'quantity': False,
+                'uos_id': False
+            }}
+        third_party_line = self.pool.get('tpt.third.service.entry.line').browse(cr, uid, third_party_line_id, context=context)
+        result = {
+            'price_unit': third_party_line.price_unit or 0,
+            'quantity': third_party_line.product_uom_qty or 0,
+            'uos_id': third_party_line.uom_id and third_party_line.uom_id.id or False,
+        } 
+        return {'value': result}
+        
     def get_pro_account_id(self,cr,uid,name,channel):
         account = False
         account_obj = self.pool.get('account.account')
@@ -2064,10 +2383,7 @@ class account_invoice_line(osv.osv):
             sql = '''
                 SELECT purchase_acc_id FROM product_product WHERE id=%s and purchase_acc_id is not null
             '''%(t['product_id'])
-            cr.execute(sql)
-            #print "test1"
-            #print t['product_id']
-            #prd_obj.write(cr,uid, [t['product_id']], {'track_incoming':True}, context)
+            cr.execute(sql)          
             purchase_acc_id = cr.dictfetchone()
             if not purchase_acc_id:
                 raise osv.except_osv(_('Warning!'),_('Account is not null, please configure it in Material master !'))
@@ -2079,6 +2395,33 @@ class account_invoice_line(osv.osv):
                     'quantity': 1,
                     'price': basic,
                     'account_id': purchase_acc_id and purchase_acc_id['purchase_acc_id'] or False,
+                    'account_analytic_id': t['account_analytic_id'],
+                    })
+        return res
+    def move_line_amount_untaxed_ser_qty_amt(self, cr, uid, invoice_id):
+        res = []
+        cr.execute('SELECT * FROM account_invoice_line WHERE invoice_id=%s', (invoice_id,))
+        for t in cr.dictfetchall():
+            basic = (t['quantity'] * t['price_unit']) - ( (t['quantity'] * t['price_unit'])*t['disc']/100)
+            basic = round(basic,2)
+            #===================================================================
+            # sql = '''
+            #     SELECT purchase_acc_id FROM product_product WHERE id=%s and purchase_acc_id is not null
+            # '''%(t['product_id'])
+            # cr.execute(sql)          
+            # purchase_acc_id = cr.dictfetchone()
+            # if not purchase_acc_id:
+            #     raise osv.except_osv(_('Warning!'),_('Account is not null, please configure it in Material master !'))
+            #===================================================================
+            account_id =  t['account_id']  
+            if basic:
+                res.append({
+                    'type':'tax',
+                    'name':t['name'],
+                    'price_unit': t['price_unit'],
+                    'quantity': 1,
+                    'price': basic,
+                    'account_id': account_id, #purchase_acc_id and purchase_acc_id['purchase_acc_id'] or False,
                     'account_analytic_id': t['account_analytic_id'],
                     })
         return res
@@ -5057,8 +5400,66 @@ class account_voucher(osv.osv):
         return {'value': vals,'warning':warning}
     
     def create(self, cr, uid, vals, context=None):
-        if vals.get('name','/')=='/':
-            vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.journal.voucher.sequence') or '/'
+        #Modified by P.VINOTHKUMAR ON 19th April 2016
+        sql = '''
+        select code from account_fiscalyear where '%s' between date_start and date_stop
+        '''%(time.strftime('%Y-%m-%d'))
+        cr.execute(sql)
+        fiscalyear = cr.dictfetchone()
+        if not fiscalyear:
+            raise osv.except_osv(_('Warning!'),_('Financial year has not been configured. !'))
+        if 'journal_id' in vals:
+            aj = self.pool.get('account.journal').browse(cr, uid, vals['journal_id'])   
+            if aj.code=='MISC': 
+                sequence = self.pool.get('ir.sequence').get(cr, uid, 'tpt.journal.voucher.sequence')
+                if vals.get('name','/')=='/':
+                    vals['name'] =  sequence and sequence+'/'+fiscalyear['code'] or '/'
+                
+            if 'type_trans' in vals and vals['type_trans'] or vals['journal_id']: 
+                        if aj.type == 'bank': 
+                            if  vals['type']=='payment':
+                                sequence = self.pool.get('ir.sequence').get(cr, uid, 'tpt.bank.payment') 
+                                if vals.get('name','/')=='/':
+                                    vals['name'] =  sequence and sequence+'/'+fiscalyear['code'] or '/'   
+                            if  vals['type']== 'receipt' :
+                                sequence = self.pool.get('ir.sequence').get(cr, uid, 'tpt.bank.receipt') 
+                                if vals.get('name','/')=='/':
+                                    vals['name'] =  sequence and sequence+'/'+fiscalyear['code'] or '/' 
+                        if aj.type == 'cash':
+                            if vals['type']=='payment':         
+                                sequence = self.pool.get('ir.sequence').get(cr, uid, 'tpt.cash.payment') 
+                                if vals.get('name','/')=='/':
+                                    vals['name'] =  sequence and sequence+'/'+fiscalyear['code'] or '/'
+                            if vals['type']=='receipt':         
+                                sequence = self.pool.get('ir.sequence').get(cr, uid, 'tpt.cash.receipt') 
+                                if vals.get('name','/')=='/':
+                                    vals['name'] =  sequence and sequence+'/'+fiscalyear['code'] or '/' 
+                        else:
+                            sequence = self.pool.get('ir.sequence').get(cr, uid, 'tpt.journal.voucher.sequence') 
+                            if vals.get('name','/')=='/':
+                                vals['name'] =  sequence and sequence+'/'+fiscalyear['code'] or '/'  
+                        vals.update({'name': vals['name'] or'/'})      
+        if context.get('journal_type', False) in ['cash', 'bank']: 
+            if 'type_trans' in vals:
+                if  context.get('journal_type', False) == 'bank': 
+                    if 'type_trans' in vals and vals['type_trans']=='payment':
+                                sequence = self.pool.get('ir.sequence').get(cr, uid, 'bank.payment') 
+                                if vals.get('name','/')=='/':
+                                    sequence = self.pool.get('ir.sequence').get(cr, uid, 'tpt.bank.payment') or '/'
+                                    vals['name'] =  sequence and sequence+'/'+fiscalyear['code'] or '/'   
+                    if 'type_trans' in vals and vals['type_trans'] == 'receipt':
+                                sequence = self.pool.get('ir.sequence').get(cr, uid, 'tpt.bank.receipt') 
+                                if vals.get('name','/')=='/':
+                                    vals['name'] =  sequence and sequence+'/'+fiscalyear['code'] or '/' 
+                if  context.get('journal_type', False) == 'cash':
+                    if 'type_trans' in vals and vals['type_trans'] == 'payment':       
+                        sequence = self.pool.get('ir.sequence').get(cr, uid, 'tpt.cash.payment') 
+                        if vals.get('name','/')=='/':
+                            vals['name'] =  sequence and sequence+'/'+fiscalyear['code'] or '/'
+                    if 'type_trans' in vals and vals['type_trans'] == 'receipt' :        
+                        sequence = self.pool.get('ir.sequence').get(cr, uid, 'tpt.cash.receipt') 
+                        if vals.get('name','/')=='/':
+                            vals['name'] =  sequence and sequence+'/'+fiscalyear['code'] or '/'
         if 'tpt_partner_id' in vals:
             vals.update({'partner_id':vals['tpt_partner_id']
                      })
@@ -5068,9 +5469,10 @@ class account_voucher(osv.osv):
             
         if context is None:
             context = {}
-        
-        new = self.browse(cr, uid, new_id)  
-        if new.type_trans:
+        voucher_id = super(account_voucher, self).create(cr, uid, vals, context)
+        voucher = self.browse(cr, uid, voucher_id)
+          
+        if voucher.type_trans:
             total = 0
             sql = '''
                 update account_voucher set type_cash_bank = 'cash' where journal_id in (select id from account_journal where type = 'cash')
@@ -5080,27 +5482,19 @@ class account_voucher(osv.osv):
                 update account_voucher set type_cash_bank = 'bank' where journal_id in (select id from account_journal where type = 'bank')
             '''
             cr.execute(sql)
-            for line in new.line_ids:
+            for line in voucher.line_ids:
                 total += line.amount 
-            if new.sum_amount != total:
+            if voucher.sum_amount != total:
                 raise osv.except_osv(_('Warning!'),
                     _('Total amount in Voucher Entry must equal Amount!'))
         elif context.get('journal_entry_create',False):
             sql = '''
                 update account_voucher set type_cash_bank = 'journal' where id = %s
-            '''%(new_id)
+            '''%(voucher_id)
             cr.execute(sql)
             total_debit = 0
             total_credit = 0
-#             sql = '''
-#                 update account_voucher set type_trans = 'payment', sum_amount = %s where type = 'payment' and id = %s
-#             '''%(new.amount, new.id)
-#             cr.execute(sql)
-#             sql = '''
-#                 update account_voucher set type_trans = 'receipt', sum_amount = %s where type = 'receipt' and id = %s
-#             '''%(new.amount, new.id)
-#             cr.execute(sql)
-            for line in new.line_ids:
+            for line in voucher.line_ids:
                 if line.type=='dr':
                     total_debit += round(line.amount,2)
                 if line.type=='cr':
@@ -5108,18 +5502,8 @@ class account_voucher(osv.osv):
             if round(total_debit,2) != round(total_credit,2):
                 raise osv.except_osv(_('Warning!'),
                     _('Total Debit must be equal Total Credit!'))
-#         elif context.get('tpt_remove_dr_cr',False):
-#             if not new.type_trans:
-#                 sql = '''
-#                     update account_voucher set type_trans = 'payment' where type = 'payment' 
-#                 '''
-#                 cr.execute(sql)
-#                 sql = '''
-#                     update account_voucher set type_trans = 'receipt' where type = 'receipt' 
-#                 '''
-#                 cr.execute(sql)
-        
-        return new_id
+
+        return voucher_id
     
     def write(self, cr, uid, ids, vals, context=None):
         if context is None:
@@ -5602,7 +5986,44 @@ class account_voucher(osv.osv):
             ref = name.replace('/','')
         else:
             ref = voucher.reference
-
+        ##
+        #TPT START - By P.VINOTHKUMAR - ON 13/04/2016 - FOR (Generate document sequence for Supplier Payment Account postings)
+        sql = '''
+            select code from account_fiscalyear where '%s' between date_start and date_stop
+            '''%(time.strftime('%Y-%m-%d'))
+        cr.execute(sql)
+        fiscalyear = cr.dictfetchone()
+        if not fiscalyear:
+            raise osv.except_osv(_('Warning!'),_('Financial year has not been configured. !'))
+        vals={}
+        if voucher.journal_id.code=='MISC':
+            sequence = self.pool.get('ir.sequence').get(cr, uid, 'account.journal.voucher')       
+#             vals['name']='MISC/'+fiscalyear['code']+'/'+sequence
+            vals['name'] = sequence and sequence+'/'+fiscalyear['code'] or '/'
+            name=vals['name']
+            ref = name.replace('/','')
+            ref1=ref 
+        if voucher.type=='receipt' and voucher.journal_id.name=='Cash' or voucher.journal_id.name=='Bank' and voucher.type=='receipt':    
+            sequence = self.pool.get('ir.sequence').get(cr, uid, 'customer.payment.account')
+            vals['name'] =  sequence and sequence+'/'+fiscalyear['code'] or '/'
+            name=vals['name'] 
+            ref = name.replace('/','')
+            ref1=ref
+            #===================================================================
+            # seq_obj = self.pool.get('ir.sequence') 
+            # seq_ids = seq_obj.search(cr, uid, [('code','=','customer.payment.account')]) 
+            # seq_id = seq_obj.browse(cr, uid, seq_ids[0])
+            # name = str(seq_id.prefix)+'/'+fiscalyear['code']+'/'+str(seq_id.number_next_actual)
+            # #name = seq_id.prefix +'/'+fiscalyear['code']+'/'+'%%0%sd' % str(seq_id.padding) % seq_id.number_next_actual
+            #===================================================================
+        elif voucher.type=='payment' and voucher.journal_id.name=='Cash' or voucher.journal_id.name=='Bank' and voucher.type=='payment':
+                sequence = self.pool.get('ir.sequence').get(cr, uid, 'account.supplier.payment')
+                vals['name'] =  sequence and sequence+'/'+fiscalyear['code'] 
+                #vals['name']='SUP/'+fiscalyear['code']+'/'+sequence
+                name=vals['name'] 
+                ref = name.replace('/','')
+                ref1=ref   
+        ##
         move = {
             'name': name,
             'journal_id': voucher.journal_id.id,
@@ -5611,17 +6032,100 @@ class account_voucher(osv.osv):
             'ref': ref,
             'period_id': voucher.period_id.id,
         }
-        if voucher.type_trans:
-            if voucher.journal_id.type == 'bank': 
-                if voucher.type_trans == 'payment':
-                    move['doc_type'] = 'bank_pay'
-                if voucher.type_trans == 'receipt':
-                    move['doc_type'] = 'bank_rec'
+        #TPT-VINOTH-COMMENTED ON 25/04/2016
+        #=======================================================================
+        # if voucher.type_trans:
+        #     if voucher.journal_id.type == 'bank': 
+        #         if voucher.type_trans == 'payment':
+        #             move['doc_type'] = 'bank_pay'
+        #         if voucher.type_trans == 'receipt':
+        #             move['doc_type'] = 'bank_rec'
+        #     if voucher.journal_id.type == 'cash':
+        #         if voucher.type_trans == 'payment':
+        #             move['doc_type'] = 'cash_pay'
+        #         if voucher.type_trans == 'receipt':
+        #             move['doc_type'] = 'cash_rec'
+        #=======================================================================
+        #TPT-VINOTH-UPDATED ON 25/04/2016
+        if not voucher.tpt_journal:      
+            if voucher.type_trans or voucher.journal_id :
+                 #TPT-VINOTH-UPDATED ON 26/04/2016# 
+                if voucher.journal_id.type == 'bank': 
+                    if voucher.type_trans == 'payment':
+                        move['doc_type'] = 'bank_pay'
+                        sequence = self.pool.get('ir.sequence').get(cr, uid, 'account.bank.payment') 
+                        #vals['name']='BP/'+fiscalyear['code']+'/'+sequence
+                        vals['name'] = sequence and sequence+'/'+fiscalyear['code'] or '/'
+                        name=vals['name'] 
+                        move['name']=name
+                        ref = name.replace('/','')
+                        move['ref']=ref
+                    if voucher.type == 'payment' and voucher.type_trans != 'receipt':
+                        move['doc_type'] = 'bank_pay'
+                        sequence = self.pool.get('ir.sequence').get(cr, uid, 'account.bank.payment') 
+                        #vals['name']='BP/'+fiscalyear['code']+'/'+sequence
+                        vals['name'] = sequence and sequence+'/'+fiscalyear['code'] or '/'
+                        name=vals['name'] 
+                        move['name']=name
+                        ref = name.replace('/','')
+                        move['ref']=ref    
+                    if voucher.type_trans == 'receipt':
+                        move['doc_type'] = 'bank_rec'
+                        sequence = self.pool.get('ir.sequence').get(cr, uid, 'account.bank.receipt')
+                        #vals['name']='BR/'+fiscalyear['code']+'/'+sequence
+                        vals['name'] = sequence and sequence+'/'+fiscalyear['code'] or '/'
+                        name=vals['name'] 
+                        move['name']=name
+                        ref = name.replace('/','')
+                        move['ref']=ref
+                    if voucher.type == 'receipt' and voucher.type_trans != 'payment':
+                        move['doc_type'] = 'bank_rec'
+                        sequence = self.pool.get('ir.sequence').get(cr, uid, 'account.bank.receipt')
+                        #vals['name']='BR/'+fiscalyear['code']+'/'+sequence
+                        vals['name'] = sequence and sequence+'/'+fiscalyear['code'] or '/'
+                        name=vals['name'] 
+                        move['name']=name
+                        ref = name.replace('/','')
+                        move['ref']=ref 
+                        
             if voucher.journal_id.type == 'cash':
+                 #TPT-VINOTH-UPDATED ON 26/04/2016# 
                 if voucher.type_trans == 'payment':
                     move['doc_type'] = 'cash_pay'
+                    sequence = self.pool.get('ir.sequence').get(cr, uid, 'account.cash.payment')
+                    #vals['name']='CP/'+fiscalyear['code']+'/'+sequence
+                    vals['name'] = sequence and sequence+'/'+fiscalyear['code'] or '/'
+                    name=vals['name']
+                    move['name']=name
+                    ref = name.replace('/','')
+                    move['ref']=ref
+                if voucher.type=='payment' and voucher.type_trans != 'receipt':
+                    move['doc_type'] = 'cash_pay'
+                    sequence = self.pool.get('ir.sequence').get(cr, uid, 'account.cash.payment')
+                    #vals['name']='CP/'+fiscalyear['code']+'/'+sequence
+                    vals['name'] = sequence and sequence+'/'+fiscalyear['code'] or '/'
+                    name=vals['name']
+                    move['name']=name
+                    ref = name.replace('/','')
+                    move['ref']=ref
                 if voucher.type_trans == 'receipt':
                     move['doc_type'] = 'cash_rec'
+                    sequence = self.pool.get('ir.sequence').get(cr, uid, 'account.cash.receipt')
+                    #vals['name']='CR/'+fiscalyear['code']+'/'+sequence
+                    vals['name'] = sequence and sequence+'/'+fiscalyear['code'] or '/'
+                    name=vals['name'] 
+                    move['name']=name
+                    ref = name.replace('/','')
+                    move['ref']=ref
+                if voucher.type=='receipt' and voucher.type_trans != 'payment':
+                    move['doc_type'] = 'cash_rec'
+                    sequence = self.pool.get('ir.sequence').get(cr, uid, 'account.cash.receipt')
+                    #vals['name']='CR/'+fiscalyear['code']+'/'+sequence
+                    vals['name'] = sequence and sequence+'/'+fiscalyear['code'] or '/'
+                    name=vals['name'] 
+                    move['name']=name
+                    ref = name.replace('/','')
+                    move['ref']=ref
         else:
             if (voucher.journal_id.type == 'bank' or voucher.journal_id.type == 'cash'):
                 if voucher.type == 'receipt' and voucher.type_cash_bank != 'journal':
@@ -7451,7 +7955,25 @@ class mrp_production(osv.osv):
                     move_ids = stock_move_obj.search(cr, uid, [('product_id','=',line.product_id.id),('production_id','=',line.id)])
                     if move_ids:
                         stock_move_obj.write(cr, 1, move_ids,{'price_unit':unit_produce})
-                    
+                ##
+                #TPT START - By P.VINOTHKUMAR - ON 15/04/2016 - FOR (Generate document sequence for Production Account postings)
+                vals={}
+                sql = '''
+                   select code from account_fiscalyear where '%s' between date_start and date_stop
+                '''%(time.strftime('%Y-%m-%d'))
+                cr.execute(sql)
+                fiscalyear = cr.dictfetchone()
+                if not fiscalyear:
+                     raise osv.except_osv(_('Warning!'),_('Financial year has not been configured. !'))
+                else:
+                     sequence = self.pool.get('ir.sequence').get(cr, uid, 'account.production')
+                vals['name'] = sequence and sequence+'/'+fiscalyear['code'] or '/'
+                Production_account=vals['name']   
+                sql = '''
+                   update mrp_production set produce_cost = %s where id=%s 
+               '''%(credit,line.id)
+                cr.execute(sql)  
+                ## TPT-END     
                 value={
                             'journal_id':journal_ids[0],
                             'period_id':period_ids[0] ,
@@ -7460,6 +7982,7 @@ class mrp_production(osv.osv):
                             'line_id': journal_line,
                             'product_dec': line.id,
                             'ref': line.name,
+                            'name':Production_account,
                         }
                 new_jour_id = account_move_obj.create(cr,uid,value)
                 auto_ids = self.pool.get('tpt.auto.posting').search(cr, uid, [])

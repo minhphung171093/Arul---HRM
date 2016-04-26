@@ -15,7 +15,9 @@ class tick_purchase_chart(osv.osv_memory):
                                                      ('standard','VV Standard PO'),
                                                      ('local','VV Local PO'),
                                                      ('return','VV Return PO'),
-                                                     ('service','VV Service PO'),
+                                                     ('service','VV Service PO(Project)'),
+                                                     ('service_qty','VV Service PO(Qty Based)'),
+                                                     ('service_amt','VV Service PO(Amt Based)'),
                                                      ('out','VV Out Service PO')],'PO Document Type',required=True),
                 'message': fields.text(string="Message ", readonly=True),    
                 }
@@ -42,8 +44,8 @@ class tick_purchase_chart(osv.osv_memory):
                 if tick.po_document_type != 'raw':
                     raise osv.except_osv(_('Warning!'),_('Indent not allowed create with this Document Type'))
             if line.po_indent_id.document_type == 'service':
-                if tick.po_document_type != 'service':
-                    raise osv.except_osv(_('Warning!'),_('Indent not allowed create with this Document Type'))
+                if tick.po_document_type not in ('service', 'service_qty', 'service_amt'):
+                    raise osv.except_osv(_('Warning!'),_('Indent not allowed create with this Document Type'))            
             if line.po_indent_id.document_type == 'outside':
                 if tick.po_document_type != 'out':
                     raise osv.except_osv(_('Warning!'),_('Indent not allowed create with this Document Type'))
@@ -51,19 +53,18 @@ class tick_purchase_chart(osv.osv_memory):
                 if tick.po_document_type != 'standard':
                     raise osv.except_osv(_('Warning!'),_('Indent not allowed create with this Document Type'))            
             purchase_line = [(0,0,{
-                                        'po_indent_no':line.po_indent_id.id,
-                                       'discount':line.disc,
-                                       'p_f':line.p_f,
-                                       'p_f_type':line.p_f_type,
-                                       'ed':line.e_d,
-                                       'ed_type':line.e_d_type,
-                                       'fright':line.fright,
-                                       'fright_type':line.fright_type,
-
-                                       'taxes_id':[(6,0,[line.tax_id and line.tax_id.id])],
-                                        'name':'/',
-                                        'item_text': line.item_text or False,
-                                       })]
+                'po_indent_no':line.po_indent_id.id,
+                'discount':line.disc,
+                'p_f':line.p_f,
+                'p_f_type':line.p_f_type,
+                'ed':line.e_d,
+                'ed_type':line.e_d_type,
+                'fright':line.fright,
+                'fright_type':line.fright_type,
+                'taxes_id':[(6,0,[line.tax_id and line.tax_id.id])],
+                'name':'/',
+                'item_text': line.item_text or False,
+                })]
         line_vals = purchase_order_obj.onchange_quotation_no(cr, uid, [],chart.id)['value']['order_line']
         vals = purchase_order_obj.onchange_partner_id(cr, uid, [],chart.supplier_id.id)['value']
         vals.update({

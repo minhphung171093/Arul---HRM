@@ -394,9 +394,9 @@
             <field name="model">tpt.third.service.entry</field>
             <field name="arch" type="xml">
 	            <form string="Third Party Service Entry" version="7.0">   
-	            	<header>
+	            	<!-- <header>
 	            		<button name="bt_service_invoice" string="Create Service Invoice" type="object" attrs="{'invisible':['|',('service_type','=','employee'),('name','=',False)]}" class="oe_highlight"/>
-	                </header>
+	                </header>-->
 	            	<sheet>
 	            		<group col='4' colspan='2'>
 							<field name="name"/>
@@ -416,13 +416,18 @@
 									<tree editable='top'>
 										<field name="create_date"/>
 										<field name="work_taken"/>
-										<field name="po_id" domain="[('po_document_type','=','service'),('state','=','done')]" on_change="onchange_po_id(po_id,po_line_id)" options="{'create': false, 'create_edit': false}"/>
+										<field name="po_id" domain="[('po_document_type','in',['service_qty','service_amt']),('state','=','done')]" on_change="onchange_po_id(po_id,po_line_id)" options="{'create': false, 'create_edit': false}"/>
 										<field name="po_line_id" domain="[('order_id','=',po_id)]" on_change="onchange_po_line_id(po_line_id)" context="{'name_maintance_service_entry':True}" options="{'create': false, 'create_edit': false}"/>
+										<!-- TPT-BM ON 19/04/2016
 										<field name="gl_account" options="{'create': false, 'create_edit': false}"/>
+										 -->
 										<field name="uom_id" options="{'create': false, 'create_edit': false}"/>
-										<field name="product_uom_qty"/>
-										<field name="price_unit"/>
+										<field name="product_uom_qty" attrs="{'readonly':[('is_service_qty','=',False)]}"/>
+										<field name="price_unit" attrs="{'readonly':[('is_service_amt','=',False)]}"/>
 										<field name="line_net"/>
+										<field name="is_service_qty" invisible='1'/>
+										<field name="is_service_amt" invisible='1'/>
+										<field name="name" invisible='1'/>
 									</tree>
 								</field>
 							</page>
