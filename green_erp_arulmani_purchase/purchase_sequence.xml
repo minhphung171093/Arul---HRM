@@ -225,6 +225,34 @@
             <field name="number_next_actual">000001</field>
             <field name="implementation">no_gap</field>
         </record>
+ <!-- Purchase Order VV Service PO (Qty Based)-->
+        <record id="sequence_purchase_order_service_3_qty" model="ir.sequence.type">
+            <field name="name">VV Service PO (Qty Based)</field>
+            <field name="code">purchase.order.service.qty</field>
+        </record>
+        
+        <record id="sequence_purchase_order_service_qty_item" model="ir.sequence">
+            <field name="name">VV Service PO(Qty Based)</field>
+            <field name="code">purchase.order.service.qty</field>
+            <field name="prefix">44</field>
+            <field name="padding">6</field>
+            <field name="number_next_actual">000001</field>
+            <field name="implementation">no_gap</field>
+        </record>
+<!-- Purchase Order VV Service PO (Qty Based)-->
+        <record id="sequence_purchase_order_service_3_amt" model="ir.sequence.type">
+            <field name="name">VV Service PO (Amt Based)</field>
+            <field name="code">purchase.order.service.amt</field>
+        </record>
+        
+        <record id="sequence_purchase_order_service_amt_item" model="ir.sequence">
+            <field name="name">VV Service PO(Amt Based)</field>
+            <field name="code">purchase.order.service.amt</field>
+            <field name="prefix">42</field>
+            <field name="padding">6</field>
+            <field name="number_next_actual">000001</field>
+            <field name="implementation">no_gap</field>
+        </record>
         
  <!-- Purchase Order VV Out Service PO -->
         <record id="sequence_purchase_order_out_service_2" model="ir.sequence.type">
@@ -282,9 +310,9 @@
         <record id="sequence_purchase_quotation_item" model="ir.sequence">
             <field name="name">Purchase Quotation</field>
             <field name="code">purchase.quotation</field>
-            <field name="prefix">Q1</field>
-            <field name="padding">6</field>
-            <field name="number_next_actual">000001</field>
+            <field name="prefix">Q</field>
+            <field name="padding">7</field>
+            <field name="number_next_actual">0000001</field>
             <field name="implementation">no_gap</field>
        </record> 
        
@@ -292,8 +320,8 @@
 		<record id="stock.seq_picking_in" model="ir.sequence">
             <field name="name">Picking IN</field>
             <field name="code">stock.picking.in</field>
-            <field name="prefix">VVTi/GRN/</field>
-            <field name="padding">8</field>
+            <field name="prefix">VVTI/GRN/</field>
+            <field name="padding">6</field>
             <field name="company_id" eval="False"/>
         </record>  
         
@@ -321,9 +349,9 @@
         <record id="sequence_tpt_material_request_import_item" model="ir.sequence">
             <field name="name">Material Request Import</field>
             <field name="code">tpt.material.request.import</field>
-            <field name="prefix">6</field>
-            <field name="padding">6</field>
-            <field name="number_next_actual">000001</field>
+            <field name="prefix">VVTI/MR</field>
+            <field name="padding">7</field>
+            <field name="number_next_actual">0000001</field>
             <field name="implementation">no_gap</field>
         </record>
 
@@ -351,6 +379,7 @@
         <record id="sequence_tpt_material_issue_import_item" model="ir.sequence">
             <field name="name">Material Issue Import</field>
             <field name="code">tpt.material.issue.import</field>
+            <field name="prefix">VVTI/MI/</field>
             <field name="padding">7</field>
             <field name="number_next_actual">1000000</field>
             <field name="implementation">no_gap</field>

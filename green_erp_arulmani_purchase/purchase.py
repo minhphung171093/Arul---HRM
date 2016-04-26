@@ -2353,7 +2353,11 @@ class purchase_order(osv.osv):
             result[line.order_id.id] = True
         return result.keys()
     _columns = {
-        'po_document_type':fields.selection([('raw','VV Raw material PO'),('asset','VV Capital PO'),('standard','VV Standard PO'),('local','VV Local PO'),('return','VV Return PO'),('service','VV Service PO'),('out','VV Out Service PO')],'PO Document Type', required = True, track_visibility='onchange',states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)],'md':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)],'close':[('readonly',True)]}),
+        'po_document_type':fields.selection([('raw','VV Raw material PO'),('asset','VV Capital PO'),('standard','VV Standard PO'),
+                                             ('local','VV Local PO'),('return','VV Return PO'),
+                                             ('service','VV Service PO(Project)'),
+                                             ('service_qty','VV Service PO(Qty Based)'),('service_amt','VV Service PO(Amt Based)'),
+                                             ('out','VV Out Service PO')],'PO Document Type', required = True, track_visibility='onchange',states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)],'md':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)],'close':[('readonly',True)]}),
         'quotation_no': fields.many2one('tpt.purchase.quotation', 'Quotation No', required = True, track_visibility='onchange',states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)],'md':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)],'close':[('readonly',True)]}),
 #         'po_indent_no' : fields.many2one('tpt.purchase.indent', 'PO Indent No', required = True, track_visibility='onchange'),
         'partner_ref': fields.char('Quotation Reference', states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)],'md':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)],'close':[('readonly',True)]}, size=64,
@@ -2792,10 +2796,20 @@ class purchase_order(osv.osv):
             sequence = self.pool.get('ir.sequence').get(cr, uid, 'purchase.order.return')
             sql = '''update purchase_order set name='%s' where id =%s'''%(sequence+'/'+fiscalyear['code']or '/',new_id)
             cr.execute(sql)
-        if (new.po_document_type=='service'):
+        if (new.po_document_type =='service'):
             sequence = self.pool.get('ir.sequence').get(cr, uid, 'purchase.order.service')
             sql = '''update purchase_order set name='%s' where id =%s'''%(sequence+'/'+fiscalyear['code']or '/',new_id)
             cr.execute(sql)
+        #TPT-BM-ON 20/04/2016 - FOR MAINTENANCE MODULE CHANGES
+        if (new.po_document_type =='service_qty'):
+            sequence = self.pool.get('ir.sequence').get(cr, uid, 'purchase.order.service.qty')
+            sql = '''update purchase_order set name='%s' where id =%s'''%(sequence+'/'+fiscalyear['code']or '/',new_id)
+            cr.execute(sql)
+        if (new.po_document_type =='service_amt'):
+            sequence = self.pool.get('ir.sequence').get(cr, uid, 'purchase.order.service.amt')
+            sql = '''update purchase_order set name='%s' where id =%s'''%(sequence+'/'+fiscalyear['code']or '/',new_id)
+            cr.execute(sql)
+        #END
         if (new.po_document_type=='out'):
             sequence = self.pool.get('ir.sequence').get(cr, uid, 'purchase.order.out.service')
             sql = '''update purchase_order set name='%s' where id =%s'''%(sequence+'/'+fiscalyear['code']or '/',new_id)
@@ -3133,7 +3147,6 @@ class purchase_order(osv.osv):
 #             args += [('id','in',po_master_ids)]
             
         if context.get('search_po_document'):
-             
             sql = '''
                 select id from purchase_order 
                 where state != 'cancel' and po_document_type = 'service' and flag = 'f'
@@ -3141,7 +3154,24 @@ class purchase_order(osv.osv):
             cr.execute(sql)
             po_ids = [row[0] for row in cr.fetchall()]
             args += [('id','in',po_ids)]
-            
+        #TPT-BM-ON 20/04/2016-FOR MAINTENANC MODULE CHNAHGES
+        if context.get('search_po_document_qty'):
+            sql = '''
+                select id from purchase_order 
+                where state != 'cancel' and po_document_type = 'service_qty' and flag = 'f'
+            '''
+            cr.execute(sql)
+            po_ids = [row[0] for row in cr.fetchall()]
+            args += [('id','in',po_ids)]
+        if context.get('search_po_document_amt'):
+            sql = '''
+                select id from purchase_order 
+                where state != 'cancel' and po_document_type = 'service_amt' and flag = 'f'
+            '''
+            cr.execute(sql)
+            po_ids = [row[0] for row in cr.fetchall()]
+            args += [('id','in',po_ids)]
+        #END    
         if context.get('search_po_with_name', False):
             name = context.get('name')
             po_ids = self.search(cr, uid, [('name','like',name)])
@@ -4496,7 +4526,10 @@ class tpt_request_for_quotation(osv.osv):
         'rfq_supplier': fields.one2many('tpt.rfq.supplier', 'rfq_id', 'Supplier Line', states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'close':[('readonly', True)]}),
         'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancel'),('done', 'Confirm'),('close', 'Closed')],'Status', readonly=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'close':[('readonly', True)]}),  
         'raised_ok': fields.boolean('Raised',readonly =True ), 
-        'po_document_type':fields.selection([('raw','VV Raw material PO'),('asset','VV Capital PO'),('standard','VV Standard PO'),('local','VV Local PO'),('return','VV Return PO'),('service','VV Service PO'),('out','VV Out Service PO')],'Document Type', required = True ),
+        'po_document_type':fields.selection([('raw','VV Raw material PO'),('asset','VV Capital PO'),('standard','VV Standard PO'),
+                                             ('local','VV Local PO'),('return','VV Return PO'),('service','VV Service PO(Project)'),
+                                             ('service_qty','VV Service PO(Qty Based)'),('service_amt','VV Service PO(Amt Based)'),
+                                             ('out','VV Out Service PO')],'Document Type', required = True ),
 #         'date_test': fields.function(date_system, store = True, type = 'date', string='RFQ Date'),  
 #         'date_test': fields.date('date_test'),
                 }
@@ -6235,7 +6268,7 @@ class stock_adjustment(osv.osv):
                                'price_unit': 0.00,
                                'location_id': location_id or False,
                                'location_dest_id': location_dest_id or False,
-                               'name':'/',
+                               'name':'stock adj',
                                'company_id':1,
                                'product_name':line.product_id.name_template or '',
                                'origin':'Stock Adjustment',
@@ -6286,8 +6319,21 @@ class stock_adjustment(osv.osv):
                 avg_cost = avg_cost_id.avg_cost  
             #---------------
             journal_line = [] 
-            doc_type = ''  
-            if line.adj_type=='increase':  
+            doc_type = ''
+            ##
+            sql = '''
+               select code from account_fiscalyear where '%s' between date_start and date_stop
+            '''%(time.strftime('%Y-%m-%d'))
+            cr.execute(sql)
+            fiscalyear = cr.dictfetchone()
+            if not fiscalyear:
+                 raise osv.except_osv(_('Warning!'),_('Financial year has not been configured. !'))
+             ##  
+            if line.adj_type=='increase': 
+                ##
+                sequence = self.pool.get('ir.sequence').get(cr, uid, 'account.stock.increase') or '/'
+                name= sequence and sequence+'/'+fiscalyear['code'] or '/'
+                ##
                 journal_line.append((0,0,{
                     'name':doc_no or '', 
                     'account_id': asset,                            
@@ -6303,7 +6349,20 @@ class stock_adjustment(osv.osv):
                     #'product_id':product_id,
                     }))
                 doc_type = 'stock_adj_inc'
+                value={
+                'journal_id':journal.id or False,
+                'period_id':period_ids[0] or False ,
+                'date': line.posting_date or False,
+                'line_id': journal_line,
+                'doc_type': doc_type or '',
+                'ref': doc_no or '',
+                'name': name,
+                }
             if line.adj_type=='decrease': 
+                #Added by P.vinothkumar on 26-04-2016#
+                sequence = self.pool.get('ir.sequence').get(cr, uid, 'account.stock.decrease') or '/'
+                name= sequence and sequence+'/'+fiscalyear['code'] or '/'
+                #TPT end#
                 journal_line.append((0,0,{
                     'name':doc_no or '', 
                     'account_id': expense,                            
@@ -6327,6 +6386,7 @@ class stock_adjustment(osv.osv):
                 'line_id': journal_line,
                 'doc_type': doc_type or '',
                 'ref': doc_no or '',
+                'name': name, #Added by P.vinothkumar on 26-04-2016#
                 }
             new_jour_id = account_move_obj.create(cr,uid,value)
             account_move_obj.button_validate(cr,uid, [new_jour_id], context)

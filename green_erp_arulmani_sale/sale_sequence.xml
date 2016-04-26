@@ -4,8 +4,8 @@
     	<record id="stock.seq_picking_out" model="ir.sequence">
             <field name="name">Picking OUT</field>
             <field name="code">stock.picking.out</field>
-            <field name="prefix">DO/</field>
-            <field name="padding">8</field>
+            <field name="prefix">VVTI/DO/</field>
+            <field name="padding">6</field>
             <field name="company_id" eval="False"/>
         </record>
     </data>

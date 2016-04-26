@@ -890,7 +890,7 @@ class tpt_service_entry_line(osv.osv):
 tpt_service_entry_line()
 
 class tpt_third_service_entry(osv.osv):
-    _name = "tpt.third.service.entry"
+    _inherit = "tpt.third.service.entry"
     def amount_all_line(self, cr, uid, ids, field_name, args, context=None):
         res = {}
         for line in self.browse(cr,uid,ids,context=context):
@@ -934,9 +934,16 @@ class tpt_third_service_entry(osv.osv):
     }
     
     def create(self, cr, uid, vals, context=None):
+        sql = '''
+                select code from account_fiscalyear where '%s' between date_start and date_stop
+            '''%(time.strftime('%Y-%m-%d'))
+        cr.execute(sql)
+        fiscalyear = cr.dictfetchone()
+        if not fiscalyear:
+            raise osv.except_osv(_('Warning!'),_('Financial year has not been configured. !'))
         if vals.get('name','/')=='/':
             sequence = self.pool.get('ir.sequence').get(cr, uid, 'tpt.third.service.entry.seq')
-            vals['name'] =  sequence
+            vals['name'] =  sequence+'/'+fiscalyear['code']
         new_id = super(tpt_third_service_entry, self).create(cr, uid, vals, context=context)
         return new_id
     
@@ -945,11 +952,31 @@ class tpt_third_service_entry(osv.osv):
     
     def bt_save(self, cr, uid, ids,vals,context=None):
         return True
+    def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
+        if context is None:
+            context = {}
+        if context.get('purchase_id', False):
+            purchase_id = context.get('purchase_id')
+            sql = '''
+                select third_service_id from tpt_third_service_entry_line where po_id=%s
+            '''%(purchase_id)
+            cr.execute(sql)
+            po_ids = [row[0] for row in cr.fetchall()]
+            args += [('id','in',po_ids)]        
+        return super(tpt_third_service_entry, self).search(cr, uid, args, offset=offset, limit=limit, order=order, context=context, count=count)
     
+    def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
+        if context is None:
+            context = {}
+#         if name:
+#             context.update({'search_po_with_name':1,'name':name})
+        ids = self.search(cr, user, args, context=context, limit=limit)
+        return self.name_get(cr, user, ids, context=context)
 tpt_third_service_entry()
 
 class tpt_third_service_entry_line(osv.osv):
-    _name = "tpt.third.service.entry.line"
+    #_name = "tpt.third.service.entry.line" #TPT BM - ON 25/04/2016
+    _inherit = "tpt.third.service.entry.line"
     def line_net_line(self, cr, uid, ids, field_name, args, context=None):
         res = {}
         for line in self.browse(cr,uid,ids,context=context):
@@ -966,14 +993,45 @@ class tpt_third_service_entry_line(osv.osv):
         'work_taken': fields.date('Work Taken Date',required=True),
         'po_id':fields.many2one('purchase.order','Service PO',required=True,ondelete = 'restrict'),
         'po_line_id':fields.many2one('purchase.order.line','Particulars',required=True, ondelete = 'restrict'),
-        'gl_account': fields.many2one('account.account', 'GL Account',required=True),
+        'gl_account': fields.many2one('account.account', 'GL Account',required=False),
         'uom_id': fields.many2one('product.uom', 'UOM'),
         'product_uom_qty': fields.float('Quantity',digits=(16,3)),   
 #         'price_unit': fields.float('Unit Price',digits=(16,3)),
-        'price_unit': fields.related('po_line_id','price_unit',type='float', relation='purchase.order.line',string='Unit Price', readonly = True),
+        'price_unit': fields.related('po_line_id','price_unit',type='float', relation='purchase.order.line',string='Unit Price', ),
         'line_net': fields.function(line_net_line, multi='deltas' ,digits=(16,2),string='Total Amount'),
+        #'is_service': fields.boolean('Is Service Project'),
+        'is_service_qty': fields.boolean('Is Service Qty'),
+        'is_service_amt': fields.boolean('Is Service Amt'),
+        'name': fields.char('PO Line Desc'),
+        'is_invoiced': fields.boolean('Is Invoice Raised'),
     }
+    _defaults = {
+        #'is_service':False,
+        'is_service_qty':False,
+        'is_service_amt':False,
+    }
+    #TPT-BM-25/04/2016-MAINTENACE MODULE CHANGES
+    def create(self, cr, uid, vals, context=None):
+        if 'po_line_id' in vals:
+            third_party_line = self.pool.get('purchase.order.line').browse(cr, uid, vals['po_line_id'], context=context)
+            vals.update({
+                'price_unit': third_party_line.price_unit or 0,
+                'product_uom_qty': third_party_line.product_qty or 0,
+                'uom_id': third_party_line.product_uom and third_party_line.product_uom.id or False,
+                         })
+        return super(tpt_third_service_entry_line, self).create(cr, uid, vals, context)
     
+    def write(self, cr, uid, ids, vals, context=None):
+        if 'po_line_id' in vals:
+            third_party_line = self.pool.get('purchase.order.line').browse(cr, uid, vals['po_line_id'], context=context)
+            vals.update({
+                'price_unit': third_party_line.price_unit or 0,
+                'product_uom_qty': third_party_line.product_uom_qty or 0,
+                'uom_id': third_party_line.product_uom and third_party_line.product_uom.id or False,
+                         })
+        new_write = super(tpt_third_service_entry_line, self).write(cr, uid,ids, vals, context)
+        return new_write
+    #TPT END
     def _check_qty_line(self, cr, uid, ids, context=None):
         for line in self.browse(cr,uid,ids,context=context):
             qty = line.product_uom_qty or 0
@@ -994,10 +1052,23 @@ class tpt_third_service_entry_line(osv.osv):
                }
         if po_line_id:
             no_id = self.pool.get('purchase.order.line').browse(cr,uid,po_line_id)
+            ###
+            #is_service = False
+            is_service_qty = False
+            is_service_amt = False
+            if no_id.order_id.po_document_type=='service_qty':
+                is_service_qty=True
+            if no_id.order_id.po_document_type=='service_amt':
+                is_service_amt=True
+            ###
             res['value'].update({
                         'uom_id':no_id.product_uom and no_id.product_uom.id or False,
                         'product_uom_qty':no_id.product_qty or False,
                         'price_unit':no_id.price_unit or False,
+                        #'is_service' : is_service,
+                        'is_service_qty' : is_service_qty,
+                        'is_service_amt' : is_service_amt,
+                        'name':no_id.description or ''
             })
         return res
     
@@ -1013,6 +1084,16 @@ class tpt_third_service_entry_line(osv.osv):
                                     'po_line_id':False,})
         return res
 tpt_third_service_entry_line()
+
+#===============================================================================
+# class account_invoice_line(osv.osv):
+#     _inherit = "account.invoice.line"
+#     _columns = {
+#         'third_party_id': fields.many2one('tpt.third.service.entry', 'Service Entry'),
+#         
+#     }
+# account_invoice_line()
+#===============================================================================
 
 class tpt_material_request(osv.osv):
     _inherit = "tpt.material.request"
@@ -1249,6 +1330,21 @@ class tpt_material_issue(osv.osv):
                             'debit':product_price,
                             'product_id':mater.product_id.id,
                         }))
+                ##
+                #TPT START - By P.VINOTHKUMAR - ON 15/04/2016 - FOR (Generate document sequence for Goods issue Account postings)
+                vals={}
+                sql = '''
+                select code from account_fiscalyear where '%s' between date_start and date_stop
+                '''%(time.strftime('%Y-%m-%d'))
+                cr.execute(sql)
+                fiscalyear = cr.dictfetchone()
+                if not fiscalyear:
+                    raise osv.except_osv(_('Warning!'),_('Financial year has not been configured. !'))
+                else:
+                    sequence = self.pool.get('ir.sequence').get(cr, uid, 'account.gissue') 
+                vals['name'] = sequence and sequence+'/'+fiscalyear['code'] or '/'
+                goods_issue_account=vals['name']
+                ##
             value={
                 'journal_id':journal_ids[0],
                 'period_id':period_ids[0] ,
@@ -1256,7 +1352,8 @@ class tpt_material_issue(osv.osv):
                 'date': date_period,
                 'material_issue_id': line.id,
                 'line_id': journal_line,
-                'doc_type':'good'
+                'doc_type':'good',
+                'name': goods_issue_account,
                 }
             new_jour_id = account_move_obj.create(cr,uid,value)
             auto_ids = self.pool.get('tpt.auto.posting').search(cr, uid, [])

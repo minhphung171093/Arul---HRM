@@ -55,8 +55,8 @@
         <record id="sequence_third_service_entry_item" model="ir.sequence">
             <field name="name">Third Party Service Entry Seq</field>
             <field name="code">tpt.third.service.entry.seq</field>
-            <field name="prefix">VVTi/EXSE/</field>
-            <field name="padding">6</field>
+            <field name="prefix">VVTi/ES/</field>
+            <field name="padding">7</field>
             <field name="number_next_actual">000001</field>
             <field name="implementation">no_gap</field>
         </record>      

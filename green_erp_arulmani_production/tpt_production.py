@@ -1135,7 +1135,9 @@ class mrp_production(osv.osv):
         else:
             if vals.get('name','/')=='/':
                 sequence = self.pool.get('ir.sequence').get(cr, uid, 'production.declaration')
-                vals['name'] =  sequence and 'PRD'+'/'+fiscalyear['code']+'/'+sequence or '/'
+                #vals['name'] =  sequence and 'PRD'+'/'+fiscalyear['code']+'/'+sequence or '/'
+                # Modified on P.VINOTHKUMAR ON 16/04/2016 for adding prefix VVTI/
+                vals['name'] =  sequence and 'VVTI/PRD'+'/'+sequence+'/'+fiscalyear['code'] or '/' 
         if 'product_id' in vals:
             product = self.pool.get('product.product').browse(cr, uid, vals['product_id'])
             vals.update({'product_uom':product.uom_id.id})
