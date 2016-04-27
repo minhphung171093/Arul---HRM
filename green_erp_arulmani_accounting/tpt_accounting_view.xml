@@ -1008,15 +1008,15 @@
 	                                    <field name="disc"/>
 	                                    <field name="discount" invisible = '1' groups="sale.group_discount_per_so_line"/>
 	                                    <field name="tds_id" options="{'create': false, 'create_edit': false}"/>
-	                                    <!-- <field name="third_party_id" required = '1' options="{'create': false, 'create_edit': false}"/>   -->
 	                                    <field name="tax_id" on_change = "onchange_tax_id(tax_id)" context="{'type':parent.type}"
                                         domain="[('parent_id','=',False),('company_id', '=', parent.company_id)]" options="{'create': false, 'create_edit': false}"/>
-                                    <field name="invoice_line_tax_id" string = 'Taxes' widget="many2many_tags" context="{'type':parent.type}"
+                                    	<field name="invoice_line_tax_id" string = 'Taxes' widget="many2many_tags" context="{'type':parent.type}"
                                         domain="[('parent_id','=',False),('company_id', '=', parent.company_id)]" invisible = '1'/>
-                                    <field name="tax_service_credit" on_change = "onchange_tax_credit(tax_id, tax_service_credit)" options="{'create': false, 'create_edit': false}"/>
-                                    <field name="tpt_tax_amt"/>
-                                    <field name="line_net"/>
-                                    <field name="price_subtotal" invisible = '1'/>
+	                                    <field name="tax_service_credit" on_change = "onchange_tax_credit(tax_id, tax_service_credit)" 
+	                                    context="{'type':parent.type}" domain="[('parent_id','=',False),('company_id', '=', parent.company_id)]" options="{'create': false, 'create_edit': false}"/>
+	                                    <field name="tpt_tax_amt"/>
+	                                    <field name="line_net"/>
+	                                    <field name="price_subtotal" invisible = '1'/>
                                 </tree>
                             </field>
                             <group class="oe_subtotal_footer oe_right">
@@ -1235,7 +1235,7 @@
 	                                    options="{'create': false, 'create_edit': false}"/>
 	                                    
 	                                    <field name="third_party_line_id" required='1' 
-	                                    domain="[('po_id','=',parent.purchase_id), ('third_service_id','=',third_party_id)]" 
+	                                    domain="[('po_id','=',parent.purchase_id), ('third_service_id','=',third_party_id, ('is_invoiced','=',False))]" 
 	                                    on_change="onchange_third_party_line_id(third_party_line_id)"
 	                                    options="{'create': false, 'create_edit': false}"/>  
 	                                    
@@ -1259,7 +1259,9 @@
                                         domain="[('parent_id','=',False),('company_id', '=', parent.company_id)]" options="{'create': false, 'create_edit': false}"/>
                                     <field name="invoice_line_tax_id" string = 'Taxes' widget="many2many_tags" context="{'type':parent.type}"
                                         domain="[('parent_id','=',False),('company_id', '=', parent.company_id)]" invisible = '1'/>
-                                    <field name="tax_service_credit" on_change = "onchange_tax_credit(tax_id, tax_service_credit)" options="{'create': false, 'create_edit': false}"/>
+                                    <field name="tax_service_credit" on_change = "onchange_tax_credit(tax_id, tax_service_credit)" 
+                                    context="{'type':parent.type}" domain="[('parent_id','=',False),('company_id', '=', parent.company_id)]"
+                                    options="{'create': false, 'create_edit': false}"/>
                                     <field name="tpt_tax_amt"/>
                                     <field name="line_net"/>
                                     <field name="price_subtotal" invisible = '1'/>
