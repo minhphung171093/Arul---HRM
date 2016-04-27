@@ -335,6 +335,9 @@ class stock_inward_outward_report(osv.osv_memory):
            return opening_stock_value
         
         def get_detail_lines(o):
+            res = []
+            res1 = []
+            res2 = []
             date_from = o.date_from
             date_to = o.date_to
             product_id = o.product_id
@@ -358,9 +361,24 @@ class stock_inward_outward_report(osv.osv_memory):
                  'location_row_id':locat_ids_raw[0],
                  'location_spare_id':locat_ids_spares[0]}
             cr.execute(sql)
+            res1 = cr.dictfetchall()
             #print sql
+            sql = '''
+            select * from account_move am
+            inner join stock_adjustment sa on am.ref=sa.name
+            where am.doc_type in ('stock_adj_inc', 'stock_adj_dec')
+            and  am.date between '%(date_from)s' and '%(date_to)s' and sa.product_id=%(product_id)s
+
+            '''%{'date_from':date_from,
+                 'date_to':date_to,
+                 'product_id':product_id.id,
+                 }
+            cr.execute(sql)
+            res2 = cr.dictfetchall()
+            res = res1 + res2
+            
             move_line = []
-            for line in cr.dictfetchall():
+            for line in res:
                 if line['doc_type'] == 'grn':
                     sql = '''
                         select * from stock_move
@@ -427,6 +445,7 @@ class stock_inward_outward_report(osv.osv_memory):
             return name
         
         def get_create_date(move_id, material_issue_id, product_dec, move_type):
+            date = False
             if move_type == 'freight':
                 sql = '''
                    select create_date from account_invoice where move_id = %s and sup_inv_id is not null
@@ -455,6 +474,15 @@ class stock_inward_outward_report(osv.osv_memory):
                 cr.execute(sql)
                 for picking in cr.dictfetchall():
                     date = picking['create_date']
+            ##
+            if move_type in ('stock_adj_inc','stock_adj_dec'):
+                sql = '''
+                   select create_date from stock_adjustment where name in (select ref from account_move where id = %s) 
+                '''%(move_id)
+                cr.execute(sql)
+                for picking in cr.dictfetchall():
+                    date = picking['create_date']
+            ##
             return date
         
         def get_transaction_qty(o, move_id, material_issue_id, product_dec, move_type):
