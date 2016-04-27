@@ -1009,25 +1009,52 @@ class tpt_third_service_entry_line(osv.osv):
         #'is_service':False,
         'is_service_qty':False,
         'is_service_amt':False,
+        'is_invoiced':False,
     }
-    #TPT-BM-25/04/2016-MAINTENACE MODULE CHANGES
+    #TPT-BM-26/04/2016-MAINTENACE MODULE CHANGES
     def create(self, cr, uid, vals, context=None):
         if 'po_line_id' in vals:
-            third_party_line = self.pool.get('purchase.order.line').browse(cr, uid, vals['po_line_id'], context=context)
+            po_line = self.pool.get('purchase.order.line').browse(cr, uid, vals['po_line_id'], context=context)
+            ##
+            product_uom_qty = 0
+            sql = '''
+                select  
+                case when sum(tsl.product_uom_qty)!=0 then sum(tsl.product_uom_qty) else 0 end as product_uom_qty
+                from tpt_third_service_entry_line tsl
+                inner join tpt_third_service_entry ts on tsl.third_service_id=ts.id
+                inner join tpt_maintenance_oder mo on ts.maintenance_id=mo.id
+                where tsl.po_line_id=%s and mo.state!='cancel'
+            '''%(vals['po_line_id'])
+            cr.execute(sql)
+            product_uom_qty = cr.dictfetchone()['product_uom_qty']
+            ##
             vals.update({
-                'price_unit': third_party_line.price_unit or 0,
-                'product_uom_qty': third_party_line.product_qty or 0,
-                'uom_id': third_party_line.product_uom and third_party_line.product_uom.id or False,
+                'price_unit': po_line.price_unit or 0,
+                'product_uom_qty': po_line.product_qty - product_uom_qty or 0,
+                'uom_id': po_line.product_uom and po_line.product_uom.id or False,
                          })
         return super(tpt_third_service_entry_line, self).create(cr, uid, vals, context)
     
     def write(self, cr, uid, ids, vals, context=None):
         if 'po_line_id' in vals:
-            third_party_line = self.pool.get('purchase.order.line').browse(cr, uid, vals['po_line_id'], context=context)
+            po_line = self.pool.get('purchase.order.line').browse(cr, uid, vals['po_line_id'], context=context)
+            ##
+            product_uom_qty = 0
+            sql = '''
+                select  
+                case when sum(tsl.product_uom_qty)!=0 then sum(tsl.product_uom_qty) else 0 end as product_uom_qty
+                from tpt_third_service_entry_line tsl
+                inner join tpt_third_service_entry ts on tsl.third_service_id=ts.id
+                inner join tpt_maintenance_oder mo on ts.maintenance_id=mo.id
+                where tsl.po_line_id=%s and mo.state!='cancel'
+            '''%(vals['po_line_id'])
+            cr.execute(sql)
+            product_uom_qty = cr.dictfetchone()['product_uom_qty']
+            ##
             vals.update({
-                'price_unit': third_party_line.price_unit or 0,
-                'product_uom_qty': third_party_line.product_uom_qty or 0,
-                'uom_id': third_party_line.product_uom and third_party_line.product_uom.id or False,
+                'price_unit': po_line.price_unit or 0,
+                'product_uom_qty': po_line.product_uom_qty - product_uom_qty or 0,
+                'uom_id': po_line.product_uom and po_line.product_uom.id or False,
                          })
         new_write = super(tpt_third_service_entry_line, self).write(cr, uid,ids, vals, context)
         return new_write
@@ -1061,9 +1088,26 @@ class tpt_third_service_entry_line(osv.osv):
             if no_id.order_id.po_document_type=='service_amt':
                 is_service_amt=True
             ###
+            ##
+            product_uom_qty = 0
+            qty_check = 0
+            sql = '''
+                select  
+                case when sum(tsl.product_uom_qty)!=0 then sum(tsl.product_uom_qty) else 0 end as product_uom_qty
+                from tpt_third_service_entry_line tsl
+                inner join tpt_third_service_entry ts on tsl.third_service_id=ts.id
+                inner join tpt_maintenance_oder mo on ts.maintenance_id=mo.id
+                where tsl.po_line_id=%s and mo.state!='cancel'
+            '''%(po_line_id)
+            cr.execute(sql)
+            product_uom_qty = cr.dictfetchone()['product_uom_qty']
+            qty_check = round(no_id.product_qty - product_uom_qty, 3)
+            if qty_check <= 0:
+                raise osv.except_osv(_('Warning!'),_('All PO Line Qty has been raised!'))
+            ##
             res['value'].update({
                         'uom_id':no_id.product_uom and no_id.product_uom.id or False,
-                        'product_uom_qty':no_id.product_qty or False,
+                        'product_uom_qty':no_id.product_qty - product_uom_qty or 0,
                         'price_unit':no_id.price_unit or False,
                         #'is_service' : is_service,
                         'is_service_qty' : is_service_qty,
