@@ -981,7 +981,7 @@
 	                                    options="{'create': false, 'create_edit': false}"/>
 	                                    
 	                                    <field name="third_party_line_id" required='1' 
-	                                    domain="[('po_id','=',parent.purchase_id), ('third_service_id','=',third_party_id)]" 
+	                                    domain="[('po_id','=',parent.purchase_id), ('third_service_id','=',third_party_id), ('is_invoiced','=',False)]" 
 	                                    on_change="onchange_third_party_line_id(third_party_line_id)"
 	                                    options="{'create': false, 'create_edit': false}"/>  
 	                                    
@@ -993,7 +993,7 @@
 	                                    <field name="company_id" invisible="1"/>
 	                                    <field name="account_analytic_id" invisible="1" groups="analytic.group_analytic_accounting"
 	                                        domain="[('type','!=','view'), ('company_id', '=', parent.company_id)]"/>
-	                                    <field name="quantity"/>
+	                                    <field name="quantity" readonly='1'/>
 	                                    <field name="uos_id" readonly='1' groups="product.group_uom" string="UOM"
 	                                        on_change="uos_id_change(product_id, uos_id, quantity, name, parent.type, parent.partner_id, parent.fiscal_position, price_unit, parent.currency_id, context, parent.company_id)"/>
 	                                    <field name="price_unit" readonly='1'/>
@@ -1239,7 +1239,7 @@
 	                                    <field name="company_id" invisible="1"/>
 	                                    <field name="account_analytic_id" invisible="1" groups="analytic.group_analytic_accounting"
 	                                        domain="[('type','!=','view'), ('company_id', '=', parent.company_id)]"/>
-	                                    <field name="quantity"/>
+	                                    <field name="quantity" readonly='1'/>
 	                                    <field name="uos_id" readonly='1' groups="product.group_uom" string="UOM"
 	                                        on_change="uos_id_change(product_id, uos_id, quantity, name, parent.type, parent.partner_id, parent.fiscal_position, price_unit, parent.currency_id, context, parent.company_id)"/>
 	                                    <field name="price_unit" readonly='1'/>

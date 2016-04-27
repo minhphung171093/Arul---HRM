@@ -421,7 +421,7 @@
 										<!-- TPT-BM ON 19/04/2016
 										<field name="gl_account" options="{'create': false, 'create_edit': false}"/>
 										 -->
-										<field name="uom_id" options="{'create': false, 'create_edit': false}"/>
+										<field name="uom_id" readonly='1' options="{'create': false, 'create_edit': false}"/>
 										<field name="product_uom_qty" attrs="{'readonly':[('is_service_qty','=',False)]}"/>
 										<field name="price_unit" attrs="{'readonly':[('is_service_amt','=',False)]}"/>
 										<field name="line_net"/>
