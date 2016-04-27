@@ -1027,6 +1027,9 @@ class tpt_third_service_entry_line(osv.osv):
             '''%(vals['po_line_id'])
             cr.execute(sql)
             product_uom_qty = cr.dictfetchone()['product_uom_qty']
+            qty_check = round(po_line.product_qty - product_uom_qty, 3)
+            if qty_check <= 0:
+                raise osv.except_osv(_('Warning!'),_('All PO Line Qty has been utilized!'))
             ##
             vals.update({
                 'price_unit': po_line.price_unit or 0,
@@ -1050,6 +1053,9 @@ class tpt_third_service_entry_line(osv.osv):
             '''%(vals['po_line_id'])
             cr.execute(sql)
             product_uom_qty = cr.dictfetchone()['product_uom_qty']
+            qty_check = round(po_line.product_qty - product_uom_qty, 3)
+            if qty_check <= 0:
+                raise osv.except_osv(_('Warning!'),_('All PO Line Qty has been utilized!'))
             ##
             vals.update({
                 'price_unit': po_line.price_unit or 0,
@@ -1103,16 +1109,16 @@ class tpt_third_service_entry_line(osv.osv):
             product_uom_qty = cr.dictfetchone()['product_uom_qty']
             qty_check = round(no_id.product_qty - product_uom_qty, 3)
             if qty_check <= 0:
-                raise osv.except_osv(_('Warning!'),_('All PO Line Qty has been raised!'))
+                raise osv.except_osv(_('Warning!'),_('All PO Line Qty has been utilized!'))
             ##
             res['value'].update({
-                        'uom_id':no_id.product_uom and no_id.product_uom.id or False,
-                        'product_uom_qty':no_id.product_qty - product_uom_qty or 0,
-                        'price_unit':no_id.price_unit or False,
-                        #'is_service' : is_service,
-                        'is_service_qty' : is_service_qty,
-                        'is_service_amt' : is_service_amt,
-                        'name':no_id.description or ''
+                'uom_id':no_id.product_uom and no_id.product_uom.id or False,
+                'product_uom_qty':no_id.product_qty - product_uom_qty or 0,
+                'price_unit':no_id.price_unit or False,
+                #'is_service' : is_service,
+                'is_service_qty' : is_service_qty,
+                'is_service_amt' : is_service_amt,
+                'name':no_id.description or ''
             })
         return res
     
