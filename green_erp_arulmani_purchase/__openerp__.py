@@ -76,6 +76,8 @@
         'report/purchase_vat_report.xml',
         'wizard/purchase_cst_wizard.xml',
         'report/purchase_cst_report.xml',
+        'wizard/rawmaterial_stock.xml',
+        'report/rawmaterial_stock_report.xml',
         
     ],
     'css' : [
