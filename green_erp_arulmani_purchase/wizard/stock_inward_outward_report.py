@@ -358,6 +358,7 @@ class stock_inward_outward_report(osv.osv_memory):
                  'location_row_id':locat_ids_raw[0],
                  'location_spare_id':locat_ids_spares[0]}
             cr.execute(sql)
+            #print sql
             move_line = []
             for line in cr.dictfetchall():
                 if line['doc_type'] == 'grn':
