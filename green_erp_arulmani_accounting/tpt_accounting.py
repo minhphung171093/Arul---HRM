@@ -1985,7 +1985,8 @@ class account_invoice(osv.osv):
                 move['ref'] = inv.vvt_number
             if (inv.type == 'in_invoice'):
                 if inv.purchase_id:
-                    if inv.purchase_id.po_document_type == 'service':
+                    #if inv.purchase_id.po_document_type == 'service': #TPT-BM-ON 28/04/2016
+                    if inv.purchase_id.po_document_type in ('service', 'service_qty', 'service_amt'):
                             move['doc_type'] = 'ser_inv'
                             #TPT START - By P.VINOTHKUMAR - ON 13/04/2015 - FOR (Generate document sequence for service invoice account postings)
                             sequence = self.pool.get('ir.sequence').get(cr, uid, 'account.service.invoice')
