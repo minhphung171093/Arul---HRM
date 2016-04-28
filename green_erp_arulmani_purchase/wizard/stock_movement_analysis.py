@@ -1170,7 +1170,7 @@ class stock_movement_analysis(osv.osv_memory):
 #                        else:
 #                            inspec = 0
 #                        ton = ton + inspec
-                return ton
+                #return ton
                            
             if categ =='spares':
                 parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
@@ -1217,8 +1217,19 @@ class stock_movement_analysis(osv.osv_memory):
 #                        else:
 #                            inspec = 0
 #                        ton = ton  + inspec
-                return ton
-            
+                #return ton
+            #TPT-BM- ON 28/04/2016 - to include stock adjustment qty in Rceipts Qty 
+            adj_qty = 0
+            sql = '''
+            select adj_qty from stock_adjustment where product_id=%s and posting_date between '%s' and '%s' and state='done' and adj_type='increase'
+            '''%(line, date_from, date_to)
+            cr.execute(sql)
+            temp = cr.fetchone()
+            if temp:
+                adj_qty = temp[0]
+            ton = ton + adj_qty
+            #
+            return ton
         def get_receipt_value(o, product_id):
             date_from = o.date_from
             date_to = o.date_to
@@ -1330,6 +1341,16 @@ class stock_movement_analysis(osv.osv_memory):
                 product_isu_qty = cr.dictfetchone()
                 
             total = product_isu_qty['product_isu_qty']
+            #TPT-BM- ON 28/04/2016 - to include stock adjustment qty in Rceipts Qty 
+            adj_qty = 0
+            sql = '''
+            select adj_qty from stock_adjustment where product_id=%s and posting_date between '%s' and '%s' and state='done' and adj_type='decrease'
+            '''%(line, date_from, date_to)
+            cr.execute(sql)
+            temp = cr.fetchone()
+            if temp:
+                adj_qty = temp[0]
+            total = total + adj_qty
             return total
         
         def get_qty_chuaro(o, line):
@@ -2190,7 +2211,11 @@ class stock_movement_analysis(osv.osv_memory):
                                                      or (id in (select move_id from stock_inventory_move_rel)))
                                                 and st.location_id != st.location_dest_id
                                                 and st.state = 'done'
-                                            )foo) receipt_qty,
+                                            )foo)
+                         +
+                         (select adj_qty from stock_adjustment where product_id=pp.id and posting_date between '%(date_from)s' and '%(date_to)s' and state='done' 
+                         and adj_type='increase')                   
+                                             receipt_qty,
                 
                 (select case when sum(product_qty*price_unit)>0 then sum(product_qty*price_unit) else 0 end from stock_move where product_id=pp.id and location_dest_id=%(location_spare_id)s 
                 and date between '%(date_from)s' and '%(date_to)s' and state = 'done') receipt_value,
@@ -2202,7 +2227,11 @@ class stock_movement_analysis(osv.osv_memory):
                 (select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty 
                             from stock_move where product_id = pp.id and state = 'done' and issue_id is null 
                             and picking_id is null and inspec_id is null and location_id = %(location_spare_id)s 
-                            and date between '%(date_from)s' and '%(date_to)s' and location_id != location_dest_id) consum_qty,
+                            and date between '%(date_from)s' and '%(date_to)s' and location_id != location_dest_id)
+                +
+                (select adj_qty from stock_adjustment where product_id=pp.id and posting_date between '%(date_from)s' and '%(date_to)s' and state='done' 
+                         and adj_type='decrease')                
+                             consum_qty,
                  
                 
                 (select case when sum(price_unit*product_qty)>0 then sum(price_unit*product_qty) else 0 end from stock_move 
@@ -2296,7 +2325,11 @@ class stock_movement_analysis(osv.osv_memory):
                                                      or (id in (select move_id from stock_inventory_move_rel)))
                                                 and st.location_id != st.location_dest_id
                                                 and st.state = 'done'
-                                            )foo) receipt_qty,
+                                            )foo)
+                              +
+                              (select case when sum(adj_qty)!=0 then sum(adj_qty) else 0 end adj_qty from stock_adjustment where product_id=pp.id and posting_date between '%(date_from)s' and '%(date_to)s' and state='done' 
+                         and adj_type='increase')                  
+                                             receipt_qty,
                 
                 (select case when sum(product_qty*price_unit)>0 then sum(product_qty*price_unit) else 0 end from stock_move where product_id=pp.id and location_dest_id=%(location_spare_id)s 
                 and date between '%(date_from)s' and '%(date_to)s' and state = 'done') receipt_value,
@@ -2308,7 +2341,11 @@ class stock_movement_analysis(osv.osv_memory):
                 (select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty 
                             from stock_move where product_id = pp.id and state = 'done' and issue_id is null 
                             and picking_id is null and inspec_id is null and location_id = %(location_spare_id)s 
-                            and date between '%(date_from)s' and '%(date_to)s' and location_id != location_dest_id) consum_qty,
+                            and date between '%(date_from)s' and '%(date_to)s' and location_id != location_dest_id)
+                +
+                (select case when sum(adj_qty)!=0 then sum(adj_qty) else 0 end adj_qty   from stock_adjustment where product_id=pp.id and posting_date between '%(date_from)s' and '%(date_to)s' and state='done' 
+                and adj_type='decrease')    
+                             consum_qty,
                  
                 
                 (select case when sum(price_unit*product_qty)>0 then sum(price_unit*product_qty) else 0 end from stock_move 
@@ -2327,6 +2364,7 @@ class stock_movement_analysis(osv.osv_memory):
                     'location_spare_id':14,
                     }
                 cr.execute(sql) 
+                print sql
             for line in cr.dictfetchall():
                 move_analysis_line.append((0,0,{
                     'item_code': line['default_code'],
