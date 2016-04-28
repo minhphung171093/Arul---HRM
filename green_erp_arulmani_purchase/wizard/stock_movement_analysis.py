@@ -2213,7 +2213,7 @@ class stock_movement_analysis(osv.osv_memory):
                                                 and st.state = 'done'
                                             )foo)
                          +
-                         (select adj_qty from stock_adjustment where product_id=pp.id and posting_date between '%(date_from)s' and '%(date_to)s' and state='done' 
+                         (select case when sum(adj_qty)!=0 then sum(adj_qty) else 0 end adj_qty from stock_adjustment where product_id=pp.id and posting_date between '%(date_from)s' and '%(date_to)s' and state='done' 
                          and adj_type='increase')                   
                                              receipt_qty,
                 
@@ -2229,7 +2229,7 @@ class stock_movement_analysis(osv.osv_memory):
                             and picking_id is null and inspec_id is null and location_id = %(location_spare_id)s 
                             and date between '%(date_from)s' and '%(date_to)s' and location_id != location_dest_id)
                 +
-                (select adj_qty from stock_adjustment where product_id=pp.id and posting_date between '%(date_from)s' and '%(date_to)s' and state='done' 
+                (select case when sum(adj_qty)!=0 then sum(adj_qty) else 0 end adj_qty from stock_adjustment where product_id=pp.id and posting_date between '%(date_from)s' and '%(date_to)s' and state='done' 
                          and adj_type='decrease')                
                              consum_qty,
                  
@@ -2364,7 +2364,7 @@ class stock_movement_analysis(osv.osv_memory):
                     'location_spare_id':14,
                     }
                 cr.execute(sql) 
-                print sql
+            print sql
             for line in cr.dictfetchall():
                 move_analysis_line.append((0,0,{
                     'item_code': line['default_code'],
