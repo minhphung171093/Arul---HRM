@@ -1986,24 +1986,24 @@ class account_invoice(osv.osv):
                 if inv.purchase_id:
                     #if inv.purchase_id.po_document_type == 'service': #TPT-BM-ON 28/04/2016
                     if inv.purchase_id.po_document_type in ('service', 'service_qty', 'service_amt'):
-                            move['doc_type'] = 'ser_inv'
-                            #TPT START - By P.VINOTHKUMAR - ON 13/04/2015 - FOR (Generate document sequence for service invoice account postings)
-                            sequence = self.pool.get('ir.sequence').get(cr, uid, 'account.service.invoice')
-                            #vals['name']='SI/'+fiscalyear['code']+'/'+sequence
-                            vals['name'] = sequence and sequence+'/'+fiscalyear['code'] or '/'
-                            Service_invoice_account=vals['name'] 
-                            move['name']=Service_invoice_account
-                            move['ref'] = inv.name
+                        move['doc_type'] = 'ser_inv'
+                        #TPT START - By P.VINOTHKUMAR - ON 13/04/2015 - FOR (Generate document sequence for service invoice account postings)
+                        sequence = self.pool.get('ir.sequence').get(cr, uid, 'account.service.invoice')
+                        #vals['name']='SI/'+fiscalyear['code']+'/'+sequence
+                        vals['name'] = sequence and sequence+'/'+fiscalyear['code'] or '/'
+                        Service_invoice_account=vals['name'] 
+                        move['name']=Service_invoice_account
+                        move['ref'] = inv.name
                     else:
-                            move['doc_type'] = 'sup_inv_po'
-                            move['ref'] = inv.name
-                            #TPT START - By P.VINOTHKUMAR - ON 11/04/2016 - FOR (Generate document sequence for supplier invoice with po Account postings)
-                            sequence = self.pool.get('ir.sequence').get(cr, uid, 'account.supplier.invoice.withpo')
-                            #vals['name']='SUPO/'+fiscalyear['code']+'/'+sequence
-                            vals['name'] = sequence and sequence+'/'+fiscalyear['code'] or '/'
-                            SInvoice_account_withpo=vals['name'] 
-                            move['name']=SInvoice_account_withpo
-                            move['ref'] = inv.grn_no.name
+                        move['doc_type'] = 'sup_inv_po'
+                        move['ref'] = inv.name
+                        #TPT START - By P.VINOTHKUMAR - ON 11/04/2016 - FOR (Generate document sequence for supplier invoice with po Account postings)
+                        sequence = self.pool.get('ir.sequence').get(cr, uid, 'account.supplier.invoice.withpo')
+                        #vals['name']='SUPO/'+fiscalyear['code']+'/'+sequence
+                        vals['name'] = sequence and sequence+'/'+fiscalyear['code'] or '/'
+                        SInvoice_account_withpo=vals['name'] 
+                        move['name']=SInvoice_account_withpo
+                        move['ref'] = inv.grn_no.name
                             
     #                 else:
     #                     move['doc_type'] = 'sup_inv'
@@ -2023,7 +2023,7 @@ class account_invoice(osv.osv):
                 else:
                     move['doc_type'] = 'freight'
                     move['ref'] = inv.name
-          #TPT START - By P.VINOTHKUMAR - ON 13/04/2016 - FOR (Generate document sequence for Freight Invoice Account postings)
+                    #TPT START - By P.VINOTHKUMAR - ON 13/04/2016 - FOR (Generate document sequence for Freight Invoice Account postings)
                     sequence = self.pool.get('ir.sequence').get(cr, uid, 'account.freight.invoice')
                     #vals['name']='FI/'+fiscalyear['code']+'/'+sequence
                     vals['name'] = sequence and sequence+'/'+fiscalyear['code'] or '/'
