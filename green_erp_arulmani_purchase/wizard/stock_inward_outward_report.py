@@ -364,7 +364,7 @@ class stock_inward_outward_report(osv.osv_memory):
             res1 = cr.dictfetchall()
             #print sql
             sql = '''
-            select * from account_move am
+            select am.* from account_move am
             inner join stock_adjustment sa on am.ref=sa.name
             where am.doc_type in ('stock_adj_inc', 'stock_adj_dec')
             and  am.date between '%(date_from)s' and '%(date_to)s' and sa.product_id=%(product_id)s
@@ -438,6 +438,13 @@ class stock_inward_outward_report(osv.osv_memory):
             if move_type == 'grn':
                 sql = '''
                    select name from stock_picking where name in (select ref from account_move_line where move_id = %s) 
+                '''%(move_id)
+                cr.execute(sql)
+                for qty in cr.dictfetchall():
+                    name = qty['name']
+            if move_type in ('stock_adj_inc','stock_adj_dec'):
+                sql = '''
+                   select name from stock_adjustment where name in (select ref from account_move where id = %s) 
                 '''%(move_id)
                 cr.execute(sql)
                 for qty in cr.dictfetchall():
@@ -540,6 +547,17 @@ class stock_inward_outward_report(osv.osv_memory):
                             if need:
                                 quantity = need['qty_approve'] or 0
                                 price_unit = move['price_unit']
+                ##TPT-BM-28/04/2016 
+                if move_type in ('stock_adj_inc','stock_adj_dec'):
+                    sql = '''
+                       select adj_qty from stock_adjustment where name in (select ref from account_move where id = %s) 
+                    '''%(move_id)
+                    cr.execute(sql)
+                    for picking in cr.dictfetchall():
+                        quantity = picking['adj_qty']
+                    if move_type=='stock_adj_dec':
+                        quantity = -quantity
+                ##TPT-END
             if categ=='spares':
                 parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
                 locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Spares','Spare','spares']),('location_id','=',parent_ids[0])])
@@ -588,6 +606,17 @@ class stock_inward_outward_report(osv.osv_memory):
                             if need:
                                 quantity = need['qty_approve'] or 0
                                 price_unit = move['price_unit']
+                ##TPT-BM-28/04/2016 
+                if move_type in ('stock_adj_inc','stock_adj_dec'):
+                    sql = '''
+                       select adj_qty from stock_adjustment where name in (select ref from account_move where id = %s) 
+                    '''%(move_id)
+                    cr.execute(sql)
+                    for picking in cr.dictfetchall():
+                        quantity = picking['adj_qty']
+                    if move_type=='stock_adj_dec':
+                        quantity = -quantity
+                #TPT-END
             self.transaction_qty += quantity
             self.current_transaction_qty = quantity
             self.current_price_unit = price_unit
@@ -765,6 +794,10 @@ class stock_inward_outward_report(osv.osv_memory):
                 return 'GRN'
             if doc_type == 'product':
                 return 'Production'
+            if doc_type == 'stock_adj_inc':
+                return 'Stock Adj - Increase'
+            if doc_type == 'stock_adj_dec':
+                return 'Stock Adj - Decrease'
         
         def stock_value(o, move_id, doc_type):
             if doc_type=='freight':
@@ -1030,7 +1063,7 @@ class stock_inward_outward_report(osv.osv_memory):
                 'document_no': get_account_move_line(line['id'], line['material_issue_id'], line['product_dec'], line['doc_type']),
                 'gl_document_no': line['name'],
                 'document_type': get_doc_type(line['doc_type']),
-                'transaction_quantity': trans_qty,
+                'transaction_quantity': trans_qty, 
                 'closing_quantity': closing_qty,
                 'price_unit': price,
                 'stock_value': st_value,
@@ -1057,14 +1090,14 @@ class stock_inward_outward_report(osv.osv_memory):
         res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
                                         'green_erp_arulmani_purchase', 'view_tpt_stock_inward_outward_form')
         return {
-                    'name': 'Stock Inward and Outward Details',
-                    'view_type': 'form',
-                    'view_mode': 'form',
-                    'res_model': 'tpt.stock.inward.outward',
-                    'domain': [],
-                    'type': 'ir.actions.act_window',
-                    'target': 'current',
-                    'res_id': stock_id,
+            'name': 'Stock Inward and Outward Details',
+            'view_type': 'form',
+            'view_mode': 'form',
+            'res_model': 'tpt.stock.inward.outward',
+            'domain': [],
+            'type': 'ir.actions.act_window',
+            'target': 'current',
+            'res_id': stock_id,
                 }
     
 stock_inward_outward_report()
