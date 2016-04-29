@@ -5474,7 +5474,7 @@ class account_voucher(osv.osv):
                      })
         else:
             vals['tpt_partner_id']=vals['partner_id']
-        new_id = super(account_voucher, self).create(cr, uid, vals, context)
+#         new_id = super(account_voucher, self).create(cr, uid, vals, context)
             
         if context is None:
             context = {}
