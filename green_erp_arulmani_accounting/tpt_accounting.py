@@ -2259,7 +2259,7 @@ class account_invoice_line(osv.osv):
     }
     #TPT-BM-25/04/2016-MAINTENACE MODULE CHANGES
     def create(self, cr, uid, vals, context=None):
-        if 'third_party_line_id' in vals:
+        if 'third_party_line_id' in vals: 
             third_party_obj = self.pool.get('tpt.third.service.entry.line')
             third_party_line = third_party_obj.browse(cr, uid, vals['third_party_line_id'], context=context)
             vals.update({
@@ -2267,10 +2267,11 @@ class account_invoice_line(osv.osv):
                 'quantity': third_party_line.product_uom_qty or 0,
                 'uos_id': third_party_line.uom_id and third_party_line.uom_id.id or False,
                          })
-            new_id = super(account_invoice_line, self).create(cr, uid, vals, context)
+        new_id = super(account_invoice_line, self).create(cr, uid, vals, context)
+        if 'third_party_line_id' in vals:
             third_val = {'is_invoiced':True}
             third_party_obj.write(cr,uid,[vals['third_party_line_id']],third_val) 
-            return new_id 
+        return new_id 
     
     def write(self, cr, uid, ids, vals, context=None):
         if 'third_party_line_id' in vals:
