@@ -5171,9 +5171,12 @@ class account_voucher(osv.osv):
             context = {}
         for voucher in self.browse(cr, uid, ids, context=context):
             amount = 0
+            res[voucher.id] = {
+                        'tpt_amount': 0.0
+                        }
             if voucher.tpt_currency_id and voucher.tpt_currency_amount and voucher.tpt_exchange_rate:       
                 amount = voucher.tpt_currency_amount/voucher.tpt_exchange_rate
-            res[voucher.id] = amount
+            res[voucher.id]['tpt_amount'] = amount
         return res
     #TPT-END
     ###
@@ -5236,7 +5239,7 @@ class account_voucher(osv.osv):
     def _get_partner(self, cr, uid, context=None):
         if context is None: context = {}
         #context.set('partner_id', False)
-        context['partner_id'] = False
+        #context['partner_id'] = False
         return context.get('partner_id', False)
         #return False
     _columns = {
@@ -5274,7 +5277,7 @@ class account_voucher(osv.osv):
                         \n* The \'Cancelled\' status is used when user cancel voucher.'),
         'tpt_currency_id':fields.many2one('res.currency','Currency'),
         'is_tpt_currency':fields.boolean('Is TPT Currency'),
-        'tpt_amount':fields.function(_get_tpt_currency_amount,type='float',string='Paid Amount (INR)'),
+        'tpt_amount':fields.function(_get_tpt_currency_amount,type='float',string='Paid Amount (INR)', multi='sum',),
         'tpt_currency_amount':fields.float('Paid Amount'),
         'payee':fields.char('Payee', size=1024),
         'employee_id':fields.many2one('hr.employee','Employee'),
@@ -5287,9 +5290,9 @@ class account_voucher(osv.osv):
         
         'status': fields.selection([('reconcile', 'Reconciled'), ('unreconcile', 'Un-Reconciled'), 
                                     ('confirmed', 'Confirmed')],'Reconcile-Status'),  #TPT
-        'credit_total':fields.function(_amount_all_credit_debit, type='float', string='Credit'),
-        'debit_total':fields.function(_amount_all_credit_debit, type='float', string='Debit'),
-        'total_diff':fields.function(_amount_all_credit_debit, type='float', string='Diff: Cr-Db'),
+        'credit_total':fields.function(_amount_all_credit_debit, type='float', multi='sum1',string='Credit'),
+        'debit_total':fields.function(_amount_all_credit_debit, type='float', multi='sum2',string='Debit'),
+        'total_diff':fields.function(_amount_all_credit_debit, type='float', multi='sum3',string='Diff: Cr-Db'),
         'partner_id':fields.many2one('res.partner', 'Partner',  states={'draft':[('readonly',False)]}),
         'tpt_partner_id':fields.many2one('res.partner', 'Partner',  states={'draft':[('readonly',False)]}),
         }
@@ -5505,7 +5508,9 @@ class account_voucher(osv.osv):
         if context is None:
             context = {}
         voucher_id = super(account_voucher, self).create(cr, uid, vals, context)
+        #print vals
         voucher = self.browse(cr, uid, voucher_id)
+        #print voucher.currency_id
           
         if voucher.type_trans:
             total = 0
@@ -5651,7 +5656,7 @@ class account_voucher(osv.osv):
                 if voucher.tpt_currency_id.name=='INR':
                     debit = voucher.paid_amount_in_company_currency #TPT-Commented By BalamuruganPurushothaman ON 18/08/2015- TO TAKE REALIZATION RATE AS EXCHANGE RATE
                 else:
-                    debit = voucher.tpt_amount #TPT-Added By BalamuruganPurushothaman ON 18/08/2015- TO TAKE REALIZATION RATE AS EXCHANGE RATE
+                    debit = voucher.tpt_amount or 0.0  #TPT-Added By BalamuruganPurushothaman ON 18/08/2015- TO TAKE REALIZATION RATE AS EXCHANGE RATE
                 if voucher.type == 'receipt':
                     if voucher.journal_id.type == 'cash':
                         sql = '''
@@ -6022,6 +6027,10 @@ class account_voucher(osv.osv):
         else:
             ref = voucher.reference
         ##
+        ##TPT-START BM - ON 03/05/2016 - FOR THROWING WARNINIG WHEN DIFFERENCE AMT IS NOT ZERO - IN CUSTOMER RECONCILIATION SCREEN
+        if voucher.writeoff_amount!=0:
+            raise osv.except_osv(_('Warning !'), _('Cr Dr not matched'))
+        ##TPT END
         #TPT START - By P.VINOTHKUMAR - ON 13/04/2016 - FOR (Generate document sequence for Supplier Payment Account postings)
         sql = '''
             select code from account_fiscalyear where '%s' between date_start and date_stop
@@ -6431,7 +6440,140 @@ class account_voucher(osv.osv):
             for key in vals.keys():
                 res[key].update(vals[key])
         return res
-    
+    #
+    def _get_type(self, cr, uid, context=None):
+        if context is None:
+            context = {}
+        return context.get('type', False)
+
+    def _get_period(self, cr, uid, context=None):
+        if context is None: context = {}
+        if context.get('period_id', False):
+            return context.get('period_id')
+        ctx = dict(context, account_period_prefer_normal=True)
+        periods = self.pool.get('account.period').find(cr, uid, context=ctx)
+        return periods and periods[0] or False
+    def _get_journal(self, cr, uid, context=None):
+        if context is None: context = {}
+        invoice_pool = self.pool.get('account.invoice')
+        journal_pool = self.pool.get('account.journal')
+        if context.get('invoice_id', False):
+            currency_id = invoice_pool.browse(cr, uid, context['invoice_id'], context=context).currency_id.id
+            journal_id = journal_pool.search(cr, uid, [('currency', '=', currency_id)], limit=1)
+            return journal_id and journal_id[0] or False
+        if context.get('journal_id', False):
+            return context.get('journal_id')
+        if not context.get('journal_id', False) and context.get('search_default_journal_id', False):
+            return context.get('search_default_journal_id')
+
+        ttype = context.get('type', 'bank')
+        if ttype in ('payment', 'receipt'):
+            ttype = 'bank'
+        res = self._make_journal_search(cr, uid, ttype, context=context)
+        return res and res[0] or False
+
+    def _get_tax(self, cr, uid, context=None):
+        if context is None: context = {}
+        journal_pool = self.pool.get('account.journal')
+        journal_id = context.get('journal_id', False)
+        if not journal_id:
+            ttype = context.get('type', 'bank')
+            res = journal_pool.search(cr, uid, [('type', '=', ttype)], limit=1)
+            if not res:
+                return False
+            journal_id = res[0]
+
+        if not journal_id:
+            return False
+        journal = journal_pool.browse(cr, uid, journal_id, context=context)
+        account_id = journal.default_credit_account_id or journal.default_debit_account_id
+        if account_id and account_id.tax_ids:
+            tax_id = account_id.tax_ids[0].id
+            return tax_id
+        return False
+
+    def _get_payment_rate_currency(self, cr, uid, context=None):
+        """
+        Return the default value for field payment_rate_currency_id: the currency of the journal
+        if there is one, otherwise the currency of the user's company
+        """
+        if context is None: context = {}
+        journal_pool = self.pool.get('account.journal')
+        journal_id = context.get('journal_id', False)
+        if journal_id:
+            journal = journal_pool.browse(cr, uid, journal_id, context=context)
+            if journal.currency:
+                return journal.currency.id
+        #no journal given in the context, use company currency as default
+        return self.pool.get('res.users').browse(cr, uid, uid, context=context).company_id.currency_id.id
+
+    def _get_currency(self, cr, uid, context=None):
+        if context is None: context = {}
+        journal_pool = self.pool.get('account.journal')
+        journal_id = context.get('journal_id', False)
+        if journal_id:
+            journal = journal_pool.browse(cr, uid, journal_id, context=context)
+            if journal.currency:
+                return journal.currency.id
+        return self.pool.get('res.users').browse(cr, uid, uid, context=context).company_id.currency_id.id
+
+    def _get_partner(self, cr, uid, context=None):
+        if context is None: context = {}
+        return context.get('partner_id', False)
+
+    def _get_reference(self, cr, uid, context=None):
+        if context is None: context = {}
+        return context.get('reference', False)
+
+    def _get_narration(self, cr, uid, context=None):
+        if context is None: context = {}
+        return context.get('narration', False)
+
+    def _get_amount(self, cr, uid, context=None):
+        if context is None:
+            context= {}
+        return context.get('amount', 0.0)
+    def _get_journal_currency(self, cr, uid, ids, name, args, context=None):
+        res = {}
+        for voucher in self.browse(cr, uid, ids, context=context):
+            res[voucher.id] = voucher.journal_id.currency and voucher.journal_id.currency.id or voucher.company_id.currency_id.id
+        return res
+
+    def _get_writeoff_amount(self, cr, uid, ids, name, args, context=None):
+        if not ids: return {}
+        currency_obj = self.pool.get('res.currency')
+        res = {}
+        debit = credit = 0.0
+        for voucher in self.browse(cr, uid, ids, context=context):
+            sign = voucher.type == 'payment' and -1 or 1
+            for l in voucher.line_dr_ids:
+                debit += l.amount
+            for l in voucher.line_cr_ids:
+                credit += l.amount
+            currency = voucher.currency_id or voucher.company_id.currency_id
+            res[voucher.id] =  currency_obj.round(cr, uid, currency, voucher.amount - sign * (credit - debit))
+        return res
+    _defaults = {
+        'active': True,
+        'period_id': _get_period,
+        'partner_id': _get_partner,
+        'journal_id':_get_journal,
+        'currency_id': _get_currency,
+        'reference': _get_reference,
+        'narration':_get_narration,
+        'amount': _get_amount,
+        'type':_get_type,
+        'state': 'draft',
+        'pay_now': 'pay_now',
+        'name': '',
+        'date': lambda *a: time.strftime('%Y-%m-%d'),
+        'company_id': lambda self,cr,uid,c: self.pool.get('res.company')._company_default_get(cr, uid, 'account.voucher',context=c),
+        'tax_id': _get_tax,
+        'payment_option': 'without_writeoff',
+        'comment': _('Write-Off'),
+        'payment_rate': 1.0,
+        'payment_rate_currency_id': _get_payment_rate_currency,
+    }    
 #          
 account_voucher()
 
