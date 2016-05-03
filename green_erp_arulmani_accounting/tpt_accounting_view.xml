@@ -2633,16 +2633,22 @@
                     <h1 attrs="{'invisible': [('number','=',False)]}"><field name="number"/></h1>
                     <group invisible="context.get('line_type', False)">
                         <group>
+                        	<!--
                             <field name="partner_id" domain="[('customer','=',True),('is_company','=',True),('customer_account_group_id','=','VVTI Sold to Party')]" required="1" on_change="onchange_partner_id(partner_id, journal_id, amount, currency_id, type, date, context)" string="Customer" context="{'search_default_customer': 1}" options="{'create': false, 'create_edit': false}"/>
+                              -->
+                            <field name="tpt_partner_id" domain="[('customer','=',True),('is_company','=',True),('customer_account_group_id','=','VVTI Sold to Party')]" required="1"
+                            on_change="onchange_partner_id(tpt_partner_id, journal_id, amount, currency_id, type, date, context)" string="Customer" 
+                            options="{'create': false, 'create_edit': false}"
+                            />
                             <field name="currency_id" invisible="1"/>
                             <field name="amount" class="oe_inline"
                                 string="Paid Amount" invisible="1"
                                 widget="monetary" options="{'currency_field': 'currency_id'}"
-                                on_change="onchange_amount(amount, payment_rate, partner_id, journal_id, currency_id, type, date, payment_rate_currency_id, company_id, context)"/>
+                                on_change="onchange_amount(amount, payment_rate, tpt_partner_id, journal_id, currency_id, type, date, payment_rate_currency_id, company_id, context)"/>
                             <field name="journal_id"
                                 domain="[('type','in',['bank', 'cash'])]" invisible="1"
                                 widget="selection"
-                                on_change="onchange_journal(journal_id, line_cr_ids, False, partner_id, date, amount, type, company_id, context)"
+                                on_change="onchange_journal(journal_id, line_cr_ids, False, tpt_partner_id, date, amount, type, company_id, context)"
                                 string="Payment Method"/>
                         </group>
                         <group>
@@ -2661,11 +2667,11 @@
                     <notebook>
                         <page string="Payment Information" groups="base.group_user">
                             <label for="line_cr_ids" invisible="context.get('line_type', False)"/>
-                            <field name="line_cr_ids" context="{'journal_id':journal_id, 'type':type, 'partner_id':partner_id}" on_change="onchange_line_ids(line_dr_ids, line_cr_ids, amount, currency_id, type, context)">
+                            <field name="line_cr_ids" context="{'journal_id':journal_id, 'type':type, 'partner_id':tpt_partner_id}" on_change="onchange_line_ids(line_dr_ids, line_cr_ids, amount, currency_id, type, context)">
                                 <tree string="Invoices and outstanding transactions" editable="bottom" colors="gray:amount==0" create='false'>
-                                    <field name="move_line_id" context="{'journal_id':parent.journal_id, 'partner_id':parent.partner_id}"
+                                    <field name="move_line_id" context="{'journal_id':parent.journal_id, 'partner_id':parent.tpt_partner_id}"
                                         on_change="onchange_move_line_id(move_line_id)"
-                                        domain="[('account_id.type','in',('receivable','payable')), ('reconcile_id','=', False), ('partner_id','=',parent.partner_id)]"
+                                        domain="[('account_id.type','in',('receivable','payable')), ('reconcile_id','=', False), ('partner_id','=',parent.tpt_partner_id)]"
                                         required="1"
                                         groups="account.group_account_user"/>
                                     <field name="account_id" invisible="1" groups="base.group_no_one" domain="[('type','=','receivable')]"/>
@@ -2678,11 +2684,11 @@
                                 </tree>
                             </field>
                             <label for="line_dr_ids" attrs="{'invisible': [('pre_line','=',False)]}"/>
-                            <field name="line_dr_ids" attrs="{'invisible': [('pre_line','=',False)]}" context="{'journal_id':journal_id, 'partner_id':partner_id}" on_change="onchange_line_ids(line_dr_ids, line_cr_ids, amount, currency_id, type, context)">
+                            <field name="line_dr_ids" attrs="{'invisible': [('pre_line','=',False)]}" context="{'journal_id':journal_id, 'partner_id':tpt_partner_id}" on_change="onchange_line_ids(line_dr_ids, line_cr_ids, amount, currency_id, type, context)">
                                 <tree string="Credits" editable="bottom" colors="gray:amount==0" create='false'>
-                                    <field name="move_line_id" context="{'journal_id':parent.journal_id, 'partner_id':parent.partner_id}"
+                                    <field name="move_line_id" context="{'journal_id':parent.journal_id, 'partner_id':parent.tpt_partner_id}"
                                         on_change="onchange_move_line_id(move_line_id)"
-                                        domain="[('account_id.type','in',('receivable','payable')), ('reconcile_id','=', False), ('partner_id','=',parent.partner_id)]"
+                                        domain="[('account_id.type','in',('receivable','payable')), ('reconcile_id','=', False), ('partner_id','=',parent.tpt_partner_id)]"
                                         required="1"/>
                                     <field name="account_id" invisible="1" groups="base.group_no_one" domain="[('type','=','receivable')]"/>
                                     <field name="date_original" readonly="1"/>
@@ -2701,7 +2707,7 @@
                                     <field name="is_multi_currency" invisible="1"/>
 				    				<label for="payment_rate" colspan="1"/>
 				    				<div>
-                                        <field name="payment_rate" required="1" class="oe_inline" on_change="onchange_amount(amount, payment_rate, partner_id, journal_id, currency_id, type, date, payment_rate_currency_id, company_id, context)"/>
+                                        <field name="payment_rate" required="1" class="oe_inline" on_change="onchange_amount(amount, payment_rate, tpt_partner_id, journal_id, currency_id, type, date, payment_rate_currency_id, company_id, context)"/>
                                         <field name="payment_rate_currency_id" class="oe_inline" on_change="onchange_payment_rate_currency(currency_id, payment_rate, payment_rate_currency_id, date, amount, company_id, context)" groups="base.group_multi_currency"/>
                                     </div>
                                     <field name="currency_help_label" colspan="2" nolabel="1" class="oe_grey"/>
@@ -2735,7 +2741,7 @@
                                     <field name="ref"/>
                                     <field name="date"/>
                                     <field name="statement_id"/>
-                                    <field name="partner_id"/>
+                                    <!-- <field name="partner_id"/>  -->
                                     <field name="account_id"/>
                                     <field name="name"/>
                                     <field name="debit"/>
@@ -2788,7 +2794,7 @@
         <menuitem action="action_vendor_reconcile" icon="STOCK_JUSTIFY_FILL" sequence="13"
             id="menu_action_vendor_reconcile"  parent="account.menu_finance_receivables"
             groups="green_erp_arulmani_sale.group_vvti_unit_account,account.group_account_manager"/>
-            
+        
         <!-- Supplier Reconciliation -->    
        	<record model="ir.ui.view" id="view_vendor_payment_form_reconcile">
             <field name="name">account.voucher.payment.form.reconcile</field>

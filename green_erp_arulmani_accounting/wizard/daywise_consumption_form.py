@@ -161,7 +161,8 @@ class day_wise_register(osv.osv_memory):
                            )a
                            order by a.material_code,a.sch_date
                             '''%(date_from,date_to,norms,raw_mat)
-                cr.execute(sql)                    
+                cr.execute(sql)  
+                print sql                  
                 lst_val = []
                 final_data = []
                 count = 0
@@ -213,7 +214,8 @@ class day_wise_register(osv.osv_memory):
                            )a
                            order by a.material_code,a.sch_date
                             '''%(date_from,date_to,norms)
-                cr.execute(sql)         
+                cr.execute(sql) 
+                print sql        
                 lst_val = []
                 final_data = []
                 count = 0
