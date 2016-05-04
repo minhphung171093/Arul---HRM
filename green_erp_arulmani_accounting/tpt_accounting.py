@@ -6002,7 +6002,7 @@ class account_voucher(osv.osv):
             ref = voucher.reference
         ##
         ##TPT-START BM - ON 03/05/2016 - FOR THROWING WARNINIG WHEN DIFFERENCE AMT IS NOT ZERO - IN CUSTOMER RECONCILIATION SCREEN
-        if voucher.writeoff_amount!=0:
+        if voucher.tpt_cus_reconcile is True and voucher.writeoff_amount!=0:
             raise osv.except_osv(_('Warning !'), _('Cr Dr not matched'))
         ##TPT END
         #TPT START - By P.VINOTHKUMAR - ON 13/04/2016 - FOR (Generate document sequence for Supplier Payment Account postings)
