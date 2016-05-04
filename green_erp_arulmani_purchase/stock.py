@@ -980,7 +980,7 @@ class account_invoice(osv.osv):
                             tax += tax_amount/100
                         amount_total_tax = (basic + p_f + ed)*(tax)
 #                         amount_total_tax = round(amount_total_tax)
-                        total_tax += round(amount_total_tax,2)
+                        total_tax += round(amount_total_tax,2)#TPT BM - on 04/05/2016
 #                         total_tax = round(total_tax)
                         if po.fright_type == '1' :
                             fright = (basic + p_f + ed + amount_total_tax) * po.fright/100
@@ -999,9 +999,10 @@ class account_invoice(osv.osv):
                         if po.tds_id:    
                             tds_amount += po.quantity * po.price_unit * po.tds_id.amount/100
                             tds_amount = round(tds_amount,2)
-                    
+                     
                         ###TPT-By BalamuruganPurushothaman - ON 30/10/2015 - TO CALCULATE TAX AMOUNT IN SUPPLIER INV WITHOUT PO SCREEN
-                        total_tax = (basic +  ed)* (po.tax_id and po.tax_id.amount / 100 or 0)
+                        #total_tax = 0
+                        #total_tax += (basic +  ed)* (po.tax_id and po.tax_id.amount / 100 or 0)
                         ###TPT-END
                     total_round_2 = round(amount_untaxed,2) + round(p_f_charge,2) + round(excise_duty,2) + round(total_tax,2) + round(total_fright,2) - round(tds_amount,2)
                     total_round = round(round(amount_untaxed,2) + round(p_f_charge,2) + round(excise_duty,2) + round(total_tax,2) + round(total_fright,2) - round(tds_amount,2))
