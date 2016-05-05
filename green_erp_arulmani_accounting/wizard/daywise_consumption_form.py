@@ -411,7 +411,7 @@ class day_wise_register(osv.osv_memory):
                          'date15':date_list[14],
                          'product_id': product_list['product_id'],
                     }
-                print sql
+                #print sql
                 cr.execute(sql) 
                 res += cr.dictfetchall()
                 
