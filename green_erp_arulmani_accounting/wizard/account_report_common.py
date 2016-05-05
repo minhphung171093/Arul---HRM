@@ -311,14 +311,31 @@ class account_balance_report(osv.osv_memory):
     #                 cr.execute(sql)
     #                 sumcredit = cr.fetchone()[0]
     #===========================================================================
-    
-                    
                 
+                #TPT-START : BalamuruganPurushothaman - ON 05/05/2016 - FOR TRIAL BALANCE REPORT HIERARCHY FIX
+                code = account_rec['code']
+                name = account_rec['name']   
+                if len(account_rec['code'])==2:
+                    code = '  '+account_rec['code']
+                    name = '  '+account_rec['name']
+                if len(account_rec['code'])==3:
+                    code = '    '+account_rec['code']
+                    name = '    '+account_rec['name']
+                if len(account_rec['code'])==4:
+                    code = '      '+account_rec['code']
+                    name = '      '+account_rec['name']
+                if len(account_rec['code'])==5:
+                    code = '        '+account_rec['code']
+                    name = '        '+account_rec['name']
+                if len(account_rec['code'])==10:
+                    code = '          '+account_rec['code']
+                    name = '          '+account_rec['name']
+                #TPT END
                 res = {
                     'id': account_rec['id'],
                     'type': account_rec['type'],
-                    'code': account_rec['code'],
-                    'name': account_rec['name'],
+                    'code': code, #account_rec['code'],#TPT BM
+                    'name': name, #account_rec['name'],#TPT BM
                     'level': account_rec['level'],
                     'open_debit': open_sumdebit, # YuVi
                     'open_credit': open_sumcredit, # YuVi
