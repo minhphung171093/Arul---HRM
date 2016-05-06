@@ -3313,7 +3313,7 @@ class arul_hr_audit_shift_time(osv.osv):
                 local_date=cr.fetchall()
             
                 if local_date and line.total_hours >= half_shift_time: # MIN of SHIFT 7.45 / 2 = 3.7
-                    flag = 1
+                    flag = 0 #1
                     shift_hours = 0
                 if local_date and line.total_hours < half_shift_time:
                     permission_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','permission'),('date','=',line.work_date),('employee_id','=',line.employee_id.id)])
@@ -3726,6 +3726,8 @@ class arul_hr_audit_shift_time(osv.osv):
                 if line.employee_id.employee_category_id.code!='S1':       
                     if shift_count>1 and flag==0:
                         c_off_day = shift_count-1
+                    if shift_count>=0.5 and flag==0 and local_date: #TPT-BM- ON 05/05/2016 - FOR LOCAL HOLIDAY
+                        c_off_day = shift_count
                     elif flag==1:
                         c_off_day = shift_count
                 employee_leave_ids = employee_leave_obj.search(cr, uid, [('year','=',line.work_date[:4]),('employee_id','=',line.employee_id.id)])
