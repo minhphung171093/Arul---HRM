@@ -1277,7 +1277,7 @@ class account_invoice_line(osv.osv):
             for tax in tax_amounts:
                 amount_total_tax += tax/100
             ###
-            amount_total_tax = (amount_basic + amount_p_f + amount_ed)*(amount_total_tax)
+            amount_total_tax = (amount_basic + amount_p_f + amount_ed + line.aed_id_1)*(amount_total_tax) #TPT
             ###
             res[line.id]['line_net'] = amount_total_tax+amount_fright+amount_ed+amount_p_f+amount_basic+line.aed_id_1
             
