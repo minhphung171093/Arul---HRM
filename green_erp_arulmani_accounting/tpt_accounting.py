@@ -6553,27 +6553,29 @@ class account_voucher(osv.osv):
             currency = voucher.currency_id or voucher.company_id.currency_id
             res[voucher.id] =  currency_obj.round(cr, uid, currency, voucher.amount - sign * (credit - debit))
         return res
-    _defaults = {
-        'active': True,
-        'period_id': _get_period,
-        'partner_id': _get_partner,
-        'journal_id':_get_journal,
-        'currency_id': _get_currency,
-        'reference': _get_reference,
-        'narration':_get_narration,
-        'amount': _get_amount,
-        'type':_get_type,
-        'state': 'draft',
-        'pay_now': 'pay_now',
-        'name': '',
-        'date': lambda *a: time.strftime('%Y-%m-%d'),
-        'company_id': lambda self,cr,uid,c: self.pool.get('res.company')._company_default_get(cr, uid, 'account.voucher',context=c),
-        'tax_id': _get_tax,
-        'payment_option': 'without_writeoff',
-        'comment': _('Write-Off'),
-        'payment_rate': 1.0,
-        'payment_rate_currency_id': _get_payment_rate_currency,
-    }    
+    #===========================================================================
+    # _defaults = {
+    #     'active': True,
+    #     'period_id': _get_period,
+    #     'partner_id': _get_partner,
+    #     'journal_id':_get_journal,
+    #     'currency_id': _get_currency,
+    #     'reference': _get_reference,
+    #     'narration':_get_narration,
+    #     'amount': _get_amount,
+    #     'type':_get_type,
+    #     'state': 'draft',
+    #     'pay_now': 'pay_now',
+    #     'name': '',
+    #     'date': lambda *a: time.strftime('%Y-%m-%d'),
+    #     'company_id': lambda self,cr,uid,c: self.pool.get('res.company')._company_default_get(cr, uid, 'account.voucher',context=c),
+    #     'tax_id': _get_tax,
+    #     'payment_option': 'without_writeoff',
+    #     'comment': _('Write-Off'),
+    #     'payment_rate': 1.0,
+    #     'payment_rate_currency_id': _get_payment_rate_currency,
+    # }    
+    #===========================================================================
 #          
 account_voucher()
 
