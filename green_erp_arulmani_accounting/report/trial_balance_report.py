@@ -52,9 +52,59 @@ class Parser(report_sxw.rml_parse):
             'get_target_move':self.get_target_move,
             'get_date_from':self.get_date_from,
             'get_date_to':self.get_date_to,
+            'get_total_od':self.get_total_od,
+            'get_total_oc':self.get_total_oc,
+            'get_total_d':self.get_total_d,
+            'get_total_c':self.get_total_c,
+            'get_total_cd':self.get_total_cd,
+            'get_total_cc':self.get_total_cc,
+            'get_total_tot':self.get_total_tot,
+            
             
         })
-        
+    def get_total_od(self, invoice):
+        sum = 0.00        
+        for line in invoice:
+            if line['open_debit']:                                                                       
+                sum += line['open_debit']   
+        return sum or 0.00  
+    
+    def get_total_oc(self, invoice):
+            sum = 0.00        
+            for line in invoice:
+                if line['open_credit']:                                                                       
+                    sum += line['open_credit']   
+            return sum or 0.00
+    def get_total_d(self, invoice):
+        sum = 0.00        
+        for line in invoice:
+            if line['debit']:                                                                       
+                sum += line['debit']   
+        return sum or 0.00
+    def get_total_c(self, invoice):
+        sum = 0.00        
+        for line in invoice:
+            if line['credit']:                                                                       
+                sum += line['credit']   
+        return sum or 0.00
+    def get_total_cd(self, invoice):
+        sum = 0.00        
+        for line in invoice:
+            if line['close_debit']:                                                                       
+                sum += line['close_debit']   
+        return sum or 0.00
+    def get_total_cc(self, invoice):
+        sum = 0.00        
+        for line in invoice:
+            if line['close_credit']:                                                                       
+                sum += line['close_credit']   
+        return sum or 0.00
+    def get_total_tot(self, invoice):
+        sum = 0.00        
+        for line in invoice:
+            if line['close_bal']:                                                                       
+                sum += line['close_bal']   
+        return sum or 0.00  
     def _sum_debit(self, period_id=False, journal_id=False):
         if journal_id and isinstance(journal_id, int):
             journal_id = [journal_id]
