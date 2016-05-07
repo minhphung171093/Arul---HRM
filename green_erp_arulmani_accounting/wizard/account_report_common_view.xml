@@ -12,6 +12,9 @@
             	<!-- <xpath expr="//field[@name='display_account']" position="replace">
 					<field name="display_account" />
 				</xpath> -->
+				<xpath expr="//field[@name='display_account']" position="after">
+					<field name="tb_type" />
+				</xpath> 
             </field>
         </record>
         

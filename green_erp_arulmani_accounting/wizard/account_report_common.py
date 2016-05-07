@@ -50,6 +50,11 @@ class tpt_account_balance_report(osv.osv):
                                          ('all', 'All Entries'),
                                         ], 'Target Moves'),
         'filter': fields.selection([('filter_date', 'Date')], "Filter by"),
+        
+        'tb_type': fields.selection([('tb', 'Trial Balance'),
+                                     ('customer_tb', 'Customer Trial Balance'),
+                                     ('supplier_tb', 'Supplier Trial Balance'),
+                                        ], 'Type'),
     }
     
     def print_xls(self, cr, uid, ids, context=None):
@@ -97,6 +102,10 @@ class account_balance_report(osv.osv_memory):
     
     _columns = {
         'filter': fields.selection([('filter_date', 'Date')], "Filter by", required=True),
+        'tb_type': fields.selection([#('tb', 'Trial Balance'),
+                                     ('customer_tb', 'Customer Trial Balance'),
+                                     ('supplier_tb', 'Vendor Trial Balance'),
+                                        ], 'Type'),
     }
     
     def print_aeroo_report(self, cr, uid, ids, context=None):
