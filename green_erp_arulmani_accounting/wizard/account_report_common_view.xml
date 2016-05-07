@@ -47,9 +47,9 @@
 		                			<field name="open_credit"/>
 		                			<field name="debit"/>
 		                			<field name="credit"/>
-		                			<field name="close_bal"/>
-		                			<!-- <field name="close_debit"/> -->
-									<!-- <field name="close_credit"/>  -->
+		                			<field name="close_debit"/> 
+									<field name="close_credit"/> 
+									<field name="close_bal" string="Total Closing Balance"/>
 		                		</tree>
 		                	</field>
 	                	</group>
