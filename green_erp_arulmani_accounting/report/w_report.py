@@ -164,7 +164,51 @@ class Parser(report_sxw.rml_parse):
         ai.name as inv_doc, at.description tax_name,rs.name partnername, rs.tin, ai.bill_number, ai.bill_date,ai.date_invoice,
         case when sum(ail.tpt_tax_amt)>0 then sum(ail.tpt_tax_amt) else 0 end  as paid_amt_1,
         sum(ail.quantity) as vatbased_qty, pu.name as uom, max(ail.name) as productname, --sum(ail.line_net) as vatbased_amt, 
-        sum(ail.line_net-ail.tpt_tax_amt) as vatbased_amt,
+        
+        case when max(ed_type)='1' or max(ed_type) is null then 
+            case when max(ail.p_f_type)='1' or max(ail.p_f_type) is null then
+                sum((ail.quantity*ail.price_unit)+((ail.quantity*ail.price_unit)*ail.ed/100)
+                +coalesce(ail.aed_id_1,0)+((ail.quantity*ail.price_unit)*ail.p_f/100))
+
+                 when max(ail.p_f_type)='2' then
+                sum(ail.quantity*ail.price_unit)+(sum(ail.quantity*ail.price_unit)*sum(ail.ed)/100)
+                +coalesce(sum(ail.aed_id_1),0)+coalesce(sum(ail.p_f),0)
+
+                 when max(ail.p_f_type)='3' then
+                sum((ail.quantity*ail.price_unit)+((ail.quantity*ail.price_unit)*ail.ed/100)
+                +coalesce(ail.aed_id_1,0)+(ail.p_f*ail.quantity)) 
+                 else 0 
+        end 
+        
+    when max(ed_type)='2' or max(ed_type) is null then 
+            case when max(ail.p_f_type)='1' or max(ail.p_f_type) is null then
+                sum(ail.quantity*ail.price_unit)+coalesce(sum(ail.ed),0)
+                +coalesce(sum(ail.aed_id_1),0)+(sum(ail.quantity*ail.price_unit)*coalesce(sum(ail.p_f),0)/100)
+                when max(ail.p_f_type)='2' then
+                sum(ail.quantity*ail.price_unit)+coalesce(sum(ail.ed),0)
+                +coalesce(sum(ail.aed_id_1),0)+coalesce(sum(ail.p_f),0)
+                when max(ail.p_f_type)='3' then
+                sum(ail.quantity*ail.price_unit)+coalesce(sum(ail.ed),0)
+                +coalesce(sum(ail.aed_id_1),0)+sum(ail.p_f*ail.quantity)
+                else 0
+        end 
+    when max(ed_type)='3' or max(ed_type) is null then 
+            case when max(ail.p_f_type)='1' or max(ail.p_f_type) is null then
+                sum(ail.quantity*ail.price_unit)+sum(ail.ed*ail.quantity)+coalesce(sum(ail.aed_id_1),0)
+                +sum(ail.quantity*ail.price_unit)*sum(ail.p_f)/100
+                when max(ail.p_f_type)='2' then
+                sum(ail.quantity*ail.price_unit)+sum(ail.ed*ail.quantity)+coalesce(sum(ail.aed_id_1),0)
+                +coalesce(sum(ail.p_f),0)
+                when max(ail.p_f_type)='3' then
+                    sum(ail.quantity*ail.price_unit)+sum(ail.ed*ail.quantity)+coalesce(sum(ail.aed_id_1),0)
+                +sum(ail.p_f*ail.quantity)
+               else 0
+               end    
+         else 0
+         end             
+        as vatbased_amt,
+                
+                
         sp.name grn,ai.number as number
         from account_invoice ai
             inner join account_invoice_line ail on ai.id=ail.invoice_id
