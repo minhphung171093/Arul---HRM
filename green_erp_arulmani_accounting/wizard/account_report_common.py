@@ -458,7 +458,14 @@ class account_balance_report(osv.osv_memory):
                 ctx['date_to'] =  o.date_to
             ctx['state'] = o.target_move
             parents = ids
+            ##TPT-Bm
+            if o.tb_type == 'customer_tb':
+                obj_account = self.pool.get('account.account')
+            if o.tb_type == 'vendor_tb':
+                obj_account = self.pool.get('account.account')
+            ##END
             child_ids = obj_account._get_children_and_consol(cr, uid, [ids], ctx)
+            print len(child_ids)
             if child_ids:
                 ids = child_ids
             #accounts = obj_account.read(cr, uid, ids, ['type','code','name','debit','credit','balance','parent_id','level','child_id','parent_left'], ctx)

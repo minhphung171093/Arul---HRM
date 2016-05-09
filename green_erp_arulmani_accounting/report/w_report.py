@@ -163,7 +163,7 @@ class Parser(report_sxw.rml_parse):
         select  
         ai.name as inv_doc, at.description tax_name,rs.name partnername, rs.tin, ai.bill_number, ai.bill_date,ai.date_invoice,
         case when sum(ail.tpt_tax_amt)>0 then sum(ail.tpt_tax_amt) else 0 end  as paid_amt_1,
-        sum(ail.quantity) as vatbased_qty, pu.name as uom, max(ail.name) as productname, --sum(ail.line_net) as vatbased_amt, 
+        sum(ail.quantity) as vatbased_qty, max(pu.name) as uom, max(ail.name) as productname, --sum(ail.line_net) as vatbased_amt, 
         
         case when max(ed_type)='1' or max(ed_type) is null then 
             case when max(ail.p_f_type)='1' or max(ail.p_f_type) is null then
@@ -221,12 +221,12 @@ class Parser(report_sxw.rml_parse):
             at.description like '%s' and ai.type='in_invoice'
             and at.amount>0 and ai.doc_type<>'freight_invoice' and ai.state not in ('draft', 'cancel')
             group by at.id, ai.name, rs.name, rs.tin, ai.bill_number, ai.bill_date, ai.date_invoice, 
-            sp.name, ai.number, pu.name--, -- ail.name
+            sp.name, ai.number--, pu.name--, -- ail.name
         order by ai.name
         '''%(date_from, date_to, "VAT%(P)")
         self.cr.execute(sql)
         res = self.cr.dictfetchall()
-        print sql
+        #print sql
         
         sql = '''
             select av.name as inv_doc, av.date date_invoice, null bill_number, null bill_date, 
