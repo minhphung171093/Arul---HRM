@@ -466,6 +466,25 @@ class account_balance_report(osv.osv_memory):
             ##END
             child_ids = obj_account._get_children_and_consol(cr, uid, [ids], ctx)
             print len(child_ids)
+            print child_ids
+            ##
+            if o.tb_type == 'customer_tb':
+                sql = '''
+                select aa.id from account_account aa
+                    inner join res_partner rs on right(aa.code,6)=rs.customer_code
+                    where rs.customer_account_group_id=1
+
+                '''
+                cr.execute(sql)
+                #child_ids = [27]
+                acc_ids =  cr.dictfetchall()
+                #===============================================================
+                # for ids in acc_ids:
+                #     child_ids.append(ids['id'])
+                # print len(child_ids)
+                # print child_ids
+                #===============================================================
+            ##
             if child_ids:
                 ids = child_ids
             #accounts = obj_account.read(cr, uid, ids, ['type','code','name','debit','credit','balance','parent_id','level','child_id','parent_left'], ctx)
@@ -477,7 +496,7 @@ class account_balance_report(osv.osv_memory):
                     done[parent] = 1
                     _process_child(accounts,o.display_account,parent,ctx['date_from'],ctx['date_to'],state, ctx)
             return result_acc
-    
+        ##Report Start
         cr.execute('delete from tpt_account_balance_report')
         
         def getKey(item):
