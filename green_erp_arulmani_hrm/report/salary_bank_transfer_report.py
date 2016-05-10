@@ -41,6 +41,7 @@ class Parser(report_sxw.rml_parse):
             'get_month_name': self.get_month_name,
             'get_year': self.get_year,   
             'get_emp': self.get_emp,
+            'get_move': self.get_move,
             #'get_salary': self.get_salary,
            # 'get_sub_net': self.get_sub_net, 
                                  })
@@ -92,6 +93,44 @@ class Parser(report_sxw.rml_parse):
                               
                     })
             
+                
+        return res
+    
+    def get_move(self):
+        move_obj = self.pool.get('account.move')
+        sql = ''' select id from account_move limit 10
+                '''
+        self.cr.execute(sql)
+        move_ids = [r[0] for r in self.cr.fetchall()]
+        res = []
+        
+        sql = '''
+        SELECT am.create_date,am.Name as document_no, am.ref, to_char(am.date,'dd-mm-yyyy') as posting_date, p.name as period, j.name as journal, rp.name as partner, am.narration,
+        (select Sum(debit) from account_move_line where move_id=am.id) as amount,am.state as status
+        FROM ACCOUNT_MOVE am
+        Inner join account_period p on (p.id=am.period_id)
+        inner join account_journal j on (j.id=am.journal_id)
+        left Join res_partner rp on (rp.id=am.partner_id)  order by am.date
+        --limit 10
+        '''
+        self.cr.execute(sql)
+        
+        #for move in move_obj.browse(self.cr, self.uid, move_ids):
+        for move in self.cr.dictfetchall():
+             res.append({
+                        'name':move['document_no'],
+                        'posting_date':move['posting_date'],
+                        'period':move['period'],
+                        'journal':move['journal'],
+                        'partner':move['partner'],
+                        'narration':move['narration'],
+                        'amount':move['amount'],
+                        'status':move['status'],
+                        
+                        
+                        
+                                                
+                        })   
                 
         return res
        
