@@ -42,8 +42,9 @@ class tpt_account_balance_report(osv.osv_memory):
          #                                      ('movement','All without zero balance'),
          #                                      ],'Display Accounts'), #TPT-Y on 05Nov2015
          #======================================================================
-         'display_account': fields.selection([('all','All'),('movement','With movements'),
-                                               ('not_zero','With balance is not equal to 0'),
+         'display_account': fields.selection([('all','All')
+                                              #,('movement','With movements'),
+                                              # ('not_zero','With balance is not equal to 0'),
                                                ],'Display Accounts'), #TPT-Y on 05Nov2015
         
         'target_move': fields.selection([('posted', 'All Posted Entries'),
@@ -281,7 +282,7 @@ class account_balance_report(osv.osv_memory):
                 if line['balance']:                                                                       
                     sum += line['balance']   
             return sum or 0.00
-        def lines(o,ids,context=None):
+        def lines(o,ids,vendor_child_ids,context=None):
             done = {}
             state = ''
             result_acc = []
@@ -297,10 +298,13 @@ class account_balance_report(osv.osv_memory):
                 currency_obj = self.pool.get('res.currency')
                 acc_id = self.pool.get('account.account').browse(cr, uid, account_rec['id'])
                 currency = acc_id.currency_id and acc_id.currency_id or acc_id.company_id.currency_id
-                
-    #                 account_obj = self.pool.get('account.account')
                 child_ids = self.pool.get('account.account')._get_children_and_consol(cr, uid, [account_rec['id']], context=context)
-    #                 strdate =  date[:4] + '-' + date[5:7] + '-' + date[8:10]
+                
+                #TPT-BalamuruganPurushothaman-ON 11/05/2016-FOR CUSTOMER/VENDOR TRIAL BALANCE
+                # this snippet will remove the given ids from the overall child_ids
+                if o.tb_type:
+                    child_ids = [x for x in child_ids if x not in vendor_child_ids]
+                ##TPT-END
                 if child_ids:
                     acc_ids = str(child_ids).replace("[","(")
                     acc_ids = str(acc_ids).replace("]",")")
@@ -312,10 +316,6 @@ class account_balance_report(osv.osv_memory):
                         where aml.account_id in %s and aml.date < '%s'and am.state in %s 
                     '''%(acc_ids,from_date,state)
                     cr.execute(sql)
-    #                 self.cr.execute('''
-    #                     select case when sum(debit)!=0 then sum(debit) else 0 end sumdebit 
-    #                     from account_move_line where account_id in %s and date < '%s'
-    #                         ''',(tuple(child_ids),strdate),)
                     open_sumdebit = cr.fetchone()[0]
                     
                     sql = ''' 
@@ -325,13 +325,8 @@ class account_balance_report(osv.osv_memory):
                         where aml.account_id in %s and aml.date < '%s'and am.state in %s 
                     '''%(acc_ids,from_date,state)
                     cr.execute(sql)
-   
                     open_sumcredit = cr.fetchone()[0]
                     
-    #                 self.cr.execute('''
-    #                     select case when sum(credit)!=0 then sum(debit) else 0 end sumcredit 
-    #                     from account_move_line where account_id in %s and date < '%s'
-    #                         ''',(tuple(child_ids),strdate),)
                     sql = ''' 
                          select case when sum(aml.debit)!=0 then sum(aml.debit) else 0 end sumdebit
                         from account_move_line aml
@@ -457,34 +452,9 @@ class account_balance_report(osv.osv_memory):
                 ctx['date_from'] = o.date_from
                 ctx['date_to'] =  o.date_to
             ctx['state'] = o.target_move
+            ctx['type'] = 'receivable'
             parents = ids
-            ##TPT-Bm
-            if o.tb_type == 'customer_tb':
-                obj_account = self.pool.get('account.account')
-            if o.tb_type == 'vendor_tb':
-                obj_account = self.pool.get('account.account')
-            ##END
             child_ids = obj_account._get_children_and_consol(cr, uid, [ids], ctx)
-            print len(child_ids)
-            print child_ids
-            ##
-            if o.tb_type == 'customer_tb':
-                sql = '''
-                select aa.id from account_account aa
-                    inner join res_partner rs on right(aa.code,6)=rs.customer_code
-                    where rs.customer_account_group_id=1
-
-                '''
-                cr.execute(sql)
-                #child_ids = [27]
-                acc_ids =  cr.dictfetchall()
-                #===============================================================
-                # for ids in acc_ids:
-                #     child_ids.append(ids['id'])
-                # print len(child_ids)
-                # print child_ids
-                #===============================================================
-            ##
             if child_ids:
                 ids = child_ids
             #accounts = obj_account.read(cr, uid, ids, ['type','code','name','debit','credit','balance','parent_id','level','child_id','parent_left'], ctx)
@@ -506,9 +476,43 @@ class account_balance_report(osv.osv_memory):
         balance = self.browse(cr, uid, ids[0])
         balance_line = []
         vals = []
-        values = lines(balance,get_account(balance),context)
+        ##TPT-BM-11/05/2016 - FOR CUSTOMER/VENDOR TRIAL BALANCE REPORT
+        vendor_child_ids = []
+        name = 'Trial balance'
+        if balance.tb_type:
+            if balance.tb_type=='customer_tb':
+                sql = '''
+                select aa.id from account_account aa
+                inner join res_partner rs on right(aa.code,10)=rs.vendor_code
+                union     
+                select id from account_account where type='other'
+                union
+                select 3578 id
+                '''
+                cr.execute(sql)
+                acc_ids =  cr.dictfetchall()  
+                name = 'Customer Trial balance'
+            if balance.tb_type=='supplier_tb':
+                sql = '''
+                select aa.id from account_account aa
+                inner join res_partner rs on right(aa.code,6)=rs.customer_code
+                union     
+                select id from account_account where type='other'
+                union
+                select 3578 id
+                '''
+                cr.execute(sql)
+                acc_ids =  cr.dictfetchall()  
+                name = 'Vendor Trial balance'      
+            for ids in acc_ids:
+                vendor_child_ids.append(ids['id'])
+            
+        ##
+        values = lines(balance,get_account(balance), vendor_child_ids,context) #TPT-BM-11/05/2016- vendor_child_ids AS NEW PARAM
         values = sorted(values, key=getKey)
+               
         for line in values:
+            #if  line['id']  not in  vendor_child_ids:
             balance_line.append((0,0,{
                 'code': line['code'],
                 'account': line['name'],
@@ -541,8 +545,9 @@ class account_balance_report(osv.osv_memory):
         #                 'close_bal': get_total_tot(values) or 0.00,  
         #                  }))
         #=======================================================================
+
         vals = {
-                'name': 'Trial Balance',
+                'name': name or '',
                 'date_from': balance.date_from,
                 'date_to': balance.date_to,
                 'chart_account_id':balance.chart_account_id and balance.chart_account_id.id or False,
@@ -552,16 +557,12 @@ class account_balance_report(osv.osv_memory):
                 'filter': balance.filter,
                 'balance_report_line': balance_line,
         }
-        ##
-#         vals.append({
-#                 'balance_report_line': balance_line,          
-#                 })
-        ##
+
         balance_id = balance_obj.create(cr, uid, vals)
         res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
                                         'green_erp_arulmani_accounting', 'tpt_account_report_balance_form_view')
         return {
-                    'name': 'Trial Balance',
+                    'name': name or '',
                     'view_type': 'form',
                     'view_mode': 'form',
                     'res_model': 'tpt.account.balance.report',
