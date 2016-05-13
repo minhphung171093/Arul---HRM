@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data noupdate='1'>
+<!-- Complaint Number -->
+        <record id="sequence_complaint_number" model="ir.sequence.type">
+            <field name="name">Complaint number</field>
+            <field name="code">safety.complaint.number</field>
+        </record>
+
+        <record id="sequence_complaint_number_item" model="ir.sequence">
+            <field name="name">Complaint number</field>
+            <field name="code">safety.complaint.number</field>
+            <field name="prefix">CO/</field>
+            <field name="padding">5</field>
+            <field name="number_next_actual">00001</field>
+            <field name="implementation">standard</field>
+        </record>
+
+        <!-- Direct work Number -->
+        <record id="sequence_dw_number" model="ir.sequence.type">
+            <field name="name">Direct work Number</field>
+            <field name="code">safety.direct.work.number</field>
+        </record>
+
+        <record id="sequence_dw_item" model="ir.sequence">
+            <field name="name">Direct work Number</field>
+            <field name="code">safety.direct.work.number</field>
+            <field name="prefix">VVTi/DW/</field>
+            <field name="padding">7</field>
+            <field name="number_next_actual">0000001</field>
+            <field name="implementation">standard</field>
+        </record>
+
+    </data>
+</openerp>
