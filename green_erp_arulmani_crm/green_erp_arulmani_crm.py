@@ -475,7 +475,21 @@ class crm_lead_line(osv.osv):
     _defaults = {
         'quantity':1,
     }
+    ##TPT-BM-ON 13/03/2016 TO UPDATE YEARLY REQ QTY BY DEFAULT AS * BY 12
+    def create(self, cr, uid, vals, context=None):
+        if 'month_qty' in vals and vals['month_qty']:
+            vals.update({
+                     'year_qty':vals['month_qty']*12
+                     })
+        return super(crm_lead_line, self).create(cr,uid, vals, context)
     
+    def write(self, cr, uid,ids, vals, context=None):
+        if 'month_qty' in vals and vals['month_qty']:
+            vals.update({
+                     'year_qty':vals['month_qty']*12
+                     })
+        return super(crm_lead_line, self).write(cr,uid,ids,vals,context) 
+    ##
     def _check_number_month(self, cr, uid, ids, context=None):
         obj = self.browse(cr, uid, ids[0], context=context)
         try:
