@@ -479,14 +479,14 @@ class crm_lead_line(osv.osv):
     def create(self, cr, uid, vals, context=None):
         if 'month_qty' in vals and vals['month_qty']:
             vals.update({
-                     'year_qty':vals['month_qty']*12
+                     'year_qty':round(vals['month_qty']*12,3)
                      })
         return super(crm_lead_line, self).create(cr,uid, vals, context)
     
     def write(self, cr, uid,ids, vals, context=None):
         if 'month_qty' in vals and vals['month_qty']:
             vals.update({
-                     'year_qty':vals['month_qty']*12
+                     'year_qty':round(vals['month_qty']*12,3)
                      })
         return super(crm_lead_line, self).write(cr,uid,ids,vals,context) 
     ##
