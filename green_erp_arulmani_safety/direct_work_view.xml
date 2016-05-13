@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <menuitem id="menu_safety_direct_work" name="Direct Work" parent="menu_safety" sequence="6"/>
+
+		<!-- Register a Direct work -->
+        <record id="view_direct_work_tree" model="ir.ui.view">
+            <field name="name">direct.work.tree</field>
+            <field name="model">direct.work</field>
+            <field name="arch" type="xml">
+                <tree string="Direct Work">
+                    <field name="name"/>
+                     <field name="complaint_number"/>
+                    <field name="department_id"/>
+                    <field name="section_id"/>
+                    <field name="complaint_date"/>
+                    <field name="work_date"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="view_direct_work_form" model="ir.ui.view">
+            <field name="name">direct.work.form</field>
+            <field name="model">direct.work</field>
+            <field name="arch" type="xml">
+                <form string="Direct Work" version="7.0">
+                    <header>
+	                    <button name="confirm_work" string="Confirm Work" type="object" states="draft" class="oe_highlight" />
+	                    <button name="approve_work" states='confirmed' string="Approve Work" type="object" class="oe_highlight" />
+                        <button name="set_dw_to_draft" states='confirmed' string="Set to Draft" type="object" class="oe_highlight" />
+                        <field name="state" widget="statusbar" statusbar_visible="draft,confirmed,approved" statusbar_colors='{"draft":"blue","confirmed":"blue", "approved": "blue"}'/>
+	                </header>
+                    <group>
+                        <field name="name"/>
+                    </group>
+                    <group>
+                        <group>
+                            <field name="complaint_number" domain="[('state','=','hod_approved')]" on_change="on_change_complaint_number(complaint_number)"
+                                                           required="1" options="{'create': false, 'create_edit': false}"/>
+                            <field name="department_id" required="1" options="{'create': false, 'create_edit': false}"/>
+                            <field name="work_date"/>
+                            <field name="employee_id" attrs="{'invisible':[('action_against', '!=', 'employee')]}" domain="[('active','=',True)]"/>
+                        </group>
+                        <group>
+                            <field name="complaint_date"/>
+                            <field name="section_id" required="1" options="{'create': false, 'create_edit': false}"/>
+                            <field name="action_against"/>
+                            <field name="user_id"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="action_taken" required="1"/>
+                    </group>
+
+                </form>
+            </field>
+        </record>
+
+        <record id="action_direct_work_form_view" model="ir.actions.act_window">
+            <field name="name">Direct Work</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">direct.work</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+        
+        <menuitem action="action_direct_work_form_view"
+            id="menu_action_direct_work_form_view"
+            parent="menu_safety_direct_work" sequence="3"/>
+
+    </data>
+</openerp>

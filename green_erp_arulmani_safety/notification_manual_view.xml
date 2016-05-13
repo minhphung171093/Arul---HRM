@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+        <record model="ir.ui.view" id="view_notification_form_inherited">
+            <field name="name">tpt.notification.form</field>
+            <field name="model">tpt.notification</field>
+            <field name="inherit_id" ref="green_erp_arulmani_maintenance.view_tpt_notification_form"/>
+            <field name="arch" type="xml">
+                <field name="notif_type" position="after">
+                    <field name="complaint_number" domain="[('state','=','hod_approved')]" on_change="on_change_complaint_number(complaint_number)"
+                           attrs="{'invisible':[('notif_type', '!=', 'safety')]}" options="{'create': false, 'create_edit': false}"/>
+                </field>
+                <xpath expr="//field[@name='equip_id']" position="attributes">
+					<attribute name='attrs'>{'required':[('notif_type', '!=', 'safety')]}</attribute>
+				</xpath>
+                <xpath expr="//field[@name='machine_id']" position="attributes">
+					<attribute name='attrs'>{'required':[('notif_type', '!=', 'safety')]}</attribute>
+				</xpath>
+                <xpath expr="//field[@name='notif_type']" position="attributes">
+					<attribute name='required'>1</attribute>
+				</xpath>
+                <xpath expr="//field[@name='department_id']" position="attributes">
+					<attribute name='required'>1</attribute>
+				</xpath>
+                <xpath expr="//field[@name='section_id']" position="attributes">
+					<attribute name='required'>1</attribute>
+				</xpath>
+                <xpath expr="//field[@name='issue_date']" position="attributes">
+					<attribute name='required'>1</attribute>
+				</xpath>
+                <xpath expr="//field[@name='issue_type']" position="attributes">
+					<attribute name='required'>1</attribute>
+				</xpath>
+                <xpath expr="//field[@name='priority']" position="attributes">
+					<attribute name='required'>1</attribute>
+				</xpath>
+                <xpath expr="//field[@name='issue_reported']" position="attributes">
+					<attribute name='required'>1</attribute>
+				</xpath>
+
+            </field>
+        </record>
+    </data>
+</openerp>
