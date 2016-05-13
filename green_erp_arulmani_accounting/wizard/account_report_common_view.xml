@@ -9,9 +9,15 @@
             	<xpath expr="//button[@name='check_report']" position="replace">
             		<button name="print_aeroo_report" string="OK" type="object" default_focus="1" class="oe_highlight"/>
             	</xpath>
-            	<!-- <xpath expr="//field[@name='display_account']" position="replace">
+            	 <!--<xpath expr="//field[@name='display_account']" position="replace">
 					<field name="display_account" />
+					<field name="tb_type" />
 				</xpath> -->
+				 
+				<xpath expr="//field[@name='display_account']" position="after">
+					<field name="tb_type" />
+				</xpath> 
+				 
             </field>
         </record>
         
@@ -26,7 +32,9 @@
 	            	</header>
 	            	<sheet>
 	            		<div class="oe_text_center oe_bold">
-            				<h1>Trial Balance</h1>
+            				<h1>
+            				<field name="name"/>
+            			</h1>
             			</div>
             			
             			<group>
@@ -47,9 +55,9 @@
 		                			<field name="open_credit"/>
 		                			<field name="debit"/>
 		                			<field name="credit"/>
-		                			<field name="close_bal"/>
-		                			<!-- <field name="close_debit"/> -->
-									<!-- <field name="close_credit"/>  -->
+		                			<field name="close_debit"/> 
+									<field name="close_credit"/> 
+									<field name="close_bal" string="Total Closing Balance"/>
 		                		</tree>
 		                	</field>
 	                	</group>
