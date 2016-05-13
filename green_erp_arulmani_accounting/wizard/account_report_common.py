@@ -50,11 +50,6 @@ class tpt_account_balance_report(osv.osv):
                                          ('all', 'All Entries'),
                                         ], 'Target Moves'),
         'filter': fields.selection([('filter_date', 'Date')], "Filter by"),
-        
-        'tb_type': fields.selection([('tb', 'Trial Balance'),
-                                     ('customer_tb', 'Customer Trial Balance'),
-                                     ('supplier_tb', 'Supplier Trial Balance'),
-                                        ], 'Type'),
     }
     
     def print_xls(self, cr, uid, ids, context=None):
@@ -91,8 +86,8 @@ class tpt_account_balance_report_line(osv.osv):
         'debit': fields.float('Debit'),
         'credit': fields.float('Credit'),
         'close_bal': fields.float('Close'), #TPT-Y on 05Nov2015
-        'close_debit': fields.float('Closing Debit'), #TPT-Y Commented on 05Nov2015 # TPT-BM-Enable ON 06/05/2016
-        'close_credit': fields.float('Closing Credit'), #TPT-Y Commented on 05Nov2015 # TPT-BM-Enable ON 06/05/2016
+        #'close_debit': fields.float('Closing Debit'), #TPT-Y on 05Nov2015
+        #'close_credit': fields.float('Closing Credit'), #TPT-Y on 05Nov2015
     }
     
 tpt_account_balance_report_line()
@@ -102,10 +97,6 @@ class account_balance_report(osv.osv_memory):
     
     _columns = {
         'filter': fields.selection([('filter_date', 'Date')], "Filter by", required=True),
-        'tb_type': fields.selection([#('tb', 'Trial Balance'),
-                                     ('customer_tb', 'Customer Trial Balance'),
-                                     ('supplier_tb', 'Vendor Trial Balance'),
-                                        ], 'Type'),
     }
     
     def print_aeroo_report(self, cr, uid, ids, context=None):
@@ -146,8 +137,8 @@ class account_balance_report(osv.osv_memory):
 #             return self.cr.fetchone()[0] or 0.0
         
         
-        #TPT-Y on 05Nov2015
         #=======================================================================
+        # #TPT-Y on 05Nov2015
         # def get_total(cash,type):
         #     sum = 0.00
         #     for line in cash:
@@ -159,17 +150,17 @@ class account_balance_report(osv.osv_memory):
         #             sum += line['debit']
         #         if type == 'credit':
         #             sum += line['credit']
+        #         if type == 'close_bal':
+        #             sum += line['close_bal']
         #         #===============================================================
-        #         # if type == 'close_bal':
-        #         #     sum += line['close_bal']
         #         # if type == 'close_debit':
         #         #     sum += line['balance_debit']
         #         # if type == 'close_credit':
         #         #     sum += line['balance_credit']
         #         #===============================================================
         #     return round(sum,2) or 0.00
-        # 
         #=======================================================================
+        
         def get_account(o):
             acc = o.chart_account_id.id
     #         account_obj = self.pool.get('account.account')
@@ -225,67 +216,11 @@ class account_balance_report(osv.osv_memory):
         def get_date_to(o):
             date = datetime.strptime(o.date_to, DATE_FORMAT)
             return date.strftime('%d/%m/%Y')
-        def get_total_od(invoice):
-            sum = 0.00        
-            for line in invoice:
-                if line['open_debit']:                                                                       
-                    sum += line['open_debit']   
-            return sum or 0.00
-        def get_total_oc(invoice):
-            sum = 0.00        
-            for line in invoice:
-                if line['open_credit']:                                                                       
-                    sum += line['open_credit']   
-            return sum or 0.00
-        def get_total_d(invoice):
-            sum = 0.00        
-            for line in invoice:
-                if line['debit']:                                                                       
-                    sum += line['debit']   
-            return sum or 0.00
-        def get_total_c(invoice):
-            sum = 0.00        
-            for line in invoice:
-                if line['credit']:                                                                       
-                    sum += line['credit']   
-            return sum or 0.00
-        def get_total_cd(invoice):
-            sum = 0.00        
-            for line in invoice:
-                if line['balance_debit']:                                                                       
-                    sum += line['balance_debit']   
-            return sum or 0.00
-        def get_total_cc(invoice):
-            sum = 0.00        
-            for line in invoice:
-                if line['balance_credit']:                                                                       
-                    sum += line['balance_credit']   
-            return sum or 0.00
-        def get_total_tot(invoice):
-            sum = 0.00        
-            for line in invoice:
-                if line['balance']:                                                                       
-                    sum += line['balance']   
-            return sum or 0.00
-        def get_total(invoice):
-            sum = 0.00        
-            for line in invoice:
-                if line['open_debit']:                                                                       
-                    sum += line['open_debit']   
-                if line['open_credit']:                                                                       
-                    sum += line['open_credit']   
-                if line['balance_debit']:                                                                       
-                    sum += line['balance_debit']   
-                if line['balance_credit']:                                                                       
-                    sum += line['balance_credit']   
-                if line['balance']:                                                                       
-                    sum += line['balance']   
-            return sum or 0.00
+        
         def lines(o,ids,context=None):
             done = {}
             state = ''
             result_acc = []
-            res = []
             def _process_child(accounts, disp_acc, parent, from_date,to_date, state, context=None): #YuVi
                 sumdebit = 0
                 sumcredit = 0
@@ -376,31 +311,14 @@ class account_balance_report(osv.osv_memory):
     #                 cr.execute(sql)
     #                 sumcredit = cr.fetchone()[0]
     #===========================================================================
+    
+                    
                 
-                #TPT-START : BalamuruganPurushothaman - ON 05/05/2016 - FOR TRIAL BALANCE REPORT HIERARCHY FIX
-                code = account_rec['code']
-                name = account_rec['name']   
-                if len(account_rec['code'])==2:
-                    code = '  '+account_rec['code']
-                    name = '  '+account_rec['name']
-                if len(account_rec['code'])==3:
-                    code = '    '+account_rec['code']
-                    name = '    '+account_rec['name']
-                if len(account_rec['code'])==4:
-                    code = '      '+account_rec['code']
-                    name = '      '+account_rec['name']
-                if len(account_rec['code'])==5:
-                    code = '        '+account_rec['code']
-                    name = '        '+account_rec['name']
-                if len(account_rec['code'])==10:
-                    code = '          '+account_rec['code']
-                    name = '          '+account_rec['name']
-                #TPT END
                 res = {
                     'id': account_rec['id'],
                     'type': account_rec['type'],
-                    'code': code, #account_rec['code'],#TPT BM
-                    'name': name, #account_rec['name'],#TPT BM
+                    'code': account_rec['code'],
+                    'name': account_rec['name'],
                     'level': account_rec['level'],
                     'open_debit': open_sumdebit, # YuVi
                     'open_credit': open_sumcredit, # YuVi
@@ -408,13 +326,12 @@ class account_balance_report(osv.osv_memory):
                     'credit': sumcredit, # YuVi
                     'balance': (open_sumdebit+sumdebit)-(open_sumcredit+sumcredit), # YuVi
                      #TPT-Y on 05Nov2015
-                    'balance_debit': (open_sumdebit+sumdebit), #TPT-Y Commented on 05Nov2015 #TPT BM - Enabled ON 06/05/2016
-                    'balance_credit': (open_sumcredit+sumcredit), #TPT-Y Commented on 05Nov2015 #TPT BM - Enabled ON 06/05/2016   
+                    #'balance_debit': (open_sumdebit+sumdebit), #TPT-Y on 05Nov2015
+                    #'balance_credit': (open_sumcredit+sumcredit), #TPT-Y on 05Nov2015     
                     'parent_id': account_rec['parent_id'],
                     'bal_type': '',
                     'parent_left': account_rec['parent_left'],
                 }
-                
 #                 self.sum_debit += account_rec['debit']
 #                 self.sum_credit += account_rec['credit']
                 if disp_acc == 'movement':
@@ -422,8 +339,8 @@ class account_balance_report(osv.osv_memory):
                       #if not currency_obj.is_zero(cr, uid, currency, res['credit']) or not currency_obj.is_zero(cr, uid, currency, res['debit']) or not currency_obj.is_zero(cr, uid, currency, res['balance_debit']) or not currency_obj.is_zero(cr, uid, currency, res['balance_credit']):
                         result_acc.append(res)
                 elif disp_acc == 'not_zero':
-                     #if not currency_obj.is_zero(cr, uid, currency, res['balance']): #TPT-Y on 05Nov2015
-                     if not currency_obj.is_zero(cr, uid, currency, res['balance_debit']) or not currency_obj.is_zero(cr, uid, currency, res['balance_credit']): #TPT-Y on 05Nov2015
+                     if not currency_obj.is_zero(cr, uid, currency, res['balance']): #TPT-Y on 05Nov2015
+                     #if not currency_obj.is_zero(cr, uid, currency, res['balance_debit']) or not currency_obj.is_zero(cr, uid, currency, res['balance_credit']): #TPT-Y on 05Nov2015
                         result_acc.append(res)
                 else:
                     result_acc.append(res)
@@ -458,37 +375,11 @@ class account_balance_report(osv.osv_memory):
                 ctx['date_to'] =  o.date_to
             ctx['state'] = o.target_move
             parents = ids
-            ##TPT-Bm
-            if o.tb_type == 'customer_tb':
-                obj_account = self.pool.get('account.account')
-            if o.tb_type == 'vendor_tb':
-                obj_account = self.pool.get('account.account')
-            ##END
             child_ids = obj_account._get_children_and_consol(cr, uid, [ids], ctx)
-            print len(child_ids)
-            print child_ids
-            ##
-            if o.tb_type == 'customer_tb':
-                sql = '''
-                select aa.id from account_account aa
-                    inner join res_partner rs on right(aa.code,6)=rs.customer_code
-                    where rs.customer_account_group_id=1
-
-                '''
-                cr.execute(sql)
-                #child_ids = [27]
-                acc_ids =  cr.dictfetchall()
-                #===============================================================
-                # for ids in acc_ids:
-                #     child_ids.append(ids['id'])
-                # print len(child_ids)
-                # print child_ids
-                #===============================================================
-            ##
             if child_ids:
                 ids = child_ids
-            #accounts = obj_account.read(cr, uid, ids, ['type','code','name','debit','credit','balance','parent_id','level','child_id','parent_left'], ctx)
-            accounts = obj_account.read(cr, uid, ids, ['type','code','name','debit','credit','balance_debit','balance_credit','parent_id','level','child_id','parent_left'], ctx) #TPT-Y on 05Nov2015
+            accounts = obj_account.read(cr, uid, ids, ['type','code','name','debit','credit','balance','parent_id','level','child_id','parent_left'], ctx)
+            #accounts = obj_account.read(cr, uid, ids, ['type','code','name','debit','credit','balance_debit','balance_credit','parent_id','level','child_id','parent_left'], ctx) #TPT-Y on 05Nov2015
     
             for parent in [parents]:
                     if parent in done:
@@ -496,7 +387,7 @@ class account_balance_report(osv.osv_memory):
                     done[parent] = 1
                     _process_child(accounts,o.display_account,parent,ctx['date_from'],ctx['date_to'],state, ctx)
             return result_acc
-        ##Report Start
+    
         cr.execute('delete from tpt_account_balance_report')
         
         def getKey(item):
@@ -505,7 +396,6 @@ class account_balance_report(osv.osv_memory):
         balance_obj = self.pool.get('tpt.account.balance.report')
         balance = self.browse(cr, uid, ids[0])
         balance_line = []
-        vals = []
         values = lines(balance,get_account(balance),context)
         values = sorted(values, key=getKey)
         for line in values:
@@ -517,46 +407,33 @@ class account_balance_report(osv.osv_memory):
                 'debit': line['debit'],
                 'credit': line['credit'],
                 'close_bal': line['balance'],
-                'close_debit': line['balance_debit'], #TPT-Y Commented on 05Nov2015 # TPT-BM-Enabled ON 06/05/2016
-                'close_credit': line['balance_credit'], #TPT-Y Commented on 05Nov2015 # TPT-BM-Enabled ON 06/05/2016                
+                #'close_debit': line['balance_debit'], #TPT-Y on 05Nov2015
+                #'close_credit': line['balance_credit'], #TPT-Y on 05Nov2015                
             }))
-#             balance_line.append((0,0,{
-#                 'open_debit': get_total(lines(balance,get_account(balance),context),'open_debit'),
-#                 'open_credit': get_total(lines(balance,get_account(balance),context),'open_credit'),
-#                 'debit': get_total(lines(balance,get_account(balance),context),'debit'),
-#                 'credit': get_total(lines(balance,get_account(balance),context),'credit'),
-#                 #'close_bal': get_total(lines(balance,get_account(balance),context),'close_bal'), #TPT-Y on 22/09/2015
-#                 #'close_debit': get_total(lines(balance,get_account(balance),context),'close_debit'), #TPT-Y on 22/09/2015
-#                 #'close_credit': get_total(lines(balance,get_account(balance),context),'close_credit'), #TPT-Y on 22/09/2015
-#                 }))
-        #=======================================================================
-        # balance_line.append((0,0,{
-        #                 #'account' : 'Total',                  
-        #                 'open_debit': get_total_od(values) or 0.00,    
-        #                 'open_credit': get_total_oc(values) or 0.00, 
-        #                 'debit': get_total_d(values) or 0.00,    
-        #                 'credit': get_total_c(values) or 0.00, 
-        #                 'close_debit': get_total_cd(values) or 0.00, 
-        #                 'close_credit': get_total_cc(values) or 0.00, 
-        #                 'close_bal': get_total_tot(values) or 0.00,  
-        #                  }))
-        #=======================================================================
-        vals = {
-                'name': 'Trial Balance',
-                'date_from': balance.date_from,
-                'date_to': balance.date_to,
-                'chart_account_id':balance.chart_account_id and balance.chart_account_id.id or False,
-                'fiscalyear_id':balance.fiscalyear_id and balance.fiscalyear_id.id or False,
-                'display_account': balance.display_account,
-                'target_move': balance.target_move,
-                'filter': balance.filter,
-                'balance_report_line': balance_line,
-        }
-        ##
-#         vals.append({
-#                 'balance_report_line': balance_line,          
-#                 })
-        ##
+            #===================================================================
+            # balance_line.append((0,0,{
+            #     'open_debit': get_total(lines(balance,get_account(balance),context),'open_debit'),
+            #     'open_credit': get_total(lines(balance,get_account(balance),context),'open_credit'),
+            #     'debit': get_total(lines(balance,get_account(balance),context),'debit'),
+            #     'credit': get_total(lines(balance,get_account(balance),context),'credit'),
+            #     'close_bal': get_total(lines(balance,get_account(balance),context),'close_bal'), #TPT-Y on 22/09/2015
+            #     #===============================================================
+            #     # 'close_debit': get_total(lines(balance,get_account(balance),context),'close_debit'), #TPT-Y on 22/09/2015
+            #     # 'close_credit': get_total(lines(balance,get_account(balance),context),'close_credit'), #TPT-Y on 22/09/2015
+            #     #===============================================================
+            #     }))
+            #===================================================================
+            vals = {
+                    'name': 'Trial Balance',
+                    'date_from': balance.date_from,
+                    'date_to': balance.date_to,
+                    'chart_account_id':balance.chart_account_id and balance.chart_account_id.id or False,
+                    'fiscalyear_id':balance.fiscalyear_id and balance.fiscalyear_id.id or False,
+                    'display_account': balance.display_account,
+                    'target_move': balance.target_move,
+                    'filter': balance.filter,
+                    'balance_report_line': balance_line,
+            }
         balance_id = balance_obj.create(cr, uid, vals)
         res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
                                         'green_erp_arulmani_accounting', 'tpt_account_report_balance_form_view')

@@ -12,9 +12,6 @@
             	<!-- <xpath expr="//field[@name='display_account']" position="replace">
 					<field name="display_account" />
 				</xpath> -->
-				<xpath expr="//field[@name='display_account']" position="after">
-					<field name="tb_type" />
-				</xpath> 
             </field>
         </record>
         
@@ -50,9 +47,9 @@
 		                			<field name="open_credit"/>
 		                			<field name="debit"/>
 		                			<field name="credit"/>
-		                			<field name="close_debit"/> 
-									<field name="close_credit"/> 
-									<field name="close_bal" string="Total Closing Balance"/>
+		                			<field name="close_bal"/>
+		                			<!-- <field name="close_debit"/> -->
+									<!-- <field name="close_credit"/>  -->
 		                		</tree>
 		                	</field>
 	                	</group>
@@ -70,4 +67,3 @@
                />
     </data>
 </openerp>
-

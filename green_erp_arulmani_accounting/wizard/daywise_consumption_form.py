@@ -33,7 +33,7 @@ class daywise_consumption_report(osv.osv_memory):
             context = {}
 #         datas = {'ids': context.get('active_ids', [])}
         datas = {'ids': ids}
-        datas['model'] = 'daywise.consumption.report'
+        datas['model'] = 'day.wise.register'
         datas['form'] = self.read(cr, uid, ids)[0]
         datas['form'].update({'active_id':context.get('active_ids',False)})
         return {'type': 'ir.actions.report.xml', 'report_name': 'daywise_consumptions_report_pdf', 'datas': datas}
@@ -62,6 +62,23 @@ class daywise_consumption_line(osv.osv_memory):
         'date_13': fields.char('Date_13'),
         'date_14': fields.char('Date_14'),
         'date_15': fields.char('Date_15'),
+        'date_16': fields.char('Date_16'),
+        'date_17': fields.char('Date_17'),
+        'date_18': fields.char('Date_18'),
+        'date_19': fields.char('Date_19'),
+        'date_20': fields.char('Date_20'),
+        'date_21': fields.char('Date_21'),
+        'date_22': fields.char('Date_22'),
+        'date_23': fields.char('Date_23'),
+        'date_24': fields.char('Date_24'),
+        'date_25': fields.char('Date_25'),
+        'date_26': fields.char('Date_26'),
+        'date_27': fields.char('Date_27'),
+        'date_28': fields.char('Date_28'),
+        'date_29': fields.char('Date_29'),
+        'date_30': fields.char('Date_30'),
+        'date_31': fields.char('Date_31'),
+        'total': fields.char('Total'),
     }
 
 daywise_consumption_line()
@@ -104,9 +121,7 @@ class day_wise_register(osv.osv_memory):
     _constraints = [
         (_check_date, 'Identical Data', []),
     ]
-                    
-        
-    
+ 
     def print_report(self, cr, uid, ids, context=None):
         
         def get_norms(cb):
@@ -124,6 +139,7 @@ class day_wise_register(osv.osv_memory):
         def get_raw_mat(cb):
             #wizard_data = self.localcontext['data']['form']
             raw = cb.product_id.id
+            #print raw[0]
             if raw:
                 sql = '''
                        select default_code as code,name_template as name from product_product where cate_name = 'raw' and id = '%s'
@@ -136,7 +152,7 @@ class day_wise_register(osv.osv_memory):
             else:
                 return ' '
             
-#TPT START - Commented By P.vinothkumar - ON 04/05/2016 - OLD Logic - Refer this method: "get_day_cons"
+#TPT START - Commented By P.vinothkumar - ON 04/05/2016 - OLD Logic - Refer this method: "get_day_cons"        
 #         def get_leave_balance(cb):
 #             #wizard_data = self.localcontext['data']['form']
 #             date_from = cb.date_from
@@ -268,8 +284,8 @@ class day_wise_register(osv.osv_memory):
             '''%(cb.date_from, cb.date_to)
             cr.execute(sql)
             date_list = [r[0] for r in cr.fetchall()] 
-            if len(date_list)!=15:
-                raise osv.except_osv(_('Warning!'), _('Date ranges are not greater or lesser than 15 days!.'))
+            if len(date_list)< 28 or len(date_list) > 31 :
+                raise osv.except_osv(_('Warning!'), _('Date ranges are not greater or lesser than 28 days!.'))
             
             temp_prd_list = []
             sql = '''
@@ -391,7 +407,98 @@ class day_wise_register(osv.osv_memory):
                                join mrp_production mp on (mp.id = mpp.production_id)
                                join mrp_bom bm on (bm.id = mp.bom_id)
                                where mp.date_planned= '%(date15)s'
-                               and mp.bom_id = %(bom_id)s and mp.state = 'done' and mpp.product_id=%(product_id)s),0)) as applied_qty14
+                               and mp.bom_id = %(bom_id)s and mp.state = 'done' and mpp.product_id=%(product_id)s),0)) as applied_qty14,
+                   
+                   (select coalesce((select case when sum(mpp.product_qty)>=0 then sum(mpp.product_qty) else 0 end as app_qty
+                               from mrp_production_product_line mpp
+                               join mrp_production mp on (mp.id = mpp.production_id)
+                               join mrp_bom bm on (bm.id = mp.bom_id)
+                               where mp.date_planned= '%(date16)s'
+                               and mp.bom_id = %(bom_id)s and mp.state = 'done' and mpp.product_id=%(product_id)s),0)) as applied_qty15,
+                               
+                   (select coalesce((select case when sum(mpp.product_qty)>=0 then sum(mpp.product_qty) else 0 end as app_qty
+                               from mrp_production_product_line mpp
+                               join mrp_production mp on (mp.id = mpp.production_id)
+                               join mrp_bom bm on (bm.id = mp.bom_id)
+                               where mp.date_planned= '%(date17)s'
+                               and mp.bom_id = %(bom_id)s and mp.state = 'done' and mpp.product_id=%(product_id)s),0)) as applied_qty16, 
+                               
+                 (select coalesce((select case when sum(mpp.product_qty)>=0 then sum(mpp.product_qty) else 0 end as app_qty
+                               from mrp_production_product_line mpp
+                               join mrp_production mp on (mp.id = mpp.production_id)
+                               join mrp_bom bm on (bm.id = mp.bom_id)
+                               where mp.date_planned= '%(date18)s'
+                               and mp.bom_id = %(bom_id)s and mp.state = 'done' and mpp.product_id=%(product_id)s),0)) as applied_qty17,
+                               
+                (select coalesce((select case when sum(mpp.product_qty)>=0 then sum(mpp.product_qty) else 0 end as app_qty
+                               from mrp_production_product_line mpp
+                               join mrp_production mp on (mp.id = mpp.production_id)
+                               join mrp_bom bm on (bm.id = mp.bom_id)
+                               where mp.date_planned= '%(date19)s'
+                               and mp.bom_id = %(bom_id)s and mp.state = 'done' and mpp.product_id=%(product_id)s),0)) as applied_qty18,
+                               
+                 (select coalesce((select case when sum(mpp.product_qty)>=0 then sum(mpp.product_qty) else 0 end as app_qty
+                               from mrp_production_product_line mpp
+                               join mrp_production mp on (mp.id = mpp.production_id)
+                               join mrp_bom bm on (bm.id = mp.bom_id)
+                               where mp.date_planned= '%(date20)s'
+                               and mp.bom_id = %(bom_id)s and mp.state = 'done' and mpp.product_id=%(product_id)s),0)) as applied_qty19,
+                               
+                  (select coalesce((select case when sum(mpp.product_qty)>=0 then sum(mpp.product_qty) else 0 end as app_qty
+                               from mrp_production_product_line mpp
+                               join mrp_production mp on (mp.id = mpp.production_id)
+                               join mrp_bom bm on (bm.id = mp.bom_id)
+                               where mp.date_planned= '%(date21)s'
+                               and mp.bom_id = %(bom_id)s and mp.state = 'done' and mpp.product_id=%(product_id)s),0)) as applied_qty20,
+                               
+                  (select coalesce((select case when sum(mpp.product_qty)>=0 then sum(mpp.product_qty) else 0 end as app_qty
+                               from mrp_production_product_line mpp
+                               join mrp_production mp on (mp.id = mpp.production_id)
+                               join mrp_bom bm on (bm.id = mp.bom_id)
+                               where mp.date_planned= '%(date22)s'
+                               and mp.bom_id = %(bom_id)s and mp.state = 'done' and mpp.product_id=%(product_id)s),0)) as applied_qty21,
+                               
+                   (select coalesce((select case when sum(mpp.product_qty)>=0 then sum(mpp.product_qty) else 0 end as app_qty
+                               from mrp_production_product_line mpp
+                               join mrp_production mp on (mp.id = mpp.production_id)
+                               join mrp_bom bm on (bm.id = mp.bom_id)
+                               where mp.date_planned= '%(date23)s'
+                               and mp.bom_id = %(bom_id)s and mp.state = 'done' and mpp.product_id=%(product_id)s),0)) as applied_qty22, 
+                               
+                  (select coalesce((select case when sum(mpp.product_qty)>=0 then sum(mpp.product_qty) else 0 end as app_qty
+                               from mrp_production_product_line mpp
+                               join mrp_production mp on (mp.id = mpp.production_id)
+                               join mrp_bom bm on (bm.id = mp.bom_id)
+                               where mp.date_planned= '%(date24)s'
+                               and mp.bom_id = %(bom_id)s and mp.state = 'done' and mpp.product_id=%(product_id)s),0)) as applied_qty23,
+                               
+                 (select coalesce((select case when sum(mpp.product_qty)>=0 then sum(mpp.product_qty) else 0 end as app_qty
+                               from mrp_production_product_line mpp
+                               join mrp_production mp on (mp.id = mpp.production_id)
+                               join mrp_bom bm on (bm.id = mp.bom_id)
+                               where mp.date_planned= '%(date25)s'
+                               and mp.bom_id = %(bom_id)s and mp.state = 'done' and mpp.product_id=%(product_id)s),0)) as applied_qty24,
+                               
+                  (select coalesce((select case when sum(mpp.product_qty)>=0 then sum(mpp.product_qty) else 0 end as app_qty
+                               from mrp_production_product_line mpp
+                               join mrp_production mp on (mp.id = mpp.production_id)
+                               join mrp_bom bm on (bm.id = mp.bom_id)
+                               where mp.date_planned= '%(date26)s'
+                               and mp.bom_id = %(bom_id)s and mp.state = 'done' and mpp.product_id=%(product_id)s),0)) as applied_qty25,
+                               
+                  (select coalesce((select case when sum(mpp.product_qty)>=0 then sum(mpp.product_qty) else 0 end as app_qty
+                               from mrp_production_product_line mpp
+                               join mrp_production mp on (mp.id = mpp.production_id)
+                               join mrp_bom bm on (bm.id = mp.bom_id)
+                               where mp.date_planned= '%(date27)s'
+                               and mp.bom_id = %(bom_id)s and mp.state = 'done' and mpp.product_id=%(product_id)s),0)) as applied_qty26,
+                               
+                   (select coalesce((select case when sum(mpp.product_qty)>=0 then sum(mpp.product_qty) else 0 end as app_qty
+                               from mrp_production_product_line mpp
+                               join mrp_production mp on (mp.id = mpp.production_id)
+                               join mrp_bom bm on (bm.id = mp.bom_id)
+                               where mp.date_planned= '%(date28)s'
+                               and mp.bom_id = %(bom_id)s and mp.state = 'done' and mpp.product_id=%(product_id)s),0)) as applied_qty27                  
                                                                                                                 
                     '''%{'bom_id':norms,
                          'date1':date_list[0],
@@ -409,20 +516,114 @@ class day_wise_register(osv.osv_memory):
                          'date13':date_list[12],
                          'date14':date_list[13],
                          'date15':date_list[14],
+                         'date16':date_list[15],
+                         'date17':date_list[16],
+                         'date18':date_list[17],
+                         'date19':date_list[18],
+                         'date20':date_list[19],
+                         'date21':date_list[20],
+                         'date22':date_list[21],
+                         'date23':date_list[22],
+                         'date24':date_list[23],
+                         'date25':date_list[24],
+                         'date26':date_list[25],
+                         'date27':date_list[26],
+                         'date28':date_list[27],
                          'product_id': product_list['product_id'],
                     }
+                #  
+                #print len(date_list)               
+                if len(date_list)==29:
+                    sql += '''
+                    ,(select coalesce((select case when sum(mpp.product_qty)>=0 then sum(mpp.product_qty) else 0 end as app_qty
+                               from mrp_production_product_line mpp
+                               join mrp_production mp on (mp.id = mpp.production_id)
+                               join mrp_bom bm on (bm.id = mp.bom_id)
+                               where mp.date_planned= '%(date29)s'
+                               and mp.bom_id = %(bom_id)s and mp.state = 'done' and mpp.product_id=%(product_id)s),0)) as applied_qty28 
+                    '''%{'bom_id':norms,
+                         'date29':date_list[28],
+                         'product_id': product_list['product_id'],
+                    } 
+                    
+                #
+                if len(date_list)==30:
+                        sql += '''
+                        ,(select coalesce((select case when sum(mpp.product_qty)>=0 then sum(mpp.product_qty) else 0 end as app_qty
+                                   from mrp_production_product_line mpp
+                                   join mrp_production mp on (mp.id = mpp.production_id)
+                                   join mrp_bom bm on (bm.id = mp.bom_id)
+                                   where mp.date_planned= '%(date29)s'
+                                   and mp.bom_id = %(bom_id)s and mp.state = 'done' and mpp.product_id=%(product_id)s),0)) as applied_qty28,
+                        (select coalesce((select case when sum(mpp.product_qty)>=0 then sum(mpp.product_qty) else 0 end as app_qty
+                                   from mrp_production_product_line mpp
+                                   join mrp_production mp on (mp.id = mpp.production_id)
+                                   join mrp_bom bm on (bm.id = mp.bom_id)
+                                   where mp.date_planned= '%(date30)s'
+                                   and mp.bom_id = %(bom_id)s and mp.state = 'done' and mpp.product_id=%(product_id)s),0)) as applied_qty29 
+                        '''%{'bom_id':norms,
+                         'date29':date_list[28],
+                         'date30':date_list[29],
+                         'product_id': product_list['product_id'],
+                    }
+                        
+                        
+                        
+                if len(date_list)==31:
+                        sql += '''
+                        ,(select coalesce((select case when sum(mpp.product_qty)>=0 then sum(mpp.product_qty) else 0 end as app_qty
+                                   from mrp_production_product_line mpp
+                                   join mrp_production mp on (mp.id = mpp.production_id)
+                                   join mrp_bom bm on (bm.id = mp.bom_id)
+                                   where mp.date_planned= '%(date29)s'
+                                   and mp.bom_id = %(bom_id)s and mp.state = 'done' and mpp.product_id=%(product_id)s),0)) as applied_qty28,
+                        (select coalesce((select case when sum(mpp.product_qty)>=0 then sum(mpp.product_qty) else 0 end as app_qty
+                                   from mrp_production_product_line mpp
+                                   join mrp_production mp on (mp.id = mpp.production_id)
+                                   join mrp_bom bm on (bm.id = mp.bom_id)
+                                   where mp.date_planned= '%(date30)s'
+                                   and mp.bom_id = %(bom_id)s and mp.state = 'done' and mpp.product_id=%(product_id)s),0)) as applied_qty29
+                        ,(select coalesce((select case when sum(mpp.product_qty)>=0 then sum(mpp.product_qty) else 0 end as app_qty
+                                   from mrp_production_product_line mpp
+                                   join mrp_production mp on (mp.id = mpp.production_id)
+                                   join mrp_bom bm on (bm.id = mp.bom_id)
+                                   where mp.date_planned= '%(date31)s'
+                                   and mp.bom_id = %(bom_id)s and mp.state = 'done' and mpp.product_id=%(product_id)s),0)) as applied_qty30
+                        '''%{'bom_id':norms,
+                         'date29':date_list[28],
+                         'date30':date_list[29],
+                         'date31':date_list[30],
+                         'product_id': product_list['product_id'],
+                    }
+                sql += '''        
+               ,(select coalesce((select case when sum(mpp.product_qty)>=0 then sum(mpp.product_qty) else 0 end as total
+                               from mrp_production_product_line mpp
+                               join mrp_production mp on (mp.id = mpp.production_id)
+                               join mrp_bom bm on (bm.id = mp.bom_id)
+                               where mp.date_planned between '%(from_date)s' and '%(to_date)s'
+                               and mp.bom_id = %(bom_id)s and mp.state = 'done' and mpp.product_id=%(product_id)s),0)) as total  
+                 '''%{
+                      'from_date':cb.date_from, 
+                      'to_date': cb.date_to,
+                      'bom_id':norms,
+                      'product_id': product_list['product_id'],
+                    }                       
+                        
                 #print sql
                 cr.execute(sql) 
+                #print sql
                 res += cr.dictfetchall()
-                
+                    
             return res
         #TPT END#
         
         #TPT START - By P.vinothkumar - ON 04/05/2016 - FOR (Display quantities as two decimal places and display dates)
         def get_amt(amt):       
             locale.setlocale(locale.LC_NUMERIC, "en_IN")
-            inr_comma_format = locale.format("%.2f", amt, grouping=True)
+            inr_comma_format = locale.format("%.3f", amt, grouping=True)
             return inr_comma_format
+        
+        
         cr.execute('delete from daywise_consumption_report')
         cb_obj = self.pool.get('daywise.consumption.report')
         cb = self.browse(cr, uid, ids[0])
@@ -432,9 +633,23 @@ class day_wise_register(osv.osv_memory):
             '''%(cb.date_from, cb.date_to)
         cr.execute(sql)
         date_list = [r[0] for r in cr.fetchall()] 
-        if len(date_list)==15:
-            cb_line.append((0,0,{     
-                    #'material_code':' ',       
+        ##
+        date_list_28 = ''
+        date_list_29 = ''
+        date_list_30 = ''
+        if len(date_list)==29:
+            date_list_28 = date_list[28]   
+        if len(date_list)==30:
+            date_list_28 = date_list[28]
+            date_list_29 = date_list[29] 
+                
+        if len(date_list)==31:
+            date_list_28 = date_list[28] 
+            date_list_29 = date_list[29]
+            date_list_30 = date_list[30] 
+        ##
+        if len(date_list)>=28:
+            cb_line.append((0,0,{           
                      'date_1':date_list[0],
                      'date_2':date_list[1],
                      'date_3':date_list[2],
@@ -450,12 +665,42 @@ class day_wise_register(osv.osv_memory):
                      'date_13':date_list[12],
                      'date_14':date_list[13],
                      'date_15':date_list[14],
+                     'date_16':date_list[15],
+                     'date_17':date_list[16],
+                     'date_18':date_list[17],
+                     'date_19':date_list[18],
+                     'date_20':date_list[19],
+                     'date_21':date_list[20],
+                     'date_22':date_list[21],
+                     'date_23':date_list[22],
+                     'date_24':date_list[23],
+                     'date_25':date_list[24],
+                     'date_26':date_list[25],
+                     'date_27':date_list[26],
+                     'date_28':date_list[27],
+                     'date_29':date_list_28,
+                     'date_30':date_list_29,
+                     'date_31':date_list_30
+                     
                  }))
+            
         else:
-            raise osv.except_osv(_('Warning!'), _('Date ranges are not greater or lesser than 15 days!.')) 
+            raise osv.except_osv(_('Warning!'), _('Date ranges are not greater or lesser than 28 days!.')) 
           #TPT END#
           
         for line in get_day_cons(cb):
+            applied_qty28 = 0
+            applied_qty29 = 0
+            applied_qty30 = 0
+            if 'applied_qty28' in line:
+                applied_qty28 = line['applied_qty28']
+            if 'applied_qty29' in line:
+                applied_qty28 = line['applied_qty28']
+                applied_qty29 = line['applied_qty29']
+            if 'applied_qty30' in line:
+                applied_qty28 = line['applied_qty28']
+                applied_qty29 = line['applied_qty29']
+                applied_qty30 = line['applied_qty30']
             cb_line.append((0,0,{
                     'material_code':line['material_code'],
                     'material_name':line['material_name'],
@@ -475,8 +720,25 @@ class day_wise_register(osv.osv_memory):
                     'date_13':get_amt(line['applied_qty12']),
                     'date_14':get_amt(line['applied_qty13']),
                     'date_15':get_amt(line['applied_qty14']),
-            })) 
-                 
+                    'date_16':get_amt(line['applied_qty15']),
+                    'date_17':get_amt(line['applied_qty16']),
+                    'date_18':get_amt(line['applied_qty17']),
+                    'date_19':get_amt(line['applied_qty18']),
+                    'date_20':get_amt(line['applied_qty19']),
+                    'date_21':get_amt(line['applied_qty20']),
+                    'date_22':get_amt(line['applied_qty21']),
+                    'date_23':get_amt(line['applied_qty22']),
+                    'date_24':get_amt(line['applied_qty23']),
+                    'date_25':get_amt(line['applied_qty24']),  
+                    'date_26':get_amt(line['applied_qty25']),
+                    'date_27':get_amt(line['applied_qty26']),
+                    'date_28':get_amt(line['applied_qty27']),
+                    'total':get_amt(line['total']),
+                    'date_29':get_amt(applied_qty28),
+                    'date_30':get_amt(applied_qty29),
+                    'date_31':get_amt(applied_qty30),
+                    
+            }))                    
         
         vals = {
             'name': 'Day Wise Consumption Report',

@@ -92,11 +92,28 @@
 		                			<field name="date_8"/>
 		                			<field name="date_9"/>
 		                			<field name="date_10"/>
-                                                        <field name="date_11"/>
-		                			<field name="date_12"/>
-                                                        <field name="date_13"/>
-		                			<field name="date_14"/>
-                                                        <field name="date_15"/>
+									<field name="date_11"/>
+									<field name="date_12"/>
+									<field name="date_13"/>
+									<field name="date_14"/>
+									<field name="date_15"/>
+                                    <field name="date_16"/>
+		                			<field name="date_17"/>
+		                			<field name="date_18"/>
+		                			<field name="date_19"/>
+		                			<field name="date_20"/>
+		                			<field name="date_21"/>
+		                			<field name="date_22"/>
+		                			<field name="date_23"/>
+		                			<field name="date_24"/>
+		                			<field name="date_25"/>
+                                    <field name="date_26"/>
+		                			<field name="date_27"/>
+                                    <field name="date_28"/>    
+                                    <field name="date_29"/>
+		                			<field name="date_30"/>
+                                    <field name="date_31"/> 
+                                    <field name="total"/>  
 		                		</tree>
 		                	</field>
 		                	</div>
