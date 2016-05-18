@@ -419,8 +419,9 @@ class Parser(report_sxw.rml_parse):
             temp_coff = self.cr.fetchone()
             total_coff_taken = temp_coff[0]  # Total Coff Leave taken upto prev of this month => int(month)
             
-            
-            coff_open_bal = coff_available - total_coff_raised + total_coff_taken
+            #TPT-VINOTH-18/05/2016 - FOR COFF FIX
+            #coff_open_bal = coff_available - total_coff_raised + total_coff_taken
+            coff_open_bal = coff_available + total_coff_raised - total_coff_taken
             
             coff_count_cb = coff_open_bal + added_coff_count_pm - taken_coff_count_pm
             
