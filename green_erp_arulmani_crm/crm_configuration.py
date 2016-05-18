@@ -294,7 +294,7 @@ class res_partner(osv.osv):
             }
             if bp.id : 
                 sql = '''
-                select  max(date_invoice)  from account_invoice where partner_id=%s
+                select max(date_invoice) from account_invoice where partner_id=%s
                    '''% (bp.id)
                 cr.execute(sql)
                 a = cr.fetchone()
@@ -337,23 +337,23 @@ class res_partner(osv.osv):
         return res 
     def _state_char(self, cr, uid, ids, field_name, arg, context=None):
         res = {}
-        for time in self.browse(cr, uid, ids, context=context):
-            res[time.id] = {
+        for partner in self.browse(cr, uid, ids, context=context):
+            res[partner.id] = {
                 'state_char': '',
             }
             property_payment_term = ''
-            if time.id : 
-                res[time.id]['state_char'] = str(time.state_id.name)            
+            if partner.id : 
+                res[partner.id]['state_char'] = str(partner.state_id.name)            
         return res 
     def _country_char(self, cr, uid, ids, field_name, arg, context=None):
         res = {}
-        for time in self.browse(cr, uid, ids, context=context):
-            res[time.id] = {
+        for partner in self.browse(cr, uid, ids, context=context):
+            res[partner.id] = {
                 'country_char': '',
             }
             property_payment_term = ''
-            if time.id : 
-                res[time.id]['country_char'] = str(time.country_id.name)            
+            if partner.id : 
+                res[partner.id]['country_char'] = str(partner.country_id.name)            
         return res 
     _columns = {
         'arulmani_type': fields.selection([('export','Export'),('domestic','Domestic'),('indirect_export','Indirect Export')],'Customer Group'),
@@ -424,6 +424,7 @@ class res_partner(osv.osv):
         'payment_due_date': fields.function(_payment_due_date, string='Payment Due Date', multi='test_qty10'), 
         'last_pay_amt': fields.function(_last_pay_amt, string='Last Payment Amount', multi='test_qty11'), 
         'last_pay_date': fields.function(_last_pay_date, string='Last Payment Date', multi='test_qty12'), 
+        #
         'state_char': fields.function(_state_char, string='State', multi='test_qty13'), 
         'country_char': fields.function(_country_char, string='State', multi='test_qty14'), 
         

@@ -1385,18 +1385,18 @@ class tpt_blanket_order(osv.osv):
         #if vals.get('name','/')=='/':
             #vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.blanked.order.import') or '/'
         #TPT START - By P.Vinothkumar - ON 29/03/2016 - FOR (Modify Document Sequence change)
-        if 'document_type' in vals:
-            sql = '''
-                select code from account_fiscalyear where '%s' between date_start and date_stop
-            '''%(time.strftime('%Y-%m-%d'))
-            cr.execute(sql)
-            fiscalyear = cr.dictfetchone()
-            if not fiscalyear:
-                raise osv.except_osv(_('Warning!'),_('Financial year has not been configured. !'))
-            if vals.get('name','/')=='/':
-                sequence = self.pool.get('ir.sequence').get(cr, uid, 'tpt.blanked.order.import') or '/'
-                vals['name'] =  sequence and sequence+'/'+fiscalyear['code'] or '/'
-          #TPT END    
+        #if 'document_type' in vals:
+        sql = '''
+            select code from account_fiscalyear where '%s' between date_start and date_stop
+        '''%(time.strftime('%Y-%m-%d'))
+        cr.execute(sql)
+        fiscalyear = cr.dictfetchone()
+        if not fiscalyear:
+            raise osv.except_osv(_('Warning!'),_('Financial year has not been configured. !'))
+        if vals.get('name','/')=='/':
+            sequence = self.pool.get('ir.sequence').get(cr, uid, 'tpt.blanked.order.import') or '/'
+            vals['name'] =  sequence and sequence+'/'+fiscalyear['code'] or '/'
+        #TPT END    
         if 'customer_id' in vals:
             customer = self.pool.get('res.partner').browse(cr, uid, vals['customer_id'])
             ###TPT
@@ -2573,11 +2573,22 @@ res_partner()
 
 class tpt_cus_consignee(osv.osv):
     _name = "tpt.cus.consignee"
-      
+    
+    #TPT-BM-17/05/2016 - FOR MOBILE APP
+    def consignee_name(self, cr, uid, ids, field_name, args, context=None):
+        res = {}
+        for line in self.browse(cr,uid,ids,context=context):
+            res[line.id] = {
+                'name' : '',
+                }
+            res[line.id]['name'] = line.tpt_consignee_id.name +' - ' + line.tpt_consignee_id.customer_code 
+        return res
+    #  
     _columns = {
         'tpt_consignee_header_id': fields.many2one('res.partner', 'Parent', ondelete = 'cascade'),        
         'tpt_consignee_id': fields.many2one('res.partner', 'Consignee Name'),
         'tpt_consignee_code': fields.char('Consignee Code'),
+        'name': fields.function(consignee_name, type = 'string', multi='deltas', string='Name'),#TPT-BM-17/05/2016
     }
      
     def onchange_tpt_consignee_id(self, cr, uid, ids, name_consignee_id = False, context=None):
