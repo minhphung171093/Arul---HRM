@@ -475,18 +475,24 @@ class crm_lead_line(osv.osv):
     _defaults = {
         'quantity':1,
     }
-    ##TPT-BM-ON 13/03/2016 TO UPDATE YEARLY REQ QTY BY DEFAULT AS * BY 12
+    ##TPT-BM-ON 13/03/2016 TO UPDATE YEARLY REQ QTY BY DEFAULT AS * BY 12 - written for MobileApp
     def create(self, cr, uid, vals, context=None):
         if 'month_qty' in vals and vals['month_qty']:
+            name = ''
+            if 'product_id' in vals and vals['product_id']:
+                partner_obj = self.pool.get('product.product')
+                partner_obj_ids = partner_obj.browse(cr, uid, vals['product_id'])
+                name=partner_obj_ids.name_template
             vals.update({
-                     'year_qty':round(vals['month_qty']*12,3)
+                     'name':name,
+                     'year_qty':round(float(vals['month_qty'])*12,3)
                      })
         return super(crm_lead_line, self).create(cr,uid, vals, context)
     
     def write(self, cr, uid,ids, vals, context=None):
         if 'month_qty' in vals and vals['month_qty']:
             vals.update({
-                     'year_qty':round(vals['month_qty']*12,3)
+                     'year_qty':round(float(vals['month_qty'])*12,3)
                      })
         return super(crm_lead_line, self).write(cr,uid,ids,vals,context) 
     ##
