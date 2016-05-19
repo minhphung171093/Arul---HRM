@@ -6018,9 +6018,7 @@ class account_voucher(osv.osv):
             sequence = self.pool.get('ir.sequence').get(cr, uid, 'account.journal.voucher')       
 #             vals['name']='MISC/'+fiscalyear['code']+'/'+sequence
             vals['name'] = sequence and sequence+'/'+fiscalyear['code'] or '/'
-            name=vals['name']
-            ref = name.replace('/','')
-            ref1=ref 
+            name=vals['name']   
         if voucher.type=='receipt' and voucher.journal_id.name=='Cash' or voucher.journal_id.name=='Bank' and voucher.type=='receipt':    
             sequence = self.pool.get('ir.sequence').get(cr, uid, 'customer.payment.account')
             vals['name'] =  sequence and sequence+'/'+fiscalyear['code'] or '/'
@@ -6038,9 +6036,7 @@ class account_voucher(osv.osv):
                 sequence = self.pool.get('ir.sequence').get(cr, uid, 'account.supplier.payment')
                 vals['name'] =  sequence and sequence+'/'+fiscalyear['code'] 
                 #vals['name']='SUP/'+fiscalyear['code']+'/'+sequence
-                name=vals['name'] 
-                ref = name.replace('/','')
-                ref1=ref   
+                name=vals['name']   
         ##
         move = {
             'name': name,
@@ -6076,17 +6072,13 @@ class account_voucher(osv.osv):
                         vals['name'] = sequence and sequence+'/'+fiscalyear['code'] or '/'
                         name=vals['name'] 
                         move['name']=name
-                        ref = name.replace('/','')
-                        move['ref']=ref
                     if voucher.type == 'payment' and voucher.type_trans != 'receipt':
                         move['doc_type'] = 'bank_pay'
                         sequence = self.pool.get('ir.sequence').get(cr, uid, 'account.bank.payment') 
                         #vals['name']='BP/'+fiscalyear['code']+'/'+sequence
                         vals['name'] = sequence and sequence+'/'+fiscalyear['code'] or '/'
                         name=vals['name'] 
-                        move['name']=name
-                        ref = name.replace('/','')
-                        move['ref']=ref    
+                        move['name']=name             
                     if voucher.type_trans == 'receipt':
                         move['doc_type'] = 'bank_rec'
                         sequence = self.pool.get('ir.sequence').get(cr, uid, 'account.bank.receipt')
@@ -6094,17 +6086,13 @@ class account_voucher(osv.osv):
                         vals['name'] = sequence and sequence+'/'+fiscalyear['code'] or '/'
                         name=vals['name'] 
                         move['name']=name
-                        ref = name.replace('/','')
-                        move['ref']=ref
                     if voucher.type == 'receipt' and voucher.type_trans != 'payment':
                         move['doc_type'] = 'bank_rec'
                         sequence = self.pool.get('ir.sequence').get(cr, uid, 'account.bank.receipt')
                         #vals['name']='BR/'+fiscalyear['code']+'/'+sequence
                         vals['name'] = sequence and sequence+'/'+fiscalyear['code'] or '/'
                         name=vals['name'] 
-                        move['name']=name
-                        ref = name.replace('/','')
-                        move['ref']=ref 
+                        move['name']=name                       
                         
             if voucher.journal_id.type == 'cash':
                  #TPT-VINOTH-UPDATED ON 26/04/2016# 
@@ -6115,8 +6103,6 @@ class account_voucher(osv.osv):
                     vals['name'] = sequence and sequence+'/'+fiscalyear['code'] or '/'
                     name=vals['name']
                     move['name']=name
-                    ref = name.replace('/','')
-                    move['ref']=ref
                 if voucher.type=='payment' and voucher.type_trans != 'receipt':
                     move['doc_type'] = 'cash_pay'
                     sequence = self.pool.get('ir.sequence').get(cr, uid, 'account.cash.payment')
@@ -6124,8 +6110,6 @@ class account_voucher(osv.osv):
                     vals['name'] = sequence and sequence+'/'+fiscalyear['code'] or '/'
                     name=vals['name']
                     move['name']=name
-                    ref = name.replace('/','')
-                    move['ref']=ref
                 if voucher.type_trans == 'receipt':
                     move['doc_type'] = 'cash_rec'
                     sequence = self.pool.get('ir.sequence').get(cr, uid, 'account.cash.receipt')
@@ -6133,8 +6117,6 @@ class account_voucher(osv.osv):
                     vals['name'] = sequence and sequence+'/'+fiscalyear['code'] or '/'
                     name=vals['name'] 
                     move['name']=name
-                    ref = name.replace('/','')
-                    move['ref']=ref
                 if voucher.type=='receipt' and voucher.type_trans != 'payment':
                     move['doc_type'] = 'cash_rec'
                     sequence = self.pool.get('ir.sequence').get(cr, uid, 'account.cash.receipt')
@@ -6142,8 +6124,6 @@ class account_voucher(osv.osv):
                     vals['name'] = sequence and sequence+'/'+fiscalyear['code'] or '/'
                     name=vals['name'] 
                     move['name']=name
-                    ref = name.replace('/','')
-                    move['ref']=ref
         else:
             if (voucher.journal_id.type == 'bank' or voucher.journal_id.type == 'cash'):
                 if voucher.type == 'receipt' and voucher.type_cash_bank != 'journal':
