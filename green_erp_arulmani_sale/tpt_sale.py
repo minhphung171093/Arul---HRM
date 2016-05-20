@@ -2581,7 +2581,7 @@ class tpt_cus_consignee(osv.osv):
             res[line.id] = {
                 'name' : '',
                 }
-            res[line.id]['name'] = line.tpt_consignee_id.name +' - ' + line.tpt_consignee_id.customer_code 
+            res[line.id]['name'] = line.tpt_consignee_id.name +' ' + line.tpt_consignee_id.customer_code 
         return res
     #  
     _columns = {
