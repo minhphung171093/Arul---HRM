@@ -60,7 +60,15 @@ class notification_manual(osv.osv):
         req_obj = self.pool.get('complaint.register')
         data = req_obj.browse(cr, uid, complaint_number)
 
-        result['value']['issue_type'] = data.issue_severity or False
+        # result['value']['issue_type'] = data.issue_severity or False
+        # result['value']['department_id'] = data.department_id.id or False
+        # result['value']['section_id'] = data.section_id.id or False
+        result['value'] = {
+            'issue_type': data.issue_severity or False,
+            'department_id':data.department_id and data.department_id.id or False,
+            'section_id':data.section_id and data.section_id.id or False,
+        }
         return result
+
 
 notification_manual()

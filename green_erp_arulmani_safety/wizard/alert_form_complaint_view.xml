@@ -22,7 +22,7 @@
     	</record>
 
 	    <record model="ir.actions.act_window" id="action_approve_or_reject_complaint_form">
-	        <field name="name">Approve or Reject</field>
+	        <field name="name">Manager Approve or Reject</field>
 	        <field name="res_model">alert.form.complaint</field>
 	        <field name="view_type">form</field>
 	        <field name="view_mode">form</field>
