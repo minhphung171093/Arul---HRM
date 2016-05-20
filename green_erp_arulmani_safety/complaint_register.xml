@@ -28,8 +28,8 @@
                 <form string="Complaint Register" version="7.0">
                     <header>
 	                    <button name="confirm_complaint" string="Confirm Complaint" type="object" states="draft" class="oe_highlight" />
-	                    <button name="cancel_complaint" states='draft,confirmed' string="Cancel" type="object" class="oe_highlight" />
-                        <button name="set_complaint_to_draft" states='draft,confirmed' string="Set to Draft" type="object" class="oe_highlight" />
+	                    <button name="cancel_complaint" states='draft' string="Cancel" type="object" class="oe_highlight" />
+                        <button name="set_complaint_to_draft" states='confirmed' string="Set to Draft" type="object" class="oe_highlight" />
                         <field name="state" widget="statusbar" statusbar_visible="draft,confirmed,cancelled" statusbar_colors='{"draft":"blue","confirmed":"blue", "cancelled": "blue"}'/>
 	                </header>
                     <group>
@@ -148,6 +148,7 @@
                     <filter name="sm_approved" string="SM Approved" domain="[('state','=','sm_approved')]"/>
                     <filter name="hod_approved" string="SM &amp; HOD Approved" domain="[('state','=','hod_approved')]"/>
                     <filter name="hod_rejected" string="SM Rejected" domain="[('state','=','hod_rejected')]"/> 
+                    <filter name="notif_created" string="Notification created" domain="[('state','=','notif_created')]"/> 
                </search>
             </field>
         </record>

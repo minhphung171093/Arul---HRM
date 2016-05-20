@@ -21,6 +21,7 @@
 				</xpath>
                 <xpath expr="//field[@name='department_id']" position="attributes">
 					<attribute name='required'>1</attribute>
+                    <attribute name='on_change'></attribute>
 				</xpath>
                 <xpath expr="//field[@name='section_id']" position="attributes">
 					<attribute name='required'>1</attribute>
@@ -37,6 +38,7 @@
                 <xpath expr="//field[@name='issue_reported']" position="attributes">
 					<attribute name='required'>1</attribute>
 				</xpath>
+
 
             </field>
         </record>
