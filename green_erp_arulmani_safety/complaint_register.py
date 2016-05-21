@@ -88,10 +88,11 @@ class complaint_register(osv.osv):
                 self.pool.get('tpt.notification').create(cr,uid,{ 
                                                                  'complaint_number': line.id,
                                                                  'notif_type': 'safety',
-#                                                                  'issue_date': ,
-#                                                                  'issue_type': ,
+                                                                'issue_type': line.issue_severity or False,
                                                                 'priority': 'medium',
                                                                  'state': 'draft',
+                                                                'department_id': line.department_id and line.department_id.id or False,
+                                                                'section_id': line.section_id and line.section_id.id or False,
                                                                  })
                 self.write(cr, uid, ids,{'state':'notif_created'})
         return True

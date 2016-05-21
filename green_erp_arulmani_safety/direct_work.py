@@ -24,7 +24,7 @@ class direct_work(osv.osv):
         'section_id': fields.many2one('arul.hr.section', 'Section', readonly=True),
         'work_date': fields.date('Work Date'),
         'action_against': fields.selection([('employee', 'Employee'), ('others', 'Others')],'Action Against'),
-        'employee_id': fields.many2one('res.users', 'Employee'),
+        'employee_id': fields.many2one('hr.employee', 'Employee'),
         'user_id': fields.many2one('res.users', 'Raised By', readonly=True),
         'action_taken': fields.text('Action Taken'),
         'state': fields.selection([('draft', 'Draft'), ('confirmed', 'Confirmed'),
