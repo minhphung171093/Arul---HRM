@@ -1088,7 +1088,7 @@ class product_product(osv.osv):
                     time_qty = a[0]                            
                 else:
                     time_qty=0.0
-            res[time.id]['current_day_value'] = time_qty            
+            res[time.id]['current_yr_value'] = time_qty            
         return res 
     def name_get(self, cr, uid, ids, context=None):
         """Overrides orm name_get method"""
@@ -1100,7 +1100,7 @@ class product_product(osv.osv):
         reads = self.read(cr, uid, ids, ['name','default_code'], context=context)
         for record in reads:
             name = record['default_code']+ ' '+'-'+' ' + (record['name'] or'')
-            res.append((record['id'], name))  
+            res.append((record['id'], name))   
         return res
     _columns = { 
         ###TPT-BM-28/11/2015-TO OVERWRITE DUMMY FUNCTION OF THIS WAREHOUSE ID
