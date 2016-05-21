@@ -1088,7 +1088,7 @@ class product_product(osv.osv):
                     time_qty = a[0]                            
                 else:
                     time_qty=0.0
-            res[time.id]['current_day_value'] = time_qty            
+            res[time.id]['current_yr_value'] = time_qty            
         return res 
     def name_get(self, cr, uid, ids, context=None):
         """Overrides orm name_get method"""
