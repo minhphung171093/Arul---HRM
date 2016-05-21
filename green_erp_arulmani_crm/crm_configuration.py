@@ -1100,7 +1100,7 @@ class product_product(osv.osv):
         reads = self.read(cr, uid, ids, ['name','default_code'], context=context)
         for record in reads:
             name = record['default_code']+ ' '+'-'+' ' + (record['name'] or'')
-            res.append((record['id'], name))  
+            res.append((record['id'], name))   
         return res
     _columns = { 
         ###TPT-BM-28/11/2015-TO OVERWRITE DUMMY FUNCTION OF THIS WAREHOUSE ID
