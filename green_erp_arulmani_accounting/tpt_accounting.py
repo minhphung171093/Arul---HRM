@@ -5296,7 +5296,11 @@ class account_voucher(osv.osv):
         'partner_id':fields.many2one('res.partner', 'Partner',  states={'draft':[('readonly',False)]}),
         'tpt_partner_id':fields.many2one('res.partner', 'Partner',  states={'draft':[('readonly',False)]}),
         }
-   
+    #
+    def action_auto_reconcile(self, cr, uid, ids, context=None):
+        print "Im in action_auto_reconcile"
+        return True
+    #   
     def voucher_print_button(self, cr, uid, ids, context={}):
         '''This function prints the Journal Voucher in Accounting'''
         for this_id in self.browse(cr, uid, ids, context):
