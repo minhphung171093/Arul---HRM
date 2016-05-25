@@ -94,5 +94,3 @@ class direct_work(osv.osv):
         return result
 
 direct_work()
-
-

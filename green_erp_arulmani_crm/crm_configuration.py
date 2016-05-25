@@ -417,13 +417,22 @@ class res_partner(osv.osv):
         'pending_order': fields.function(_pending_order, string='Pending Orders', multi='test_qty'),
         'pending_qty': fields.function(_pending_qty, string='Pending Qty to be Delivered', multi='test_qty5'),
         #TPT- Mobile App- By BalamuruganPurushothaman - DEBTOR INFO
-        'last_inv_no': fields.function(_last_inv_no, string='Last Invoice Date', multi='test_qty6'),    
+        'last_inv_no': fields.function(_last_inv_no, string='Last Invoice No', multi='test_qty6'),    
         'last_inv_date': fields.function(_last_inv_date, string='Last Invoice Date', multi='test_qty7'), 
         'outstanding_bal': fields.function(_outstanding_bal, string='Outstanding Balance', multi='test_qty8'), 
         'payment_term': fields.function(_payment_term, string='Customer Payment Term', multi='test_qty9'), 
         'payment_due_date': fields.function(_payment_due_date, string='Payment Due Date', multi='test_qty10'), 
         'last_pay_amt': fields.function(_last_pay_amt, string='Last Payment Amount', multi='test_qty11'), 
         'last_pay_date': fields.function(_last_pay_date, string='Last Payment Date', multi='test_qty12'), 
+        
+        'last_inv_no1': fields.char('Last Invoice NO'),    
+        'last_inv_date1': fields.date('Last Invoice Date'), 
+        'outstanding_bal1': fields.float('Outstanding Balance'), 
+        'payment_term1': fields.char('Payment Term'), 
+        'payment_due_date1': fields.date('Payment Due Date'), 
+        'last_pay_amt1': fields.float('Last Payment Amount'), 
+        'last_pay_date1': fields.date('Last Payment Amount'), 
+        
         #
         'state_char': fields.function(_state_char, string='State', multi='test_qty13'), 
         'country_char': fields.function(_country_char, string='State', multi='test_qty14'), 
@@ -435,6 +444,62 @@ class res_partner(osv.osv):
         #tien
         'disapprove': False,
     }
+    #TPT-BM-24/05/2016-FOR MOBILE APP - this function called from Mobile App Debtor Info Search button
+    def mapp_debtor_info(self, cr, uid, ids, partner_id, from_date, to_date, context=None):
+        res = []
+        last_inv_no1 = 0
+        last_inv_date1 = False
+        outstanding_bal1 = 0
+        payment_term1 = ''
+        payment_due_date1 = False
+        last_pay_amt1 = 0
+        last_pay_date1 = False
+      
+        res_obj = self.pool.get('res.partner')
+        bp = res_obj.browse(cr,uid,partner_id)
+        customer_code = bp.customer_code   
+        sql = '''
+                select  max(vvt_number)  from account_invoice where partner_id=%s and date_invoice between '%s' and '%s'
+                   '''% (partner_id, from_date, to_date)
+        cr.execute(sql)
+        a = cr.fetchone()
+        if a and str(a) != '(None,)':
+            last_inv_no1 = a[0] 
+        #    
+        sql = '''
+                select  max(date_invoice)  from account_invoice where partner_id=%s and date_invoice between '%s' and '%s'
+                   '''% (partner_id, from_date, to_date)
+        cr.execute(sql)
+        a = cr.fetchone()
+        if a and str(a) != '(None,)':
+            date = datetime.strptime(a[0], DATE_FORMAT)
+            last_inv_date1 = date.strftime('%d/%m/%Y') 
+        #
+        sql = '''
+                select case when sum(debit)-sum(credit)>=0 then sum(debit)-sum(credit) else 0 end  from account_move_line aml
+                 inner join account_move am on aml.move_id=am.id
+                inner join account_account aa on aml.account_id=aa.id
+                inner join res_partner rs on aa.code='0000'||rs.customer_code
+                where rs.id=%s and am.date between '%s' and '%s'
+                   '''% (partner_id, from_date, to_date)
+        cr.execute(sql)
+        a = cr.fetchone()
+        if a:
+            outstanding_bal1 = a[0]    
+        #
+        #
+        vals={'last_inv_no1':last_inv_no1, 
+              'last_inv_date1':last_inv_date1,
+              'outstanding_bal1':outstanding_bal1, 
+              'payment_term1':payment_term1, 
+              'payment_due_date1':payment_due_date1,
+              'last_pay_amt1':last_pay_amt1,
+              'last_pay_date1':last_pay_date1,
+            }
+        res_obj.write(cr,uid,[partner_id],vals) 
+        ##
+        return res
+    #
     #TPT- By BalamuruganPurushothaman - Incident No: 2430 - ON 16/10/2015 
     # Customer/Vendor Code with Description in All Screen
     def name_get(self, cr, uid, ids, context=None):
