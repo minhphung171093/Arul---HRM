@@ -1654,7 +1654,7 @@ class tpt_canteen_deduction(osv.osv):
               }
     _defaults = {
         'state': 'draft',
-        'issue_date': time.strftime('%Y-%m-%d'),
+        #'issue_date': time.strftime('%Y-%m-%d'),
         'no_of_book': 1.0,
         }
     
@@ -1712,6 +1712,15 @@ class tpt_canteen_deduction(osv.osv):
                 raise osv.except_osv(_('Warning!'),_('Already Exist!'))     
         new_write = super(tpt_canteen_deduction, self).write(cr, uid,ids, vals, context)
         return new_write
+    
+    def onchange_employee_id(self, cr, uid, ids,employee_id=False, context=None):
+        vals = {}
+        if employee_id:
+            
+            vals = {
+                    'issue_date': fields.date.context_today(self,cr,uid,context=context)
+                    }
+        return {'value': vals}
     
     #_sql_constraints = [('emp_date_type_uniq', 'unique(employee_id, issue_date, book_type_id)', 'Already Entered!'),]
     

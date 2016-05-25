@@ -1235,10 +1235,14 @@ class stock_movement_analysis(osv.osv_memory):
             date_to = o.date_to
             categ = o.categ_id.cate_name
             hand_quantity = 0
+            inventory = []
             if categ=='raw':
                 parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
                 locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw Material','Raw Materials','Raw material']),('location_id','=',parent_ids[0])])
+                #TPT-VINOTH-BM-ON 24/05/2016 - Query2 UION PART IS ADDED TO ADD FREIGHT INVOICE AMOUNT
                 sql = '''
+                    select sum(a.ton_sl) ton_sl, sum(a.total_cost) total_cost from (
+                    
                     select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end ton_sl,case when sum(foo.price_unit)!=0 then sum(foo.price_unit) else 0 end total_cost from 
                         (select st.product_qty as product_qty,st.price_unit*st.product_qty as price_unit
                             from stock_move st
@@ -1250,9 +1254,19 @@ class stock_movement_analysis(osv.osv_memory):
                                         or (st.id in (select move_id from stock_inventory_move_rel where inventory_id in 
                                               (select id from stock_inventory where to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') between '%s' and '%s' and state = 'done'))))
                                     )foo
-                            '''%(locat_ids[0],product_id,date_from,date_to,date_from,date_to)
+                                    
+                            union
+                            
+                            select 0 as ton_sl, case when sum(ail.line_net)!=0 then sum(ail.line_net) else 0 end as total_cost from account_invoice ai
+                inner join account_invoice_line ail on ai.id=ail.invoice_id
+                where ai.doc_type='freight_invoice' and  ai.date_invoice between '%s' and '%s' 
+                and ail.product_id=%s
+                
+                    )a
+                            '''%(locat_ids[0],product_id,date_from,date_to,date_from,date_to, date_from, date_to, product_id)
                 cr.execute(sql)
                 inventory = cr.dictfetchone()
+
             if categ and categ =='spares':
                 parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
                 locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Spares','Spare','spares']),('location_id','=',parent_ids[0])])            
