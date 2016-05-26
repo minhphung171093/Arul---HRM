@@ -1586,7 +1586,7 @@
             <field name="view_mode">tree,form</field>
             <field eval="False" name="view_id" ref="view_tpt_freight_invoice_tree"/>
             <field name="domain">[('type','=','in_invoice'), ('sup_inv_id','!=',False), ('doc_type','=', 'freight_invoice')]</field>
-            <field name="context">{'default_type': 'in_invoice', 'type': 'in_invoice', 'journal_type': 'purchase'}</field>
+            <field name="context">{'default_doc_type': 'freight_invoice','default_type': 'in_invoice', 'type': 'in_invoice', 'journal_type': 'purchase'}</field>
             <field name="search_view_id" ref="view_account_invoice_filter"/>
         </record>
         <record id="action_invoice_freight1" model="ir.actions.act_window.view">
