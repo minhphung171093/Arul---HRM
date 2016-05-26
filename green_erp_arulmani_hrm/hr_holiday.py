@@ -3639,6 +3639,11 @@ class arul_hr_audit_shift_time(osv.osv):
                                 shifts_out_time = [shift_out,perm_out]
                                 start_time = max(shifts_in_time)
                                 end_time = max(shifts_out_time)
+                            elif perm_in>0 and perm_in>=1 and perm_out > 0: #TPT-BM-25/05/2016 - To clear Audit Record for Employee 326 on 02/05/2016 
+                                shifts_in_time = [shift_in,perm_in]
+                                shifts_out_time = [shift_out,perm_out]
+                                start_time = max(shifts_in_time)
+                                end_time = max(shifts_out_time)
                             elif od_in>0 and od_in >=8:
                                 shifts_in_time = [shift_in,od_in]
                                 shifts_out_time = [shift_out,od_out]
