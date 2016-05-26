@@ -425,6 +425,7 @@ class res_partner(osv.osv):
         'last_pay_amt': fields.function(_last_pay_amt, string='Last Payment Amount', multi='test_qty11'), 
         'last_pay_date': fields.function(_last_pay_date, string='Last Payment Date', multi='test_qty12'), 
         
+        #TPT-BM-24/05/2016 for MApp - Debtor Info for date filter
         'last_inv_no1': fields.char('Last Invoice NO'),    
         'last_inv_date1': fields.char('Last Invoice Date'), 
         'outstanding_bal1': fields.float('Outstanding Balance'), 
@@ -432,6 +433,14 @@ class res_partner(osv.osv):
         'payment_due_date1': fields.char('Payment Due Date'), 
         'last_pay_amt1': fields.float('Last Payment Amount'), 
         'last_pay_date1': fields.char('Last Payment Amount'), 
+        #
+        #TPT-BM-26/05/2016 for MApp - Sales Info for date filter
+        'total_order_placed1': fields.char('Total Order'),    
+        'total_qty_ordered1': fields.char('Total Qty Ordered'), 
+        'total_ordered_value1': fields.float('Total Ordered Value'), 
+        'total_order_exe1': fields.char('Total Ordered Executed'), 
+        'pending_order1': fields.char('Pending Orders'), 
+        'pending_qty1': fields.float('Pending Qty to be Delivered'), 
         
         #
         'state_char': fields.function(_state_char, string='State', multi='test_qty13'), 
@@ -472,9 +481,9 @@ class res_partner(osv.osv):
         cr.execute(sql)
         a = cr.fetchone()
         if a and str(a) != '(None,)':
-            #date = datetime.strptime(a[0], DATE_FORMAT)
-            #last_inv_date1 = date.strftime('%d/%m/%Y') 
-            last_inv_date1 = a[0]
+            date = datetime.strptime(a[0], DATE_FORMAT)
+            last_inv_date1 = date.strftime('%d/%m/%Y') 
+            #last_inv_date1 = a[0]
         #
         sql = '''
                 select case when sum(debit)-sum(credit)>=0 then sum(debit)-sum(credit) else 0 end  from account_move_line aml
@@ -494,9 +503,9 @@ class res_partner(osv.osv):
         cr.execute(sql)
         a = cr.fetchone()
         if a and str(a) != '(None,)':
-            payment_due_date1 = a[0]
-            #date = datetime.strptime(a[0], DATE_FORMAT)
-            #payment_due_date1 = date.strftime('%d/%m/%Y') 
+            #payment_due_date1 = a[0]
+            date = datetime.strptime(a[0], DATE_FORMAT)
+            payment_due_date1 = date.strftime('%d/%m/%Y') 
         #
         sql = '''
                 select case when amount>=0 then amount else 0 end amount from account_voucher
@@ -514,9 +523,9 @@ class res_partner(osv.osv):
         cr.execute(sql)
         a = cr.fetchone()
         if a and str(a) != '(None,)':
-            last_pay_date1 = a[0]
-            #date = datetime.strptime(a[0], DATE_FORMAT)
-            #last_pay_date1 = date.strftime('%d/%m/%Y') 
+            #last_pay_date1 = a[0]
+            date = datetime.strptime(a[0], DATE_FORMAT)
+            last_pay_date1 = date.strftime('%d/%m/%Y') 
         #
         vals={'last_inv_no1':last_inv_no1, 
               'last_inv_date1':last_inv_date1,

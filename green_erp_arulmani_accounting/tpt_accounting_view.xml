@@ -2060,7 +2060,7 @@
                     <xpath expr="//field[@name='account_id']" position="replace"/>
                     <xpath expr="//field[@name='partner_id']" position="attributes">
                     	<attribute name='options'>{'create': false, 'create_edit': false}</attribute>
-                    	<attribute name='domain'>[('customer','=',True),('is_company','=',True),('customer_account_group_id','=','VVTI Sold to Party')]</attribute>
+                    	<attribute name='domain'>[('customer','=',True),('is_company','=',True),('customer_account_group_id','in',['VVTI Sold to Party', 'VVTI Indent Comm.'])]</attribute>
                     </xpath>
                    <!-- <xpath expr="//field[@name='journal_id']" position="replace">
                     	<field name="journal_id"
