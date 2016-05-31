@@ -19,7 +19,7 @@ class notification_manual(osv.osv):
     _inherit = 'tpt.notification'
 
     _columns = {
-        'complaint_number': fields.many2one('complaint.register', 'Complaint No'),
+        'complaint_number': fields.many2one('complaint.register', 'Compliance No'),
         'notif_type':fields.selection([
                                 ('prevent','Preventive Maintenance'),
                                 ('break','Breakdown'),
@@ -67,6 +67,7 @@ class notification_manual(osv.osv):
             'issue_type': data.issue_severity or False,
             'department_id':data.department_id and data.department_id.id or False,
             'section_id':data.section_id and data.section_id.id or False,
+            'issue_reported':data.issue_reported or False,
         }
         return result
 

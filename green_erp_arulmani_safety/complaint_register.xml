@@ -3,14 +3,14 @@
     <data>
 		
         <menuitem name="Safety" id="menu_safety" sequence="1"/>
-        <menuitem id="menu_safety_complaint_register" name="Complaint Register" parent="menu_safety" sequence="0"/>
+        <menuitem id="menu_safety_complaint_register" name="Compliance Register" parent="menu_safety" sequence="0"/>
 
-		<!-- Register a Complaint --> 
+		<!-- Register a Compliance --> 
         <record id="view_complaint_register_tree" model="ir.ui.view">
             <field name="name">complaint.register.tree</field>
             <field name="model">complaint.register</field>
             <field name="arch" type="xml">
-                <tree string="Complaint Register">
+                <tree string="Compliance Register">
                     <field name="name"/>
                     <field name="department_id"/>
                     <field name="section_id"/>
@@ -25,9 +25,9 @@
             <field name="name">complaint.register.form</field>
             <field name="model">complaint.register</field>
             <field name="arch" type="xml">
-                <form string="Complaint Register" version="7.0">
+                <form string="Compliance Register" version="7.0">
                     <header>
-	                    <button name="confirm_complaint" string="Confirm Complaint" type="object" states="draft" class="oe_highlight" />
+	                    <button name="confirm_complaint" string="Confirm Compliance" type="object" states="draft" class="oe_highlight" />
 	                    <button name="cancel_complaint" states='draft' string="Cancel" type="object" class="oe_highlight" />
                         <button name="set_complaint_to_draft" states='confirmed' string="Set to Draft" type="object" class="oe_highlight" />
                         <field name="state" widget="statusbar" statusbar_visible="draft,confirmed,cancelled" statusbar_colors='{"draft":"blue","confirmed":"blue", "cancelled": "blue"}'/>
@@ -43,6 +43,7 @@
                             <field name="complaint_date"/>
                             <field name="issue_severity" required="1"/>
                             <field name="section_id" required="1" domain="[('department_id','=',department_id)]" options="{'create': false, 'create_edit': false}"/>
+                            <field name="tpt_location"/>
                         </group>
                     </group>
                     <group>
@@ -54,7 +55,7 @@
         </record>
 
         <record id="action_complaint_register_form_view" model="ir.actions.act_window">
-            <field name="name">Complaint Register</field>
+            <field name="name">Compliance Register</field>
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">complaint.register</field>
             <field name="view_type">form</field>
@@ -78,12 +79,12 @@
             id="menu_action_complaint_register_form_view"
             parent="menu_safety_complaint_register" sequence="3"/>
             
-        <!-- Complaint - Safety manager Approval --> 
+        <!-- Compliance - Safety manager Approval --> 
         <record id="view_approval_complaint_register_filter" model="ir.ui.view">
             <field name="name">approval.complaint.register.select</field>
             <field name="model">complaint.register</field>
             <field name="arch" type="xml">
-                <search string="Search Invoice">
+                <search string="Search Compliance">
                     <filter name="confirmed" string="Confirmed" domain="[('state','=','confirmed')]"/>
                     <filter name="sm_approved" string="SM Approved" domain="[('state','=','sm_approved')]"/>
                     <filter name="sm_rejected" string="SM Rejected" domain="[('state','=','sm_rejected')]"/>
@@ -95,7 +96,7 @@
             <field name="name">approval.complaint.register.tree</field>
             <field name="model">complaint.register</field>
             <field name="arch" type="xml">
-                <tree string="Complaint - Safety manager Approval" edit="false" delete="false" create="false">
+                <tree string="Compliance - Safety manager Approval" edit="false" delete="false" create="false">
                     <field name="name"/>
                     <field name="complaint_date"/>
                     <field name="issue_reported"/>
@@ -109,7 +110,7 @@
 
 
         <record id="action_approval_complaint_register_tree_view" model="ir.actions.act_window">
-            <field name="name">Complaint - Safety manager Approval</field>
+            <field name="name">Compliance - Safety manager Approval</field>
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">complaint.register</field>
             <field name="view_type">form</field>
@@ -138,13 +139,13 @@
             <field name="model">complaint.register</field>
         </record>
         
-        <!-- Complaint - Head of the Department Approval --> 
+        <!-- Compliance - Head of the Department Approval --> 
         
         <record id="view_hod_complaint_register_filter" model="ir.ui.view">
             <field name="name">approval.complaint.register.select</field>
             <field name="model">complaint.register</field>
             <field name="arch" type="xml">
-                <search string="Search Invoice">
+                <search string="Search Compliance">
                     <filter name="sm_approved" string="SM Approved" domain="[('state','=','sm_approved')]"/>
                     <filter name="hod_approved" string="SM &amp; HOD Approved" domain="[('state','=','hod_approved')]"/>
                     <filter name="hod_rejected" string="SM Rejected" domain="[('state','=','hod_rejected')]"/> 
@@ -157,7 +158,7 @@
             <field name="name">hod.complaint.register.tree</field>
             <field name="model">complaint.register</field>
             <field name="arch" type="xml">
-                <tree string="Complaint - Head of the Department Approval">
+                <tree string="Compliance - Head of the Department Approval">
                     <field name="name"/>
                     <field name="department_id"/>
                     <field name="section_id"/>
@@ -172,7 +173,7 @@
             <field name="name">hod.complaint.register.form</field>
             <field name="model">complaint.register</field>
             <field name="arch" type="xml">
-                <form string="Complaint - Head of the Department Approval" version="7.0">
+                <form string="Compliance - Head of the Department Approval" version="7.0">
                     <header>
 	                    <button name="%(action_hod_complaint_form)d" string="HOD Approve" type="action" states="sm_approved" class="oe_highlight" />
 	                    <button name="%(action_hod_reject_complaint_form)d" states='sm_approved' string="HOD Reject" type="action" class="oe_highlight" />
@@ -198,7 +199,7 @@
         </record>       
 
         <record id="action_hod_complaint_register_form_view" model="ir.actions.act_window">
-            <field name="name">Complaint - Head of the Department Approval</field>
+            <field name="name">Compliance - Head of the Department Approval</field>
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">complaint.register</field>
             <field name="view_type">form</field>
