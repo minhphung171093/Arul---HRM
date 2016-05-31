@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_vvti_safety_1,tpt.schedule,green_erp_arulmani_maintenance.model_tpt_schedule,green_erp_arulmani_safety.group_vvti_safety,True,True,True,True
+access_vvti_safety_2,tpt.notification,green_erp_arulmani_maintenance.model_tpt_notification,green_erp_arulmani_safety.group_vvti_safety,True,True,True,False
+access_vvti_safety_3,direct.work,green_erp_arulmani_safety.model_direct_work,green_erp_arulmani_safety.group_vvti_safety,True,True,True,False
+access_vvti_safety_4,complaint.register,green_erp_arulmani_safety.model_complaint_register,green_erp_arulmani_safety.group_vvti_safety,True,True,True,False

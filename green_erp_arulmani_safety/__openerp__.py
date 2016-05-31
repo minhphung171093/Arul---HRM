@@ -26,8 +26,10 @@
     'sequence': 14,
     'author': 'Tenth Planet',
     'website' : 'http://www. tenthplanet.in',
-    'depends': ['hr','green_erp_arulmani_hrm', 'account', 'green_erp_arulmani_maintenance'],
+    'depends': ['hr','green_erp_arulmani_hrm', 'account', 'green_erp_arulmani_maintenance','document'],
     'data': [
+        'security/green_erp_arulmani_safety_security.xml',
+        'security/ir.model.access.csv',
         'wizard/alert_form_complaint_view.xml',
         'complaint_register.xml',
         'safety_sequence.xml',

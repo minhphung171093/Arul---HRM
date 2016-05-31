@@ -17,9 +17,9 @@ class complaint_register(osv.osv):
     _name = 'complaint.register'
     _order = "create_date desc"
     _columns = {
-        'name': fields.char('Complaint No.', size=16, readonly=True),
-        'complaint_date': fields.date('Complaint Date'),
-        'complaint_type': fields.selection([('normal', 'Normal'), ('emergency', 'Emergency')],'Complaint Type'),
+        'name': fields.char('Compliance No.', size=16, readonly=True),
+        'complaint_date': fields.date('Compliance Date'),
+        'complaint_type': fields.selection([('condition', 'Unsafe Condition'), ('act', 'Unsafe Act')],'Compliance Type'),
         'issue_severity': fields.selection([('major', 'Major'), ('minor', 'Minor'), ('critical', 'Critical')], 'Issue Severity'),
         'department_id': fields.many2one('hr.department', 'Department'),
         'section_id': fields.many2one('arul.hr.section', 'Section'),
@@ -31,12 +31,14 @@ class complaint_register(osv.osv):
                                    ('hod_approved', 'SM & HOD Approved'), ('hod_rejected', 'HOD Rejected'),
                                    ('notif_created', 'Notification created'), ('dw_created', 'Direct Work Created'),
                                    ('closed', 'Closed')],'Status', readonly=True),
+        'tpt_location': fields.text('Location'),
     }
 
     _defaults = {
         'state': 'draft',
         'user_id': lambda self, cr, uid, c: uid,
         'name': '/',
+        'issue_severity':'critical',
     }
 
     def confirm_complaint(self, cr, uid, ids, context=None):
@@ -93,6 +95,7 @@ class complaint_register(osv.osv):
                                                                  'state': 'draft',
                                                                 'department_id': line.department_id and line.department_id.id or False,
                                                                 'section_id': line.section_id and line.section_id.id or False,
+                                                                'issue_reported': line.issue_reported or False,
                                                                  })
                 self.write(cr, uid, ids,{'state':'notif_created'})
         return True

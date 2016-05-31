@@ -3,12 +3,12 @@
     <data noupdate='1'>
 <!-- Complaint Number -->
         <record id="sequence_complaint_number" model="ir.sequence.type">
-            <field name="name">Complaint number</field>
+            <field name="name">Compliance number</field>
             <field name="code">safety.complaint.number</field>
         </record>
 
         <record id="sequence_complaint_number_item" model="ir.sequence">
-            <field name="name">Complaint number</field>
+            <field name="name">Compliance number</field>
             <field name="code">safety.complaint.number</field>
             <field name="prefix">CO/</field>
             <field name="padding">5</field>

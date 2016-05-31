@@ -18,8 +18,8 @@ class direct_work(osv.osv):
     _order = "create_date desc"
     _columns = {
         'name': fields.char('Work No.', size=16, readonly=True),
-        'complaint_number': fields.many2one('complaint.register', 'Complaint No'),
-        'complaint_date': fields.date('Complaint Date', readonly=True),
+        'complaint_number': fields.many2one('complaint.register', 'Compliance No'),
+        'complaint_date': fields.date('Compliance Date', readonly=True),
         'department_id': fields.many2one('hr.department', 'Department', readonly=True),
         'section_id': fields.many2one('arul.hr.section', 'Section', readonly=True),
         'work_date': fields.date('Work Date'),
@@ -28,7 +28,7 @@ class direct_work(osv.osv):
         'user_id': fields.many2one('res.users', 'Raised By', readonly=True),
         'action_taken': fields.text('Action Taken'),
         'state': fields.selection([('draft', 'Draft'), ('confirmed', 'Confirmed'),
-                                   ('approved', 'Approved')], 'Status', readonly=True),
+                                   ('approved', 'Approved'),('sm_confirmation','SM Confirmation')], 'Status', readonly=True),
     }
 
     _defaults = {
@@ -36,6 +36,10 @@ class direct_work(osv.osv):
         'user_id': lambda self, cr, uid, c: uid,
         'name': '/',
     }
+    
+    def sm_confirm(self, cr, uid, ids, context=None):
+        self.write(cr, uid, ids, {'state': 'sm_confirmation'})
+        return True
 
     def confirm_work(self, cr, uid, ids, context=None):
         self.write(cr, uid, ids, {'state': 'confirmed'})
@@ -89,8 +93,11 @@ class direct_work(osv.osv):
 
         result['value']['complaint_date'] = data.complaint_date or False
         result['value']['department_id'] = data.department_id and data.department_id.id or False
-        result['value']['section_id'] = data.section_id and data.section_id.id or False
+        result['value']['section_id'] = data.section_id and data.section_id.id or False 
+        result['value']['action_taken'] = data.issue_reported or False
 
         return result
 
 direct_work()
+
+
