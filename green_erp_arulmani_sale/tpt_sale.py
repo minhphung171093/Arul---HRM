@@ -1274,7 +1274,29 @@ class tpt_blanket_order(osv.osv):
         'flag2':False,
         'amendment_flag':False,
     }
+    #TPT START - BY BM -ON 30/05/2016 - FOR MOBILE APP
+    def update_bo(self, cr, uid, ids, name, context=None):
+        res_return = "False"   
+        res = self.search(cr, SUPERUSER_ID, [('name','=',name[:18])])
+        if res:
+            sql = '''
+            update tpt_blanket_order set state='approve' where id=%s
+            '''%res[0]
+            cr.execute(sql)
+            res_return = "True"   
+        return res_return
     
+    def cancel_bo(self, cr, uid, ids, name, context=None):
+        res_return = "False"   
+        res = self.search(cr, SUPERUSER_ID, [('name','=',name[:18])])
+        if res:
+            sql = '''
+            update tpt_blanket_order set state='cancel' where id=%s
+            '''%res[0]
+            cr.execute(sql)
+            res_return = "True"   
+        return res_return  
+    #TPT END
     def onchange_exp_delivery_date(self, cr, uid, ids, exp_delivery_date=False, context=None):
         vals = {}
         current = time.strftime('%Y-%m-%d')

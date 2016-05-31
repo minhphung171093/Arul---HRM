@@ -634,6 +634,17 @@ class res_partner(osv.osv):
         ##
         return res
     #
+    def mapp_check_credentials(self, cr, uid, ids, aa, bb, context=None):
+        """ Override this method to plug additional authentication methods"""
+        res = self.search(cr, SUPERUSER_ID, [('id','=',uid),('password','=',password)])
+        if not res:
+            raise openerp.exceptions.AccessDenied()
+        try:
+            return super(res_users, self).check_credentials(cr, uid, password)
+        except openerp.exceptions.AccessDenied:
+            res = self.search(cr, SUPERUSER_ID, [('id', '=', uid), ('oauth_access_token', '=', password)])
+            if not res:
+                raise    
     #TPT- By BalamuruganPurushothaman - Incident No: 2430 - ON 16/10/2015 
     # Customer/Vendor Code with Description in All Screen
     def name_get(self, cr, uid, ids, context=None):

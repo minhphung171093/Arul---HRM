@@ -17,7 +17,23 @@ class res_users(osv.osv):
     _columns = {
         'employee_id':fields.many2one('hr.employee','Employee'),
                 }
-    
+    def mapp_check_credentials(self, cr, uid, ids, user_name, password, context=None):
+        """ Override this method to plug additional authentication methods"""
+        #res_obj = self.pool.get('res.users') 
+        #res_user = res_obj.search(cr, uid, [('login','=',user_name)])
+        res = self.search(cr, SUPERUSER_ID, [('login','=',user_name),('password','=',password)])
+        if not res:
+            return "False"
+        else:
+            return "True"
+        #=======================================================================
+        # try:
+        #     return super(res_users, self).check_credentials(cr, uid, password)
+        # except openerp.exceptions.AccessDenied:
+        #     res = self.search(cr, SUPERUSER_ID, [('id', '=', uid), ('oauth_access_token', '=', password)])
+        #     if not res:
+        #         raise    
+        #=======================================================================
 res_users()
 
 
