@@ -539,6 +539,101 @@ class res_partner(osv.osv):
         ##
         return res
     #
+    #TPT-BM-26/05/2016-FOR MOBILE APP - this function called from Mobile App Sales Info Search button
+    def mapp_sales_info(self, cr, uid, ids, partner_id, from_date, to_date, context=None):
+        res = []
+        total_order_placed1 = 0
+        total_qty_ordered1 = 0
+        total_ordered_value1 = 0
+        total_order_exe1 = ''
+        pending_order1 = 0
+        pending_qty1 = 0
+        
+        res_obj = self.pool.get('res.partner')
+        bp = res_obj.browse(cr,uid,partner_id)
+        customer_code = bp.customer_code 
+        #
+        sql = '''
+                select count(*) from sale_order where partner_id=%s and date_order between '%s' and '%s'
+                   '''% (partner_id, from_date, to_date)
+        cr.execute(sql)
+        a = cr.fetchone()
+        if a:
+            total_order_placed1 = a[0]   
+        #                         
+        sql = '''
+                select case when sum(product_uom_qty)>0 then sum(product_uom_qty) else 0 end product_uom_qty from sale_order_line sol
+                inner join sale_order so on sol.order_id=so.id
+                where so.partner_id=%s and so.date_order between '%s' and '%s'
+                   '''% (partner_id, from_date, to_date)
+        cr.execute(sql)
+        a = cr.fetchone()
+        if a:
+            total_qty_ordered1 = a[0]  
+        #
+        sql = '''
+                select case when sum(product_uom_qty*price_unit)>0 then sum(product_uom_qty*price_unit) else 0 end product_value from sale_order_line sol
+                inner join sale_order so on sol.order_id=so.id
+                where so.partner_id=%s and so.date_order between '%s' and '%s'
+                   '''% (partner_id, from_date, to_date)
+        cr.execute(sql)
+        a = cr.fetchone()
+        if a:                        
+            total_ordered_value1 = a[0]   
+        #
+        sql = '''
+                select count(*) from account_invoice where partner_id=%s and date_invoice between '%s' and '%s'
+                   '''% (partner_id, from_date, to_date)
+        cr.execute(sql)
+        a = cr.fetchone()
+        if a :
+            total_order_exe1 = a[0]    
+        ##
+        sql = '''
+                select count(*) from sale_order where partner_id=%s and date_order between '%s' and '%s'
+                   '''% (partner_id, from_date, to_date)
+        cr.execute(sql)
+        a = cr.fetchone()
+        
+        sql = '''
+        select count(*) from account_invoice where partner_id=%s and date_invoice between '%s' and '%s'
+           '''% (partner_id, from_date, to_date)
+        cr.execute(sql)
+        b = cr.fetchone()
+        
+        if a or b:
+            pending_order1 = a[0]-b[0]                        
+        ##
+        sql = '''
+                select case when sum(product_uom_qty)>0 then sum(product_uom_qty) else 0 end ordered_qty from sale_order_line sol
+                inner join sale_order so on sol.order_id=so.id
+                where so.partner_id=%s and so.date_order between '%s' and '%s'
+                   '''% (partner_id, from_date, to_date)
+        cr.execute(sql)
+        a = cr.fetchone()
+        
+        sql = '''
+        select case when sum(ail.quantity)>0 then sum(ail.quantity) else 0 end exe_qty from account_invoice_line ail
+        inner join account_invoice ai on ail.invoice_id=ai.id
+        where ai.partner_id=%s and ai.date_invoice between '%s' and '%s'
+           '''% (partner_id, from_date, to_date)
+        cr.execute(sql)
+        b = cr.fetchone()
+        
+        if a or b:
+            pending_qty1 = round(a[0]-b[0], 2)  
+        #
+        vals={'total_order_placed1':total_order_placed1, 
+              'total_qty_ordered1':total_qty_ordered1,
+              'total_ordered_value1':total_ordered_value1, 
+              'total_order_exe1':total_order_exe1, 
+              'pending_order1':pending_order1,
+              'pending_qty1':pending_qty1,
+            }
+        res_obj.write(cr,uid,[partner_id],vals) 
+        ##
+        return res
+    #
     #TPT- By BalamuruganPurushothaman - Incident No: 2430 - ON 16/10/2015 
     # Customer/Vendor Code with Description in All Screen
     def name_get(self, cr, uid, ids, context=None):

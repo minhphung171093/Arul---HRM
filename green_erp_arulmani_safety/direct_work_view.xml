@@ -28,8 +28,9 @@
                     <header>
 	                    <button name="confirm_work" string="Confirm Work" type="object" states="draft" class="oe_highlight" />
 	                    <button name="approve_work" states='confirmed' string="Approve Work" type="object" class="oe_highlight" />
+	                    <button name="sm_confirm" states='approved' string="SM Confirmation" type="object" class="oe_highlight" groups="green_erp_arulmani_safety.group_vvti_safety_manager"/>
                         <button name="set_dw_to_draft" states='confirmed' string="Set to Draft" type="object" class="oe_highlight" />
-                        <field name="state" widget="statusbar" statusbar_visible="draft,confirmed,approved" statusbar_colors='{"draft":"blue","confirmed":"blue", "approved": "blue"}'/>
+                        <field name="state" widget="statusbar" statusbar_visible="draft,confirmed,approved,sm_confirmation" statusbar_colors='{"draft":"blue","confirmed":"blue", "approved": "blue"}'/>
 	                </header>
                     <group>
                         <field name="name"/>
