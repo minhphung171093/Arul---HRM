@@ -115,6 +115,7 @@
 					<field name="gl_account_id" options="{'create': false, 'create_edit': false}"/>
 					<field name="section"/>
 					<field name="is_swachh_bharat"/>
+					<!-- <field name="is_krishi_kalyan"/>  -->
 					<field name="is_stax_report"/>
 					<field name="is_vat_report"/>
 				</xpath>
