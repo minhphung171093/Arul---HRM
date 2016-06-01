@@ -233,25 +233,56 @@ class stock_inward_outward_report(osv.osv_memory):
            opening_stock_value = 0
            freight_cost = 0
            production_value = 0
+           # commented by P.vinothkumar on 31/05/2016
+#            if categ=='raw':
+#                parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+#                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw Material','Raw Materials','Raw material']),('location_id','=',parent_ids[0])])
+#                sql = '''
+#                        select case when sum(st.product_qty)!=0 then sum(st.product_qty) else 0 end ton_sl,case when sum(st.price_unit*st.product_qty)!=0 then sum(st.price_unit*st.product_qty) else 0 end total_cost
+#                         from stock_move st
+#                         where st.state='done' and st.location_dest_id=%s and st.product_id=%s and to_char(date, 'YYYY-MM-DD')<'%s'
+#                             and st.location_dest_id != st.location_id
+#                             and ( picking_id is not null 
+#                             or inspec_id is not null 
+#                             or (st.id in (select move_id from stock_inventory_move_rel))
+#                         )
+#                '''%(locat_ids[0],product_id.id, date_from)
+#                cr.execute(sql)
+#                inventory = cr.dictfetchone()
+#                if inventory:
+#                    hand_quantity = inventory['ton_sl'] or 0
+#                    total_cost = inventory['total_cost'] or 0
+#                    avg_cost = hand_quantity and total_cost/hand_quantity or 0
+           #TPT START - By P.vinothkumar - ON 31/05/2015 - FOR (adding freight invoice details in query)
            if categ=='raw':
                parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw Material','Raw Materials','Raw material']),('location_id','=',parent_ids[0])])
+               #TPT START - By P.vinothkumar - ON 24/05/2015 - FOR (adding freight invoice details in query)
                sql = '''
-                       select case when sum(st.product_qty)!=0 then sum(st.product_qty) else 0 end ton_sl,case when sum(st.price_unit*st.product_qty)!=0 then sum(st.price_unit*st.product_qty) else 0 end total_cost
+                          select sum(a.ton_sl) ton_sl, sum(a.total_cost) total_cost from
+                        (select 
+                        case when sum(st.product_qty)!=0 then sum(st.product_qty) else 0 end ton_sl,
+                        case when sum(st.price_unit*st.product_qty)!=0 then sum(st.price_unit*st.product_qty) else 0 end total_cost
                         from stock_move st
                         where st.state='done' and st.location_dest_id=%s and st.product_id=%s and to_char(date, 'YYYY-MM-DD')<'%s'
-                            and st.location_dest_id != st.location_id
-                            and ( picking_id is not null 
-                            or inspec_id is not null 
-                            or (st.id in (select move_id from stock_inventory_move_rel))
-                        )
-               '''%(locat_ids[0],product_id.id, date_from)
+                                                        and st.location_dest_id != st.location_id
+                                                        and ( picking_id is not null 
+                                                        or inspec_id is not null 
+                                                        or (st.id in (select move_id from stock_inventory_move_rel))
+                                                )
+                        union
+                                        select 0 as ton_sl, case when sum(ail.line_net)!=0 then sum(ail.line_net) else 0 end as total_cost from account_invoice ai
+                                        inner join account_invoice_line ail on ai.id=ail.invoice_id
+                                        where ai.doc_type='freight_invoice' and  ai.date_invoice < '%s' and ai.state not in('draft','cancel')
+                                        and ail.product_id=%s)a
+              '''%(locat_ids[0],product_id.id,date_from,date_from,product_id.id)
                cr.execute(sql)
                inventory = cr.dictfetchone()
                if inventory:
-                   hand_quantity = inventory['ton_sl'] or 0
-                   total_cost = inventory['total_cost'] or 0
-#                    avg_cost = hand_quantity and total_cost/hand_quantity or 0
+                    hand_quantity = inventory['ton_sl'] or 0
+                    total_cost = inventory['total_cost'] or 0
+                    avg_cost = hand_quantity and total_cost/hand_quantity or 0
+   # TPT END                
                sql = '''
                    select case when sum(st.price_unit*st.product_qty)!=0 then sum(st.price_unit*st.product_qty) else 0 end total_cost
                         from stock_move st
@@ -282,21 +313,47 @@ class stock_inward_outward_report(osv.osv_memory):
                    cr.execute(sql)
                    production_value = cr.fetchone()[0]
                opening_stock_value = total_cost-(product_isu_qty)+freight_cost-production_value
+             # commented by P.vinothkumar on 31/05/2016  
+#            if categ=='spares':
+#                parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+#                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Spares','Spare','spares']),('location_id','=',parent_ids[0])])
+#                sql = '''
+#                        select case when sum(st.product_qty)!=0 then sum(st.product_qty) else 0 end ton_sl,case when sum(st.price_unit*st.product_qty)!=0 then sum(st.price_unit*st.product_qty) else 0 end total_cost
+#                         from stock_move st
+#                         where st.state='done' and st.location_dest_id=%s and st.product_id=%s and to_char(date, 'YYYY-MM-DD')<'%s'
+#                             and st.location_dest_id != st.location_id
+#                             and ( picking_id is not null 
+#                             or inspec_id is not null 
+#                             or (st.id in (select move_id from stock_inventory_move_rel))
+#                         )
+#                '''%(locat_ids[0],product_id.id, date_from)
+#                cr.execute(sql)
+#                inventory = cr.dictfetchone()
            if categ=='spares':
                parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Spares','Spare','spares']),('location_id','=',parent_ids[0])])
+               #TPT START - By P.vinothkumar - ON 31/05/2015 - FOR (adding freight invoice details in query)
                sql = '''
-                       select case when sum(st.product_qty)!=0 then sum(st.product_qty) else 0 end ton_sl,case when sum(st.price_unit*st.product_qty)!=0 then sum(st.price_unit*st.product_qty) else 0 end total_cost
+                          select sum(a.ton_sl) ton_sl, sum(a.total_cost) total_cost from
+                        (select 
+                        case when sum(st.product_qty)!=0 then sum(st.product_qty) else 0 end ton_sl,
+                        case when sum(st.price_unit*st.product_qty)!=0 then sum(st.price_unit*st.product_qty) else 0 end total_cost
                         from stock_move st
                         where st.state='done' and st.location_dest_id=%s and st.product_id=%s and to_char(date, 'YYYY-MM-DD')<'%s'
-                            and st.location_dest_id != st.location_id
-                            and ( picking_id is not null 
-                            or inspec_id is not null 
-                            or (st.id in (select move_id from stock_inventory_move_rel))
-                        )
-               '''%(locat_ids[0],product_id.id, date_from)
+                                                        and st.location_dest_id != st.location_id
+                                                        and ( picking_id is not null 
+                                                        or inspec_id is not null 
+                                                        or (st.id in (select move_id from stock_inventory_move_rel))
+                                                )
+                        union
+                                        select 0 as ton_sl, case when sum(ail.line_net)!=0 then sum(ail.line_net) else 0 end as total_cost from account_invoice ai
+                                        inner join account_invoice_line ail on ai.id=ail.invoice_id
+                                        where ai.doc_type='freight_invoice' and  ai.date_invoice < '%s' and ai.state not in('draft','cancel')
+                                        and ail.product_id=%s)a
+              '''%(locat_ids[0],product_id.id,date_from,date_from,product_id.id)
                cr.execute(sql)
                inventory = cr.dictfetchone()
+               #TPT end 
                if inventory:
                    hand_quantity = inventory['ton_sl'] or 0
                    total_cost = inventory['total_cost'] or 0
@@ -1029,7 +1086,38 @@ class stock_inward_outward_report(osv.osv_memory):
                 else:
                     st = (qty+opening_stock) and cur/(qty+opening_stock) or 0
                 price = st
-                st_value = (st)*(trans_qty)
+                #st_value = (st)*(trans_qty)
+                #TPT START - By P.vinothkumar - ON 31/05/2015 - FOR (to calculate unitprice)
+                if stock.product_id.cate_name=='raw':
+                    warehouse_id=15
+                if stock.product_id.cate_name=='spares':
+                    warehouse_id=14
+                sql='''
+                    select avg_cost from tpt_product_avg_cost where product_id=%s and warehouse_id=%s
+                '''%(stock.product_id.id, warehouse_id)
+                cr.execute(sql)
+                unitprice = cr.dictfetchone()
+                #st_value = (unitprice and unitprice['avg_cost'])*(trans_qty)
+        #TPT START - By P.vinothkumar - ON 31/05/2015 - FOR (to calculate stock_value)
+                sql = '''
+                    select case when sum(product_qty * price_unit)!=0 then -sum(product_qty * price_unit) else 0 end tong
+                        from stock_move st
+                        where st.state='done' and st.product_id=%s
+                            and st.location_dest_id != st.location_id
+                            and 
+                            date='%s' and issue_id=%s
+                               
+                            and  (
+                                issue_id is not null
+                            and id not in (select id
+                                from stock_move where product_id = %s and state = 'done' and issue_id is null 
+                                and picking_id is null and inspec_id is null and location_id = %s 
+                                and location_id != location_dest_id)
+                    )
+                '''%(stock.product_id.id, line['date'] , line['material_issue_id'], stock.product_id.id,warehouse_id)  
+                cr.execute(sql)
+                st_value = cr.dictfetchone()['tong']
+                #TPT END
             elif line['doc_type']=='product':
                 qty = 0
                 value = 0
@@ -1044,7 +1132,27 @@ class stock_inward_outward_report(osv.osv_memory):
                 else:
                     st = (qty+opening_stock) and cur/(qty+opening_stock) or 0
                 price = st
-                st_value = (st)*(trans_qty)
+                #st_value = (st)*(trans_qty)
+                #TPT START - By P.vinothkumar - ON 31/05/2015 - FOR (to calculate stock_value for production)
+                sql = '''
+                    select case when sum(product_qty * price_unit)!=0 then -sum(product_qty * price_unit) else 0 end tong
+                        from stock_move st
+                        where st.state='done' and st.product_id=%s
+                            and st.location_dest_id != st.location_id
+                            and 
+                            date='%s'
+                               
+                            and  (
+                                id in (select id
+                                from stock_move sm join mrp_production_move_ids pm on pm.move_id=sm.id where product_id = %s and state = 'done'
+                                and pm.production_id=%s and location_id = %s 
+                                and location_id != location_dest_id))
+                '''%(stock.product_id.id, line['date'],stock.product_id.id,line['product_dec'],warehouse_id)  
+                #print line
+                #print sql
+                cr.execute(sql)
+                #print sql
+                st_value = cr.dictfetchone()['tong']
             else:
                 price = self.current_price_unit
                 st_value = stock_value(stock, line['id'], line['doc_type'])
