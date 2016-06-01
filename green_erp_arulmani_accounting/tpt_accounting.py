@@ -5299,8 +5299,13 @@ class account_voucher(osv.osv):
     #
     def action_auto_reconcile(self, cr, uid, ids, context=None):
         print "Im in action_auto_reconcile"
+        invoice_obj = self.pool.get('account_invoice')
         for this_id in self.browse(cr, uid, ids, context):
             print this_id.partner_id.name
+            sql = '''
+            
+            '''
+            self.write(cr, uid, ids, {'sent': True}, context=context)
         return True
     #   
     def voucher_print_button(self, cr, uid, ids, context={}):
