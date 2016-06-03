@@ -4911,7 +4911,9 @@ class tpt_ed_invoice_positing(osv.osv):
                          ('spare_ed_12.5', 'Spares ED value of 12.5%'),
                          ('raw_ed_12.36', 'Raw material ED value of 12.36%'),
                          ('raw_ed_aed', 'Raw material ED value with AED'),
-                         ('raw_ed_12.5', 'Raw material ED value of 12.5%')],
+                         ('raw_ed_12.5', 'Raw material ED value of 12.5%'),
+                         ('raw_ed_15', 'Raw material ED value of 15%'), #TPT-BM-ON 03/06/2016 - ed posting screen - validate button
+                         ],
                         'ED Type', readonly=True),
         'state':fields.selection([('draft', 'Draft'),('posted', 'Posted'),('cancel', 'Cancelled')],'Status', readonly=True),
         }

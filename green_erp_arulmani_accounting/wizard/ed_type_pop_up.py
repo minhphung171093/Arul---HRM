@@ -17,7 +17,9 @@ class ed_type_pop_up(osv.osv_memory):
                          ('spare_ed_12.5', 'Spares ED value of 12.5%'),
                          ('raw_ed_12.36', 'Raw material ED value of 12.36%'),
                          ('raw_ed_aed', 'Raw material ED value with AED'),
-                         ('raw_ed_12.5', 'Raw material ED value of 12.5%')],
+                         ('raw_ed_12.5', 'Raw material ED value of 12.5%'),
+                         ('raw_ed_15', 'Raw material ED value of 15%')#TPT-BM-ON 03/06/2016
+                         ],
                         'ED Type',required = True),
                 'message': fields.text(string="Message ", readonly=True),  
                 'invoice_id': fields.many2one('account.invoice','Account Invoice'), 
@@ -257,7 +259,7 @@ class ed_type_pop_up(osv.osv_memory):
             
             
             #
-            if ed_type.ed_type == 'raw_ed_12.5':
+            if ed_type.ed_type in ('raw_ed_12.5', 'raw_ed_15'): #TPT-BM-Added on 03/06/2016 - "raw_ed_15" logic is updated 
                 #TPT-BM-ON 04/04/2016-TO CHANGE CR GL TYPE AS USER REQUEST- FS GL IS INCORRECT
                 #account_ids = self.pool.get('account.account').search(cr, uid, [('code','in',['0000119904'])])
                 account_ids = self.pool.get('account.account').search(cr, uid, [('code','in',['0000119902'])])
@@ -282,7 +284,7 @@ class ed_type_pop_up(osv.osv_memory):
                                    'debit': 0,
                                    'credit': credit,
                                            }))
-                
+            ##            
             vals = {
                 'invoice_id': ed_type.invoice_id.id or False,
                 'ed_type': ed_type.ed_type or False,
