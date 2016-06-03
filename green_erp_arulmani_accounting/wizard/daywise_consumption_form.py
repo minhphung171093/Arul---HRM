@@ -111,7 +111,17 @@ class day_wise_register(osv.osv_memory):
 #     _constraints = [
 #         (_check_date, 'Identical Data', []),
 #     ]
-    
+
+    #TPT START - By P.vinothkumar and BM - ON 03/06/2016 - FOR (Display To date automatically i.e. From date + 30 days)
+    def onchange_from_date(self, cr, uid, ids,date_from=False, context=None):
+        vals = {}
+        if date_from:
+            date_from = datetime.datetime.strptime(date_from,'%Y-%m-%d')           
+            date_from=str(date_from + timedelta(days=30))[:10]
+            vals = {'date_to':date_from,
+                    }
+            return {'value': vals}
+    #TPT END           
     def _check_date(self, cr, uid, ids, context=None):
         for date in self.browse(cr, uid, ids, context=context):
             if date.date_to < date.date_from:

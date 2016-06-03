@@ -88,7 +88,7 @@
 	        </field>
     	</record>
     	
-    	<!--  alert_pr_cancel_warning_form_view --> 
+    	<!--  -->
     	<record id="alert_pr_cancel_form_view" model="ir.ui.view">
 	        <field name="name">pr.cancel</field>
 	        <field name="model">pr.cancel</field>
