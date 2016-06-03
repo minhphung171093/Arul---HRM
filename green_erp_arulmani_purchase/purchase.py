@@ -564,7 +564,7 @@ class tpt_purchase_product(osv.osv):
     def bt_cancel(self, cr, uid, ids, context=None):
         for line in self.browse(cr,uid,ids):
             res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
-                                            'green_erp_arulmani_purchase', 'alert_pr_cancel_warning_form_view')
+                                            'green_erp_arulmani_purchase', 'alert_pr_cancel_form_view')
             return {
                                     'name': 'Cancel PR',
                                     'view_type': 'form',
