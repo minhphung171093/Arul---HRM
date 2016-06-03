@@ -7,7 +7,8 @@
             <field name="arch" type="xml">
                 <form string="Daywise Consumption Report" version="7.0">
                 	<group>
-	                <field name="date_from" required="1"/>
+                	<!-- TPT START - By P.vinothkumar - ON 03/06/2016 - FOR (adding onchange event for auto display To_date) -->
+	                <field name="date_from" required="1" on_change="onchange_from_date(date_from)"/>
 	                <field name="date_to" required="1"/>
 	                <field name="name" 
 	                domain="[('state','=','finance_manager'),('bom_id','=',False)],[('active','=','t')]" 
