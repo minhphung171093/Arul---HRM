@@ -256,8 +256,7 @@ class ed_type_pop_up(osv.osv_memory):
                                    'debit': 0,
                                    'credit': credit,
                                            }))
-            
-            
+
             #
             if ed_type.ed_type in ('raw_ed_12.5', 'raw_ed_15'): #TPT-BM-Added on 03/06/2016 - "raw_ed_15" logic is updated 
                 #TPT-BM-ON 04/04/2016-TO CHANGE CR GL TYPE AS USER REQUEST- FS GL IS INCORRECT
