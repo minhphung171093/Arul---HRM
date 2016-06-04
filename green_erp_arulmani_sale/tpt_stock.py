@@ -1281,9 +1281,9 @@ class account_invoice(osv.osv):
         'country_dest': fields.char('Country of Final Destination', size = 1024, readonly=True, states={'draft':[('readonly',False)]}),
         'gross_weight': fields.float('Gross Weight in KGS (For Packing List)', readonly=True, states={'draft':[('readonly',False)]}),
         'port_of_loading_id': fields.char('Port Of Loading', size = 1024, readonly=True, states={'draft':[('readonly',False)]}),
-        'port_of_discharge_id': fields.char('Port Of Discharge', size = 1024, readonly=True, states={'draft':[('readonly',False)]}),
-        'disc_goods': fields.text('Discription Of Goods', size = 1024, readonly=True, states={'draft':[('readonly',False)]}),
-        'final_desti': fields.char('Final Destination', size = 1024, readonly=True, states={'draft':[('readonly',False)]}),
+        'port_of_discharge_id': fields.char('Port Of Discharge', size = 1024), #TPT-BM-ON 04/06/2016- READONLY CONDITION REMOVED AS PER USER REQUEST
+        'disc_goods': fields.text('Discription Of Goods', size = 1024),#TPT-BM-ON 04/06/2016- READONLY CONDITION REMOVED AS PER USER REQUEST
+        'final_desti': fields.char('Final Destination', size = 1024),#TPT-BM-ON 04/06/2016- READONLY CONDITION REMOVED AS PER USER REQUEST
         'agency_comm': fields.char('Agency Commission', size = 1024),
         'epcg_no': fields.char('EPCG License No', size = 1024),
         
