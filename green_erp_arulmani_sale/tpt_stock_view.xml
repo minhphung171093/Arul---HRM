@@ -251,9 +251,7 @@
 					<field name="inv_date_as_char" />
 					<field name="rem_date_as_char" />	
 					<field name="fsh_grade"/>								
-					</group>
-					
-					 
+					</group>	 
 				</xpath>
 				
 				<xpath expr="//field[@name='journal_id']" position="replace">
@@ -268,6 +266,11 @@
 				<xpath expr="//field[@name='currency_id']" position="attributes">
 					<attribute name="readonly">1</attribute>
 				</xpath>  
+				<!-- TPT START - BM ON 04/06/2016-->
+				<xpath expr="//field[@name='type']" position="attributes">
+					<attribute name="readonly">1</attribute>
+				</xpath>
+				<!-- TPT END -->
 				<xpath expr="//field[@name='account_id']" position="replace">
 					<field name="account_id" required = "0" invisible = "1"/>
 					<field name="sale_id" readonly="1" options="{'create': false, 'create_edit': false}"/>

@@ -766,6 +766,9 @@
                                     <field name="invoice_line_tax_id" string = 'Taxes' widget="many2many_tags" context="{'type':parent.type}"
                                         domain="[('parent_id','=',False),('company_id', '=', parent.company_id)]" invisible = '1'/>
                                     <field name="tax_service_credit" on_change = "onchange_tax_credit(tax_id, tax_service_credit)" options="{'create': false, 'create_edit': false}"/>
+                                    <!-- 
+                                    <field name="tax_credit" on_change="onchange_tax_credit(tax_id,tax_credit)" options="{'create': false, 'create_edit': false}"/>
+                                     -->
                                     <field name="fright"/>
                                     <field name="fright_type"/>
                                     <field name="tpt_tax_amt"/>
