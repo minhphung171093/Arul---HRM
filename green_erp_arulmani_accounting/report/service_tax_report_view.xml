@@ -100,6 +100,7 @@
 		                			<field name="taxable_amount"/>
 		                			<field name="service_tax_rate"/>
 		                			<field name="service_tax"/>
+		                			<field name="krishi_kalyan"/><!-- TPT-BM-04/06/2016 -->
 		                			<field name="total"/>
 		                			<field name="debit"/>
 		                			<field name="closing_bal"/>

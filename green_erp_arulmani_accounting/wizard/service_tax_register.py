@@ -56,6 +56,8 @@ class tpt_service_tax_line(osv.osv_memory):
         'taxable_amount': fields.float('Taxable Amount',size=254),
         'service_tax_rate': fields.char('Service Tax Rate',size=64),
         'service_tax': fields.float('Service Tax',size=254),
+        'krishi_kalyan': fields.float('Krishi Kalyan Cess',size=254),
+        'final_tax': fields.float('STax + Krishi Kalyan',size=254),
         'total': fields.float('Total',size=254),
         'debit': fields.float('Debit',size=254),
         'debit_1': fields.float('1%',size=254),
@@ -143,7 +145,8 @@ class service_tax_register(osv.osv_memory):
                     ai.bill_date as bill_date,ai.name as inv_name,rs.name as partner,
                     ail.line_net as linenet,t.description as desc,ail.id,ai.move_id,
                     COALESCE(ail.freight,0) as frieght_1,COALESCE(ail.fright,0) as frieght_2,am.doc_type as doc_type,
-                    ai.id as invoice_id, rs.id as partner_id                 
+                    ai.id as invoice_id, rs.id as partner_id,
+                    ail.krishi_kalyan                
                     from account_invoice_line ail
                     join account_invoice ai on (ai.id = ail.invoice_id)
                     join account_invoice_line_tax ailt on (ailt.invoice_line_id=ail.id)
@@ -187,6 +190,9 @@ class service_tax_register(osv.osv_memory):
                 if type == 'partner_id':
                     partner_id = move['partner_id']                    
                     return partner_id or ''
+                if type == 'krishi_kalyan':
+                    krishi_kalyan = move['krishi_kalyan']                    
+                    return krishi_kalyan or ''
                 
         
         def get_tot_closing_bal(o):
@@ -440,7 +446,9 @@ class service_tax_register(osv.osv_memory):
                     'open_bal': openbalance+temp_taxamt or 0.00,        
                     'taxable_amount': get_invoice_details(sr,line.id,'netamt') or 0.00,
                     'service_tax_rate': get_invoice_details(sr,line.id,'tax'), # get_tax_rate_desc(get_tax_rate_id(line.move_id)),
-                    'service_tax': line.debit or 0.00,#line.debit or 0.00,                   
+                    'service_tax': line.debit or 0.00,#line.debit or 0.00,       
+                    'krishi_kalyan': get_invoice_details(sr,line.id,'krishi_kalyan'),    
+                    'final_tax':   line.debit + get_invoice_details(sr,line.id,'krishi_kalyan') or 0.00,     
                     'total': openbalance+temp_taxamt+line.debit or 0.00,                   
                     'debit': 0.00,                    
                     'closing_bal': openbalance+temp_taxamt+line.debit or 0.00, #Added by TPT-Y
@@ -483,6 +491,8 @@ class service_tax_register(osv.osv_memory):
                 'taxable_amount': line['taxable_amount'], 
                 'service_tax_rate': line['service_tax_rate'], 
                 'service_tax': line['service_tax'], 
+                'krishi_kalyan': line['krishi_kalyan'], #TPT-BM-ON 04/06/2016
+                'final_tax':line['final_tax'] or 0.00, 
                 'total': line['total'] or 0.00,
                 'debit': 0.00,
                 'closing_bal': line['closing_bal'] or 0.00, #Added by TPT-Y
