@@ -9271,6 +9271,18 @@ class tpt_cform_invoice(osv.osv):
                 for row in cr.fetchall():
                     invoice = invoice +'\n'+ row[0]                               
                 raise osv.except_osv(_('Form Type Can not be "To Be Collect" for the following Invoices: '),_(invoice))
+            ##TPT-BM-ON 06/06/2016 - CFORM WRITE ISSUE WHEN FORM NUMBER IS BLANK
+            sql = '''
+                select invoice_no from tpt_cform_invoice_line where form_type!='tbc' and form_number is null
+                and cform_id=%s
+                '''%cform.id
+            cr.execute(sql)
+            invoice='' 
+            invoice_ids = cr.fetchall()
+            if invoice_ids:
+                for row in invoice_ids:
+                    invoice = invoice +'\n'+ row[0]                               
+                raise osv.except_osv(_('Form Number Can not be Empty for the following Invoices: '),_(invoice))
             ###
             for line in cform.cform_line:
                 if line.form_number:
