@@ -769,6 +769,7 @@ class account_invoice(osv.osv):
                     '''%(round(val2+freight),taxline.id)
                     cr.execute(sql)#                         amount_total_tax = round(amount_total_tax)
             else: # IN_INVOICE
+                total_tax_credit_service = 0.0
                 if line.purchase_id:
                     amount_untaxed = 0.0
                     p_f_charge=0.0
@@ -957,6 +958,12 @@ class account_invoice(osv.osv):
 #                         amount_total_tax = round(amount_total_tax)
                         total_tax += round(amount_total_tax,2)#TPT BM - on 04/05/2016
 #                         total_tax = round(total_tax)
+                        ##TPT-BalamuruganPurushothaman ON 06/06/2106 - for tax credit field under service invoice withour po screen
+                        if po.tax_service_credit:
+                            tax_credit_service = po.tax_service_credit.amount/100
+                            amount_total_tax_credit_service = (basic + p_f + ed + po.aed_id_1)*(tax_credit_service)
+                            total_tax_credit_service += round(amount_total_tax_credit_service,2)
+                        ##TPT END
                         if po.fright_type == '1' :
                             fright = (basic + p_f + ed + amount_total_tax) * po.fright/100
                             fright = round(fright,2)
@@ -993,11 +1000,12 @@ class account_invoice(osv.osv):
                     res[line.id]['p_f_charge'] = round(p_f_charge,2)
                     res[line.id]['excise_duty'] = round(excise_duty,2)
                     res[line.id]['amount_tax'] = round(total_tax,2)
+                    res[line.id]['amount_tax_credit'] = round(total_tax_credit_service,2)
                     res[line.id]['fright'] = round(total_fright,2)
                     res[line.id]['amount_total_tds'] = round(tds_amount,2)
                     res[line.id]['amount_round_off'] = deducte
-                    res[line.id]['amount_total'] = round(amount_untaxed,2) +round(p_f_charge,2) + round(excise_duty,2) + round(total_tax,2) + round(total_fright,2) + deducte - round(tds_amount,2)
-                    res[line.id]['amount_total_inr'] = round((round(amount_untaxed,2) +round(p_f_charge,2) + round(excise_duty,2) + round(total_tax,2) + round(total_fright,2) + deducte - round(tds_amount,2))/voucher_rate,2)
+                    res[line.id]['amount_total'] = round(amount_untaxed,2) +round(p_f_charge,2) + round(excise_duty,2) + round(total_tax,2) + round(total_fright,2) + deducte - round(tds_amount,2)- res[line.id]['amount_tax_credit']
+                    res[line.id]['amount_total_inr'] = round((round(amount_untaxed,2) +round(p_f_charge,2) + round(excise_duty,2) + round(total_tax,2) + round(total_fright,2) + deducte - round(tds_amount,2) - res[line.id]['amount_tax_credit'] )/voucher_rate,2)
             if line.sup_inv_id and line.type=='in_invoice':
                 base = 0
                 tax_debit_amount = 0

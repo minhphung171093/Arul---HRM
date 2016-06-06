@@ -1782,6 +1782,7 @@ class account_invoice(osv.osv):
                         iml += invoice_line_obj.tpt_move_line_amount_tax(cr, uid, inv.id)
 #                     iml += invoice_line_obj.move_line_amount_tax_without_po_deducte(cr, uid, inv.id)
                     iml += invoice_line_obj.move_line_tds_amount_without_po(cr, uid, inv.id) 
+                    iml += invoice_line_obj.move_line_amount_tax_credit(cr, uid, inv.id) #TPT-ADDED - BM - ON 06/06/2016
                     iml += invoice_line_obj.move_line_amount_round_off(cr, uid, inv.id)
             if (inv.type == 'out_invoice'):
                 iml = invoice_line_obj.move_line_customer_fright(cr, uid, inv.id) 
