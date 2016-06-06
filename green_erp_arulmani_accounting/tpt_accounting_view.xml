@@ -522,7 +522,7 @@
                                     
                                     <field name="invoice_line_tax_id" string = 'tax many2many' widget="many2many_tags" context="{'type':parent.type}"
                                         domain="[('parent_id','=',False),('company_id', '=', parent.company_id)]" invisible = '1'/>
-                                    <!-- TPT-BM-ON 04/06/2016 -->
+                                    <!-- TPT-BM-ON 04/06/2016 --> 
                                     <field name="tax_service_credit" on_change = "onchange_tax_credit(tax_id, tax_service_credit)" options="{'create': false, 'create_edit': false}"/>
                                     <!-- TPT END -->
                                     <field name="fright"/>
@@ -543,6 +543,7 @@
                                         type="object" help="Recompute taxes and total"/>
                                 </div>
                                 <field name="amount_tax" nolabel="1" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                <field name="amount_tax_credit" widget="monetary"/>
                                 <field name="fright" widget="monetary"/>
                                 <field name="amount_total_tds" widget="monetary"/>
                                 <field name="amount_round_off" widget="monetary"/>
