@@ -49,7 +49,12 @@
                     <group>
                         <field name="issue_reported"/>
                     </group>
-
+					<group col='4' colspan='2'>
+                        <field name="create_date"/>
+                        <field name="create_uid"/>
+                        <field name="write_date"/>
+                        <field name="write_uid"/>
+                    </group>
                 </form>
             </field>
         </record>
@@ -131,6 +136,13 @@
                     </group>
                     <group>
                         <field name="issue_reported"/>
+                    </group>
+                    
+                    <group col='4' colspan='2'>
+                        <field name="create_date"/>
+                        <field name="create_uid"/>
+                        <field name="write_date"/>
+                        <field name="write_uid"/>
                     </group>
 
 		         	</sheet>
@@ -231,6 +243,12 @@
                     </group>
                     <label for="issue_reported" string=" Issue Reported "/>
                     <field name="issue_reported"/>
+                    <group col='4' colspan='2'>
+                        <field name="create_date"/>
+                        <field name="create_uid"/>
+                        <field name="write_date"/>
+                        <field name="write_uid"/>
+                    </group>
                 </form>
             </field>
         </record>       
