@@ -100,148 +100,151 @@ class Parser(report_sxw.rml_parse):
         return float(avg_cost)
     ##TPT-START - TO ADDRESS PERFORMANCE ISSUE - By BalamuruganPurushothaman on 02/09/2015
     def get_prod(self): 
-        sql = '''
-                        select pp.default_code, pt.name, pt.standard_price, pu.name as uom, pp.bin_location,
-              pp.min_stock,  pp.max_stock,  pp.re_stock,
-             (select case when sum(onhand_qty)>0 then sum(onhand_qty) else 0 end ton
-                        From
-                        (SELECT
-                               
-                            case when loc1.usage != 'internal' and loc2.usage = 'internal'
-                            then stm.primary_qty
-                            else
-                            case when loc1.usage = 'internal' and loc2.usage != 'internal'
-                            then -1*stm.primary_qty 
-                            else 0.0 end
-                            end onhand_qty
-                                    
-                        FROM stock_move stm 
-                            join stock_location loc1 on stm.location_id=loc1.id
-                            join stock_location loc2 on stm.location_dest_id=loc2.id
-                        WHERE stm.state= 'done' and product_id=pp.id)foo) onhand_qty,
-            
-            (select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton from 
-                    (
-                    select st.product_qty
-                        from stock_move st 
-                        where st.state='done' and st.product_id = pp.id and 
-                        st.location_dest_id =(select id from stock_location where name='Raw Material' and 
-                        usage='internal' and location_id=(select id from stock_location where name='Store'))
-                    union all
-                    select st.product_qty*-1
-                        from stock_move st 
-                        where st.state='done' and st.product_id = pp.id and 
-                        st.location_id =(select id from stock_location where name='Raw Material' and 
-                        usage='internal' and location_id=(select id from stock_location where name='Store'))
-                    )foo) store_rm,
-                    
-             (select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton from 
-                    (
-                    select st.product_qty
-                        from stock_move st 
-                        where st.state='done' and st.product_id = pp.id and st.location_dest_id 
-                        =(select id from stock_location where name='Spares' and 
-                        usage='internal')
-                    union all
-                    select st.product_qty*-1
-                        from stock_move st 
-                        where st.state='done' and st.product_id = pp.id and st.location_id 
-                        =(select id from stock_location where name='Spares' and 
-                        usage='internal')
-                    )foo) store_spare,
-                    
-            (select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton from 
-                    (
-                    select st.product_qty
-                        from stock_move st 
-                        where st.state='done' and st.product_id = pp.id and 
-                        st.location_dest_id =(select id from stock_location where name='Inspection' and 
-                        usage='internal')
-                    union all
-                    select st.product_qty*-1
-                        from stock_move st 
-                        where st.state='done' and st.product_id = pp.id and 
-                        st.location_id =(select id from stock_location where name='Inspection' and 
-                        usage='internal')
-                    )foo) ins_qty,
-            (select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton from 
-                    (
-                    select st.product_qty
-                        from stock_move st 
-                        where st.state='done' and st.product_id = pp.id and 
-                        st.location_dest_id =(select id from stock_location where name='Block List' and 
-                        usage='internal')
-                    union all
-                    select st.product_qty*-1
-                        from stock_move st 
-                        where st.state='done' and st.product_id = pp.id and 
-                        st.location_id =(select id from stock_location where name='Block List' and 
-                        usage='internal')
-                    )foo) block_qty,
-             (select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton from 
-                    (
-                    select st.product_qty
-                        from stock_move st 
-                        where st.state='done' and st.product_id = pp.id and 
-                        st.location_dest_id =(select id from stock_location where name='Other' and 
-                        usage='internal' and location_id=(select id from stock_location where name='Production Line'))
-                    union all
-                    select st.product_qty*-1
-                        from stock_move st 
-                        where st.state='done' and st.product_id = pp.id and 
-                        st.location_id =(select id from stock_location where name='Other' and 
-                        usage='internal' and location_id=(select id from stock_location where name='Production Line'))
-                    )foo) pl_others,
-             (select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton from 
-                    (
-                    select st.product_qty
-                        from stock_move st 
-                        where st.state='done' and st.product_id = pp.id and 
-                        st.location_dest_id =(select id from stock_location where name='FSH' and 
-                        usage='internal' and location_id=(select id from stock_location where name='Store'))
-                    union all
-                    select st.product_qty*-1
-                        from stock_move st 
-                        where st.state='done' and st.product_id = pp.id and 
-                        st.location_id =(select id from stock_location where name='FSH' and 
-                        usage='internal' and location_id=(select id from stock_location where name='Store'))
-                    )foo) store_fsh    ,
-            (select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton from 
-                    (
-                    select st.product_qty
-                        from stock_move st 
-                        where st.state='done' and st.product_id = pp.id and 
-                        st.location_dest_id =(select id from stock_location where name='TIO2' and 
-                        usage='internal' and location_id=(select id from stock_location where name='Store'))
-                    union all
-                    select st.product_qty*-1
-                        from stock_move st 
-                        where st.state='done' and st.product_id = pp.id and 
-                        st.location_id =(select id from stock_location where name='TIO2' and 
-                        usage='internal' and location_id=(select id from stock_location where name='Store'))
-                    )foo) store_tio2,                 
-            
-            (select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton from 
-                    (
-                    select st.product_qty
-                        from stock_move st 
-                        where st.state='done' and st.product_id = pp.id and 
-                        st.location_dest_id =(select id from stock_location where name='Raw Material' and 
-                        usage='internal' and location_id=(select id from stock_location where name='Production Line'))
-                    union all
-                    select st.product_qty*-1
-                        from stock_move st 
-                        where st.state='done' and st.product_id = pp.id and 
-                        st.location_id =(select id from stock_location where name='Raw Material' and 
-                        usage='internal' and location_id=(select id from stock_location where name='Production Line'))
-                    )foo) pl_rm, pp.id product_id, pp.cate_name as categ
-                     
-            from product_product pp
-            inner join product_template pt on pp.product_tmpl_id=pt.id 
-            inner join product_uom pu on pt.uom_id=pu.id
-            '''
-            
+        #TPT_BM-07/06/2016 - AS ON DATE AS PARAM
         wizard_data = self.localcontext['data']['form']
+        date = wizard_data['as_date']
+        sql = '''
+                    select pp.default_code, pt.name, pt.standard_price, pu.name as uom, pp.bin_location,
+          pp.min_stock,  pp.max_stock,  pp.re_stock,
+         (select case when sum(onhand_qty)>0 then sum(onhand_qty) else 0 end ton
+                    From
+                    (SELECT
+                           
+                        case when loc1.usage != 'internal' and loc2.usage = 'internal'
+                        then stm.primary_qty
+                        else
+                        case when loc1.usage = 'internal' and loc2.usage != 'internal'
+                        then -1*stm.primary_qty 
+                        else 0.0 end
+                        end onhand_qty
+                                
+                    FROM stock_move stm 
+                        join stock_location loc1 on stm.location_id=loc1.id
+                        join stock_location loc2 on stm.location_dest_id=loc2.id
+                    WHERE stm.state= 'done' and product_id=pp.id and stm.date<='%(date)s' )foo) onhand_qty,
+        
+        (select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton from 
+                (
+                select st.product_qty
+                    from stock_move st 
+                    where st.state='done' and st.product_id = pp.id and st.date<='%(date)s' and
+                    st.location_dest_id =(select id from stock_location where name='Raw Material' and 
+                    usage='internal' and location_id=(select id from stock_location where name='Store'))
+                union all
+                select st.product_qty*-1
+                    from stock_move st 
+                    where st.state='done' and st.product_id = pp.id and st.date<='%(date)s' and
+                    st.location_id =(select id from stock_location where name='Raw Material' and 
+                    usage='internal' and location_id=(select id from stock_location where name='Store'))
+                )foo) store_rm,
+                
+         (select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton from 
+                (
+                select st.product_qty
+                    from stock_move st 
+                    where st.state='done' and st.product_id = pp.id and st.date<='%(date)s' and st.location_dest_id 
+                    =(select id from stock_location where name='Spares' and 
+                    usage='internal')
+                union all
+                select st.product_qty*-1
+                    from stock_move st 
+                    where st.state='done' and st.product_id = pp.id and st.date<='%(date)s' and st.location_id 
+                    =(select id from stock_location where name='Spares' and 
+                    usage='internal')
+                )foo) store_spare,
+                
+        (select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton from 
+                (
+                select st.product_qty
+                    from stock_move st 
+                    where st.state='done' and st.product_id = pp.id and st.date<='%(date)s' and
+                    st.location_dest_id =(select id from stock_location where name='Inspection' and 
+                    usage='internal')
+                union all
+                select st.product_qty*-1
+                    from stock_move st 
+                    where st.state='done' and st.product_id = pp.id and st.date<='%(date)s' and
+                    st.location_id =(select id from stock_location where name='Inspection' and 
+                    usage='internal')
+                )foo) ins_qty,
+        (select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton from 
+                (
+                select st.product_qty
+                    from stock_move st 
+                    where st.state='done' and st.product_id = pp.id and st.date<='%(date)s' and
+                    st.location_dest_id =(select id from stock_location where name='Block List' and 
+                    usage='internal')
+                union all
+                select st.product_qty*-1
+                    from stock_move st 
+                    where st.state='done' and st.product_id = pp.id and st.date<='%(date)s' and
+                    st.location_id =(select id from stock_location where name='Block List' and 
+                    usage='internal')
+                )foo) block_qty,
+         (select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton from 
+                (
+                select st.product_qty
+                    from stock_move st 
+                    where st.state='done' and st.product_id = pp.id and st.date<='%(date)s' and
+                    st.location_dest_id =(select id from stock_location where name='Other' and 
+                    usage='internal' and location_id=(select id from stock_location where name='Production Line'))
+                union all
+                select st.product_qty*-1
+                    from stock_move st 
+                    where st.state='done' and st.product_id = pp.id and st.date<='%(date)s' and
+                    st.location_id =(select id from stock_location where name='Other' and 
+                    usage='internal' and location_id=(select id from stock_location where name='Production Line'))
+                )foo) pl_others,
+         (select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton from 
+                (
+                select st.product_qty
+                    from stock_move st 
+                    where st.state='done' and st.product_id = pp.id and st.date<='%(date)s' and
+                    st.location_dest_id =(select id from stock_location where name='FSH' and 
+                    usage='internal' and location_id=(select id from stock_location where name='Store'))
+                union all
+                select st.product_qty*-1
+                    from stock_move st 
+                    where st.state='done' and st.product_id = pp.id and st.date<='%(date)s' and
+                    st.location_id =(select id from stock_location where name='FSH' and 
+                    usage='internal' and location_id=(select id from stock_location where name='Store'))
+                )foo) store_fsh    ,
+        (select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton from 
+                (
+                select st.product_qty
+                    from stock_move st 
+                    where st.state='done' and st.product_id = pp.id and st.date<='%(date)s' and
+                    st.location_dest_id =(select id from stock_location where name='TIO2' and 
+                    usage='internal' and location_id=(select id from stock_location where name='Store'))
+                union all
+                select st.product_qty*-1
+                    from stock_move st 
+                    where st.state='done' and st.product_id = pp.id and st.date<='%(date)s' and
+                    st.location_id =(select id from stock_location where name='TIO2' and 
+                    usage='internal' and location_id=(select id from stock_location where name='Store'))
+                )foo) store_tio2,                 
+        
+        (select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton from 
+                (
+                select st.product_qty
+                    from stock_move st 
+                    where st.state='done' and st.product_id = pp.id and st.date<='%(date)s' and
+                    st.location_dest_id =(select id from stock_location where name='Raw Material' and 
+                    usage='internal' and location_id=(select id from stock_location where name='Production Line'))
+                union all
+                select st.product_qty*-1
+                    from stock_move st 
+                    where st.state='done' and st.product_id = pp.id and st.date<='%(date)s' and
+                    st.location_id =(select id from stock_location where name='Raw Material' and 
+                    usage='internal' and location_id=(select id from stock_location where name='Production Line'))
+                )foo) pl_rm, pp.id product_id, pp.cate_name as categ
+                 
+        from product_product pp
+        inner join product_template pt on pp.product_tmpl_id=pt.id 
+        inner join product_uom pu on pt.uom_id=pu.id
+        ''' % {'date':date}
+            
+        
         categ_id = wizard_data['categ_id']
         categ_id = categ_id[0]
         product_id = wizard_data['product_id']
