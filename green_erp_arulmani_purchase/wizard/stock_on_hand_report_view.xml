@@ -13,6 +13,7 @@
 	                <field name="location_id" options="{'create': false, 'create_edit': false}" context="{'search_location_id':True, 'product_id':product_id}"/>
 	                 -->
 	                <field name="is_mrp"/>
+	                <field name="date"/>
 	                </group>
 	                <footer>
 	                    <button name="print_report" type='object' string="OK" class="oe_highlight"/>

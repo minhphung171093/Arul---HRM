@@ -276,6 +276,7 @@
 					<field name="sale_id" readonly="1" options="{'create': false, 'create_edit': false}"/>
 					<field name="payment_term" readonly='1' options="{'create': false, 'create_edit': false}"/>
 					<field name="sale_tax_id" readonly='1' domain="[('type_tax_use','=','sale')]" options="{'create': false, 'create_edit': false}"/>
+					<field name="form_number" readonly="1"/>
 					<field name="invoice_type" readonly='1' required ='1'/>
 					<field name="header_text" />
 					<field name="material_info" readonly="1"/>
