@@ -9288,7 +9288,7 @@ class tpt_cform_invoice(osv.osv):
                 if line.form_number and line.form_date:
                     sql = ''' 
                     update account_invoice set form_number='%s',form_type='%s', form_date='%s' where id=%s 
-                    '''%(line.form_number,line.form_type, line.invoice_id.id, line.form_date)
+                    '''%(line.form_number,line.form_type, line.form_date, line.invoice_id.id)
                     cr.execute(sql)
             ###
         self.bt_load(cr, uid, ids, context)
