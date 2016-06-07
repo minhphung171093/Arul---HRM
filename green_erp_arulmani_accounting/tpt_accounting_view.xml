@@ -3544,7 +3544,8 @@
 	                                    <field name="uom_id" readonly='1'/>
 	                                    <field name="bill_amount" readonly='1'/>
 	                                    <field name="form_type" required='1' on_change="onchange_type(form_type)"/> 
-	                                    <field name="form_number" required='0'/>    
+	                                    <field name="form_number" required='0'/>   
+	                                    <field name="form_date" required='0'/>     
 	                                </tree>
 	                            </field>
                             </div>

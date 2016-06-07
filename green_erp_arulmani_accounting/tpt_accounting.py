@@ -9285,10 +9285,10 @@ class tpt_cform_invoice(osv.osv):
                 raise osv.except_osv(_('Form Number Can not be Empty for the following Invoices: '),_(invoice))
             ###
             for line in cform.cform_line:
-                if line.form_number:
+                if line.form_number and line.form_date:
                     sql = ''' 
-                    update account_invoice set form_number='%s',form_type='%s' where id=%s 
-                    '''%(line.form_number,line.form_type, line.invoice_id.id)
+                    update account_invoice set form_number='%s',form_type='%s', form_date='%s' where id=%s 
+                    '''%(line.form_number,line.form_type, line.invoice_id.id, line.form_date)
                     cr.execute(sql)
             ###
         self.bt_load(cr, uid, ids, context)
@@ -9310,6 +9310,7 @@ class tpt_cform_invoice_line(osv.osv):
         'form_type': fields.selection([('cform', 'C-Form'), ('hform', 'H-Form'), ('iform', 'I-Form'), 
                                        ('na', 'Not Applicable'), ('tbc', 'To Be Collect')],'Form Type'), 
         'form_number': fields.char('Form Number'),
+        'form_date': fields.date('Form Date'),
         'invoice_id': fields.many2one('account.invoice', 'Invoice ID'),
         'cform_id': fields.many2one('tpt.cform.invoice', 'C Form', ondelete='cascade'),
     }

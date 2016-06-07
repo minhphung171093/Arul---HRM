@@ -1275,6 +1275,7 @@ class account_invoice(osv.osv):
         'form_type': fields.selection([('cform', 'C-Form'), ('hform', 'H-Form'), ('iform', 'I-Form'), 
                                        ('na', 'Not Applicable'), ('tbc', 'To Be Collect')],'Form Type'), 
         'form_number': fields.char('Form Number'),
+        'form_date': fields.char('Form Date'), #TPT-BM-07/06/2016 - FOR C-FORM
                 
         #TPT
         'street3':fields.char('Street3',size=128),
