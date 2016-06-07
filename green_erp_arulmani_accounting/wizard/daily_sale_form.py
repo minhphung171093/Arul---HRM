@@ -229,7 +229,21 @@ class daily_sale_form(osv.osv_memory):
         def decimal_convert(amount):       
             decamount = format(amount, '.3f')
             return decamount
-            
+        #
+        def get_form_type(form_type):
+            type = ''
+            if form_type=='cform':
+                type = "C-Form"
+            elif form_type=='hform':
+                type = "H-Form"
+            elif form_type=='iform':
+                type = "I-Form"
+            elif form_type=='na':
+                type = "Not Applicable"
+            elif form_type=='tbc':
+                type = "To be Collect"
+            return type
+        #    
         def get_invoice(cb):
             res = {}
             product_id = cb.product_id.id
@@ -274,7 +288,7 @@ class daily_sale_form(osv.osv_memory):
             cr.execute(sql)
             invoice_ids = [r[0] for r in cr.fetchall()]
             return invoice_obj.browse(cr,uid,invoice_ids)
-        
+        #
         
         cr.execute('delete from tpt_daily_sale_report')
         cb_obj = self.pool.get('tpt.daily.sale.report')
@@ -331,9 +345,9 @@ class daily_sale_form(osv.osv_memory):
                 'product_id':line.product_id and line.product_id.id or False,
                 'customer_id':line.invoice_id.partner_id and line.invoice_id.partner_id.id or False,
                 'name_consignee_id':line.invoice_id.cons_loca and line.invoice_id.cons_loca.id or False,
-                'form_type':line.invoice_id.form_type or '',
+                'form_type':get_form_type(line.invoice_id.form_type) or '',
                 'form_number':line.invoice_id.form_number or '',
-                'form_date':line.invoice_id.form_date or '',
+                'form_date':convert_date(line.invoice_id.form_date) or '',
                     
             }))
             
