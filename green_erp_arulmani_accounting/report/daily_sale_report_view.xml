@@ -127,6 +127,10 @@
             						<field name="currency" class="oe_text_left oe_inline"/>
             						<field name="total_amt" class="oe_text_left oe_inline"/>
             						<field name="other_reasons" class="oe_text_left oe_inline"/>
+            						<field name="form_type" class="oe_text_left oe_inline"/>
+            						<field name="form_number" class="oe_text_left oe_inline"/>
+            						<field name="form_date" class="oe_text_left oe_inline"/>
+            						
 		                		</tree>
 		                	</field>
 	                	</group>
