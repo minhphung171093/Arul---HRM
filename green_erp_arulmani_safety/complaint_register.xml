@@ -115,14 +115,24 @@
             <field name="arch" type="xml">
 	            <form string="Compliance - Safety manager Approval" version="7.0">   
 	            	<sheet>
-						<group col='4' colspan='2' string="Shift">
-							<field name="name" />
-							<field name="complaint_date" />					
-							<field name="issue_reported" />
-							<field name="department_id" />
-							<field name="user_id"/>
-                    		<field name="state"/>
-							</group>
+						<group>
+                        <group>
+                            <field name="name"/>
+                            <field name="complaint_type" required="1"/>
+                            <field name="department_id" required="1" on_change="onchange_department_id(department_id)" options="{'create': false, 'create_edit': false}"/>
+                            <field name="user_id"/>
+                        </group>
+                        <group>
+                            <field name="complaint_date"/>
+                            <field name="issue_severity" required="1"/>
+                            <field name="section_id" required="1" domain="[('department_id','=',department_id)]" options="{'create': false, 'create_edit': false}"/>
+                            <field name="tpt_location"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="issue_reported"/>
+                    </group>
+
 		         	</sheet>
 		         </form>
 			</field>
