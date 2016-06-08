@@ -10396,7 +10396,7 @@ class leave_adjustment(osv.osv):
                                     update employee_leave_detail set total_day = total_day + %s where id = %s
                             '''%(line.increase_count,employee_leave_detail_ids[0])
                         cr.execute(sql) 
-        return self.write(cr, uid, ids, {'state':'done'})
+        return self.write(cr, uid, ids, {'state':'cancel'})
        
     _columns={
               'employee_id': fields.many2one('hr.employee','Employee ID',required = True,states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
