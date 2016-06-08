@@ -5057,14 +5057,14 @@ class product_product(osv.osv):
     ###TPT-START : Auto Product GL Account Creation on 14/10/2015
     def create(self, cr, uid, vals, context=None):
         
-        if vals['cate_name']=='spares':
-                incomeaccount_id = self.pool.get('account.account').search(cr, uid, [('code','in',['0000119503'])]) #income & purchase account id for spares
-                expenseaccount_id = self.pool.get('account.account').search(cr, uid, [('code','in',['0000404010'])]) # Expense Account for Spares  0000404010
-                assetaccount_ids = self.pool.get('account.account').search(cr, uid, [('code','in',['0000119501'])]) # Asset Account for Spares  0000119501
-                vals.update({'purchase_acc_id':incomeaccount_id[0]})
-                vals.update({'product_asset_acc_id':assetaccount_ids[0]})
-                vals.update({'property_account_income':incomeaccount_id[0]})
-                vals.update({'property_account_expense':expenseaccount_id[0]})
+        if 'cate_name' in vals and vals['cate_name']=='spares':
+            incomeaccount_id = self.pool.get('account.account').search(cr, uid, [('code','in',['0000119503'])]) #income & purchase account id for spares
+            expenseaccount_id = self.pool.get('account.account').search(cr, uid, [('code','in',['0000404010'])]) # Expense Account for Spares  0000404010
+            assetaccount_ids = self.pool.get('account.account').search(cr, uid, [('code','in',['0000119501'])]) # Asset Account for Spares  0000119501
+            vals.update({'purchase_acc_id':incomeaccount_id[0]})
+            vals.update({'product_asset_acc_id':assetaccount_ids[0]})
+            vals.update({'property_account_income':incomeaccount_id[0]})
+            vals.update({'property_account_expense':expenseaccount_id[0]})
                 
         return super(product_product, self).create(cr, uid, vals, context)
     
@@ -5073,21 +5073,21 @@ class product_product(osv.osv):
             vals.update({'purchase_acc_id':False, 'product_asset_acc_id':False, 
                      'property_account_income':False, 'property_account_expense':False})
         if 'cate_name' in vals and vals['cate_name']=='spares':
-                incomeaccount_id = self.pool.get('account.account').search(cr, uid, [('code','in',['0000119503'])]) #income & purchase account id for spares
-                expenseaccount_id = self.pool.get('account.account').search(cr, uid, [('code','in',['0000404010'])]) # Expense Account for Spares  0000404010
-                assetaccount_ids = self.pool.get('account.account').search(cr, uid, [('code','in',['0000119501'])]) # Asset Account for Spares  0000119501
-                vals.update({'purchase_acc_id':incomeaccount_id[0]})
-                vals.update({'product_asset_acc_id':assetaccount_ids[0]})
-                vals.update({'property_account_income':incomeaccount_id[0]})
-                vals.update({'property_account_expense':expenseaccount_id[0]})
+            incomeaccount_id = self.pool.get('account.account').search(cr, uid, [('code','in',['0000119503'])]) #income & purchase account id for spares
+            expenseaccount_id = self.pool.get('account.account').search(cr, uid, [('code','in',['0000404010'])]) # Expense Account for Spares  0000404010
+            assetaccount_ids = self.pool.get('account.account').search(cr, uid, [('code','in',['0000119501'])]) # Asset Account for Spares  0000119501
+            vals.update({'purchase_acc_id':incomeaccount_id[0]})
+            vals.update({'product_asset_acc_id':assetaccount_ids[0]})
+            vals.update({'property_account_income':incomeaccount_id[0]})
+            vals.update({'property_account_expense':expenseaccount_id[0]})
         if 'tpt_description' in vals and vals['tpt_description']:
-                incomeaccount_id = self.pool.get('account.account').search(cr, uid, [('code','in',['0000119503'])]) #income & purchase account id for spares
-                expenseaccount_id = self.pool.get('account.account').search(cr, uid, [('code','in',['0000404010'])]) # Expense Account for Spares  0000404010
-                assetaccount_ids = self.pool.get('account.account').search(cr, uid, [('code','in',['0000119501'])]) # Asset Account for Spares  0000119501
-                vals.update({'purchase_acc_id':incomeaccount_id[0]})
-                vals.update({'product_asset_acc_id':assetaccount_ids[0]})
-                vals.update({'property_account_income':incomeaccount_id[0]})
-                vals.update({'property_account_expense':expenseaccount_id[0]})
+            incomeaccount_id = self.pool.get('account.account').search(cr, uid, [('code','in',['0000119503'])]) #income & purchase account id for spares
+            expenseaccount_id = self.pool.get('account.account').search(cr, uid, [('code','in',['0000404010'])]) # Expense Account for Spares  0000404010
+            assetaccount_ids = self.pool.get('account.account').search(cr, uid, [('code','in',['0000119501'])]) # Asset Account for Spares  0000119501
+            vals.update({'purchase_acc_id':incomeaccount_id[0]})
+            vals.update({'product_asset_acc_id':assetaccount_ids[0]})
+            vals.update({'property_account_income':incomeaccount_id[0]})
+            vals.update({'property_account_expense':expenseaccount_id[0]})
             
         new_write = super(product_product, self).write(cr, uid,ids, vals, context)
         return new_write  

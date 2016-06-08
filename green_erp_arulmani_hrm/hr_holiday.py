@@ -10368,8 +10368,34 @@ class leave_adjustment(osv.osv):
                                     update employee_leave_detail set total_day = total_day - %s where id = %s
                             '''%(line.increase_count,employee_leave_detail_ids[0])
                         cr.execute(sql) 
-                
-                    
+        return self.write(cr, uid, ids, {'state':'done'})
+    def leave_adj_cancel(self, cr, uid, ids, context=None):
+        employee_leave_obj = self.pool.get('employee.leave')
+        employee_leave_detail_obj = self.pool.get('employee.leave.detail')
+        leave_type_obj = self.pool.get('arul.hr.leave.types')
+        
+        for line in self.browse(cr, uid, ids, context=context):
+            if not line.work_date:
+                raise osv.except_osv(_('Warning!'),_('Pls Select Work Date'))
+            if line.increase_count==0:
+                raise osv.except_osv(_('Warning!'),_('Adjustable Count not be Zero')) 
+            employee_leave_ids = employee_leave_obj.search(cr, uid, [('year','=',line.work_date[:4]),('employee_id','=',line.employee_id.id)])
+            leave_type_ids = leave_type_obj.search(cr, uid, [('id','=',line.leave_type_id.id)])
+            if not leave_type_ids:
+                raise osv.except_osv(_('Warning!'),_('Can not find this Leave Type. Please Create Leave Type before'))
+            if employee_leave_ids:
+                employee_leave_detail_ids = employee_leave_detail_obj.search(cr, uid, [('emp_leave_id','in',employee_leave_ids),('leave_type_id','=',line.leave_type_id.id)])
+                if employee_leave_detail_ids:
+                    if line.adj_type=='increase':
+                        sql = '''
+                                    update employee_leave_detail set total_day = total_day - %s where id = %s
+                            '''%(line.increase_count,employee_leave_detail_ids[0])
+                        cr.execute(sql)                             
+                    if line.adj_type=='decrease':
+                        sql = '''
+                                    update employee_leave_detail set total_day = total_day + %s where id = %s
+                            '''%(line.increase_count,employee_leave_detail_ids[0])
+                        cr.execute(sql) 
         return self.write(cr, uid, ids, {'state':'done'})
        
     _columns={
