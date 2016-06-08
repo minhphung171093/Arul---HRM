@@ -1770,6 +1770,7 @@
                 <form string="Leave Adjustment" version="7.0">
                     <header>                 
 	                    <button name="leave_adj" states='draft' string="Submit" type="object" class="oe_highlight" />
+	                    <button name="leave_adj_cancel" states='done' string="Cancel" type="object" class="oe_highlight" />
 	                    <field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue","done":"blue"}'/>
 	                </header>                
                 	<sheet>  
