@@ -191,8 +191,11 @@ class service_tax_register(osv.osv_memory):
                     partner_id = move['partner_id']                    
                     return partner_id or ''
                 if type == 'krishi_kalyan':
-                    krishi_kalyan = move['krishi_kalyan']                    
-                    return krishi_kalyan or ''
+                    krishi_kalyan = 0
+                    tax_rate = move['desc']
+                    if tax_rate == 'STax 15%':
+                        krishi_kalyan = move['krishi_kalyan']                    
+                    return krishi_kalyan or 0
                 
         
         def get_tot_closing_bal(o):
@@ -296,23 +299,20 @@ class service_tax_register(osv.osv_memory):
             code = act_abj.code
             total = 0.00            
             balance = 0.0
-            
-            
-           
-                
+    
             sql = '''
-                    select COALESCE(sum(a.debit),0) as debit from( 
-                    select sum(aml.debit) as debit,ail.id
-                    from account_invoice_line ail
-                    join account_invoice ai on (ai.id=ail.invoice_id and ai.type = 'in_invoice')
-                    JOIN account_invoice_line_tax ailt on (ailt.invoice_line_id=ail.id)
-                    Join account_tax at on (at.id=ailt.tax_id and at.gl_account_id = %s)
-                    join account_move_line aml on (aml.move_id=ai.move_id and aml.account_id = %s)
-                    where at.amount>0
-                    and ai.date_invoice between '%s' and '%s'
-                    group by ail.id 
-                    order by ail.id)a
-                    '''%(account_id,account_id,date_from,date_to)                
+                select COALESCE(sum(a.debit),0) as debit from( 
+                select sum(aml.debit) as debit,ail.id
+                from account_invoice_line ail
+                join account_invoice ai on (ai.id=ail.invoice_id and ai.type = 'in_invoice')
+                JOIN account_invoice_line_tax ailt on (ailt.invoice_line_id=ail.id)
+                Join account_tax at on (at.id=ailt.tax_id and at.gl_account_id = %s)
+                join account_move_line aml on (aml.move_id=ai.move_id and aml.account_id = %s)
+                where at.amount>0
+                and ai.date_invoice between '%s' and '%s'
+                group by ail.id 
+                order by ail.id)a
+                '''%(account_id,account_id,date_from,date_to)                
             cr.execute(sql)
             for move in cr.dictfetchall():
                 total += move['debit']          
@@ -369,7 +369,9 @@ class service_tax_register(osv.osv_memory):
                 rs.name as partner, ail.line_net as linenet,at.description as desc,ai.id as invoice_id,
                 COALESCE(ail.freight,0) as frieght_1,COALESCE(ail.fright,0) as frieght_2,
                 ai.doc_type, rs.id as partner_id,
-                ail.tax_amt as stax_amt from account_invoice_line ail
+                ail.tax_amt as stax_amt,
+                ail.krishi_kalyan, ail.final_tax
+                 from account_invoice_line ail
                 inner join account_invoice ai on ail.invoice_id=ai.id
                 join account_invoice_line_tax ailt on (ailt.invoice_line_id=ail.id)
                 inner join account_tax at on (at.id=ailt.tax_id)
@@ -405,7 +407,7 @@ class service_tax_register(osv.osv_memory):
             av.number as number, null as invoice_id, rs.name as party_name,
             null as partner_id, 0 as open_bal, av.tpt_amount_total as taxable_amount, 
             null as service_tax_rate, avl.amount as service_tax, 
-            0 as total, 0 as debit, 0 as closing_bal
+            0 as total, 0 as debit, 0 as closing_bal, 0 as krishi_kalyan, 0 as final_tax
     
             from account_voucher_line avl
             inner join account_voucher av on avl.voucher_id=av.id
@@ -426,6 +428,7 @@ class service_tax_register(osv.osv_memory):
             cr.execute(sql)   
             #print sql
             return cr.dictfetchall()
+        
         cr.execute('delete from tpt_service_tax')
         sr_obj = self.pool.get('tpt.service.tax')
         sr = self.browse(cr, uid, ids[0])
@@ -435,25 +438,25 @@ class service_tax_register(osv.osv_memory):
         debit_total=get_debit_balance(sr)
         temp_taxamt = 0.00
         for line in get_invoice(sr):
-                sr_line.append((0,0,{
-                    'date': get_invoice_details(sr,line.id,'invdate'), #line.move_id.invoice_id.date_invoice or False,
-                    'bill_no': get_invoice_details(sr,line.id,'billno'), #line.invoice_id.bill_number or False,
-                    'bill_date': get_invoice_details(sr,line.id,'billdate'), #line.invoice_id.bill_date or False,invname
-                    'number': get_invoice_details(sr,line.id,'invname'), #line.invoice_id.name or False, 
-                    'invoice_id': get_invoice_details(sr,line.id,'invoice_id') or False, #line.invoice_id.name or False,
-                    'party_name': get_invoice_details(sr,line.id,'partner') or False, #line.invoice_id.partner_id and line.invoice_id.partner_id.id or False,
-                    'partner_id': get_invoice_details(sr,line.id,'partner_id') or False,
-                    'open_bal': openbalance+temp_taxamt or 0.00,        
-                    'taxable_amount': get_invoice_details(sr,line.id,'netamt') or 0.00,
-                    'service_tax_rate': get_invoice_details(sr,line.id,'tax'), # get_tax_rate_desc(get_tax_rate_id(line.move_id)),
-                    'service_tax': line.debit or 0.00,#line.debit or 0.00,       
-                    'krishi_kalyan': get_invoice_details(sr,line.id,'krishi_kalyan'),    
-                    'final_tax':   line.debit + get_invoice_details(sr,line.id,'krishi_kalyan') or 0.00,     
-                    'total': openbalance+temp_taxamt+line.debit or 0.00,                   
-                    'debit': 0.00,                    
-                    'closing_bal': openbalance+temp_taxamt+line.debit or 0.00, #Added by TPT-Y
-                }))
-                temp_taxamt+=line.debit or 0.00                
+            sr_line.append((0,0,{
+                'date': get_invoice_details(sr,line.id,'invdate'), #line.move_id.invoice_id.date_invoice or False,
+                'bill_no': get_invoice_details(sr,line.id,'billno'), #line.invoice_id.bill_number or False,
+                'bill_date': get_invoice_details(sr,line.id,'billdate'), #line.invoice_id.bill_date or False,invname
+                'number': get_invoice_details(sr,line.id,'invname'), #line.invoice_id.name or False, 
+                'invoice_id': get_invoice_details(sr,line.id,'invoice_id') or False, #line.invoice_id.name or False,
+                'party_name': get_invoice_details(sr,line.id,'partner') or False, #line.invoice_id.partner_id and line.invoice_id.partner_id.id or False,
+                'partner_id': get_invoice_details(sr,line.id,'partner_id') or False,
+                'open_bal': openbalance+temp_taxamt or 0.00,        
+                'taxable_amount': get_invoice_details(sr,line.id,'netamt') or 0.00,
+                'service_tax_rate': get_invoice_details(sr,line.id,'tax'), # get_tax_rate_desc(get_tax_rate_id(line.move_id)),
+                'service_tax': line.debit or 0.00,#line.debit or 0.00,       
+                'krishi_kalyan': get_invoice_details(sr,line.id,'krishi_kalyan'),    
+                'final_tax':   line.debit + get_invoice_details(sr,line.id,'krishi_kalyan') or 0.00,     
+                'total': openbalance+temp_taxamt+line.debit or 0.00,                   
+                'debit': 0.00,                    
+                'closing_bal': openbalance+temp_taxamt+line.debit or 0.00, #Added by TPT-Y
+            }))
+            temp_taxamt+=line.debit or 0.00                
             #temp_taxamt+=(line.line_net * (tax_amt/100))
         
         #TPT-BM
@@ -514,8 +517,6 @@ class service_tax_register(osv.osv_memory):
         sr_line.append((0,0,{            
             'service_tax_rate' : 'Total',   
             'service_tax': temp_taxamt, #TPT_BM ON 30/03/2016 #get_total(get_invoice(sr)) or 0.00,     #get_total_service_tax(sr),
-                 
-            
         }))        
         
         vals = {
