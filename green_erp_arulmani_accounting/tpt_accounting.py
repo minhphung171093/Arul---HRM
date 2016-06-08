@@ -1696,6 +1696,9 @@ class account_invoice(osv.osv):
                             iml += invoice_line_obj.move_line_amount_tax(cr, uid, inv.id)
                         iml += invoice_line_obj.move_line_tds_amount_without_po(cr, uid, inv.id) 
                         iml += invoice_line_obj.move_line_amount_round_off(cr, uid, inv.id)
+                        #TPT-START: By BalamuruganPurushothaman - ON 08/06/2016 - TO UPDATE CST AMOUNT INTO PRODUCT MASTER TOTAL COST VALUE
+                        self.cst_prod_avg_cost_update(cr, uid, inv.id, context)
+                        #TPT END
                     if inv.purchase_id.po_document_type == 'service':
                         # service inv
                         iml += invoice_line_obj.move_line_fright(cr, uid, inv.id)
@@ -2216,6 +2219,110 @@ class account_invoice(osv.osv):
 
         return True
     #TPT-START
+    ##
+    def cst_prod_avg_cost_update(self, cr, uid, invoice_id, context=None):
+        result = []
+        if context is None:
+            context = {}
+        ctx = context.copy()
+        inventory_obj = self.pool.get('tpt.product.avg.cost')
+        inv_id = self.pool.get('account.invoice').browse(cr, uid, invoice_id)
+        for line in inv_id.invoice_line:
+            sql = 'delete from tpt_product_avg_cost where product_id=%s'%(line.product_id.id)
+            cr.execute(sql)       
+            sql = '''
+                select foo.loc as loc
+                    from
+                    (select st.location_id as loc from stock_move st
+                        inner join stock_location l on st.location_id= l.id
+                            where l.usage = 'internal'
+                    union all
+                    select st.location_dest_id as loc from stock_move st
+                        inner join stock_location l on st.location_dest_id= l.id
+                        where l.usage = 'internal'
+                        )foo
+                   group by foo.loc
+            '''
+            cr.execute(sql)
+            for loc in cr.dictfetchall():
+                sql = '''
+                    select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end ton_sl,case when sum(foo.price_unit)!=0 then sum(foo.price_unit) else 0 end total_cost from 
+                        (select st.product_qty,st.price_unit*st.product_qty as price_unit
+                            from stock_move st 
+                            where st.state='done' and st.product_id=%s and st.location_dest_id=%s and st.location_dest_id != st.location_id and production_id is null
+                        )foo
+                '''%(line.product_id.id,loc['loc'])
+                cr.execute(sql)
+                inventory = cr.dictfetchone()
+                if inventory:
+                    hand_quantity = float(inventory['ton_sl'])
+                    total_cost = float(inventory['total_cost'])
+                    avg_cost = hand_quantity and total_cost/hand_quantity or 0
+                    sql = '''
+                        select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end ton_sl 
+                            from 
+                                (
+                                select st.product_qty*-1 as product_qty
+                                    from stock_move st 
+                                    where st.state='done'
+                                        and st.product_id=%s
+                                        and location_id=%s
+                                        and location_dest_id != location_id
+                                        and production_id is null
+                                )foo
+                    '''%(line.product_id.id,loc['loc'])
+                    cr.execute(sql)
+                    out = cr.dictfetchone()
+                    if out:
+                        hand_quantity = hand_quantity+float(out['ton_sl'])
+                        total_cost = avg_cost*hand_quantity
+                    
+                    sql = '''
+                        select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end ton_sl from 
+                            (select st.product_qty as product_qty
+                                from stock_move st 
+                                where st.state='done' and st.product_id=%s and st.location_dest_id=%s and st.
+                                 location_dest_id != st.location_id
+                                 and production_id is not null
+                             union all
+                             select st.product_qty*-1 as product_qty
+                                from stock_move st 
+                                where st.state='done'
+                                        and st.product_id=%s
+                                            and location_id=%s
+                                            and location_dest_id != location_id
+                                             and production_id is not null
+                            )foo
+                    '''%(line.product_id.id,loc['loc'],line.product_id.id,loc['loc'])
+                    cr.execute(sql)
+                    hand_quantity += cr.fetchone()[0]
+                    sql = '''
+                        select case when sum(produce_cost)!=0 then sum(produce_cost) else 0 end produce_cost,
+                            case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty
+                            from mrp_production where location_dest_id=%s and product_id=%s and state='done'
+                    '''%(loc['loc'],line.product_id.id)
+                    cr.execute(sql)
+                    produce = cr.dictfetchone()
+                    if produce:
+                        total_cost += float(produce['produce_cost'])
+                        avg_cost = hand_quantity and total_cost/hand_quantity or 0
+                    base = 0.0
+                    if line.fright_fi_type == '2':
+                        base = round(line.fright)
+                    else:
+                        base = round(line.fright*line.quantity)
+                    invoice_line_amt = base
+                    total_cost += invoice_line_amt
+                    if hand_quantity>0:
+                        avg_cost = total_cost/hand_quantity
+                    inventory_obj.create(cr, uid, {'product_id':line.product_id.id,
+                                                   'warehouse_id':loc['loc'],
+                                                   'hand_quantity':hand_quantity,
+                                                   'avg_cost':avg_cost,
+                                                   'total_cost':total_cost})   
+
+        return True
+    ##
 #     def line_get_convert(self, cr, uid, x, part, date, context=None):
 #         return {
 #             'date_maturity': x.get('date_maturity', False),
@@ -9228,7 +9335,7 @@ class tpt_cform_invoice(osv.osv):
             cr.execute(''' delete from tpt_cform_invoice_line where cform_id in %s ''',(tuple(ids),))
         for bank in self.browse(cr, uid, ids):
             invoice_obj = self.pool.get('account.invoice')
-            invoice_ids = invoice_obj.search(cr, uid, [('form_type' ,'=', 'tbc'), ('type', '=', 'out_invoice'), ('state', '=', 'open')])
+            invoice_ids = invoice_obj.search(cr, uid, [('form_type' ,'=', 'tbc'), ('type', '=', 'out_invoice'), ('state', '=', 'open'), ('sale_tax_id', 'like', 'CST')])
             cform_line = []
             for invoice in invoice_obj.browse(cr, uid, invoice_ids):  
                 for line in invoice.invoice_line:
