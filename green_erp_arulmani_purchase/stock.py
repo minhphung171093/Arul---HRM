@@ -1487,7 +1487,7 @@ class account_invoice_line(osv.osv):
                 if tax_line.description in ('STax 15%'):
                     percent = 0.5
                 else:
-                    percent  = tax_line.amount
+                    percent  = 0
                 
             amount_total_tax += percent/100
             ###
