@@ -369,7 +369,9 @@ class service_tax_register(osv.osv_memory):
                 rs.name as partner, ail.line_net as linenet,at.description as desc,ai.id as invoice_id,
                 COALESCE(ail.freight,0) as frieght_1,COALESCE(ail.fright,0) as frieght_2,
                 ai.doc_type, rs.id as partner_id,
-                ail.tax_amt as stax_amt from account_invoice_line ail
+                ail.tax_amt as stax_amt,
+                ail.krishi_kalyan, ail.final_tax
+                 from account_invoice_line ail
                 inner join account_invoice ai on ail.invoice_id=ai.id
                 join account_invoice_line_tax ailt on (ailt.invoice_line_id=ail.id)
                 inner join account_tax at on (at.id=ailt.tax_id)
@@ -405,7 +407,7 @@ class service_tax_register(osv.osv_memory):
             av.number as number, null as invoice_id, rs.name as party_name,
             null as partner_id, 0 as open_bal, av.tpt_amount_total as taxable_amount, 
             null as service_tax_rate, avl.amount as service_tax, 
-            0 as total, 0 as debit, 0 as closing_bal
+            0 as total, 0 as debit, 0 as closing_bal, 0 as krishi_kalyan, 0 as final_tax
     
             from account_voucher_line avl
             inner join account_voucher av on avl.voucher_id=av.id
@@ -426,6 +428,7 @@ class service_tax_register(osv.osv_memory):
             cr.execute(sql)   
             #print sql
             return cr.dictfetchall()
+        
         cr.execute('delete from tpt_service_tax')
         sr_obj = self.pool.get('tpt.service.tax')
         sr = self.browse(cr, uid, ids[0])
