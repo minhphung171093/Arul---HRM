@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <openerp>
     <data>
-		<record id="customer_ageing_wzd" model="ir.ui.view">
-	        <field name="name">customer.ageing.report</field>
-	        <field name="model">customer.ageing.report</field>
+		<record id="tpt_customer_ageing_wzd" model="ir.ui.view">
+	        <field name="name">customer.ageing</field>
+	        <field name="model">customer.ageing</field>
 	        <field name="arch" type="xml">
 	            <form string="Customer Ageing Report" version="7.0">
 	            	<group>
@@ -21,12 +21,12 @@
     	</record>
 
 	    <record model="ir.actions.act_window" id="action_customer_ageing_report">
-	        <field name="name">Customer Ageing Report</field>
+	        <field name="name">Customer Ageing</field>
 	        <field name="type">ir.actions.act_window</field>
-	        <field name="res_model">customer.ageing.report</field>
+	        <field name="res_model">customer.ageing</field>
 	        <field name="view_type">form</field>
 	        <field name="view_mode">form</field>
-	        <field name="view_id" ref="customer_ageing_wzd" />
+	        <field name="view_id" ref="tpt_customer_ageing_wzd" />
 	        <field name="target">new</field>
 	    </record>
 	    
