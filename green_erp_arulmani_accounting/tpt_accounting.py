@@ -1691,14 +1691,15 @@ class account_invoice(osv.osv):
                                 cst_flag = True   
                         if cst_flag is True:
                             iml += invoice_line_obj.move_line_amount_untaxed_cst(cr, uid, inv.id, tax_amounts[0]) 
+                            #TPT-START: By BalamuruganPurushothaman - ON 08/06/2016 - TO UPDATE CST AMOUNT INTO PRODUCT MASTER TOTAL COST VALUE
+                            #self.cst_prod_avg_cost_update(cr, uid, inv.id, tax_amounts[0], context) 
+                            #TPT END
                         else:
                             iml += invoice_line_obj.move_line_amount_untaxed(cr, uid, inv.id) 
                             iml += invoice_line_obj.move_line_amount_tax(cr, uid, inv.id)
                         iml += invoice_line_obj.move_line_tds_amount_without_po(cr, uid, inv.id) 
                         iml += invoice_line_obj.move_line_amount_round_off(cr, uid, inv.id)
-                        #TPT-START: By BalamuruganPurushothaman - ON 08/06/2016 - TO UPDATE CST AMOUNT INTO PRODUCT MASTER TOTAL COST VALUE
-                        self.cst_prod_avg_cost_update(cr, uid, inv.id, context)
-                        #TPT END
+                        
                     if inv.purchase_id.po_document_type == 'service':
                         # service inv
                         iml += invoice_line_obj.move_line_fright(cr, uid, inv.id)
@@ -2219,8 +2220,8 @@ class account_invoice(osv.osv):
 
         return True
     #TPT-START
-    ##
-    def cst_prod_avg_cost_update(self, cr, uid, invoice_id, context=None):
+    #TPT-START: By BalamuruganPurushothaman - ON 28/01/2016 - TO UPDATE FREIGHT INVOICE AMOUNT INTO PRODUCT MASTER TOTAL COST VALUE  
+    def cst_prod_avg_cost_update(self, cr, uid, invoice_id, tax_amounts, context=None):
         result = []
         if context is None:
             context = {}
@@ -2228,100 +2229,69 @@ class account_invoice(osv.osv):
         inventory_obj = self.pool.get('tpt.product.avg.cost')
         inv_id = self.pool.get('account.invoice').browse(cr, uid, invoice_id)
         for line in inv_id.invoice_line:
-            sql = 'delete from tpt_product_avg_cost where product_id=%s'%(line.product_id.id)
-            cr.execute(sql)       
-            sql = '''
-                select foo.loc as loc
-                    from
-                    (select st.location_id as loc from stock_move st
-                        inner join stock_location l on st.location_id= l.id
-                            where l.usage = 'internal'
-                    union all
-                    select st.location_dest_id as loc from stock_move st
-                        inner join stock_location l on st.location_dest_id= l.id
-                        where l.usage = 'internal'
-                        )foo
-                   group by foo.loc
-            '''
-            cr.execute(sql)
-            for loc in cr.dictfetchall():
+            #
+            prd_total_cost = 0
+            warehouse = False
+            if line.product_id.cate_name=='raw':
+                warehouse_id=15 # Store/RM
+                warehouse = True
+            elif line.product_id.cate_name=='spares':
+                warehouse_id=14 #Store/Spares
+                warehouse = True
+            if warehouse_id is True:
                 sql = '''
-                    select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end ton_sl,case when sum(foo.price_unit)!=0 then sum(foo.price_unit) else 0 end total_cost from 
-                        (select st.product_qty,st.price_unit*st.product_qty as price_unit
-                            from stock_move st 
-                            where st.state='done' and st.product_id=%s and st.location_dest_id=%s and st.location_dest_id != st.location_id and production_id is null
-                        )foo
-                '''%(line.product_id.id,loc['loc'])
+                            select total_cost  from tpt_product_avg_cost where warehouse_id=%s and product_id=%s
+                '''%(warehouse_id,line.product_id.id)
                 cr.execute(sql)
-                inventory = cr.dictfetchone()
-                if inventory:
-                    hand_quantity = float(inventory['ton_sl'])
-                    total_cost = float(inventory['total_cost'])
-                    avg_cost = hand_quantity and total_cost/hand_quantity or 0
-                    sql = '''
-                        select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end ton_sl 
-                            from 
-                                (
-                                select st.product_qty*-1 as product_qty
-                                    from stock_move st 
-                                    where st.state='done'
-                                        and st.product_id=%s
-                                        and location_id=%s
-                                        and location_dest_id != location_id
-                                        and production_id is null
-                                )foo
-                    '''%(line.product_id.id,loc['loc'])
-                    cr.execute(sql)
-                    out = cr.dictfetchone()
-                    if out:
-                        hand_quantity = hand_quantity+float(out['ton_sl'])
-                        total_cost = avg_cost*hand_quantity
+                produce = cr.dictfetchone()
+                if produce:
+                    prd_total_cost += float(produce['total_cost'])
+            base = 0.0
+            cr.execute('SELECT * FROM account_invoice_line WHERE invoice_id=%s', (invoice_id,))
+            for t in cr.dictfetchall():
+                basic = (t['quantity'] * t['price_unit']) - ( (t['quantity'] * t['price_unit'])*t['disc']/100)
+                ###
+                ed = 0.00
+                aed = 0.00
+                p_f = 0.0
+                if t['ed_type'] == '1' :
+                    ed = (basic) * t['ed']/100
+                    ed = round(ed,2)
+                elif t['ed_type'] == '2' :
+                    ed = t['ed']
+                    ed = round(ed,2)
+                elif t['ed_type'] == '3' :
+                    ed = t['ed'] * t['quantity']
+                    ed = round(ed,2)
+                else:
+                    ed = t['ed']
+                    ed = round(ed,2) 
+                aed = t['aed_id_1'] or 0.00
+                ##
+                if (t['p_f_type'] == '1'):
+                     p_f = basic * t['p_f']/100
+                elif (t['p_f_type'] == '2'):
+                     p_f =  t['p_f']
+                elif (t['p_f_type'] == '3'):
+                     p_f =  t['p_f'] * t['quantity']
+                else:
+                     p_f = t['p_f']
+                ##
+                ###
+                cst_basic = basic+ed+aed+p_f
+                prd_total_cost += cst_basic * tax_amounts/100
+            #
+            if hand_quantity>0: 
+                avg_cost = prd_total_cost/hand_quantity
+            inventory_obj.create(cr, uid, {'product_id':line.product_id.id,
+                                           'warehouse_id':loc['loc'],
+                                           'hand_quantity':hand_quantity,
+                                           'avg_cost':avg_cost,
+                                           'total_cost':prd_total_cost})   
                     
-                    sql = '''
-                        select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end ton_sl from 
-                            (select st.product_qty as product_qty
-                                from stock_move st 
-                                where st.state='done' and st.product_id=%s and st.location_dest_id=%s and st.
-                                 location_dest_id != st.location_id
-                                 and production_id is not null
-                             union all
-                             select st.product_qty*-1 as product_qty
-                                from stock_move st 
-                                where st.state='done'
-                                        and st.product_id=%s
-                                            and location_id=%s
-                                            and location_dest_id != location_id
-                                             and production_id is not null
-                            )foo
-                    '''%(line.product_id.id,loc['loc'],line.product_id.id,loc['loc'])
-                    cr.execute(sql)
-                    hand_quantity += cr.fetchone()[0]
-                    sql = '''
-                        select case when sum(produce_cost)!=0 then sum(produce_cost) else 0 end produce_cost,
-                            case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty
-                            from mrp_production where location_dest_id=%s and product_id=%s and state='done'
-                    '''%(loc['loc'],line.product_id.id)
-                    cr.execute(sql)
-                    produce = cr.dictfetchone()
-                    if produce:
-                        total_cost += float(produce['produce_cost'])
-                        avg_cost = hand_quantity and total_cost/hand_quantity or 0
-                    base = 0.0
-                    if line.fright_fi_type == '2':
-                        base = round(line.fright)
-                    else:
-                        base = round(line.fright*line.quantity)
-                    invoice_line_amt = base
-                    total_cost += invoice_line_amt
-                    if hand_quantity>0:
-                        avg_cost = total_cost/hand_quantity
-                    inventory_obj.create(cr, uid, {'product_id':line.product_id.id,
-                                                   'warehouse_id':loc['loc'],
-                                                   'hand_quantity':hand_quantity,
-                                                   'avg_cost':avg_cost,
-                                                   'total_cost':total_cost})   
 
         return True
+    ## 
     ##
 #     def line_get_convert(self, cr, uid, x, part, date, context=None):
 #         return {
@@ -9320,11 +9290,8 @@ class tpt_cform_invoice(osv.osv):
                 raise osv.except_osv(_('Warning!'),_('Can not create more than one record in this window!'))
         return True
     
-    
-    
     _constraints = [
         (_check_state, 'Identical Data', ['state']),
-       
     ] 
 
     def bt_load(self, cr, uid, ids,context=None):
@@ -9342,17 +9309,16 @@ class tpt_cform_invoice(osv.osv):
                     product_id = line.product_id and line.product_id.id 
                     uom_id = line.uos_id and line.uos_id.id              
                 cform_line.append((0,0,{
-                        'invoice_no': invoice.vvt_number or '',      
-                        'customer_code':  '['+invoice.partner_id.customer_code+'] '+ invoice.partner_id.name,           
-                        'partner_id': invoice.partner_id and invoice.partner_id.id or False,
-                        'date_invoiced': invoice.date_invoice,                        
-                        'invoice_id': invoice.id or False,
-                        'bill_amount': invoice.amount_total or 0,
-                        'form_type': invoice.form_type or '',
-                        'product_id': product_id or False,
-                        'uom_id': uom_id or False,    
-                        
-                    }))
+                    'invoice_no': invoice.vvt_number or '',      
+                    'customer_code':  '['+invoice.partner_id.customer_code+'] '+ invoice.partner_id.name,           
+                    'partner_id': invoice.partner_id and invoice.partner_id.id or False,
+                    'date_invoiced': invoice.date_invoice,                        
+                    'invoice_id': invoice.id or False,
+                    'bill_amount': invoice.amount_total or 0,
+                    'form_type': invoice.form_type or '',
+                    'product_id': product_id or False,
+                    'uom_id': uom_id or False,    
+                }))
                 
                     
                 

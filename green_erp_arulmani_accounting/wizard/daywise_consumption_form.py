@@ -118,7 +118,7 @@ class day_wise_register(osv.osv_memory):
         vals = {}
         if date_from:
             date_from = datetime.datetime.strptime(date_from,'%Y-%m-%d')           
-            date_from=str(date_from + timedelta(days=30))[:10]
+            date_from=str(date_from + timedelta(days=29))[:10]
             vals = {'date_to':date_from,
                     }
             return {'value': vals}
@@ -627,6 +627,355 @@ class day_wise_register(osv.osv_memory):
                     
             return res
         #TPT END#
+        #TPT START - By P.vinothkumar - ON 09/06/2016 - FOR (Display quantities as per day wise)
+        def new_get_day_cons(cb):
+            #wizard_data = self.localcontext['data']['form']
+            date_from = cb.date_from
+            date_to = cb.date_to      
+            raw_mat=cb.product_id.id
+            norms= cb.name.id
+            res = []
+ 
+            sql = '''
+            SELECT to_char(generate_series, 'YYYY-MM-DD') as date FROM generate_series('%s'::timestamp,'%s', '1 Days')
+            '''%(cb.date_from, cb.date_to)
+            cr.execute(sql)
+            date_list = [r[0] for r in cr.fetchall()] 
+            if len(date_list)< 28 or len(date_list) > 31 :
+                raise osv.except_osv(_('Warning!'), _('Date ranges are not greater or lesser than 28 days!.'))
+            
+            temp_prd_list = []
+            sql = '''
+            select distinct sm.product_id as product_id, pro.default_code from mrp_production mp
+            inner join mrp_production_move_ids mpm on mp.id=mpm.production_id
+            inner join stock_move sm on mpm.move_id=sm.id
+            inner join product_product pro on sm.product_id=pro.id
+            where mp.bom_id=%s and mp.date_planned between '%s' and '%s'
+            order by pro.default_code
+            '''%(norms, cb.date_from, cb.date_to)
+            cr.execute(sql)
+            print sql
+            temp_prd_list = cr.dictfetchall()
+
+            if raw_mat:
+                temp_prd_list = [{ 'product_id' : raw_mat }]
+            for product_list in temp_prd_list:
+                sql = '''
+                     
+                    select coalesce((select default_code from product_product where id=%(product_id)s),'') as material_code,
+                    
+                    (select coalesce((select name_template from product_product where id=%(product_id)s),'')) as material_name,
+                    
+                    (select coalesce((select pu.name from product_template pp
+                    inner join product_uom pu on pp.uom_po_id=pu.id
+                    where pp.id=%(product_id)s),'')) as uom,
+                    
+                    (select coalesce((select case when sum(sm.product_qty)>=0 then sum(sm.product_qty) else 0 end as app_qty
+                               from mrp_production mp
+                               inner join mrp_production_move_ids mpm on mp.id=mpm.production_id
+                               inner join stock_move sm on mpm.move_id=sm.id
+                               where mp.date_planned= '%(date1)s'
+                               and mp.bom_id = %(bom_id)s and mp.state = 'done' and sm.product_id=%(product_id)s),'0.0')) as applied_qty,
+                       
+                   (select coalesce((select case when sum(sm.product_qty)>=0 then sum(sm.product_qty) else 0 end as app_qty
+                               from mrp_production mp
+                               inner join mrp_production_move_ids mpm on mp.id=mpm.production_id
+                               inner join stock_move sm on mpm.move_id=sm.id
+                               where mp.date_planned= '%(date2)s'
+                               and mp.bom_id = %(bom_id)s and mp.state = 'done' and sm.product_id=%(product_id)s),'0.0')) as applied_qty1,
+                               
+                   (select coalesce((select case when sum(sm.product_qty)>=0 then sum(sm.product_qty) else 0 end as app_qty
+                               from mrp_production mp
+                               inner join mrp_production_move_ids mpm on mp.id=mpm.production_id
+                               inner join stock_move sm on mpm.move_id=sm.id
+                               where mp.date_planned= '%(date3)s'
+                               and mp.bom_id = %(bom_id)s and mp.state = 'done' and sm.product_id=%(product_id)s),'0.0')) as applied_qty2, 
+                               
+                 (select coalesce((select case when sum(sm.product_qty)>=0 then sum(sm.product_qty) else 0 end as app_qty
+                               from mrp_production mp
+                               inner join mrp_production_move_ids mpm on mp.id=mpm.production_id
+                               inner join stock_move sm on mpm.move_id=sm.id
+                               where mp.date_planned= '%(date4)s'
+                               and mp.bom_id = %(bom_id)s and mp.state = 'done' and sm.product_id=%(product_id)s),'0.0')) as applied_qty3,
+                               
+                (select coalesce((select case when sum(sm.product_qty)>=0 then sum(sm.product_qty) else 0 end as app_qty
+                               from mrp_production mp
+                               inner join mrp_production_move_ids mpm on mp.id=mpm.production_id
+                               inner join stock_move sm on mpm.move_id=sm.id
+                               where mp.date_planned= '%(date5)s'
+                               and mp.bom_id = %(bom_id)s and mp.state = 'done' and sm.product_id=%(product_id)s),'0.0')) as applied_qty4,
+                               
+                 (select coalesce((select case when sum(sm.product_qty)>=0 then sum(sm.product_qty) else 0 end as app_qty
+                               from mrp_production mp
+                               inner join mrp_production_move_ids mpm on mp.id=mpm.production_id
+                               inner join stock_move sm on mpm.move_id=sm.id
+                               where mp.date_planned= '%(date6)s'
+                               and mp.bom_id = %(bom_id)s and mp.state = 'done' and sm.product_id=%(product_id)s),'0.0')) as applied_qty5,
+                  (select coalesce((select case when sum(sm.product_qty)>=0 then sum(sm.product_qty) else 0 end as app_qty
+                               from mrp_production mp
+                               inner join mrp_production_move_ids mpm on mp.id=mpm.production_id
+                               inner join stock_move sm on mpm.move_id=sm.id
+                               where mp.date_planned= '%(date7)s'
+                               and mp.bom_id = %(bom_id)s and mp.state = 'done' and sm.product_id=%(product_id)s),'0.0')) as applied_qty6,
+                  (select coalesce((select case when sum(sm.product_qty)>=0 then sum(sm.product_qty) else 0 end as app_qty
+                               from mrp_production mp
+                               inner join mrp_production_move_ids mpm on mp.id=mpm.production_id
+                               inner join stock_move sm on mpm.move_id=sm.id
+                               where mp.date_planned= '%(date8)s'
+                               and mp.bom_id = %(bom_id)s and mp.state = 'done' and sm.product_id=%(product_id)s),'0.0')) as applied_qty7,
+                               
+                   (select coalesce((select case when sum(sm.product_qty)>=0 then sum(sm.product_qty) else 0 end as app_qty
+                               from mrp_production mp
+                               inner join mrp_production_move_ids mpm on mp.id=mpm.production_id
+                               inner join stock_move sm on mpm.move_id=sm.id
+                               where mp.date_planned= '%(date9)s'
+                               and mp.bom_id = %(bom_id)s and mp.state = 'done' and sm.product_id=%(product_id)s),'0.0')) as applied_qty8, 
+                  (select coalesce((select case when sum(sm.product_qty)>=0 then sum(sm.product_qty) else 0 end as app_qty
+                               from mrp_production mp
+                               inner join mrp_production_move_ids mpm on mp.id=mpm.production_id
+                               inner join stock_move sm on mpm.move_id=sm.id
+                               where mp.date_planned= '%(date10)s'
+                               and mp.bom_id = %(bom_id)s and mp.state = 'done' and sm.product_id=%(product_id)s),'0.0')) as applied_qty9,
+                 (select coalesce((select case when sum(sm.product_qty)>=0 then sum(sm.product_qty) else 0 end as app_qty
+                               from mrp_production mp
+                               inner join mrp_production_move_ids mpm on mp.id=mpm.production_id
+                               inner join stock_move sm on mpm.move_id=sm.id
+                               where mp.date_planned= '%(date11)s'
+                               and mp.bom_id = %(bom_id)s and mp.state = 'done' and sm.product_id=%(product_id)s),'0.0')) as applied_qty10,
+                  (select coalesce((select case when sum(sm.product_qty)>=0 then sum(sm.product_qty) else 0 end as app_qty
+                               from mrp_production mp
+                               inner join mrp_production_move_ids mpm on mp.id=mpm.production_id
+                               inner join stock_move sm on mpm.move_id=sm.id
+                               where mp.date_planned= '%(date12)s'
+                               and mp.bom_id = %(bom_id)s and mp.state = 'done' and sm.product_id=%(product_id)s),'0.0')) as applied_qty11,
+                  (select coalesce((select case when sum(sm.product_qty)>=0 then sum(sm.product_qty) else 0 end as app_qty
+                               from mrp_production mp
+                               inner join mrp_production_move_ids mpm on mp.id=mpm.production_id
+                               inner join stock_move sm on mpm.move_id=sm.id
+                               where mp.date_planned= '%(date13)s'
+                               and mp.bom_id = %(bom_id)s and mp.state = 'done' and sm.product_id=%(product_id)s),'0.0')) as applied_qty12,
+                               
+                   (select coalesce((select case when sum(sm.product_qty)>=0 then sum(sm.product_qty) else 0 end as app_qty
+                               from mrp_production mp
+                               inner join mrp_production_move_ids mpm on mp.id=mpm.production_id
+                               inner join stock_move sm on mpm.move_id=sm.id
+                               where mp.date_planned= '%(date14)s'
+                               and mp.bom_id = %(bom_id)s and mp.state = 'done' and sm.product_id=%(product_id)s),'0.0')) as applied_qty13,
+                               
+                   (select coalesce((select case when sum(sm.product_qty)>=0 then sum(sm.product_qty) else 0 end as app_qty
+                               from mrp_production mp
+                               inner join mrp_production_move_ids mpm on mp.id=mpm.production_id
+                               inner join stock_move sm on mpm.move_id=sm.id
+                               where mp.date_planned= '%(date15)s'
+                               and mp.bom_id = %(bom_id)s and mp.state = 'done' and sm.product_id=%(product_id)s),'0.0')) as applied_qty14,
+                   
+                  (select coalesce((select case when sum(sm.product_qty)>=0 then sum(sm.product_qty) else 0 end as app_qty
+                               from mrp_production mp
+                               inner join mrp_production_move_ids mpm on mp.id=mpm.production_id
+                               inner join stock_move sm on mpm.move_id=sm.id
+                               where mp.date_planned= '%(date16)s'
+                               and mp.bom_id = %(bom_id)s and mp.state = 'done' and sm.product_id=%(product_id)s),'0.0')) as applied_qty15,
+                               
+                  (select coalesce((select case when sum(sm.product_qty)>=0 then sum(sm.product_qty) else 0 end as app_qty
+                               from mrp_production mp
+                               inner join mrp_production_move_ids mpm on mp.id=mpm.production_id
+                               inner join stock_move sm on mpm.move_id=sm.id
+                               where mp.date_planned= '%(date17)s'
+                               and mp.bom_id = %(bom_id)s and mp.state = 'done' and sm.product_id=%(product_id)s),'0.0')) as applied_qty16, 
+                               
+                 (select coalesce((select case when sum(sm.product_qty)>=0 then sum(sm.product_qty) else 0 end as app_qty
+                               from mrp_production mp
+                               inner join mrp_production_move_ids mpm on mp.id=mpm.production_id
+                               inner join stock_move sm on mpm.move_id=sm.id
+                               where mp.date_planned= '%(date18)s'
+                               and mp.bom_id = %(bom_id)s and mp.state = 'done' and sm.product_id=%(product_id)s),'0.0')) as applied_qty17,
+                               
+                (select coalesce((select case when sum(sm.product_qty)>=0 then sum(sm.product_qty) else 0 end as app_qty
+                               from mrp_production mp
+                               inner join mrp_production_move_ids mpm on mp.id=mpm.production_id
+                               inner join stock_move sm on mpm.move_id=sm.id
+                               where mp.date_planned= '%(date19)s'
+                               and mp.bom_id = %(bom_id)s and mp.state = 'done' and sm.product_id=%(product_id)s),'0.0')) as applied_qty18,
+                               
+                (select coalesce((select case when sum(sm.product_qty)>=0 then sum(sm.product_qty) else 0 end as app_qty
+                               from mrp_production mp
+                               inner join mrp_production_move_ids mpm on mp.id=mpm.production_id
+                               inner join stock_move sm on mpm.move_id=sm.id
+                               where mp.date_planned= '%(date20)s'
+                               and mp.bom_id = %(bom_id)s and mp.state = 'done' and sm.product_id=%(product_id)s),'0.0')) as applied_qty19,
+                               
+                (select coalesce((select case when sum(sm.product_qty)>=0 then sum(sm.product_qty) else 0 end as app_qty
+                               from mrp_production mp
+                               inner join mrp_production_move_ids mpm on mp.id=mpm.production_id
+                               inner join stock_move sm on mpm.move_id=sm.id
+                               where mp.date_planned= '%(date21)s'
+                               and mp.bom_id = %(bom_id)s and mp.state = 'done' and sm.product_id=%(product_id)s),'0.0')) as applied_qty20,
+                               
+                (select coalesce((select case when sum(sm.product_qty)>=0 then sum(sm.product_qty) else 0 end as app_qty
+                               from mrp_production mp
+                               inner join mrp_production_move_ids mpm on mp.id=mpm.production_id
+                               inner join stock_move sm on mpm.move_id=sm.id
+                               where mp.date_planned= '%(date22)s'
+                               and mp.bom_id = %(bom_id)s and mp.state = 'done' and sm.product_id=%(product_id)s),'0.0')) as applied_qty21,
+                               
+                (select coalesce((select case when sum(sm.product_qty)>=0 then sum(sm.product_qty) else 0 end as app_qty
+                               from mrp_production mp
+                               inner join mrp_production_move_ids mpm on mp.id=mpm.production_id
+                               inner join stock_move sm on mpm.move_id=sm.id
+                               where mp.date_planned= '%(date23)s'
+                               and mp.bom_id = %(bom_id)s and mp.state = 'done' and sm.product_id=%(product_id)s),'0.0')) as applied_qty22, 
+                               
+                 (select coalesce((select case when sum(sm.product_qty)>=0 then sum(sm.product_qty) else 0 end as app_qty
+                               from mrp_production mp
+                               inner join mrp_production_move_ids mpm on mp.id=mpm.production_id
+                               inner join stock_move sm on mpm.move_id=sm.id
+                               where mp.date_planned= '%(date24)s'
+                               and mp.bom_id = %(bom_id)s and mp.state = 'done' and sm.product_id=%(product_id)s),'0.0')) as applied_qty23,
+                               
+                 (select coalesce((select case when sum(sm.product_qty)>=0 then sum(sm.product_qty) else 0 end as app_qty
+                               from mrp_production mp
+                               inner join mrp_production_move_ids mpm on mp.id=mpm.production_id
+                               inner join stock_move sm on mpm.move_id=sm.id
+                               where mp.date_planned= '%(date25)s'
+                               and mp.bom_id = %(bom_id)s and mp.state = 'done' and sm.product_id=%(product_id)s),'0.0')) as applied_qty24,
+                               
+                  (select coalesce((select case when sum(sm.product_qty)>=0 then sum(sm.product_qty) else 0 end as app_qty
+                               from mrp_production mp
+                               inner join mrp_production_move_ids mpm on mp.id=mpm.production_id
+                               inner join stock_move sm on mpm.move_id=sm.id
+                               where mp.date_planned= '%(date26)s'
+                               and mp.bom_id = %(bom_id)s and mp.state = 'done' and sm.product_id=%(product_id)s),'0.0')) as applied_qty25,
+                               
+                  (select coalesce((select case when sum(sm.product_qty)>=0 then sum(sm.product_qty) else 0 end as app_qty
+                               from mrp_production mp
+                               inner join mrp_production_move_ids mpm on mp.id=mpm.production_id
+                               inner join stock_move sm on mpm.move_id=sm.id
+                               where mp.date_planned= '%(date27)s'
+                               and mp.bom_id = %(bom_id)s and mp.state = 'done' and sm.product_id=%(product_id)s),'0.0')) as applied_qty26,
+                               
+                  (select coalesce((select case when sum(sm.product_qty)>=0 then sum(sm.product_qty) else 0 end as app_qty
+                               from mrp_production mp
+                               inner join mrp_production_move_ids mpm on mp.id=mpm.production_id
+                               inner join stock_move sm on mpm.move_id=sm.id
+                               where mp.date_planned= '%(date28)s'
+                               and mp.bom_id = %(bom_id)s and mp.state = 'done' and sm.product_id=%(product_id)s),'0.0')) as applied_qty27                 
+                                                                                                                
+                    '''%{'bom_id':norms,
+                         'date1':date_list[0],
+                         'date2':date_list[1],
+                         'date3':date_list[2],
+                         'date4':date_list[3],
+                         'date5':date_list[4],
+                         'date6':date_list[5],
+                         'date7':date_list[6],
+                         'date8':date_list[7],
+                         'date9':date_list[8],
+                         'date10':date_list[9],
+                         'date11':date_list[10],
+                         'date12':date_list[11],
+                         'date13':date_list[12],
+                         'date14':date_list[13],
+                         'date15':date_list[14],
+                         'date16':date_list[15],
+                         'date17':date_list[16],
+                         'date18':date_list[17],
+                         'date19':date_list[18],
+                         'date20':date_list[19],
+                         'date21':date_list[20],
+                         'date22':date_list[21],
+                         'date23':date_list[22],
+                         'date24':date_list[23],
+                         'date25':date_list[24],
+                         'date26':date_list[25],
+                         'date27':date_list[26],
+                         'date28':date_list[27],
+                         'product_id': product_list['product_id'],
+                    }
+                #  
+                #print len(date_list)               
+                if len(date_list)==29:
+                    sql += '''
+                    ,(select coalesce((select case when sum(sm.product_qty)>=0 then sum(sm.product_qty) else 0 end as app_qty
+                               from mrp_production mp
+                               inner join mrp_production_move_ids mpm on mp.id=mpm.production_id
+                               inner join stock_move sm on mpm.move_id=sm.id
+                               where mp.date_planned= '%(date29)s'
+                               and mp.bom_id = %(bom_id)s and mp.state = 'done' and sm.product_id=%(product_id)s),'0.0')) as applied_qty28 
+                    '''%{'bom_id':norms,
+                         'date29':date_list[28],
+                         'product_id': product_list['product_id'],
+                    } 
+                    
+                #
+                if len(date_list)==30:
+                        sql += '''
+                        ,(select coalesce((select case when sum(sm.product_qty)>=0 then sum(sm.product_qty) else 0 end as app_qty
+                               from mrp_production mp
+                               inner join mrp_production_move_ids mpm on mp.id=mpm.production_id
+                               inner join stock_move sm on mpm.move_id=sm.id
+                               where mp.date_planned= '%(date29)s'
+                               and mp.bom_id = %(bom_id)s and mp.state = 'done' and sm.product_id=%(product_id)s),'0.0')) as applied_qty28,
+                        (select coalesce((select case when sum(sm.product_qty)>=0 then sum(sm.product_qty) else 0 end as app_qty
+                               from mrp_production mp
+                               inner join mrp_production_move_ids mpm on mp.id=mpm.production_id
+                               inner join stock_move sm on mpm.move_id=sm.id
+                               where mp.date_planned= '%(date30)s'
+                               and mp.bom_id = %(bom_id)s and mp.state = 'done' and sm.product_id=%(product_id)s),'0.0')) as applied_qty29
+                        '''%{'bom_id':norms,
+                         'date29':date_list[28],
+                         'date30':date_list[29],
+                         'product_id': product_list['product_id']
+                    }
+                        
+                        
+                        
+                if len(date_list)==31:
+                        sql += '''
+                        ,(select coalesce((select case when sum(sm.product_qty)>=0 then sum(sm.product_qty) else 0 end as app_qty
+                               from mrp_production mp
+                               inner join mrp_production_move_ids mpm on mp.id=mpm.production_id
+                               inner join stock_move sm on mpm.move_id=sm.id
+                               where mp.date_planned= '%(date29)s'
+                               and mp.bom_id = %(bom_id)s and mp.state = 'done' and sm.product_id=%(product_id)s),'0.0')) as applied_qty28,
+                        (select coalesce((select case when sum(sm.product_qty)>=0 then sum(sm.product_qty) else 0 end as app_qty
+                               from mrp_production mp
+                               inner join mrp_production_move_ids mpm on mp.id=mpm.production_id
+                               inner join stock_move sm on mpm.move_id=sm.id
+                               where mp.date_planned= '%(date30)s'
+                               and mp.bom_id = %(bom_id)s and mp.state = 'done' and sm.product_id=%(product_id)s),'0.0')) as applied_qty29
+                        ,(select coalesce((select case when sum(sm.product_qty)>=0 then sum(sm.product_qty) else 0 end as app_qty
+                               from mrp_production mp
+                               inner join mrp_production_move_ids mpm on mp.id=mpm.production_id
+                               inner join stock_move sm on mpm.move_id=sm.id
+                               where mp.date_planned= '%(date31)s'
+                               and mp.bom_id = %(bom_id)s and mp.state = 'done' and sm.product_id=%(product_id)s),'0.0')) as applied_qty30
+                        '''%{'bom_id':norms,
+                         'date29':date_list[28],
+                         'date30':date_list[29],
+                         'date31':date_list[30],
+                         'product_id': product_list['product_id']
+                    }
+                sql += '''        
+               ,(select coalesce((select case when sum(sm.product_qty)>=0 then sum(sm.product_qty) else 0 end as total
+                               from mrp_production mp
+                               inner join mrp_production_move_ids mpm on mp.id=mpm.production_id
+                               inner join stock_move sm on mpm.move_id=sm.id
+                               where mp.date_planned between '%(from_date)s' and '%(to_date)s'
+                               and mp.bom_id = %(bom_id)s and mp.state = 'done' and sm.product_id=%(product_id)s),0)) as total  
+                 '''%{
+                      'from_date':cb.date_from, 
+                      'to_date': cb.date_to,
+                      'bom_id':norms,
+                      'product_id': product_list['product_id'],
+                    }                       
+                        
+               # print sql
+                cr.execute(sql) 
+                print sql
+                res += cr.dictfetchall()
+                    
+            return res 
+        #TPT END
         
         #TPT START - By P.vinothkumar - ON 04/05/2016 - FOR (Display quantities as two decimal places and display dates)
         def get_amt(amt):       
@@ -698,8 +1047,8 @@ class day_wise_register(osv.osv_memory):
         else:
             raise osv.except_osv(_('Warning!'), _('Date ranges are not greater or lesser than 28 days!.')) 
           #TPT END#
-          
-        for line in get_day_cons(cb):
+           # Method Renamed by P.Vinothkumar on 08/06/2016 for missing products in report
+        for line in new_get_day_cons(cb):#get_day_cons(cb):
             applied_qty28 = 0
             applied_qty29 = 0
             applied_qty30 = 0

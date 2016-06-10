@@ -28,7 +28,7 @@
 	    <record id="customer_ageing_report_pdf" model="ir.actions.report.xml">
 	        <field name="name">customer_ageing_report_pdf</field>
 	        <field name="type">ir.actions.report.xml</field>
-	        <field name="model">tpt.customer.ageing.report</field>
+	        <field name="model">customer.ageing.report</field>
 	        <field name="report_name">customer_ageing_report</field>
 	        <field name="report_type">aeroo</field>
 	        <field name="in_format">oo-ods</field>
@@ -54,16 +54,36 @@
 	        <field name="model">customer.ageing.report</field>
 	        <field name="arch" type="xml">
 	            <form version='7.0' string="Customer Ageing Report" create="false" edit="false" delete="false">
-	            		<sheet>
-            			<div class="oe_bold oe_text_left">            				 
-            				<field name="date_from" class="oe_text_left oe_inline"/>
-            			</div>
-            			<div class="oe_bold oe_text_left">            				 
-            				<field name="date_from" class="oe_text_left oe_inline"/>
-            			</div>
-            			</sheet>
-	            </form>
+	            		<header>
+	            		<button name="print_xls" string="Print (.xls)" type="object" class="oe_highlight" />
+	            		<button name="print_pdf" string="Print (.pdf)" type="object" class="oe_highlight" />
+	            	</header>
+	            	<sheet>
+	            		<div class="oe_text_center">
+            				<b>Customer Ageing Report</b>
+            			</div>	
+            			<group>
+            				<field name="date_from"/>
+                			<field name="customer_id"/>
+                			<field name="customer_group"/>
+            			</group>
+	                	<group>
+		                	<field name="ageing_line" nolabel='1'>
+		                		<tree create="false" edit="false" delete="false">
+		                			<field name="code"/>
+		                			<field name="name"/>
+		                			<field name="balance"/>
+		                			<field name="0_30_days"/>
+		                			<field name="31_45_days"/>
+		                			<field name="46_60_days"/>
+		                			<field name="61_90_days"/>  
+		                			<field name="over_90_days"/>
+		                		</tree>
+		                	</field>
+	                	</group>
+	               	</sheet>
+	           </form>
 	        </field>
 	    </record>
-	   </data>
+    </data>
 </openerp>
