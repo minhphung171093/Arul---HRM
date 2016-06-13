@@ -2658,7 +2658,7 @@
                             on_change="onchange_partner_id(tpt_partner_id, journal_id, amount, currency_id, type, date, context)" string="Customer" 
                             options="{'create': false, 'create_edit': false}"
                             />
-                            <field name="date"/> <!-- TPT-BM-06/06/2016 - TO ADD DATE IN CUSTOER RECONCILE SCREEN -->
+                            <field name="tpt_date"/> <!-- TPT-BM-06/06/2016 - TO ADD DATE IN CUSTOER RECONCILE SCREEN -->
                             <field name="currency_id" invisible="1"/>
                             <field name="amount" class="oe_inline"
                                 string="Paid Amount" invisible="1"

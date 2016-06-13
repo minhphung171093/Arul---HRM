@@ -1692,7 +1692,7 @@ class account_invoice(osv.osv):
                         if cst_flag is True:
                             iml += invoice_line_obj.move_line_amount_untaxed_cst(cr, uid, inv.id, tax_amounts[0]) 
                             #TPT-START: By BalamuruganPurushothaman - ON 08/06/2016 - TO UPDATE CST AMOUNT INTO PRODUCT MASTER TOTAL COST VALUE
-                            #self.cst_prod_avg_cost_update(cr, uid, inv.id, tax_amounts[0], context) 
+                            self.cst_prod_avg_cost_update(cr, uid, inv.id, tax_amounts[0], context) 
                             #TPT END
                         else:
                             iml += invoice_line_obj.move_line_amount_untaxed(cr, uid, inv.id) 
@@ -5463,6 +5463,7 @@ class account_voucher(osv.osv):
         'total_diff':fields.function(_amount_all_credit_debit, type='float', multi='sum3',string='Diff: Cr-Db'),
         'partner_id':fields.many2one('res.partner', 'Partner',  states={'draft':[('readonly',False)]}),
         'tpt_partner_id':fields.many2one('res.partner', 'Partner',  states={'draft':[('readonly',False)]}),
+        'tpt_date': fields.date('Date', states={'draft':[('readonly',False)]})
         }
     #
     def action_auto_reconcile(self, cr, uid, ids, context=None):
@@ -5686,11 +5687,13 @@ class account_voucher(osv.osv):
             
         if context is None:
             context = {}
+        #TPT-START - BM on 13/06/2016
+        if vals['tpt_date']:
+            vals['date']=vals['tpt_date']
+        #TPT_END
         voucher_id = super(account_voucher, self).create(cr, uid, vals, context)
-        #print vals
+
         voucher = self.browse(cr, uid, voucher_id)
-        #print voucher.currency_id
-          
         if voucher.type_trans:
             total = 0
             sql = '''
@@ -5721,12 +5724,16 @@ class account_voucher(osv.osv):
             if round(total_debit,2) != round(total_credit,2):
                 raise osv.except_osv(_('Warning!'),
                     _('Total Debit must be equal Total Credit!'))
-
+        
         return voucher_id
     
     def write(self, cr, uid, ids, vals, context=None):
         if context is None:
             context = {}
+        #TPT-START - BM on 13/06/2016 - For Customer Reconciliation screen - date user selectable that should be updated into account move line table
+        if vals.get('tpt_date', False):#vals['tpt_date']:
+            vals['date']=vals['tpt_date']
+        #TPT_END
         new_write = super(account_voucher, self).write(cr, uid, ids, vals, context)
         for voucher in self.browse(cr, uid, ids):
             if voucher.type_trans and voucher.type_cash_bank != 'journal':
