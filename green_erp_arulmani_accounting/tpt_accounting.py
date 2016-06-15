@@ -1815,6 +1815,16 @@ class account_invoice(osv.osv):
                 if flag is True:
                     iml += invoice_line_obj.move_line_fi_debit_14(cr, uid, inv.id)
                     iml += invoice_line_obj.move_line_fi_debit_5(cr, uid, inv.id)
+                # TPT-By  TPT vins - ON 15/06/2016 for adding krishi kalyan tax 
+                elif line.tax_id.description in ['STax 15%']:
+                    iml += invoice_line_obj.move_line_amount_tax_sbc_14(cr, uid, inv.id)
+                    iml += invoice_line_obj.move_line_amount_tax_swachh_bharat_cess_5(cr, uid, inv.id)
+                    iml += invoice_line_obj.move_line_amount_tax_krishi_kalyan_cess_5(cr, uid, inv.id)
+                elif line.tax_id.description in ['STax 30% of Freight 15% (Dr)']:
+                    iml += invoice_line_obj.move_line_amount_tax_sbc_14(cr, uid, inv.id)
+                    iml += invoice_line_obj.move_line_amount_tax_swachh_bharat_cess_5(cr, uid, inv.id)
+                    iml += invoice_line_obj.move_line_amount_tax_krishi_kalyan_cess_5(cr, uid, inv.id)                        
+             #TPT END              
                 else:
                     iml += invoice_line_obj.move_line_fi_debit(cr, uid, inv.id)
  
@@ -3426,7 +3436,10 @@ class account_invoice_line(osv.osv):
                 #===============================================================
                 tax_value += 14.00/100    
                 if line.tax_id and line.tax_id.description=='STax 30% of Freight 14.5% (Dr)':
-                    tax_value = tax_value*30/100  
+                    tax_value = tax_value*30/100
+                #Add this condition for krishi kalyan 0.5 freight by TPT vinoth    
+                if line.tax_id and line.tax_id.description=='STax 30% of Freight 15% (Dr)':
+                    tax_value = tax_value*30/100      
                 if line.aed_id_1:
                     tax = (basic + p_f + ed + line.aed_id_1)*(tax_value) * voucher_rate
                     tax = round(tax,2)      
@@ -3871,6 +3884,10 @@ class account_invoice_line(osv.osv):
                 if line.tax_id and line.tax_id.description=='STax 30% of Freight 14.5% (Dr)':
                     tax_value += 0.5/100
                     tax_value += tax_value*30/100
+                if line.tax_id and line.tax_id.description=='STax 30% of Freight 15% (Dr)':
+                    tax_value += 0.5/100
+                    tax_value += tax_value*30/100    
+                    
 #                 if line.tax_id and line.tax_id.description=='STax 30% of Freight 14.5% (Cr)':
 #                     tax_value += 0.5/100
 #                     tax_value += tax_value*30/100
