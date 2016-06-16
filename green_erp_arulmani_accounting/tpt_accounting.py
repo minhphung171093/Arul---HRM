@@ -9341,7 +9341,7 @@ class tpt_cform_invoice(osv.osv):
                     'date_invoiced': invoice.date_invoice,   
                     'sales_region' : invoice.partner_id and invoice.partner_id.state_id and  invoice.partner_id.state_id.name or '' ,       
                     'city' : invoice.partner_id and invoice.partner_id.city or '' ,                 
-                    #'invoice_id': invoice.id or False,
+                    'invoice_id': invoice.id or False,
                     'bill_amount': invoice.amount_total or 0,
                     'form_type': invoice.form_type or '',
                     'customer_code':  '['+invoice.partner_id.customer_code+'] '+ invoice.partner_id.name,
@@ -9417,7 +9417,7 @@ class tpt_cform_invoice_line(osv.osv):
         'gross_amt': fields.float('Gross Amt'),#
         'cst_amt': fields.float('CST Amt'),#
         'bill_amount': fields.float('Net Total'),# [('domestic','Domestic/Indirect Export'),('export','Export')],
-        'form_type': fields.selection([('cform', 'C-Form'), ('hform', 'H-Form'), ('iform', 'I-Form'), 
+        'form_type': fields.selection([('cform', 'C-Form'), ('fform', 'F-Form'), ('hform', 'H-Form'), ('iform', 'I-Form'),  
                                        ('na', 'Not Applicable'), ('tbc', 'To Be Collect')],'Form Type'), 
         'form_number': fields.char('Form Number'),
         'form_date': fields.date('Form Date'),
