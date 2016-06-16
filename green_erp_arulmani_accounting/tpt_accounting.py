@@ -5679,7 +5679,7 @@ class account_voucher(osv.osv):
         if context is None:
             context = {}
         #TPT-START - BM on 13/06/2016
-        if vals['tpt_date']:
+        if vals.get('tpt_date', False) and vals['tpt_date']:
             vals['date']=vals['tpt_date']
         #TPT_END
         voucher_id = super(account_voucher, self).create(cr, uid, vals, context)
