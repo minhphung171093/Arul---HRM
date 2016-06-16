@@ -9331,17 +9331,25 @@ class tpt_cform_invoice(osv.osv):
             for invoice in invoice_obj.browse(cr, uid, invoice_ids):  
                 for line in invoice.invoice_line:
                     product_id = line.product_id and line.product_id.id 
-                    uom_id = line.uos_id and line.uos_id.id              
+                    quantity = line.quantity or ''
+                    uom_id = line.uos_id and line.uos_id.id    
+                              
                 cform_line.append((0,0,{
                     'invoice_no': invoice.vvt_number or '',      
-                    'customer_code':  '['+invoice.partner_id.customer_code+'] '+ invoice.partner_id.name,           
-                    'partner_id': invoice.partner_id and invoice.partner_id.id or False,
-                    'date_invoiced': invoice.date_invoice,                        
-                    'invoice_id': invoice.id or False,
+                               
+                    #'partner_id': invoice.partner_id and invoice.partner_id.id or False,
+                    'date_invoiced': invoice.date_invoice,   
+                    'sales_region' : invoice.partner_id and invoice.partner_id.state_id and  invoice.partner_id.state_id.name or '' ,       
+                    'city' : invoice.partner_id and invoice.partner_id.city or '' ,                 
+                    #'invoice_id': invoice.id or False,
                     'bill_amount': invoice.amount_total or 0,
                     'form_type': invoice.form_type or '',
+                    'customer_code':  '['+invoice.partner_id.customer_code+'] '+ invoice.partner_id.name,
                     'product_id': product_id or False,
+                    'quantity': quantity or '',
                     'uom_id': uom_id or False,    
+                    'gross_amt':invoice.amount_untaxed or 0,
+                    'cst_amt':invoice.amount_tax or 0
                 }))
                 
                     
@@ -9401,9 +9409,14 @@ class tpt_cform_invoice_line(osv.osv):
         'customer_code': fields.char('Customer'),  
         'partner_id': fields.many2one('res.partner', 'Customer'),  
         'date_invoiced': fields.date('Invoice Date'),
+        'sales_region': fields.char('Sales Region'),
+        'city': fields.char('City'),
         'product_id': fields.many2one('product.product', 'Product'),  
+        'quantity': fields.float('Qty'),
         'uom_id': fields.many2one('product.uom', 'UOM'),  
-        'bill_amount': fields.float('Bill Amount'),# [('domestic','Domestic/Indirect Export'),('export','Export')],
+        'gross_amt': fields.float('Gross Amt'),#
+        'cst_amt': fields.float('CST Amt'),#
+        'bill_amount': fields.float('Net Total'),# [('domestic','Domestic/Indirect Export'),('export','Export')],
         'form_type': fields.selection([('cform', 'C-Form'), ('hform', 'H-Form'), ('iform', 'I-Form'), 
                                        ('na', 'Not Applicable'), ('tbc', 'To Be Collect')],'Form Type'), 
         'form_number': fields.char('Form Number'),
