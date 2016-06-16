@@ -3635,10 +3635,10 @@
 	                                    <!-- start -->
 	                                    <field name="sales_region" readonly='1'/>
 	                                    <field name="city" readonly='1'/>
-	                                    <field name="city" readonly='1'/>
 	                                    <!-- end -->
 	                                    <field name="product_id" readonly='1'/>
-	                                     <field name="customer_code" readonly='1'/>
+	                                    <field name="customer_code" readonly='1'/>
+	                                    <field name="quantity" readonly='1'/>
 	                                    <field name="uom_id" readonly='1'/>
 	                                    <field name="gross_amt" readonly='1'/> 
 	                                    <field name="cst_amt" readonly='1'/>
