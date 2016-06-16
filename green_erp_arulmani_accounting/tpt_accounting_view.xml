@@ -3631,11 +3631,17 @@
 	                            <field name="cform_line" nolabel='1'>
 	                                <tree string="Sales Invoice" create='false' delete='false' editable="bottom">
 	                                    <field name="invoice_no" readonly='1'/>
-	                                    <field name="customer_code" readonly='1'/>
-	                                    <!-- <field name="partner_id" readonly='1'/>  -->
 	                                    <field name="date_invoiced" readonly='1'/>
+	                                    <!-- start -->
+	                                    <field name="sales_region" readonly='1'/>
+	                                    <field name="city" readonly='1'/>
+	                                    <field name="city" readonly='1'/>
+	                                    <!-- end -->
 	                                    <field name="product_id" readonly='1'/>
+	                                     <field name="customer_code" readonly='1'/>
 	                                    <field name="uom_id" readonly='1'/>
+	                                    <field name="gross_amt" readonly='1'/> 
+	                                    <field name="cst_amt" readonly='1'/>
 	                                    <field name="bill_amount" readonly='1'/>
 	                                    <field name="form_type" required='1' on_change="onchange_type(form_type)"/> 
 	                                    <field name="form_number" required='0'/>   
