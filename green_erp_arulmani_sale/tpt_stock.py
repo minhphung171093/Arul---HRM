@@ -42,7 +42,7 @@ class stock_picking(osv.osv):
         'write_date': fields.datetime('Updated Date',readonly = True),
         'write_uid': fields.many2one('res.users','Updated By',ondelete='restrict',readonly = True),
         # TPT-BM-14/06/2016
-        #'return_do_id':fields.many2one('stock.picking','Base DO'),
+        'return_do_id':fields.many2one('stock.picking','Base DO'),
         'document_type':fields.selection([('do','Delivery Order'),
                                           ('return_do','Return Delivery Order'),
                                       ],'Document Type'),
@@ -50,7 +50,7 @@ class stock_picking(osv.osv):
     _defaults = {
         'move_date': time.strftime('%Y-%m-%d'),
         'name': '/',
-        'document_type':'do'
+        #'document_type':'do'
     }
     
 #     def create(self, cr, uid, vals, context=None):

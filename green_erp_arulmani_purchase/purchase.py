@@ -6258,9 +6258,11 @@ class stock_adjustment(osv.osv):
             if line.adj_type=='increase': 
                  location_id=5
                  location_dest_id=line.location_id.id
+                 name = 'stock adj inc'
             if line.adj_type=='decrease':
                  location_id=line.location_id.id
-                 location_dest_id=4     
+                 location_dest_id=4   
+                 name = 'stock adj dec'  
                      
             stock_obj.create(cr, uid, {
                                'product_id': line.product_id.id,
@@ -6268,7 +6270,7 @@ class stock_adjustment(osv.osv):
                                'price_unit': 0.00,
                                'location_id': location_id or False,
                                'location_dest_id': location_dest_id or False,
-                               'name':'stock adj',
+                               'name':name or '', #'stock adj', #TPT-BM-22/06/2016
                                'company_id':1,
                                'product_name':line.product_id.name_template or '',
                                'origin':'Stock Adjustment',

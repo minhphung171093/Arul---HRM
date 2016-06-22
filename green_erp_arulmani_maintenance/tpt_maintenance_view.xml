@@ -625,10 +625,22 @@
             <field name="view_mode">tree,form</field>
             <field name="view_id" ref="view_tpt_maintenance_oder_tree"/>
         </record>
+        <!--  
+        <record model="ir.values" id="tpt_maintenance_oder_approve_reject">
+            <field name="model_id" ref="model_tpt_maintenance_oder" />
+            <field name="name">Manager Approve or Reject</field>
+            <field name="key2">client_action_multi</field>
+            <field name="value" eval="'ir.actions.act_window,' + str(ref('action_approve_or_reject_mo_form'))" />
+            <field name="key">action</field>
+            <field name="model">tpt.maintenance.oder</field>
+        </record>
         
+        -->
         <menuitem action="action_tpt_maintenance_oder_form_view"
             id="menu_action_tpt_maintenance_oder_form_view"
             parent="menu_tpt_maint_mg" sequence="4"/>
+            
+        
 		
 		<record id="inherit_view_tpt_material_request_form" model="ir.ui.view">
             <field name="name">inh.tpt.material.request.form</field>

@@ -87,27 +87,45 @@ class complaint_register(osv.osv):
         return True
     
     def bt_hod_approve(self, cr, uid, ids,notif, context=None):
-        for line in self.browse(cr,uid,ids):
-            if line.state == 'sm_approved':
-                self.write(cr, uid, line.id,{'state':'hod_approved'})
-            if notif:
-                self.pool.get('tpt.notification').create(cr,uid,{ 
-                                                                 'complaint_number': line.id,
-                                                                 'notif_type': 'safety',
-                                                                'issue_type': line.issue_severity or False,
-                                                                'priority': 'medium',
-                                                                 'state': 'draft',
-                                                                'department_id': line.department_id and line.department_id.id or False,
-                                                                'section_id': line.section_id and line.section_id.id or False,
-                                                                'issue_reported': line.issue_reported or False,
-                                                                 })
-                self.write(cr, uid, ids,{'state':'notif_created'})
+        sql = '''
+            select %s in (select uid from res_groups_users_rel where gid in (select id from res_groups where name='Dept HOD Approval' 
+            and category_id in (select id from ir_module_category where name='VVTI - Safety')))
+                    '''%(uid)
+        cr.execute(sql)
+        hod = cr.fetchone()
+        if hod[0]:
+            for line in self.browse(cr,uid,ids):
+                if line.state == 'sm_approved':
+                    self.write(cr, uid, line.id,{'state':'hod_approved'})   
+                if notif:
+                    self.pool.get('tpt.notification').create(cr,uid,{ 
+                                                                     'complaint_number': line.id,
+                                                                     'notif_type': 'safety',
+                                                                    'issue_type': line.issue_severity or False,
+                                                                    'priority': 'medium',
+                                                                     'state': 'draft',
+                                                                    'department_id': line.department_id and line.department_id.id or False,
+                                                                    'section_id': line.section_id and line.section_id.id or False,
+                                                                    'issue_reported': line.issue_reported or False,
+                                                                     })
+                    self.write(cr, uid, ids,{'state':'notif_created'})
+        else:
+            raise osv.except_osv(_('Warning!'),_('User does not have permission to approve!'))
         return True
     
     def bt_hod_reject(self, cr, uid, ids, hod_reject_reason, context=None):
-        for line in self.browse(cr,uid,ids):
-            if line.state == 'sm_approved':
-                self.write(cr, uid, ids,{'state':'hod_rejected','hod_reject_reason':hod_reject_reason})
+        sql = '''
+            select %s in (select uid from res_groups_users_rel where gid in (select id from res_groups where name='Dept HOD Approval' 
+            and category_id in (select id from ir_module_category where name='VVTI - Safety')))
+                    '''%(uid)
+        cr.execute(sql)
+        hod = cr.fetchone()
+        if hod[0]:
+            for line in self.browse(cr,uid,ids):
+                if line.state == 'sm_approved':
+                    self.write(cr, uid, ids,{'state':'hod_rejected','hod_reject_reason':hod_reject_reason})
+        else:
+            raise osv.except_osv(_('Warning!'),_('User does not have permission to approve!'))
         return True
 
 complaint_register()

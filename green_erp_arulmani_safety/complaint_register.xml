@@ -224,8 +224,8 @@
             <field name="arch" type="xml">
                 <form string="Compliance - Head of the Department Approval" version="7.0">
                     <header>
-	                    <button name="%(action_hod_complaint_form)d" string="HOD Approve" type="action" states="sm_approved" class="oe_highlight" />
-	                    <button name="%(action_hod_reject_complaint_form)d" states='sm_approved' string="HOD Reject" type="action" class="oe_highlight" />
+	                    <button name="%(action_hod_complaint_form)d" string="HOD Approve" type="action" states="sm_approved" class="oe_highlight"  groups="green_erp_arulmani_safety.group_vvti_hod_approval"/>
+	                    <button name="%(action_hod_reject_complaint_form)d" states='sm_approved' string="HOD Reject" type="action" class="oe_highlight" groups="green_erp_arulmani_safety.group_vvti_hod_approval"/>
                         <field name="state" widget="statusbar" statusbar_visible="sm_approved,hod_approved,hod_rejected" statusbar_colors='{"sm_approved":"blue","hod_approved":"blue", "hod_rejected": "blue"}'/>
 	                </header>
                     <group>
