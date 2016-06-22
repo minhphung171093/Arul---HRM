@@ -47,6 +47,38 @@
             <field name="implementation">no_gap</field>
         </record>
         
+         <!--   Return Sale Order     -->  
+
+        <record id="sequence_tpt_return_sale_order_import_code" model="ir.sequence.type">
+            <field name="name">Return Sale Order Import</field>
+            <field name="code">tpt.return.sale.order.import</field>
+        </record>
+    
+        <record id="sequence_tpt_return_sale_order_import_item" model="ir.sequence">
+            <field name="name">Return Sale Order Import</field>
+            <field name="code">tpt.return.sale.order.import</field>
+            <field name="prefix">VVTI/RSO/</field>
+            <field name="padding">5</field>
+            <field name="number_next_actual">00001</field>
+            <field name="implementation">no_gap</field>
+        </record>
+        
+         <!--   Return Delivery Order    -->  
+
+        <record id="sequence_tpt_return_do_import_code" model="ir.sequence.type">
+            <field name="name">Return DO Import</field>
+            <field name="code">tpt.return.do.import</field>
+        </record>
+    
+        <record id="sequence_tpt_return_do_import_item" model="ir.sequence">
+            <field name="name">Return DO Import</field>
+            <field name="code">tpt.return.do.import</field>
+            <field name="prefix">VVTI/RSO/</field>
+            <field name="padding">5</field>
+            <field name="number_next_actual">00001</field>
+            <field name="implementation">no_gap</field>
+        </record>
+        
         <!--    Batch Request     -->
         
        	<record id="sequence_tpt_batch_req_import_code" model="ir.sequence.type">
@@ -98,6 +130,22 @@
 		
         </record>
         
+         		<!--    Return Customer Invoice    -->
+        <!-- 
+       	<record id="sequence_tpt_return_customer_invoice_import_code" model="ir.sequence.type">
+            <field name="name">Return Customer Invoice Import</field>
+            <field name="code">tpt.return.customer.invoice.import</field>
+        </record>
+        
+        <record id="sequence_tpt_return_customer_invoice_import_item" model="ir.sequence">
+            <field name="name">Return Customer Invoice Import</field>
+            <field name="code">tpt.return.customer.invoice.import</field>
+            <field name="prefix">R</field>
+            <field name="padding">6</field>
+            <field name="number_next_actual">000001</field>
+            <field name="implementation">no_gap</field>
+		 
+        </record> -->
         		<!--    From A.R.E - 1     -->
         
         <record id="sequence_tpt_form_are_1_import_code" model="ir.sequence.type">

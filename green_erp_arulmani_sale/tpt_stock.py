@@ -41,11 +41,16 @@ class stock_picking(osv.osv):
         'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),       
         'write_date': fields.datetime('Updated Date',readonly = True),
         'write_uid': fields.many2one('res.users','Updated By',ondelete='restrict',readonly = True),
-                }
-    
+        # TPT-BM-14/06/2016
+        #'return_do_id':fields.many2one('stock.picking','Base DO'),
+        'document_type':fields.selection([('do','Delivery Order'),
+                                          ('return_do','Return Delivery Order'),
+                                      ],'Document Type'),
+    }
     _defaults = {
         'move_date': time.strftime('%Y-%m-%d'),
         'name': '/',
+        'document_type':'do'
     }
     
 #     def create(self, cr, uid, vals, context=None):
@@ -1004,6 +1009,12 @@ class stock_picking_out(osv.osv):
         'tpt_log_line': fields.one2many('tpt.log','delivery_order_id', 'Logs'),
         #TPT - Added to Hide Print Packing List for Domestic
         'order_type':fields.selection([('domestic','Domestic'),('export','Export')],'Order Type'),
+        #'return_do_id':fields.many2one('stock.picking','Base DO'),
+        'document_type':fields.selection([('do','Delivery Order'),
+                                          ('return_do','Return Delivery Order'),
+                                      ],'Document Type'),
+                
+        
                 }
     
     def action_process(self, cr, uid, ids, context=None):
@@ -1332,6 +1343,7 @@ class account_invoice(osv.osv):
         'country_id': fields.many2one('res.country', '',states={'draft':[('readonly',True)],'done':[('readonly',True)]}),
         'state_id': fields.many2one('res.country.state', '',states={'draft':[('readonly',True)],'done':[('readonly',True)]}),
         'zip': fields.char('', size = 1024,states={'draft':[('readonly',True)],'done':[('readonly',True)]}),
+        'return_invoice_id': fields.many2one('account.invoice', 'Base Invoice No'),
     }
     _defaults = {
         'vvt_number': '/',

@@ -9,4 +9,21 @@
             <field name="company_id" eval="False"/>
         </record>
     </data>
+     <!-- Return DO -->
+     <!--
+    <record id="sequence_tpt_return_do_import_code" model="ir.sequence.type">
+            <field name="name">Return DO Import</field>
+            <field name="code">tpt.return.do.import</field>
+        </record>
+    
+        <record id="sequence_tpt_return_do_import_item" model="ir.sequence">
+            <field name="name">Return DO Import</field>
+            <field name="code">tpt.return.do.import</field>
+            <field name="prefix">VVTI/RDO/</field>
+            <field name="padding">6</field>
+            <field name="number_next_actual">00001</field>
+            <field name="implementation">no_gap</field>
+        </record>
+         -->
+    
 </openerp>

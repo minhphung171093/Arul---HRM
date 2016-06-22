@@ -8,9 +8,19 @@
             <field name="inherit_id" ref="sale.view_order_form"/>
             <field name="arch" type="xml">
                 <xpath expr="//field[@name='partner_id']" position="before" >
-                		<field name="blanket_id" on_change="onchange_blanket_id(blanket_id)" domain="[('blank_order_line','!=',False), ('state','=','approve')]" options="{'create': false, 'create_edit': false}" required = "1" />
-                		<field name="blanket_line_id" domain="[('blanket_order_id','=',blanket_id)]" options="{'create': false, 'create_edit': false}" on_change="onchange_blanketorderline_id(blanket_line_id)" required="1" context="{'search_blanket_line':1,'blanket_id':blanket_id}"/>
-                		</xpath><xpath expr="//field[@name='partner_id']" position="after" >
+                		<field name="blanket_id" on_change="onchange_blanket_id(blanket_id)" 
+                		domain="[('blank_order_line','!=',False), ('state','=','approve')]" 
+                		options="{'create': false, 'create_edit': false}" 
+                		attrs="{'invisible': [('document_type','=','return')], 'required':[('document_type','=','saleorder')]}"
+                		/>
+                		<field name="blanket_line_id" domain="[('blanket_order_id','=',blanket_id)]" 
+                		options="{'create': false, 'create_edit': false}" 
+                		on_change="onchange_blanketorderline_id(blanket_line_id)" 
+                		context="{'search_blanket_line':1,'blanket_id':blanket_id}"
+                		attrs="{'invisible': [('document_type','=','return')], 'required':[('document_type','=','saleorder')]}"
+                		/>
+                		</xpath>
+                		<xpath expr="//field[@name='partner_id']" position="after" >
                 		<field name="invoice_address" readonly='1' placeholder="Street..."/>
                 		<field name="street2" readonly='1'/>
                 		<field name="street3" readonly='1'/>
@@ -18,26 +28,39 @@
                 		<field name="country_id" readonly='1' placeholder="Country" options="{'create': false, 'create_edit': false}"/>
                 		<field name="state_id" readonly='1' placeholder="State" options="{'create': false, 'create_edit': false}"/>
                 		<field name="zip" readonly='1' placeholder="ZIP"/> 
-                		<field name="document_type"/>
-                		<field name="payment_term_id" readonly='1' options="{'create': false, 'create_edit': false}"/>
-                		<field name="incoterms_id" readonly='1' options="{'create': false, 'create_edit': false}" />
+                		<field name="document_type" /> 
+                		<field name="payment_term_id" readonly='1' options="{'create': false, 'create_edit': false}"
+                		attrs="{'invisible': [('document_type','=','return')], 'required':[('document_type','=','saleorder')]}"/>
+                		<field name="incoterms_id" readonly='1' options="{'create': false, 'create_edit': false}" 
+                		attrs="{'invisible': [('document_type','=','return')]}"/>
 	        			<field name="create_uid" />
 						<field name="create_date" />
 	        	</xpath>
 				<xpath expr="//field[@name='date_order']"  position="replace">
 					<!--<field name="date_order" string = "SO Date" on_change = "onchange_so_date(date_order, blanket_id)"/>-->
-					<field name="date_order" string = "SO Date" on_change = "onchange_date_order(date_order)"/>
-                	<field name="po_date" readonly='1' on_change="onchange_po_date(po_date)" />
-                	<field name="po_number" readonly='1'/>
-                	<field name="quotaion_no"/>
-                	<field name="distribution_channel" readonly='1' options="{'create': false, 'create_edit': false}" />
-                	<field name="sale_tax_id" readonly='1' options="{'create': false, 'create_edit': false}"/>
-                	<field name="document_status"/>
-                	 <field name="reason" readonly='1' />
+					<field name="date_order" string = "SO Date" 
+					on_change = "onchange_date_order(date_order)"
+					attrs="{'invisible': [('document_type','=','return')], 'required':[('document_type','=','saleorder')]}"
+					/>
+                	<field name="return_date_order" 
+                	attrs="{'invisible': [('document_type','=','saleorder')], 'required':[('document_type','=','return')]}"
+                	/>
+                	<field name="po_date" readonly='1' on_change="onchange_po_date(po_date)" 
+                	attrs="{'invisible': [('document_type','=','return')]}"
+                	/>
+                	<field name="po_number" readonly='1' attrs="{'invisible': [('document_type','=','return')]}"/>
+                	<field name="quotaion_no" attrs="{'invisible': [('document_type','=','return')]}"/>
+                	<field name="distribution_channel" readonly='1' options="{'create': false, 'create_edit': false}" 
+                	attrs="{'invisible': [('document_type','=','return')]}"/>
+                	<field name="sale_tax_id" readonly='1' options="{'create': false, 'create_edit': false}"
+                	attrs="{'invisible': [('document_type','=','return')]}"/>
+                	<field name="document_status" attrs="{'invisible': [('document_type','=','return')]}"/>
+                	 <field name="reason" readonly='1' attrs="{'invisible': [('document_type','=','return')]}"/>
                 	 <field name="flag_t" invisible="1" />
                 	 <field name="flag_p" invisible="1" />
-                	 <field name="tpt_currency_id" invisible="1" />
-                	 <field name="excise_duty_id" readonly='1' options="{'create': false, 'create_edit': false}"/>
+                	 <field name="tpt_currency_id" invisible="1" attrs="{'invisible': [('document_type','=','return')]}"/>
+                	 <field name="excise_duty_id" readonly='1' options="{'create': false, 'create_edit': false}"
+                	 attrs="{'invisible': [('document_type','=','return')]}"/>
                 	 
 				</xpath>
 				<xpath expr="//field[@name='shop_id']"  position="attributes">
@@ -68,11 +91,11 @@
 					<attribute name="create">false</attribute>
 				</xpath>
 				<xpath expr="//field[@name='date_order']"  position="before">
-					<field name="order_type" readonly='1'/>
+					<field name="order_type" readonly='1' attrs="{'invisible': [('document_type','=','return')]}"/>
 				</xpath>
 				<xpath expr="//field[@name='currency_id']"  position="replace">
 					<field name="currency_id" invisible="0" readonly = "0" on_change="onchange_currency(currency_id)"
-					attrs="{'readonly': [('state','in',('draft','done','progress'))]}"
+					attrs="{'readonly': [('state','in',('draft','done','progress'))], 'invisible': [('document_type','=','return')]}"
 					required = "0" options="{'create': false, 'create_edit': false}" />
 					<!-- <field name="create_date" />
                 	<field name="write_date" /> -->
@@ -114,9 +137,23 @@
 					<attribute name='invisible'>1</attribute>
 				</xpath>
 				
-
+				<!-- readonly='1' on_change = "onchange_partner_id(partner_id,blanket_id)"   -->
 				<xpath expr="//field[@name='partner_id']"  position="replace">
-					<field name="partner_id" readonly='1' domain="[('customer','=',1),('is_company','=',1),('disapprove','=',1)]" options="{'create': false, 'create_edit': false}" on_change = "onchange_partner_id(partner_id,blanket_id)" context="{'search_default_customer':1, 'show_address': 1, 'search_partner_id':True, 'blanket_id':blanket_id}" />
+					<field name="partner_id" required='1'
+					domain="[('customer','=',1),('is_company','=',1),('disapprove','=',1)]" 
+					options="{'create': false, 'create_edit': false}" 
+					
+					context="{'search_default_customer':1, 'show_address': 1, 'search_partner_id':True, 'blanket_id':blanket_id}"
+					attrs="{'readonly': [('document_type','=','saleorder')]}"
+					 />
+					 <field name="return_so_id" 
+					 attrs="{'invisible': [('document_type','=','saleorder')], 'required':[('document_type','=','return')]}"
+					 domain="[('partner_id','=',partner_id), ('state','=','done')]" 
+					 on_change="onchange_return_so_id(return_so_id)"
+                	 options="{'create': false, 'create_edit': false}" 
+					 />
+					 <field name="return_do_id" readonly='1' attrs="{'invisible': [('document_type','=','saleorder')], 'required':[('document_type','=','return')]}"/>
+					 <field name="return_invoice_id" readonly='1' attrs="{'invisible': [('document_type','=','saleorder')], 'required':[('document_type','=','return')]}"/>
 				</xpath>
 				
 				<xpath expr="//label[@string='Quotation ']"  position="replace">

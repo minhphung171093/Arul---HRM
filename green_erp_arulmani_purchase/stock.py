@@ -30,6 +30,10 @@ class stock_picking(osv.osv):
             ], string='Action to be Taken'),
         'tpt_create_grn': fields.boolean('Create GRN'),
         'gate_out_id':fields.many2one('tpt.gate.out.pass','Gate Out Pass'),
+        
+        #
+        #'return_do_id': fields.many2one('stock.picking', 'Return DO'),
+        #
                 }
     
     def write(self, cr, uid, ids, vals, context=None):
@@ -1161,8 +1165,11 @@ class account_invoice(osv.osv):
                                      ('service_invoice','Service Invoice'),
                                      ('service_invoice_qty','Service Invoice(Qty Based)'),
                                      ('service_invoice_amt','Service Invoice(Amt Based)'),
-                                     ('freight_invoice','Freight Invoice')
+                                     ('freight_invoice','Freight Invoice'),
+                                     ('customer_return_invoice','Customer Return Invoice'),
                                      ],('Doc Type')),
+        
+        
         }
     _defaults = {
         'created_on': time.strftime('%Y-%m-%d %H:%M:%S'),
