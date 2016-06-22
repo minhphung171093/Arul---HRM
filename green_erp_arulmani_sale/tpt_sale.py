@@ -174,7 +174,13 @@ class sale_order(osv.osv):
         'create_date': fields.datetime('Created Date',readonly = True),
         'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),       
         'write_date': fields.datetime('Updated Date',readonly = True),
-        'write_uid': fields.many2one('res.users','Updated By',ondelete='restrict',readonly = True),     
+        'write_uid': fields.many2one('res.users','Updated By',ondelete='restrict',readonly = True), 
+        ##
+        'return_so_id':fields.many2one('sale.order','Base Sale Order',states={'progress':[('readonly',True)],'done':[('readonly',True)]}),
+        'return_do_id':fields.many2one('stock.picking','Base DO',states={'progress':[('readonly',True)],'done':[('readonly',True)]}),
+        'return_invoice_id':fields.many2one('account.invoice','Base Invoice',states={'progress':[('readonly',True)],'done':[('readonly',True)]}),
+        'return_date_order':fields.date('Return SO Date',states={'progress':[('readonly',True)],'done':[('readonly',True)]}),
+        ##    
     }
     _defaults = {
 #                  'name': lambda obj, cr, uid, context: '/',
@@ -267,7 +273,63 @@ class sale_order(osv.osv):
                     }) 
         
         return {'value': val}
-    
+    ###
+    def onchange_return_so_id(self, cr, uid, ids, return_so_id=False, context=None):
+        vals = {}
+        if return_so_id:
+            sale_order = self.pool.get('sale.order').browse(cr, uid, return_so_id)
+            for base_so_line in sale_order.order_line:
+                rs_order = {
+                       'product_id': base_so_line.product_id and base_so_line.product_id.id or False,
+                       'name': base_so_line.name or False,
+                       'product_type': base_so_line.product_type or False,
+                       'application_id': base_so_line.application_id and base_so_line.application_id.id or False,
+                       'product_uom_qty': base_so_line.product_uom_qty or False, #-product_uom_qty or False,
+                       'product_uom': base_so_line.product_uom and base_so_line.product_uom.id or False,
+                       'price_unit': base_so_line.price_unit or False,
+                       'price_subtotal': base_so_line.price_subtotal or False,
+                       'freight': base_so_line.freight or False,
+                       'state': 'draft',
+                       'type': 'make_to_stock',
+                       #'name_consignee_id' : blanket_line.name_consignee_id.id,
+                       'name_consignee_id' : base_so_line.name_consignee_id and base_so_line.name_consignee_id.id or False,#TPT Consignee Part blanket_line.tpt_name_consignee_id.tpt_consignee_id.id or False
+                       'location':base_so_line.location,
+                }
+            #
+            inv_obj = self.pool.get('account.invoice')
+            inv_obj_ids = inv_obj.search(cr, uid, [('sale_id','=',sale_order.id)])
+            inv_obj_id = inv_obj.browse(cr,uid,inv_obj_ids[0])
+            #
+            vals = {
+                    'order_line':  [(0,0,rs_order)],
+                    'order_policy': 'picking',
+                    'partner_id':sale_order.partner_id.id or False,
+                    'return_invoice_id':inv_obj_id.id or False,
+                    'return_do_id': inv_obj_id.delivery_order_id.id or False,
+                    
+                    'invoice_address':sale_order.invoice_address or False,
+                    'street2':sale_order.street2 or False,
+                    'street3':sale_order.street3 or False,
+                    'city':sale_order.city or False,
+                    'country_id':sale_order.country_id and sale_order.country_id.id or False,
+                    'state_id':sale_order.state_id and sale_order.state_id.id or False,
+                    'zip':sale_order.zip or False,
+                    
+                    'po_date':sale_order.po_date or False,
+                    'order_type':sale_order.order_type or False,
+                    'po_number':sale_order.po_number or False,
+                    'payment_term_id':sale_order.payment_term_id and sale_order.payment_term_id.id or False,
+                    'currency_id':sale_order.currency_id and sale_order.currency_id.id or False,
+                    'tpt_currency_id':sale_order.tpt_currency_id and sale_order.tpt_currency_id.id or False,
+                    'quotaion_no':sale_order.quotaion_no or '',
+                    'incoterms_id':sale_order.incoterms_id and sale_order.incoterms_id.id or False,
+                    'distribution_channel':sale_order.distribution_channel and sale_order.distribution_channel.id or False,
+                    'excise_duty_id':sale_order.excise_duty_id and sale_order.excise_duty_id.id or False,
+                    'sale_tax_id':sale_order.sale_tax_id and sale_order.sale_tax_id.id or False, 
+                    
+                        }
+        return {'value': vals}   
+    ###
     def onchange_blanketorderline_id(self, cr, uid, ids, blanket_line_id=False, context=None):
         vals = {}
         for id in ids:
@@ -370,10 +432,14 @@ class sale_order(osv.osv):
                 raise osv.except_osv(_('Warning!'),_('Financial year has not been configured. !'))
             if vals.get('name','/')=='/':
                 sequence = self.pool.get('ir.sequence').get(cr, uid, 'tpt.sale.order.import') or '/'
+                if vals['document_type']=='return': #TPT-BM-ON 15/06/2016
+                   sequence = self.pool.get('ir.sequence').get(cr, uid, 'tpt.return.sale.order.import') or '/' 
                 vals['name'] =  sequence and sequence+'/'+fiscalyear['code'] or '/'
+                
+                    
           #TPT END    
         ###TPT
-        if 'blanket_id' in vals:
+        if 'blanket_id' in vals and vals['blanket_id']:
             blanket = self.pool.get('tpt.blanket.order').browse(cr, uid, vals['blanket_id'])
             addr = self.pool.get('res.partner').address_get(cr, uid, [blanket.customer_id.id], ['delivery', 'invoice', 'contact'])
             ###
@@ -430,46 +496,103 @@ class sale_order(osv.osv):
                     'order_line': [(0,0,rs_order)],
                          })
         ###TPT
+        #TPT-BM-14/06/2016
+        if 'return_so_id' in vals and vals['return_so_id']:
+            base_so = self.pool.get('sale.order').browse(cr, uid, vals['return_so_id'])
+            for base_so_line in base_so.order_line:
+                rs_order = {
+                       'product_id': base_so_line.product_id and base_so_line.product_id.id or False,
+                       'name': base_so_line.name or False,
+                       'product_type': base_so_line.product_type or False,
+                       'application_id': base_so_line.application_id and base_so_line.application_id.id or False,
+                       'product_uom_qty': base_so_line.product_uom_qty or False, #-product_uom_qty or False,
+                       'product_uom': base_so_line.product_uom and base_so_line.product_uom.id or False,
+                       'price_unit': base_so_line.price_unit or False,
+                       'price_subtotal': base_so_line.price_subtotal or False,
+                       'freight': base_so_line.freight or False,
+                       'state': 'draft',
+                       'type': 'make_to_stock',
+                       #'name_consignee_id' : blanket_line.name_consignee_id.id,
+                       'name_consignee_id' : base_so_line.name_consignee_id and base_so_line.name_consignee_id.id or False,#TPT Consignee Part blanket_line.tpt_name_consignee_id.tpt_consignee_id.id or False
+                       'location':base_so_line.location,
+                }
+            #
+            inv_obj = self.pool.get('account.invoice')
+            inv_obj_ids = inv_obj.search(cr, uid, [('sale_id','=',base_so.id)])
+            inv_obj_id = inv_obj.browse(cr,uid,inv_obj_ids[0])
+            #
+            vals.update( {
+                    'order_line':  [(0,0,rs_order)],
+                    'order_policy': 'picking',
+                    'partner_id':base_so.partner_id.id or False,
+                    'return_invoice_id':inv_obj_id.id or False,
+                    'return_do_id': inv_obj_id.delivery_order_id.id or False,
+                    
+                    'invoice_address':base_so.invoice_address or False,
+                    'street2':base_so.street2 or False,
+                    'street3':base_so.street3 or False,
+                    'city':base_so.city or False,
+                    'country_id':base_so.country_id and base_so.country_id.id or False,
+                    'state_id':base_so.state_id and base_so.state_id.id or False,
+                    'zip':base_so.zip or False,
+                    
+                    'po_date':base_so.po_date or False,
+                    'order_type':base_so.order_type or False,
+                    'po_number':base_so.po_number or False,
+                    'payment_term_id':base_so.payment_term_id and base_so.payment_term_id.id or False,
+                    'currency_id':base_so.currency_id and base_so.currency_id.id or False,
+                    'tpt_currency_id':base_so.tpt_currency_id and base_so.tpt_currency_id.id or False,
+                    'quotaion_no':base_so.quotaion_no or '',
+                    'incoterms_id':base_so.incoterms_id and base_so.incoterms_id.id or False,
+                    'distribution_channel':base_so.distribution_channel and base_so.distribution_channel.id or False,
+                    'excise_duty_id':base_so.excise_duty_id and base_so.excise_duty_id.id or False,
+                    'sale_tax_id':base_so.sale_tax_id and base_so.sale_tax_id.id or False, 
+                    
+                        }
+                        )
+        #
+        #print vals
         new_id = super(sale_order, self).create(cr, uid, vals, context)
-        sale = self.browse(cr, uid, new_id)
-        
-        sql = '''
-            select case when sum(product_uom_qty)!=0 then sum(product_uom_qty) else 0 end product_uom_qty from sale_order_line where order_id in (select id from sale_order where blanket_line_id=%s and id!=%s and state!='cancel')
-        '''%(sale.blanket_line_id.id,sale.id)
-        cr.execute(sql)
-        product_uom_qty = cr.dictfetchone()['product_uom_qty']
-        
-        for line in sale.order_line:
-            if round(line.product_uom_qty,3) > round(sale.blanket_line_id.product_uom_qty-product_uom_qty,3): #TPT-By BalamuruganPurushothaman - ON 23/11/2015
-                raise osv.except_osv(_('Warning!'),_('Quantity must be less than blanket order line quantity!'))
-        
-        sql = '''
-            select case when sum(product_uom_qty)!=0 then sum(product_uom_qty) else 0 end product_uom_qty
-                from sale_order_line where order_id in (select id from sale_order where blanket_id=%s and state!='cancel')
-        '''%(sale.blanket_id.id)
-        cr.execute(sql)
-        product_uom_qty_sale = cr.dictfetchone()['product_uom_qty']
-        sql = '''
-            select case when sum(product_uom_qty)!=0 then sum(product_uom_qty) else 0 end product_uom_qty
-                from tpt_blank_order_line where blanket_order_id = %s
-        '''%(sale.blanket_id.id)
-        cr.execute(sql)
-        product_uom_qty_bk = cr.dictfetchone()['product_uom_qty']
-        if product_uom_qty_bk==product_uom_qty_sale:
+        if 'blanket_id' in vals and vals['blanket_id']:
+            sale = self.browse(cr, uid, new_id)
+            
             sql = '''
-                update tpt_blanket_order set state = 'done' where id=%s 
+                select case when sum(product_uom_qty)!=0 then sum(product_uom_qty) else 0 end product_uom_qty from sale_order_line where order_id in (select id from sale_order where blanket_line_id=%s and id!=%s and state!='cancel')
+            '''%(sale.blanket_line_id.id,sale.id)
+            cr.execute(sql)
+            product_uom_qty = cr.dictfetchone()['product_uom_qty']
+            
+            for line in sale.order_line:
+                if round(line.product_uom_qty,3) > round(sale.blanket_line_id.product_uom_qty-product_uom_qty,3): #TPT-By BalamuruganPurushothaman - ON 23/11/2015
+                    raise osv.except_osv(_('Warning!'),_('Quantity must be less than blanket order line quantity!'))
+            
+            sql = '''
+                select case when sum(product_uom_qty)!=0 then sum(product_uom_qty) else 0 end product_uom_qty
+                    from sale_order_line where order_id in (select id from sale_order where blanket_id=%s and state!='cancel')
             '''%(sale.blanket_id.id)
             cr.execute(sql)
-        if sale.blanket_id.state=='done' and product_uom_qty_sale<product_uom_qty_bk:
+            product_uom_qty_sale = cr.dictfetchone()['product_uom_qty']
             sql = '''
-                update tpt_blanket_order set state = 'approve' where id=%s 
+                select case when sum(product_uom_qty)!=0 then sum(product_uom_qty) else 0 end product_uom_qty
+                    from tpt_blank_order_line where blanket_order_id = %s
             '''%(sale.blanket_id.id)
             cr.execute(sql)
+            product_uom_qty_bk = cr.dictfetchone()['product_uom_qty']
+            if product_uom_qty_bk==product_uom_qty_sale:
+                sql = '''
+                    update tpt_blanket_order set state = 'done' where id=%s 
+                '''%(sale.blanket_id.id)
+                cr.execute(sql)
+            if sale.blanket_id.state=='done' and product_uom_qty_sale<product_uom_qty_bk:
+                sql = '''
+                    update tpt_blanket_order set state = 'approve' where id=%s 
+                '''%(sale.blanket_id.id)
+                cr.execute(sql)
         return new_id
     
     def write(self, cr, uid, ids, vals, context=None):
         ###TPT
-        if 'blanket_id' in vals:
+        if 'blanket_id' in vals and vals['blanket_id']:
             blanket = self.pool.get('tpt.blanket.order').browse(cr, uid, vals['blanket_id'])
             addr = self.pool.get('res.partner').address_get(cr, uid, [blanket.customer_id.id], ['delivery', 'invoice', 'contact'])
             #
@@ -526,46 +649,102 @@ class sale_order(osv.osv):
                     'order_line': [(0,0,rs_order)],
                          })
         ###TPT
+        #
+        if 'return_so_id' in vals and vals['return_so_id']:
+            base_so = self.pool.get('sale.order').browse(cr, uid, vals['return_so_id'])
+            for base_so_line in base_so.order_line:
+                rs_order = {
+                       'product_id': base_so_line.product_id and base_so_line.product_id.id or False,
+                       'name': base_so_line.name or False,
+                       'product_type': base_so_line.product_type or False,
+                       'application_id': base_so_line.application_id and base_so_line.application_id.id or False,
+                       'product_uom_qty': base_so_line.product_uom_qty or False, #-product_uom_qty or False,
+                       'product_uom': base_so_line.product_uom and base_so_line.product_uom.id or False,
+                       'price_unit': base_so_line.price_unit or False,
+                       'price_subtotal': base_so_line.price_subtotal or False,
+                       'freight': base_so_line.freight or False,
+                       'state': 'draft',
+                       'type': 'make_to_stock',
+                       #'name_consignee_id' : blanket_line.name_consignee_id.id,
+                       'name_consignee_id' : base_so_line.name_consignee_id and base_so_line.name_consignee_id.id or False,#TPT Consignee Part blanket_line.tpt_name_consignee_id.tpt_consignee_id.id or False
+                       'location':base_so_line.location,
+                }
+            #
+            inv_obj = self.pool.get('account.invoice')
+            inv_obj_ids = inv_obj.search(cr, uid, [('sale_id','=',base_so.id)])
+            inv_obj_id = inv_obj.browse(cr,uid,inv_obj_ids[0])
+            #
+            vals.update( {
+                    'order_line':  [(0,0,rs_order)],
+                    'order_policy': 'picking',
+                    'partner_id':base_so.partner_id.id or False,
+                    'return_invoice_id':inv_obj_id.id or False,
+                    'return_do_id': inv_obj_id.delivery_order_id.id or False,
+                    
+                    'invoice_address':base_so.invoice_address or False,
+                    'street2':base_so.street2 or False,
+                    'street3':base_so.street3 or False,
+                    'city':base_so.city or False,
+                    'country_id':base_so.country_id and base_so.country_id.id or False,
+                    'state_id':base_so.state_id and base_so.state_id.id or False,
+                    'zip':base_so.zip or False,
+                    
+                    'po_date':base_so.po_date or False,
+                    'order_type':base_so.order_type or False,
+                    'po_number':base_so.po_number or False,
+                    'payment_term_id':base_so.payment_term_id and base_so.payment_term_id.id or False,
+                    'currency_id':base_so.currency_id and base_so.currency_id.id or False,
+                    'tpt_currency_id':base_so.tpt_currency_id and base_so.tpt_currency_id.id or False,
+                    'quotaion_no':base_so.quotaion_no or '',
+                    'incoterms_id':base_so.incoterms_id and base_so.incoterms_id.id or False,
+                    'distribution_channel':base_so.distribution_channel and base_so.distribution_channel.id or False,
+                    'excise_duty_id':base_so.excise_duty_id and base_so.excise_duty_id.id or False,
+                    'sale_tax_id':base_so.sale_tax_id and base_so.sale_tax_id.id or False, 
+                    
+                        }
+                        )
+        #
         new_write = super(sale_order, self).write(cr, uid,ids, vals, context)
-        for sale in self.browse(cr, uid, ids):
-            if 'shipped' in vals:
-                if (vals['shipped'] == True):
+        if 'blanket_id' in vals and vals['blanket_id']:
+            for sale in self.browse(cr, uid, ids):
+                if 'shipped' in vals:
+                    if (vals['shipped'] == True):
+                        sql = '''
+                             update sale_order set document_status='close' where id = %s
+                        '''%(sale.id)
+                        cr.execute(sql)
+                sql = '''
+                    select case when sum(product_uom_qty)!=0 then sum(product_uom_qty) else 0 end product_uom_qty from sale_order_line
+                        where order_id in (select id from sale_order where blanket_line_id=%s and id!=%s and state!='cancel')
+                '''%(sale.blanket_line_id.id,sale.id)
+                cr.execute(sql)
+                product_uom_qty = cr.dictfetchone()['product_uom_qty']
+                for line in sale.order_line:
+                    if round(line.product_uom_qty,3) > round(sale.blanket_line_id.product_uom_qty-product_uom_qty, 3): #TPT-BM-19/04/2016
+                        raise osv.except_osv(_('Warning!'),_('Quantity must be less than blanket order line quantity!'))
+                
+                sql = '''
+                    select case when sum(product_uom_qty)!=0 then sum(product_uom_qty) else 0 end product_uom_qty
+                        from sale_order_line where order_id in (select id from sale_order where blanket_id=%s and state!='cancel')
+                '''%(sale.blanket_id.id)
+                cr.execute(sql)
+                product_uom_qty_sale = cr.dictfetchone()['product_uom_qty']
+                sql = '''
+                    select case when sum(product_uom_qty)!=0 then sum(product_uom_qty) else 0 end product_uom_qty
+                        from tpt_blank_order_line where blanket_order_id = %s
+                '''%(sale.blanket_id.id)
+                cr.execute(sql)
+                product_uom_qty_bk = cr.dictfetchone()['product_uom_qty']
+                if product_uom_qty_bk==product_uom_qty_sale:
                     sql = '''
-                         update sale_order set document_status='close' where id = %s
-                    '''%(sale.id)
+                        update tpt_blanket_order set state = 'done' where id=%s 
+                    '''%(sale.blanket_id.id)
                     cr.execute(sql)
-            sql = '''
-                select case when sum(product_uom_qty)!=0 then sum(product_uom_qty) else 0 end product_uom_qty from sale_order_line
-                    where order_id in (select id from sale_order where blanket_line_id=%s and id!=%s and state!='cancel')
-            '''%(sale.blanket_line_id.id,sale.id)
-            cr.execute(sql)
-            product_uom_qty = cr.dictfetchone()['product_uom_qty']
-            for line in sale.order_line:
-                if round(line.product_uom_qty,3) > round(sale.blanket_line_id.product_uom_qty-product_uom_qty, 3): #TPT-BM-19/04/2016
-                    raise osv.except_osv(_('Warning!'),_('Quantity must be less than blanket order line quantity!'))
-            
-            sql = '''
-                select case when sum(product_uom_qty)!=0 then sum(product_uom_qty) else 0 end product_uom_qty
-                    from sale_order_line where order_id in (select id from sale_order where blanket_id=%s and state!='cancel')
-            '''%(sale.blanket_id.id)
-            cr.execute(sql)
-            product_uom_qty_sale = cr.dictfetchone()['product_uom_qty']
-            sql = '''
-                select case when sum(product_uom_qty)!=0 then sum(product_uom_qty) else 0 end product_uom_qty
-                    from tpt_blank_order_line where blanket_order_id = %s
-            '''%(sale.blanket_id.id)
-            cr.execute(sql)
-            product_uom_qty_bk = cr.dictfetchone()['product_uom_qty']
-            if product_uom_qty_bk==product_uom_qty_sale:
-                sql = '''
-                    update tpt_blanket_order set state = 'done' where id=%s 
-                '''%(sale.blanket_id.id)
-                cr.execute(sql)
-            if sale.blanket_id.state=='done' and product_uom_qty_sale<product_uom_qty_bk:
-                sql = '''
-                    update tpt_blanket_order set state = 'approve' where id=%s 
-                '''%(sale.blanket_id.id)
-                cr.execute(sql)
+                if sale.blanket_id.state=='done' and product_uom_qty_sale<product_uom_qty_bk:
+                    sql = '''
+                        update tpt_blanket_order set state = 'approve' where id=%s 
+                    '''%(sale.blanket_id.id)
+                    cr.execute(sql)
         return new_write
 
     def onchange_blanket_id(self, cr, uid, ids,blanket_id=False, context=None):

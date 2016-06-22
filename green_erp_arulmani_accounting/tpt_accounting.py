@@ -3613,7 +3613,7 @@ class account_invoice_line(osv.osv):
                 tax_value = 0.5/100
                 #Added By P.vinothkumar - ON 21/06/2016 - FOR (calculate tax for krishikalanyan cess) 
                 if line.tax_id and line.tax_id.description=='STax 30% of Freight 14.5% (Dr)':
-                    tax_value = 0.0
+                    tax = 0.0
                #Added By P.vinothkumar - ON 21/06/2016 - FOR (calculate tax for krishikalanyan cess)   
                 elif line.tax_id and line.tax_id.description=='STax 30% of Freight 15% (Dr)':
                     tax_value = tax_value*30/100
