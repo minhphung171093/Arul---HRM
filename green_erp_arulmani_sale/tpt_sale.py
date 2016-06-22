@@ -989,11 +989,19 @@ class sale_order(osv.osv):
                 if (limit > 0 or limit == 0) and amount and amount >= limit:
                     doc_status = 'waiting'
                 first_picking_id = False
+                #
+                if sale.document_type=='return':
+                    document_type = 'return_do'
+                else:
+                    document_type = 'do'
+                #
                 for i,consignee_id in enumerate(consignee_ids):
                     if i==0:
                         first_picking_id = picking_id
                         picking = picking_out_obj.browse(cr, uid, picking_id)
-                        picking_out_obj.write(cr, uid, [picking_id], {'cons_loca': consignee_id,'backorder_id':picking_id,'origin':picking.origin,'sale_id':ids[0],'partner_id':sale.partner_id.id,'doc_status':'draft','order_type':sale.order_type})
+                        picking_out_obj.write(cr, uid, [picking_id], {'cons_loca': consignee_id,'backorder_id':picking_id,'origin':picking.origin,
+                                                                      'sale_id':ids[0],'partner_id':sale.partner_id.id,'doc_status':'draft',
+                                                                      'order_type':sale.order_type, 'document_type':document_type})
                     else:
                         sql = '''
                             select id from sale_order_line where name_consignee_id = %s and order_id = %s
@@ -1006,7 +1014,8 @@ class sale_order(osv.osv):
                         picking_out_obj.write(cr, uid, [new_picking_id], {'cons_loca': consignee_id,'backorder_id':picking_id,'origin':picking.origin,'sale_id':ids[0],'partner_id':sale.partner_id.id,'doc_status':'draft'})
                         stock_move_ids = stock_move_obj.search(cr, uid, [('sale_line_id','in',order_line_ids)])
                         stock_move = stock_move_obj.browse(cr,uid,stock_move_ids[0])
-                        stock_move_obj.write(cr, uid, stock_move_ids, {'picking_id':new_picking_id,'product_type':stock_move.sale_line_id.product_type,'application_id':stock_move.sale_line_id.application_id and stock_move.sale_line_id.application_id.id or False})
+                        stock_move_obj.write(cr, uid, stock_move_ids, {'picking_id':new_picking_id,'product_type':stock_move.sale_line_id.product_type,
+                                                                       'application_id':stock_move.sale_line_id.application_id and stock_move.sale_line_id.application_id.id or False})
         #                 wf_service.trg_validate(uid, 'stock.picking', new_picking_id, 'button_confirm', cr)
                         picking_out_obj.draft_force_assign(cr, uid, [new_picking_id])
                         picking_id = new_picking_id
@@ -1069,17 +1078,24 @@ class sale_order(osv.osv):
             fiscalyear = cr.dictfetchone()
             if not fiscalyear:
                 raise osv.except_osv(_('Warning!'),_('Financial year has not been configured. !'))
-            sequence = self.pool.get('ir.sequence').get(cr, uid, 'stock.picking.out') or '/'
-            pick_name =  sequence and sequence+'/'+fiscalyear['code'] or '/'
-          #TPT END
+            #sequence = self.pool.get('ir.sequence').get(cr, uid, 'stock.picking.out') or '/'
+            #pick_name =  sequence and sequence+'/'+fiscalyear['code'] or '/'
+            #TPT END
             product_obj = self.pool.get('product.product')
+            #TPT-BM-16/06/2016 - FOR SALES RETURN PROCESS
+            if order.document_type=='saleorder':
+                sequence = self.pool.get('ir.sequence').get(cr, uid, 'stock.picking.out') or '/'
+            elif order.document_type=='return':
+                sequence = self.pool.get('ir.sequence').get(cr, uid, 'tpt.return.do.import') or '/'
+            pick_name = sequence and sequence+'/'+fiscalyear['code'] or '/'    
+            #           
             for line in order.order_line:
-             if line.product_id and not line.product_id.warehouse_id.id:
+                if line.product_id and not line.product_id.warehouse_id.id:
 #                 product = product_obj.search(cr,uid,line.product_id.id)
 #                 if product and not product.warehouse_id.id:
-                raise osv.except_osv(_('Warning!'),_('Sale Warehouse is not null, please configure it in Product Master!'))
-            else:
-                warehouse = line.product_id.warehouse_id.id
+                    raise osv.except_osv(_('Warning!'),_('Sale Warehouse is not null, please configure it in Product Master!'))
+                else:
+                    warehouse = line.product_id.warehouse_id.id
             return {
             'name': pick_name,
             'origin': order.name,
@@ -1093,6 +1109,7 @@ class sale_order(osv.osv):
             'invoice_state': (order.order_policy=='picking' and '2binvoiced') or 'none',
             'company_id': order.company_id.id,
             'warehouse':warehouse,
+            #'document_type':'do',#TPT-BM-16/06/2016
         }
         
     def onchange_date_order(self, cr, uid, ids, date_order=False, context=None):
