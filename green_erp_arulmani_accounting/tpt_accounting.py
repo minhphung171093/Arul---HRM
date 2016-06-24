@@ -1691,7 +1691,7 @@ class account_invoice(osv.osv):
                                 cst_flag = True   
                         if cst_flag is True:
                             iml += invoice_line_obj.move_line_amount_untaxed_cst(cr, uid, inv.id, tax_amounts[0]) 
-                            #TPT-START: By BalamuruganPurushothaman - ON 08/06/2016 - TO UPDATE CST AMOUNT INTO PRODUCT MASTER TOTAL COST VALUE
+                            #TPT-START: By BalamuruganPurushothaman - ON 08/06/2016 - CST Inclusion - TO UPDATE CST AMOUNT INTO PRODUCT MASTER TOTAL COST VALUE
                             self.cst_prod_avg_cost_update(cr, uid, inv.id, tax_amounts[0], context) 
                             #TPT END
                         else:
@@ -1762,7 +1762,18 @@ class account_invoice(osv.osv):
                                 flag=True                          
                         if flag is True:
                             iml += invoice_line_obj.move_line_amount_tax_sbc_14(cr, uid, inv.id)
+                            iml += invoice_line_obj.move_line_amount_tax_swachh_bharat_cess_5(cr, uid, inv.id)    
+                        ###TPT-BM-23/06/2016
+                        elif line.tax_id.description in ['STax 15%']:
+                            iml += invoice_line_obj.move_line_amount_tax_sbc_14(cr, uid, inv.id)
                             iml += invoice_line_obj.move_line_amount_tax_swachh_bharat_cess_5(cr, uid, inv.id)
+                            iml += invoice_line_obj.move_line_amount_tax_krishi_kalyan_cess_5(cr, uid, inv.id)
+                        # Added by P.vinothkumar on 23/06/2016 for nullable taxes     
+                        elif not line.tax_id:
+                            iml += invoice_line_obj.move_line_amount_tax_sbc_14(cr, uid, inv.id)
+                            iml += invoice_line_obj.move_line_amount_tax_swachh_bharat_cess_5(cr, uid, inv.id)
+                            iml += invoice_line_obj.move_line_amount_tax_krishi_kalyan_cess_5(cr, uid, inv.id)
+                        # TPT-end    
                         else:
                             iml += invoice_line_obj.move_line_amount_tax(cr, uid, inv.id)                           
                         iml += invoice_line_obj.move_line_amount_tax_credit(cr, uid, inv.id) #TPT-COMMENTED - BM 
@@ -5022,7 +5033,7 @@ class tpt_ed_invoice_positing(osv.osv):
         'name':fields.char('Document No', size = 1024, required = True, readonly = True),
         'supplier_id':fields.many2one('res.partner', 'Supplier', readonly=True),
         'invoice_id':fields.many2one('account.invoice', 'Invoice No', readonly=True),
-        'date':fields.date('Posting Date',states={'posted': [('readonly', True)]}),
+        'date':fields.date('Posting Date',states={'posted': [('readonly', False)]}),
         'create_uid':fields.many2one('res.users','Created By', readonly=True),
         'created_on': fields.datetime('Created On', readonly=True),
         'tpt_ed_invoice_positing_line': fields.one2many('tpt.ed.invoice.positing.line','ed_invoice_id','ED Invoice'),

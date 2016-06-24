@@ -572,7 +572,7 @@
             <field name="name">arul.hr.employee.action.history.form</field>
             <field name="model">arul.hr.employee.action.history</field>
             <field name="arch" type="xml">
-                <form string="Employee Promotion Action" version="7.0">    
+                <form edit="false" string="Employee Promotion Action" version="7.0">    
                 	<sheet>
 		                 <group col='4' colspan='2'>
 							<field name="action_id" on_change="onchange_action_id(action_id)" domain="[('name','=','Promotion')]" options="{'create': false, 'create_edit': false}"/>
@@ -661,7 +661,7 @@
             <field name="name">arul.hr.employee.rehiring.history.form</field>
             <field name="model">arul.hr.employee.action.history</field>
             <field name="arch" type="xml">
-                <form string="Employee Rehiring" version="7.0"> 
+                <form edit="false" string="Employee Rehiring" version="7.0"> 
                     <header>
 	                    <button name="approve_employee_rehiring" attrs="{'invisible':[('approve_rehiring','=',True)]}" string="Approve" type="object" class="oe_highlight" groups="green_erp_arulmani_hrm.group_vvti_hrm_hr_manager"/>
 	                    <field name ="approve_rehiring" invisible='1'/>
@@ -738,7 +738,7 @@
             <field name="name">arul.hr.employee.compensation.review.action.form</field>
             <field name="model">arul.hr.employee.action.history</field>
             <field name="arch" type="xml">
-                <form string="Employee Compensation Review Action" version="7.0">  
+                <form edit="false" string="Employee Compensation Review Action" version="7.0">  
                 <!-- 
                 <header>
                 <button name="action_view_paystruct" string="Go to Employee Payroll Structure" type="object" class="oe_highlight"/>  
@@ -824,7 +824,7 @@
             <field name="name">arul.hr.employee.contracts.action.form</field>
             <field name="model">arul.hr.employee.action.history</field>
             <field name="arch" type="xml">
-                <form string="Employee Contracts Action" version="7.0">    
+                <form edit="false" string="Employee Contracts Action" version="7.0">    
                 	<sheet>
 		                 <group col='4' colspan='2'>
 							<field name="action_id" on_change="onchange_action_id(action_id)" domain="[('name','=','Contracts')]" options="{'create': false, 'create_edit': false}"/>
@@ -896,7 +896,7 @@
             <field name="name">arul.hr.employee.hiring.action.form</field>
             <field name="model">arul.hr.employee.action.history</field>
             <field name="arch" type="xml">
-                <form string="Employee Hiring Action" version="7.0">    
+                <form edit="false" string="Employee Hiring Action" version="7.0">    
                 	<header>
 	                    <button name="create_hiring_employee" attrs="{'invisible':['|',('employee_id','!=',False),('block_list','=',True)]}" string="Create Employee" type="object" class="oe_highlight" groups="green_erp_arulmani_hrm.group_vvti_hrm_hr_user,green_erp_arulmani_hrm.group_vvti_hrm_gm"/>
 	                    <button name="add_block_list" attrs="{'invisible':['|',('employee_id','!=',False),('block_list','=',True)]}" string="Block list" type="object" class="oe_highlight" groups="green_erp_arulmani_hrm.group_vvti_hrm_hr_key_user,green_erp_arulmani_hrm.group_vvti_hrm_gm"/>
@@ -1086,7 +1086,7 @@
             <field name="name">arul.hr.employee.leaving.action.form</field>
             <field name="model">arul.hr.employee.action.history</field>
             <field name="arch" type="xml">
-                <form string="Employee Leaving Action" version="7.0">    
+                <form edit="false" string="Employee Leaving Action" version="7.0">    
                 	<sheet>
 		                 <group col='4' colspan='2'>
 							<field name="action_id" on_change="onchange_action_id(action_id)" domain="[('name','=','Leaving')]" options="{'create': false, 'create_edit': false}"/>
@@ -1168,7 +1168,7 @@
             <field name="name">arul.hr.employee.disciplinary.action.form</field>
             <field name="model">arul.hr.employee.action.history</field>
             <field name="arch" type="xml">
-                <form string="Employee Disciplinary Action" version="7.0">    
+                <form edit="false" string="Employee Disciplinary Action" version="7.0">    
                 	<sheet>
 		                 <group col='4' colspan='2'>
 							<field name="action_id" on_change="onchange_action_id(action_id)" domain="[('name','=','Disciplinary')]" options="{'create': false, 'create_edit': false}"/>

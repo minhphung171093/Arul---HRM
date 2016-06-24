@@ -341,8 +341,11 @@ class tpt_notification(osv.osv):
             for usr_line in grp.users:
                 grp_ids.append(usr_line.id)
             if uid not in grp_ids:
-               raise osv.except_osv(_('Warning!'),_('Not Authorized to Approve!'))        
-        return self.write(cr, uid, ids,{'state':'in'}) 
+               raise osv.except_osv(_('Warning!'),_('Not Authorized to Approve!'))
+           # Added by P.vinothkumar on 24/06/2016 for multi approval only in waiting for approval state        
+            if line.state=='waiting':
+                return self.write(cr, uid, ids,{'state':'in'})        
+        #return self.write(cr, uid, ids,{'state':'in'}) 
     
     def bt_close(self, cr, uid, ids, context=None):
         return self.write(cr, uid, ids,{'state':'close'})
@@ -380,8 +383,11 @@ class tpt_notification(osv.osv):
                 for usr_line in grp.users:
                     grp_ids.append(usr_line.id)
                 if uid not in grp_ids:
-                   raise osv.except_osv(_('Warning!'),_('Not Authorized to Approve!'))   
-        return self.write(cr, uid, ids,{'state':'cancel'})
+                   raise osv.except_osv(_('Warning!'),_('Not Authorized to Approve!'))
+               # Added by P.vinothkumar on 24/06/2016 for multi reject only in waiting for approval state 
+                if line.state=='waiting':
+                    return self.write(cr, uid, ids,{'state':'cancel'})   
+        #return self.write(cr, uid, ids,{'state':'cancel'})
     
 #     def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
 #         if context is None:
@@ -417,6 +423,26 @@ class tpt_notification(osv.osv):
 #        return self.name_get(cr, user, ids, context=context)
 tpt_notification()
 
+#TPT START - By P.vinothkumar - ON 23/06/2016 - FOR (Apply multilines approval and reject in notification)
+class alert_form_notification(osv.osv_memory):
+    _name = "alert.form.notification"
+    _columns = {    
+                'title': fields.char(string="Title", size=100, readonly=True),
+                'message': fields.text(string="Message ", readonly=True),    
+                }
+
+    def approve_notify(self, cr, uid, ids, context=None):
+        notification_ids = context.get('active_ids')
+        self.pool.get('tpt.notification').bt_approve(cr, uid, notification_ids)
+        return {'type': 'ir.actions.act_window_close'}
+    
+    def reject_notify(self, cr, uid, ids, context=None):
+        notification_ids = context.get('active_ids')
+        self.pool.get('tpt.notification').bt_cancel(cr, uid, notification_ids)
+        return {'type': 'ir.actions.act_window_close'}
+    
+alert_form_notification()
+#TPT end
 class tpt_schedule(osv.osv):
     _name = "tpt.schedule"
     _columns = {
@@ -627,13 +653,21 @@ class tpt_maintenance_oder(osv.osv):
         return self.write(cr, uid, ids,{'state':'confirm'})
     
     def bt_approve_order(self, cr, uid, ids, context=None):
-        return self.write(cr, uid, ids,{'state':'in'})
+        # Added by P.vinothkumar on 24/06/2016 for multi approval only in confirm state   
+        for line in self.browse(cr,uid,ids,context=context):        
+            if line.state=='confirm':
+                return self.write(cr, uid, ids,{'state':'in'})
+        #return self.write(cr, uid, ids,{'state':'in'})
     
     def bt_close(self, cr, uid, ids, context=None):
         return self.write(cr, uid, ids,{'state':'close'})
     
     def bt_cancel(self, cr, uid, ids, context=None):
-        return self.write(cr, uid, ids,{'state':'cancel'})
+         # Added by P.vinothkumar on 24/06/2016 for multi reject only in confirm state   
+         for line in self.browse(cr,uid,ids,context=context):       
+             if line.state=='confirm':
+                 return self.write(cr, uid, ids,{'state':'cancel'})
+        #return self.write(cr, uid, ids,{'state':'cancel'})
     
     def bt_set_to(self, cr, uid, ids, context=None):
         return self.write(cr, uid, ids,{'state':'draft'})
@@ -728,6 +762,25 @@ class tpt_maintenance_oder(osv.osv):
         
     
 tpt_maintenance_oder()
+#TPT START - By P.vinothkumar - ON 23/06/2016 - FOR (Apply multilines approval and reject)
+class alert_form_mo(osv.osv_memory):
+    _name = "alert.form.mo"
+    _columns = {    
+                'title': fields.char(string="Title", size=100, readonly=True),
+                'message': fields.text(string="Message ", readonly=True),    
+                }
+
+    def approve_mo(self, cr, uid, ids, context=None):
+        complaint_ids = context.get('active_ids')
+        self.pool.get('tpt.maintenance.oder').bt_approve_order(cr, uid, complaint_ids)
+        return {'type': 'ir.actions.act_window_close'}
+    
+    def reject_mo(self, cr, uid, ids, context=None):
+        complaint_ids = context.get('active_ids')
+        self.pool.get('tpt.maintenance.oder').bt_cancel(cr, uid, complaint_ids)
+        return {'type': 'ir.actions.act_window_close'}
+    
+alert_form_mo()
 
 class tpt_service_entry(osv.osv):
     _name = "tpt.service.entry"

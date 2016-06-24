@@ -1062,7 +1062,7 @@ class account_invoice(osv.osv):
         'create_uid':fields.many2one('res.users','Created By', readonly=True),
         'created_on': fields.datetime('Created On', readonly=True),
         'purchase_id': fields.many2one('purchase.order', 'Purchase Order', readonly = True),
-        'vendor_ref': fields.char('Vendor Reference', size = 1024, readonly=True, states={'draft':[('readonly',False)]}),
+        'vendor_ref': fields.char('Vendor Reference', size = 1024, readonly=False, ), #states={'draft':[('readonly',False)]}
         'is_tds_applicable': fields.boolean('IsTDSApplicable'),
         'tds_id': fields.many2one('account.tax', 'TDS %'),
         'tds_id_2': fields.many2one('account.tax', 'TDS %'),
