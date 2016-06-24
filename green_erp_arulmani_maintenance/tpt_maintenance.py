@@ -653,14 +653,19 @@ class tpt_maintenance_oder(osv.osv):
         # Added by P.vinothkumar on 24/06/2016 for multi approval only in confirm state   
         for line in self.browse(cr,uid,ids,context=context):        
             if line.state=='confirm':
-                return self.write(cr, uid, ids,{'state':'in'})
+                return self.write(cr, uid, [line.id],{'state':'in'})
         #return self.write(cr, uid, ids,{'state':'in'})
     
     def bt_close(self, cr, uid, ids, context=None):
         return self.write(cr, uid, ids,{'state':'close'})
     
     def bt_cancel(self, cr, uid, ids, context=None):
-        return self.write(cr, uid, ids,{'state':'cancel'})
+         # Added by P.vinothkumar on 24/06/2016 for multi reject only in confirm state   
+         for line in self.browse(cr,uid,ids,context=context):       
+             if line.state=='confirm':
+                 return self.write(cr, uid,[line.id],{'state':'cancel'})
+        #return self.write(cr, uid, ids,{'state':'cancel'})
+        #return self.write(cr, uid, ids,{'state':'cancel'})
     
     def bt_set_to(self, cr, uid, ids, context=None):
         return self.write(cr, uid, ids,{'state':'draft'})
