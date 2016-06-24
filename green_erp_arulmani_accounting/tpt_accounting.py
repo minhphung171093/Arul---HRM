@@ -1691,7 +1691,7 @@ class account_invoice(osv.osv):
                         if cst_flag is True:
                             iml += invoice_line_obj.move_line_amount_untaxed_cst(cr, uid, inv.id, tax_amounts[0]) 
                             #TPT-START: By BalamuruganPurushothaman - ON 08/06/2016 - CST Inclusion - TO UPDATE CST AMOUNT INTO PRODUCT MASTER TOTAL COST VALUE
-                            self.cst_prod_avg_cost_update(cr, uid, inv.id, tax_amounts[0], context) 
+                            #self.cst_prod_avg_cost_update(cr, uid, inv.id, tax_amounts[0], context) 
                             #TPT END
                         else:
                             iml += invoice_line_obj.move_line_amount_untaxed(cr, uid, inv.id) 
