@@ -297,7 +297,49 @@
         <menuitem action="action_tpt_notification_form_view"
             id="menu_action_tpt_notification_form_view"
             parent="menu_tpt_maint_mg" sequence="3"/>
-        
+       <!-- Added by P.vinothkumar on 23/06/2016-->   
+         <!--Approve/Reject in Notifications -->
+	    <record id="approve_or_reject_notifiation_form_view" model="ir.ui.view">
+	        <field name="name">approve.or.reject.notification.form.view</field>
+	        <field name="model">alert.form.notification</field>
+	        <field eval="20" name="priority"/>
+	        <field name="arch" type="xml">
+	            <form string="Alert" version="7.0">
+	                <h1>
+	                	<field name="message"  nolabel="1" />
+	                </h1>
+	                <footer>
+	                	<button name="approve_notify" type='object' confirm="Do you want to approve all selected Notifications?" string="Approve" class="oe_highlight"/>
+	                    <button name="reject_notify" type='object' confirm="Do you want to reject all selected Notifications ?" string="Reject" class="oe_highlight"/>
+	                    or
+	                    <button string="Cancel" special="cancel" />
+	                </footer>
+	            </form>
+	        </field>
+    	</record>
+   
+	    <record model="ir.actions.act_window" id="action_approve_or_reject_notification_form">
+	        <field name="name">Manager Approve or Reject</field>
+	        <field name="res_model">alert.form.notification</field>
+	        <field name="view_type">form</field>
+	        <field name="view_mode">form</field>
+	        <field name="view_id" ref="approve_or_reject_notifiation_form_view" />
+	        <field name="context">{'default_message':'Approve or Reject?'}</field>
+	        <field name="target">new</field>
+	        <field name="groups_id" eval="[(6,0, [ref('group_vvti_maintenance'), ref('group_vvti_maintenance_manager')])]"/>
+	    </record>
+	     
+	    <record model="ir.values" id="notification_approve_reject">
+            <field name="model_id" ref="model_tpt_notification" />
+            <field name="name">Approve or Reject</field>
+            <field name="key2">client_action_multi</field>
+            <field name="value" eval="'ir.actions.act_window,' + str(ref('action_approve_or_reject_notification_form'))" /> 
+            <field name="key">action</field>
+            <field name="model">tpt.notification</field>
+            <field name="groups_id" eval="[(6,0, [ref('group_vvti_maintenance'), ref('group_vvti_maintenance_manager')])]"/>
+        </record>   
+             
+	<!-- TPT END --> 
         <record id="view_tpt_service_entry_tree" model="ir.ui.view">
 			<field name="name">tpt.service.entry.tree</field>
 			<field name="model">tpt.service.entry</field>
@@ -625,21 +667,55 @@
             <field name="view_mode">tree,form</field>
             <field name="view_id" ref="view_tpt_maintenance_oder_tree"/>
         </record>
-        <!--  
-        <record model="ir.values" id="tpt_maintenance_oder_approve_reject">
-            <field name="model_id" ref="model_tpt_maintenance_oder" />
-            <field name="name">Manager Approve or Reject</field>
-            <field name="key2">client_action_multi</field>
-            <field name="value" eval="'ir.actions.act_window,' + str(ref('action_approve_or_reject_mo_form'))" />
-            <field name="key">action</field>
-            <field name="model">tpt.maintenance.oder</field>
-        </record>
         
-        -->
         <menuitem action="action_tpt_maintenance_oder_form_view"
             id="menu_action_tpt_maintenance_oder_form_view"
             parent="menu_tpt_maint_mg" sequence="4"/>
-            
+        
+        <!-- Added by P.vinothkumar on 23/06/2016 -->   
+         <!--Approve/Reject in Maintenance Order -->
+	    <record id="approve_or_reject_mo_form_view" model="ir.ui.view">
+	        <field name="name">approve.or.reject.mo.form.view</field>
+	        <field name="model">alert.form.mo</field>
+	        <field eval="20" name="priority"/>
+	        <field name="arch" type="xml">
+	            <form string="Alert" version="7.0">
+	                <h1>
+	                	<field name="message"  nolabel="1" />
+	                </h1>
+	                <footer>
+	                	<button name="approve_mo" type='object' confirm="Do you want to approve all selected MO's ?" string="Approve" class="oe_highlight"/>
+	                    <button name="reject_mo" type='object' confirm="Do you want to reject all selected MO's ?" string="Reject" class="oe_highlight"/>
+	                    or
+	                    <button string="Cancel" special="cancel" />
+	                </footer>
+	            </form>
+	        </field>
+    	</record>
+    
+
+	    <record model="ir.actions.act_window" id="action_approve_or_reject_mo_form">
+	        <field name="name">Manager Approve or Reject</field>
+	        <field name="res_model">alert.form.mo</field>
+	        <field name="view_type">form</field>
+	        <field name="view_mode">form</field>
+	        <field name="view_id" ref="approve_or_reject_mo_form_view" />
+	        <field name="context">{'default_message':'Approve or Reject?'}</field>
+	        <field name="target">new</field>
+	        <field name="groups_id" eval="[(6,0, [ref('group_vvti_maintenance'), ref('group_vvti_maintenance_manager')])]"/>
+	    </record>
+	     
+	    <record model="ir.values" id="maintenance_order_approve_reject">
+            <field name="model_id" ref="model_tpt_maintenance_oder" />
+            <field name="name">Approve or Reject</field>
+            <field name="key2">client_action_multi</field>
+            <field name="value" eval="'ir.actions.act_window,' + str(ref('action_approve_or_reject_mo_form'))" /> 
+            <field name="key">action</field>
+            <field name="model">tpt.maintenance.oder</field>
+            <field name="groups_id" eval="[(6,0, [ref('group_vvti_maintenance'), ref('group_vvti_maintenance_manager')])]"/>
+        </record>   
+             
+	<!-- TPT END -->    
         
 		
 		<record id="inherit_view_tpt_material_request_form" model="ir.ui.view">

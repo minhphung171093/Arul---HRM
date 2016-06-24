@@ -22,8 +22,6 @@
         'tpt_maintenance_view.xml',       
         'report/print_gpass_req_view.xml', 
         'report/print_service_gpass_out_view.xml',
-        #'wizard/alert_form_mo_view.xml',
-        'wizard/alert_form_mo_view.xml'
     ],
     'test': [
     ],
