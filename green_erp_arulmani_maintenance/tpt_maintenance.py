@@ -383,11 +383,8 @@ class tpt_notification(osv.osv):
                 for usr_line in grp.users:
                     grp_ids.append(usr_line.id)
                 if uid not in grp_ids:
-                   raise osv.except_osv(_('Warning!'),_('Not Authorized to Approve!'))
-               # Added by P.vinothkumar on 24/06/2016 for multi reject only in waiting for approval state 
-                if line.state=='waiting':
-                    return self.write(cr, uid, ids,{'state':'cancel'})   
-        #return self.write(cr, uid, ids,{'state':'cancel'})
+                   raise osv.except_osv(_('Warning!'),_('Not Authorized to Approve!'))  
+        return self.write(cr, uid, ids,{'state':'cancel'})
     
 #     def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
 #         if context is None:
@@ -663,11 +660,7 @@ class tpt_maintenance_oder(osv.osv):
         return self.write(cr, uid, ids,{'state':'close'})
     
     def bt_cancel(self, cr, uid, ids, context=None):
-         # Added by P.vinothkumar on 24/06/2016 for multi reject only in confirm state   
-         for line in self.browse(cr,uid,ids,context=context):       
-             if line.state=='confirm':
-                 return self.write(cr, uid, ids,{'state':'cancel'})
-        #return self.write(cr, uid, ids,{'state':'cancel'})
+        return self.write(cr, uid, ids,{'state':'cancel'})
     
     def bt_set_to(self, cr, uid, ids, context=None):
         return self.write(cr, uid, ids,{'state':'draft'})
