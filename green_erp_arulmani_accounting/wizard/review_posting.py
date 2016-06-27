@@ -85,7 +85,8 @@ class review_posting(osv.osv_memory):
                                   ('freight', 'Freight Invoice'),
                                   ('worker_payroll', 'Workers Payroll'),
                                   ('stock_adj_inc', 'Stock Adjustment Increase'),
-                                  ('stock_adj_dec', 'Stock Adjustment Decrease')
+                                  ('stock_adj_dec', 'Stock Adjustment Decrease'),
+                                  ('return_do', 'Return DO')
                                   ],'Document Type'), 
         'ref': fields.char('Reference', size=64),
         'date': fields.date('Date'),

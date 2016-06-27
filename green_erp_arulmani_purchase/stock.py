@@ -18,7 +18,11 @@ class stock_picking(osv.osv):
         'document_type':fields.selection([('raw','VV Raw material PO'),('asset','VV Asset PO'),('standard','VV Standard PO'),('local','VV Local PO'),
                                           ('return','VV Return PO'),('service','VV Service PO(Project)'),
                                           ('service_qty','VV Service PO(Qty)'),('service_amt','VV Service PO(amt)'),
-                                          ('out','VV Out Service PO')],'PO Document Type'),
+                                          ('out','VV Out Service PO'),
+                                          ('do','DO'),('return_do','Return DO')
+                                          ]
+                                         
+                                         ,'PO Document Type'),
         'warehouse':fields.many2one('stock.location','Warehouse'),
         'po_date': fields.datetime('PO Date'),        
         'gate_in_pass_no':fields.many2one('tpt.gate.in.pass','Gate In Pass No'),

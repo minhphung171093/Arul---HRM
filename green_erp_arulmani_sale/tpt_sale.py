@@ -1021,7 +1021,7 @@ class sale_order(osv.osv):
                         picking_id = new_picking_id
                 if first_picking_id:
                     for line in picking_out_obj.browse(cr, uid, first_picking_id).move_lines:
-                        ###TPT START - By BalamuruganPurushothaman ON 4/4/2014 - TO SET SYSTEM BATCH NO BY DEFAULT
+                        ###TPT START - By BalamuruganPurushothaman ON 4/4/2015 - TO SET SYSTEM BATCH NO BY DEFAULT
                         ### FOR FSH PRODUCT
                         if line.sale_line_id.application_id.id:
                             sql = '''
