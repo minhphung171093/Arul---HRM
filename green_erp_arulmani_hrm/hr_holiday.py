@@ -4811,6 +4811,27 @@ class arul_hr_employee_leave_details(osv.osv):
                 #TPT END
             else:
                 raise osv.except_osv(_('Warning!'),_('User does not have permission to approve for this employee department!'))
+            
+            ##TPT BM on 27/06/2016 - Update Leave Details
+            leave_detail_obj = self.pool.get('arul.hr.employee.leave.details')
+            taken_day = 0
+            leave_detail_ids = leave_detail_obj.search(cr, uid, [('date_from','like',year),('employee_id','=',line.employee_id.id),('leave_type_id','=',line.leave_type_id.id),('state','=','done')])
+            for detail in leave_detail_obj.browse(cr, uid, leave_detail_ids, context=context):
+                  taken_day += detail.days_total
+            total = taken_day 
+            
+            emp_leave_ids = emp_leave_obj.search(cr, uid, [('employee_id','=',line.employee_id.id),('year','=',year_now)])
+            if emp_leave_ids:
+                emp_leave = emp_leave_obj.browse(cr, uid, emp_leave_ids[0])
+                temp = 0
+                for line_leave in emp_leave.emp_leave_details_ids:
+                    if line_leave.leave_type_id.id == line.leave_type_id.id:
+                        #leave_details_obj.write(cr, uid, [line_leave.id],{'total_taken': total ,})
+                        sql = '''
+                        UPDATE employee_leave_detail SET total_taken=%s WHERE id=%s
+                        '''%(total, line_leave.id)
+                        cr.execute(sql)
+            ##
         return True  
     #TPT:START 
     def reject_leave_request(self, cr, uid, ids, context=None): 
@@ -4856,6 +4877,7 @@ class arul_hr_employee_leave_details(osv.osv):
                 t=1
             else:
                 raise osv.except_osv(_('Warning!'),_('User does not have permission to reject for this employee department!'))
+            ##
         return True  
     #TPT:E
     def rollback_leave_request(self, cr, uid, ids, context=None):
@@ -4892,6 +4914,31 @@ class arul_hr_employee_leave_details(osv.osv):
                     #TPT END
             else:
                 raise osv.except_osv(_('Warning!'),_('User does not have permission to cancel for this employee department!'))
+            ##TPT BM on 27/06/2016 - Update Leave Details
+            leave_detail_obj = self.pool.get('arul.hr.employee.leave.details')
+            emp_leave_obj = self.pool.get('employee.leave')
+            taken_day = 0
+            year_now = line.date_from[0:4]
+            leave_detail_ids = leave_detail_obj.search(cr, uid, [('date_from','like',year),('employee_id','=',line.employee_id.id),('leave_type_id','=',line.leave_type_id.id),('state','=','done')])
+            for detail in leave_detail_obj.browse(cr, uid, leave_detail_ids, context=context):
+                  taken_day += detail.days_total
+            total = taken_day 
+            #total = taken_day 
+            
+            emp_leave_ids = emp_leave_obj.search(cr, uid, [('employee_id','=',line.employee_id.id),('year','=',year_now)])
+            if emp_leave_ids:
+                emp_leave = emp_leave_obj.browse(cr, uid, emp_leave_ids[0])
+                temp = 0
+                for line_leave in emp_leave.emp_leave_details_ids:
+                    if line_leave.leave_type_id.id == line.leave_type_id.id:
+                        #leave_details_obj.write(cr, uid, [line_leave.id],{'total_taken': total ,})
+                        sql = '''
+                        UPDATE employee_leave_detail SET total_taken=%s WHERE id=%s
+                        '''%(total, line_leave.id)
+                        cr.execute(sql)
+            
+            
+            ##
         return True  
     def cancel_leave_request(self, cr, uid, ids, context=None):
         date_now = time.strftime('%Y-%m-%d')
@@ -4938,6 +4985,31 @@ class arul_hr_employee_leave_details(osv.osv):
 #             '''%(line.id)
 #             cr.execute(sql)
             #self.write(cr, uid, [line.id],{'state':'cancel','leave_evaluate_id':False})
+            ##TPT BM on 27/06/2016 - Update Leave Details
+            leave_detail_obj = self.pool.get('arul.hr.employee.leave.details')
+            emp_leave_obj = self.pool.get('employee.leave')
+            year_now = line.date_from[0:4]
+            taken_day = 0
+            leave_detail_ids = leave_detail_obj.search(cr, uid, [('date_from','like',year),('employee_id','=',line.employee_id.id),('leave_type_id','=',line.leave_type_id.id),('state','=','done')])
+            for detail in leave_detail_obj.browse(cr, uid, leave_detail_ids, context=context):
+                  taken_day += detail.days_total
+            total = taken_day 
+            #total = taken_day 
+            
+            emp_leave_ids = emp_leave_obj.search(cr, uid, [('employee_id','=',line.employee_id.id),('year','=',year_now)])
+            if emp_leave_ids:
+                emp_leave = emp_leave_obj.browse(cr, uid, emp_leave_ids[0])
+                temp = 0
+                for line_leave in emp_leave.emp_leave_details_ids:
+                    if line_leave.leave_type_id.id == line.leave_type_id.id:
+                        #leave_details_obj.write(cr, uid, [line_leave.id],{'total_taken': total ,})
+                        sql = '''
+                        UPDATE employee_leave_detail SET total_taken=%s WHERE id=%s
+                        '''%(total, line_leave.id)
+                        cr.execute(sql)
+            
+            
+            ##
         return True  
     
     def _check_days(self, cr, uid, ids, context=None): 
