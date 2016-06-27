@@ -396,7 +396,8 @@ class account_move_line(osv.osv):
                                   ('freight', 'Freight Invoice'),
                                   ('worker_payroll', 'Workers Payroll'),
                                   ('stock_adj_inc', 'Stock Adjustment Increase'),
-                                  ('stock_adj_dec', 'Stock Adjustment Decrease')
+                                  ('stock_adj_dec', 'Stock Adjustment Decrease'),
+                                  ('return_do', 'Return DO')
                                   ], string="Document Type", readonly=True, select=True),
     }
     
@@ -6263,8 +6264,16 @@ class account_voucher(osv.osv):
             sequence = self.pool.get('ir.sequence').get(cr, uid, 'customer.payment.account')
             vals['name'] =  sequence and sequence+'/'+fiscalyear['code'] or '/'
             name=vals['name'] 
-            ref = name.replace('/','')
-            ref1=ref
+            # Commented by P.vinothkumar on 27/06/2016 for fix wrongly displayed Narration in General ledger Number(Ticket No.3580)
+#             ref = name.replace('/','')
+#             ref1=ref
+             # Added condition by P.vinothkumar on 27/06/2016 for fix wrongly displayed Narration in General ledger Number(Ticket No.3580)
+            if not voucher.reference:
+                ref = name.replace('/','')
+            else:
+                ref = voucher.reference
+            # TPT end
+
             #===================================================================
             # seq_obj = self.pool.get('ir.sequence') 
             # seq_ids = seq_obj.search(cr, uid, [('code','=','customer.payment.account')]) 
@@ -6276,7 +6285,7 @@ class account_voucher(osv.osv):
                 sequence = self.pool.get('ir.sequence').get(cr, uid, 'account.supplier.payment')
                 vals['name'] =  sequence and sequence+'/'+fiscalyear['code'] 
                 #vals['name']='SUP/'+fiscalyear['code']+'/'+sequence
-                name=vals['name']   
+                name=vals['name']        
         ##
         move = {
             'name': name,
