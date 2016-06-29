@@ -553,41 +553,44 @@ class sale_order(osv.osv):
         #
         #print vals
         new_id = super(sale_order, self).create(cr, uid, vals, context)
-        if 'blanket_id' in vals and vals['blanket_id']:
-            sale = self.browse(cr, uid, new_id)
-            
-            sql = '''
-                select case when sum(product_uom_qty)!=0 then sum(product_uom_qty) else 0 end product_uom_qty from sale_order_line where order_id in (select id from sale_order where blanket_line_id=%s and id!=%s and state!='cancel')
-            '''%(sale.blanket_line_id.id,sale.id)
-            cr.execute(sql)
-            product_uom_qty = cr.dictfetchone()['product_uom_qty']
-            
-            for line in sale.order_line:
-                if round(line.product_uom_qty,3) > round(sale.blanket_line_id.product_uom_qty-product_uom_qty,3): #TPT-By BalamuruganPurushothaman - ON 23/11/2015
-                    raise osv.except_osv(_('Warning!'),_('Quantity must be less than blanket order line quantity!'))
-            
-            sql = '''
-                select case when sum(product_uom_qty)!=0 then sum(product_uom_qty) else 0 end product_uom_qty
-                    from sale_order_line where order_id in (select id from sale_order where blanket_id=%s and state!='cancel')
-            '''%(sale.blanket_id.id)
-            cr.execute(sql)
-            product_uom_qty_sale = cr.dictfetchone()['product_uom_qty']
-            sql = '''
-                select case when sum(product_uom_qty)!=0 then sum(product_uom_qty) else 0 end product_uom_qty
-                    from tpt_blank_order_line where blanket_order_id = %s
-            '''%(sale.blanket_id.id)
-            cr.execute(sql)
-            product_uom_qty_bk = cr.dictfetchone()['product_uom_qty']
-            if product_uom_qty_bk==product_uom_qty_sale:
-                sql = '''
-                    update tpt_blanket_order set state = 'done' where id=%s 
-                '''%(sale.blanket_id.id)
-                cr.execute(sql)
-            if sale.blanket_id.state=='done' and product_uom_qty_sale<product_uom_qty_bk:
-                sql = '''
-                    update tpt_blanket_order set state = 'approve' where id=%s 
-                '''%(sale.blanket_id.id)
-                cr.execute(sql)
+        #TPT-BM-ON 29/06/2016 - The following snippet moved into Confirm Sale Button
+        #=======================================================================
+        # if 'blanket_id' in vals and vals['blanket_id']:
+        #     sale = self.browse(cr, uid, new_id)
+        #     
+        #     sql = '''
+        #         select case when sum(product_uom_qty)!=0 then sum(product_uom_qty) else 0 end product_uom_qty from sale_order_line where order_id in (select id from sale_order where blanket_line_id=%s and id!=%s and state!='cancel')
+        #     '''%(sale.blanket_line_id.id,sale.id)
+        #     cr.execute(sql)
+        #     product_uom_qty = cr.dictfetchone()['product_uom_qty']
+        #     
+        #     for line in sale.order_line:
+        #         if round(line.product_uom_qty,3) > round(sale.blanket_line_id.product_uom_qty-product_uom_qty,3): #TPT-By BalamuruganPurushothaman - ON 23/11/2015
+        #             raise osv.except_osv(_('Warning!'),_('Quantity must be less than blanket order line quantity!'))
+        #     
+        #     sql = '''
+        #         select case when sum(product_uom_qty)!=0 then sum(product_uom_qty) else 0 end product_uom_qty
+        #             from sale_order_line where order_id in (select id from sale_order where blanket_id=%s and state!='cancel')
+        #     '''%(sale.blanket_id.id)
+        #     cr.execute(sql)
+        #     product_uom_qty_sale = cr.dictfetchone()['product_uom_qty']
+        #     sql = '''
+        #         select case when sum(product_uom_qty)!=0 then sum(product_uom_qty) else 0 end product_uom_qty
+        #             from tpt_blank_order_line where blanket_order_id = %s
+        #     '''%(sale.blanket_id.id)
+        #     cr.execute(sql)
+        #     product_uom_qty_bk = cr.dictfetchone()['product_uom_qty']
+        #     if product_uom_qty_bk==product_uom_qty_sale:
+        #         sql = '''
+        #             update tpt_blanket_order set state = 'done' where id=%s 
+        #         '''%(sale.blanket_id.id)
+        #         cr.execute(sql)
+        #     if sale.blanket_id.state=='done' and product_uom_qty_sale<product_uom_qty_bk:
+        #         sql = '''
+        #             update tpt_blanket_order set state = 'approve' where id=%s 
+        #         '''%(sale.blanket_id.id)
+        #         cr.execute(sql)
+        #=======================================================================
         return new_id
     
     def write(self, cr, uid, ids, vals, context=None):
@@ -705,46 +708,49 @@ class sale_order(osv.osv):
                         )
         #
         new_write = super(sale_order, self).write(cr, uid,ids, vals, context)
-        if 'blanket_id' in vals and vals['blanket_id']:
-            for sale in self.browse(cr, uid, ids):
-                if 'shipped' in vals:
-                    if (vals['shipped'] == True):
-                        sql = '''
-                             update sale_order set document_status='close' where id = %s
-                        '''%(sale.id)
-                        cr.execute(sql)
-                sql = '''
-                    select case when sum(product_uom_qty)!=0 then sum(product_uom_qty) else 0 end product_uom_qty from sale_order_line
-                        where order_id in (select id from sale_order where blanket_line_id=%s and id!=%s and state!='cancel')
-                '''%(sale.blanket_line_id.id,sale.id)
-                cr.execute(sql)
-                product_uom_qty = cr.dictfetchone()['product_uom_qty']
-                for line in sale.order_line:
-                    if round(line.product_uom_qty,3) > round(sale.blanket_line_id.product_uom_qty-product_uom_qty, 3): #TPT-BM-19/04/2016
-                        raise osv.except_osv(_('Warning!'),_('Quantity must be less than blanket order line quantity!'))
-                
-                sql = '''
-                    select case when sum(product_uom_qty)!=0 then sum(product_uom_qty) else 0 end product_uom_qty
-                        from sale_order_line where order_id in (select id from sale_order where blanket_id=%s and state!='cancel')
-                '''%(sale.blanket_id.id)
-                cr.execute(sql)
-                product_uom_qty_sale = cr.dictfetchone()['product_uom_qty']
-                sql = '''
-                    select case when sum(product_uom_qty)!=0 then sum(product_uom_qty) else 0 end product_uom_qty
-                        from tpt_blank_order_line where blanket_order_id = %s
-                '''%(sale.blanket_id.id)
-                cr.execute(sql)
-                product_uom_qty_bk = cr.dictfetchone()['product_uom_qty']
-                if product_uom_qty_bk==product_uom_qty_sale:
-                    sql = '''
-                        update tpt_blanket_order set state = 'done' where id=%s 
-                    '''%(sale.blanket_id.id)
-                    cr.execute(sql)
-                if sale.blanket_id.state=='done' and product_uom_qty_sale<product_uom_qty_bk:
-                    sql = '''
-                        update tpt_blanket_order set state = 'approve' where id=%s 
-                    '''%(sale.blanket_id.id)
-                    cr.execute(sql)
+        #TPT-BM-ON 29/06/2016 - The following snippet moved into Confirm Sale Button
+        #=======================================================================
+        # if 'blanket_id' in vals and vals['blanket_id']:
+        #     for sale in self.browse(cr, uid, ids):
+        #         if 'shipped' in vals:
+        #             if (vals['shipped'] == True):
+        #                 sql = '''
+        #                      update sale_order set document_status='close' where id = %s
+        #                 '''%(sale.id)
+        #                 cr.execute(sql)
+        #         sql = '''
+        #             select case when sum(product_uom_qty)!=0 then sum(product_uom_qty) else 0 end product_uom_qty from sale_order_line
+        #                 where order_id in (select id from sale_order where blanket_line_id=%s and id!=%s and state!='cancel')
+        #         '''%(sale.blanket_line_id.id,sale.id)
+        #         cr.execute(sql)
+        #         product_uom_qty = cr.dictfetchone()['product_uom_qty']
+        #         for line in sale.order_line:
+        #             if round(line.product_uom_qty,3) > round(sale.blanket_line_id.product_uom_qty-product_uom_qty, 3): #TPT-BM-19/04/2016
+        #                 raise osv.except_osv(_('Warning!'),_('Quantity must be less than blanket order line quantity!'))
+        #         
+        #         sql = '''
+        #             select case when sum(product_uom_qty)!=0 then sum(product_uom_qty) else 0 end product_uom_qty
+        #                 from sale_order_line where order_id in (select id from sale_order where blanket_id=%s and state!='cancel')
+        #         '''%(sale.blanket_id.id)
+        #         cr.execute(sql)
+        #         product_uom_qty_sale = cr.dictfetchone()['product_uom_qty']
+        #         sql = '''
+        #             select case when sum(product_uom_qty)!=0 then sum(product_uom_qty) else 0 end product_uom_qty
+        #                 from tpt_blank_order_line where blanket_order_id = %s
+        #         '''%(sale.blanket_id.id)
+        #         cr.execute(sql)
+        #         product_uom_qty_bk = cr.dictfetchone()['product_uom_qty']
+        #         if product_uom_qty_bk==product_uom_qty_sale:
+        #             sql = '''
+        #                 update tpt_blanket_order set state = 'done' where id=%s 
+        #             '''%(sale.blanket_id.id)
+        #             cr.execute(sql)
+        #         if sale.blanket_id.state=='done' and product_uom_qty_sale<product_uom_qty_bk:
+        #             sql = '''
+        #                 update tpt_blanket_order set state = 'approve' where id=%s 
+        #             '''%(sale.blanket_id.id)
+        #             cr.execute(sql)
+        #=======================================================================
         return new_write
 
     def onchange_blanket_id(self, cr, uid, ids,blanket_id=False, context=None):
@@ -1040,6 +1046,43 @@ class sale_order(osv.osv):
                             stock_move_obj.write(cr, uid, [line.id], {'product_type':line.sale_line_id.product_type,'application_id':line.sale_line_id.application_id and line.sale_line_id.application_id.id or False})
                         ###TPT END
                         #stock_move_obj.write(cr, uid, [line.id], {'product_type':line.sale_line_id.product_type,'application_id':line.sale_line_id.application_id and line.sale_line_id.application_id.id or False})
+            #
+            #TPT START-BM-ON 29/06/2016 - the following snippet moved from create,write method - BO tured to Done state even its partial qty ordered
+            sale = self.browse(cr, uid, ids[0])
+            if sale.blanket_id:
+                sql = '''
+                    select case when sum(product_uom_qty)!=0 then sum(product_uom_qty) else 0 end product_uom_qty from sale_order_line where order_id in (select id from sale_order where blanket_line_id=%s and id!=%s and state!='cancel')
+                '''%(sale.blanket_line_id.id,sale.id)
+                cr.execute(sql)
+                product_uom_qty = cr.dictfetchone()['product_uom_qty']
+                
+                for line in sale.order_line:
+                    if round(line.product_uom_qty,3) > round(sale.blanket_line_id.product_uom_qty-product_uom_qty,3): #TPT-By BalamuruganPurushothaman - ON 23/11/2015
+                        raise osv.except_osv(_('Warning!'),_('Quantity must be less than blanket order line quantity!'))
+                
+                sql = '''
+                    select case when sum(product_uom_qty)!=0 then sum(product_uom_qty) else 0 end product_uom_qty
+                        from sale_order_line where order_id in (select id from sale_order where blanket_id=%s and state!='cancel')
+                '''%(sale.blanket_id.id)
+                cr.execute(sql)
+                product_uom_qty_sale = cr.dictfetchone()['product_uom_qty']
+                sql = '''
+                    select case when sum(product_uom_qty)!=0 then sum(product_uom_qty) else 0 end product_uom_qty
+                        from tpt_blank_order_line where blanket_order_id = %s
+                '''%(sale.blanket_id.id)
+                cr.execute(sql)
+                product_uom_qty_bk = cr.dictfetchone()['product_uom_qty']
+                if product_uom_qty_bk==product_uom_qty_sale:
+                    sql = '''
+                        update tpt_blanket_order set state = 'done' where id=%s 
+                    '''%(sale.blanket_id.id)
+                    cr.execute(sql)
+                if sale.blanket_id.state=='done' and product_uom_qty_sale<product_uom_qty_bk:
+                    sql = '''
+                        update tpt_blanket_order set state = 'approve' where id=%s 
+                    '''%(sale.blanket_id.id)
+                    cr.execute(sql)
+            #TPT START
         return True
     
     def _prepare_order_line_move(self, cr, uid, order, line, picking_id, date_planned, context=None):
@@ -3130,6 +3173,18 @@ class stock_production_lot(osv.osv):
                 cr.execute(sql)
                 prodlot_ids = [row[0] for row in cr.fetchall()]
                 args += [('id','in',prodlot_ids)]
+        #TPT-BM-29/06/2016
+                sql = '''
+                select id from stock_production_lot where id in (
+                select prodlot_id from stock_move where picking_id =(
+                select return_do_id from sale_order  where id=%s))
+                '''%sale_id
+                cr.execute(sql)
+                temp = cr.fetchall()
+                if temp:
+                    prodlot_ids = [row[0] for row in temp]
+                    args = [('id','in',prodlot_ids)]
+        #TPT-END
         return super(stock_production_lot, self).search(cr, uid, args, offset=offset, limit=limit, order=order, context=context, count=count)
     def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
        ids = self.search(cr, user, args, context=context, limit=limit)

@@ -430,7 +430,11 @@
 				<button name="action_assign" position="replace">
 					<button name="tpt_check_stock" states="confirmed" string="Check Availability" type="object" 
 					class="oe_highlight" groups="green_erp_arulmani_sale.group_vvti_sale_user"
-					attrs="{'invisible': [('document_type','=','return_do')]}"
+					
+					/>
+					<button name="action_return_do" states="confirmed" string="Return DO" type="object" 
+					class="oe_highlight" groups="green_erp_arulmani_sale.group_vvti_sale_user"
+					
 					/>
 				</button>
 				
@@ -458,23 +462,27 @@
             	<!-- tpt end here -->
             	<xpath expr="//field[@name='move_lines']"  position="replace">
             		<field name="move_lines" string="Stock Move" context="{'address_out_id': partner_id, 'picking_type': 'out', 'form_view_ref':'stock.view_move_picking_form', 'tree_view_ref':'stock.view_move_picking_tree'}" options='{"reload_on_button": true}'>
-            			<tree editable='top' create='false' colors="grey:state == 'cancel';red:(state not in ('cancel','done')) and date > current_date" string="Moves">
+            			<tree editable='top' create='true' colors="grey:state == 'cancel';red:(state not in ('cancel','done')) and date > current_date" string="Moves">
 		                    <field name="name" invisible="1"/>
 		                    <field name="picking_id" string="Reference" invisible="1"/>
 		                    <field name="origin" invisible="1"/>
 		                    <field name="type" invisible="1" on_change="onchange_move_type(type)"/>
 		                    <field name="create_date" invisible="1" groups="base.group_no_one"/>
-		                    <field name="product_id" readonly = "1" context="{'search_pro_by_so':1,'sale_id':parent.sale_id}" on_change="onchange_product_id(product_id,location_id,location_dest_id, False)" options="{'create': false, 'create_edit': false}"/>
+		                    <field name="product_id" readonly = "0" context="{'search_pro_by_so':1,'sale_id':parent.sale_id}" on_change="onchange_product_id(product_id,location_id,location_dest_id, False)" options="{'create': false, 'create_edit': false}"/>
 		                    <!-- <field name="product_type" readonly = "1" /> TPT-BM-ON 10/02/2016 -->
-            				<field name="application_id" readonly = "1" options="{'create': false, 'create_edit': false}"/>
-		                    <field name="product_qty" readonly = "1" on_change="onchange_quantity(product_id, product_qty, product_uom, product_uos)"/>
-		                    <field name="product_uom" readonly = "1" string="Unit of Measure" groups="product.group_uom" options="{'create': false, 'create_edit': false}"/>
+            				<field name="application_id" readonly = "0" options="{'create': false, 'create_edit': false}"/>
+		                    <field name="product_qty" readonly = "0" 
+		                    on_change="onchange_quantity(product_id, product_qty, product_uom, product_uos)"
+		                    
+		                    />
+		                    <field name="product_uom" readonly = "0" string="Unit of Measure" groups="product.group_uom" options="{'create': false, 'create_edit': false}"/>
 		                    <field name="product_uos" invisible="1" groups="product.group_uos"/>
 		                    <button name="%(stock.move_scrap)d"
 		                        string="Scrap Products" type="action"
 		                        icon="terp-gtk-jump-to-ltr" context="{'scrap': True}"
 		                        states="draft,waiting,confirmed,assigned" invisible="1"/>
 		                    <field name="prodlot_id" string = "System Batch Number" groups="stock.group_production_lot" on_change="onchange_sys_batch(prodlot_id,product_qty,context)" context="{'search_prodlot_by_batch_alot':1,'sale_id':parent.sale_id}" options="{'create': false, 'create_edit': false}"/>
+
 		                    <field name="phy_batch" string = "Physical Batch Number"/>
 		                    <button name="%(stock.track_line)d" string="Split in Serial Numbers" type="action"
 		                        icon="gtk-justify-fill" attrs="{'invisible': [('prodlot_id','!=',False)]}"

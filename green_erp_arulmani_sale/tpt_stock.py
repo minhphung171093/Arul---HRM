@@ -397,6 +397,15 @@ class stock_picking(osv.osv):
                 'invoice_line_tax_id': [(6, 0, [picking.sale_id and picking.sale_id.sale_tax_id and picking.sale_id.sale_tax_id.id])],
             })
         return invoice_line_vals
+    #
+    def _get_partner_to_invoice(self, cr, uid, picking, context=None):
+        """ Gets the partner that will be invoiced
+            Note that this function is inherited in the sale and purchase modules
+            @param picking: object of the picking for which we are selecting the partner to invoice
+            @return: object of the partner to invoice
+        """
+        return picking.partner_id and picking.partner_id.id
+    #
     
     ### TPT START - By BalamuruganPurushothaman ON 27/03/2015 - TO AVOID CREATING MULTIPLE INVOICE LINE 
     ### SINGLE INVOICE FOR A SET OF MULTIPLE DO
@@ -973,6 +982,25 @@ class stock_picking(osv.osv):
                                 raise osv.except_osv(_('Warning!'),_('Do not have enough quantity for this product on stock!'))
                 picking.force_assign(cr, uid, [picking.id])
         return True
+    def action_return_do(self, cr, uid, ids, context=None):
+        stock_picking = self.pool.get('stock.picking')
+        stock_move = self.pool.get('stock.move')
+        for picking in self.browse(cr, uid, ids, context=context):
+            if picking.warehouse:
+                for line in picking.move_lines:
+                    print line.product_id.name_template
+                    print line.state
+                    print line.product_uos_qty
+                    print line.product_qty
+                    print line.prodlot_id.name
+                    vals = {'state': 'done',
+                           'location_id':9,
+                           'location_dest_id':13
+                           }
+                    stock_move.write(cr, uid, [line.id], vals, context)
+            stock_picking.write(cr, uid, ids, {'state':'assigned'}, context)          
+                #picking.force_assign(cr, uid, [picking.id])
+        return True
     
 stock_picking()
 
@@ -1083,6 +1111,10 @@ class stock_picking_out(osv.osv):
             cr, uid, ids, context=context)
     def tpt_check_stock(self, cr, uid, ids, context=None):
         return self.pool.get('stock.picking').tpt_check_stock(
+            cr, uid, ids)
+    #TPT-BM-ON 29/06/2016 - for return do process which intern calls action_return_do
+    def action_return_do(self, cr, uid, ids, context=None):
+        return self.pool.get('stock.picking').action_return_do(
             cr, uid, ids)
     
 stock_picking_out()
