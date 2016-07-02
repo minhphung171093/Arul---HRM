@@ -47,7 +47,8 @@ class Parser(report_sxw.rml_parse):
             return prod 
     def get_date(self, date=False):
         if not date:
-            date = time.strftime(DATE_FORMAT)
+            #date = time.strftime(DATE_FORMAT)
+            return '' #TPT-BM-02/07/2016
         date = datetime.strptime(date, DATE_FORMAT)
         return date.strftime('%d/%m/%Y')  
 
