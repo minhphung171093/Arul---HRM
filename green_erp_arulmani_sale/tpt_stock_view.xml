@@ -430,7 +430,7 @@
 				<button name="action_assign" position="replace"> <!-- states="confirmed" is removed here - TPT_BM-ON 02/07/2016 -->
 					<button name="tpt_check_stock"  string="Check Availability" type="object" 
 					class="oe_highlight" groups="green_erp_arulmani_sale.group_vvti_sale_user"
-					attrs="{'invisible': [('document_type','=','do')]}"
+					attrs="{'invisible': [('document_type','=','return_do')]}"
 					/>
 					<button name="action_return_do" string="Return DO" type="object" 
 					class="oe_highlight" groups="green_erp_arulmani_sale.group_vvti_sale_user"
