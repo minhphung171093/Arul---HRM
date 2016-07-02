@@ -298,36 +298,37 @@ class sale_order(osv.osv):
             #
             inv_obj = self.pool.get('account.invoice')
             inv_obj_ids = inv_obj.search(cr, uid, [('sale_id','=',sale_order.id)])
-            inv_obj_id = inv_obj.browse(cr,uid,inv_obj_ids[0])
+            if inv_obj_ids:
+                inv_obj_id = inv_obj.browse(cr,uid,inv_obj_ids[0])
             #
-            vals = {
-                    'order_line':  [(0,0,rs_order)],
-                    'order_policy': 'picking',
-                    'partner_id':sale_order.partner_id.id or False,
-                    'return_invoice_id':inv_obj_id.id or False,
-                    'return_do_id': inv_obj_id.delivery_order_id.id or False,
-                    
-                    'invoice_address':sale_order.invoice_address or False,
-                    'street2':sale_order.street2 or False,
-                    'street3':sale_order.street3 or False,
-                    'city':sale_order.city or False,
-                    'country_id':sale_order.country_id and sale_order.country_id.id or False,
-                    'state_id':sale_order.state_id and sale_order.state_id.id or False,
-                    'zip':sale_order.zip or False,
-                    
-                    'po_date':sale_order.po_date or False,
-                    'order_type':sale_order.order_type or False,
-                    'po_number':sale_order.po_number or False,
-                    'payment_term_id':sale_order.payment_term_id and sale_order.payment_term_id.id or False,
-                    'currency_id':sale_order.currency_id and sale_order.currency_id.id or False,
-                    'tpt_currency_id':sale_order.tpt_currency_id and sale_order.tpt_currency_id.id or False,
-                    'quotaion_no':sale_order.quotaion_no or '',
-                    'incoterms_id':sale_order.incoterms_id and sale_order.incoterms_id.id or False,
-                    'distribution_channel':sale_order.distribution_channel and sale_order.distribution_channel.id or False,
-                    'excise_duty_id':sale_order.excise_duty_id and sale_order.excise_duty_id.id or False,
-                    'sale_tax_id':sale_order.sale_tax_id and sale_order.sale_tax_id.id or False, 
-                    
-                        }
+                vals = {
+                        'order_line':  [(0,0,rs_order)],
+                        'order_policy': 'picking',
+                        'partner_id':sale_order.partner_id.id or False,
+                        'return_invoice_id':inv_obj_id.id or False,
+                        'return_do_id': inv_obj_id.delivery_order_id.id or False,
+                        
+                        'invoice_address':sale_order.invoice_address or False,
+                        'street2':sale_order.street2 or False,
+                        'street3':sale_order.street3 or False,
+                        'city':sale_order.city or False,
+                        'country_id':sale_order.country_id and sale_order.country_id.id or False,
+                        'state_id':sale_order.state_id and sale_order.state_id.id or False,
+                        'zip':sale_order.zip or False,
+                        
+                        'po_date':sale_order.po_date or False,
+                        'order_type':sale_order.order_type or False,
+                        'po_number':sale_order.po_number or False,
+                        'payment_term_id':sale_order.payment_term_id and sale_order.payment_term_id.id or False,
+                        'currency_id':sale_order.currency_id and sale_order.currency_id.id or False,
+                        'tpt_currency_id':sale_order.tpt_currency_id and sale_order.tpt_currency_id.id or False,
+                        'quotaion_no':sale_order.quotaion_no or '',
+                        'incoterms_id':sale_order.incoterms_id and sale_order.incoterms_id.id or False,
+                        'distribution_channel':sale_order.distribution_channel and sale_order.distribution_channel.id or False,
+                        'excise_duty_id':sale_order.excise_duty_id and sale_order.excise_duty_id.id or False,
+                        'sale_tax_id':sale_order.sale_tax_id and sale_order.sale_tax_id.id or False, 
+                        
+                            }
         return {'value': vals}   
     ###
     def onchange_blanketorderline_id(self, cr, uid, ids, blanket_line_id=False, context=None):
@@ -431,10 +432,12 @@ class sale_order(osv.osv):
             if not fiscalyear:
                 raise osv.except_osv(_('Warning!'),_('Financial year has not been configured. !'))
             if vals.get('name','/')=='/':
-                sequence = self.pool.get('ir.sequence').get(cr, uid, 'tpt.sale.order.import') or '/'
-                if vals['document_type']=='return': #TPT-BM-ON 15/06/2016
+                if vals['document_type']=='saleorder':
+                    sequence = self.pool.get('ir.sequence').get(cr, uid, 'tpt.sale.order.import') or '/'
+                    vals['name'] =  sequence and sequence+'/'+fiscalyear['code'] or '/'
+                elif vals['document_type']=='return': #TPT-BM-ON 15/06/2016
                    sequence = self.pool.get('ir.sequence').get(cr, uid, 'tpt.return.sale.order.import') or '/' 
-                vals['name'] =  sequence and sequence+'/'+fiscalyear['code'] or '/'
+                   vals['name'] =  sequence and sequence+'/'+fiscalyear['code'] or '/'
                 
                     
           #TPT END    

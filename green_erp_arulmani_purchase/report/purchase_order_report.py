@@ -48,7 +48,7 @@ class Parser(report_sxw.rml_parse):
     def get_date(self, date=False):
         if not date:
             #date = time.strftime(DATE_FORMAT)
-            return '' #TPT-BM-02/07/2016
+            return '' #TPT-BM-02/07/2016 - TOavoid taking system date id Scheduled Date is not present
         date = datetime.strptime(date, DATE_FORMAT)
         return date.strftime('%d/%m/%Y')  
 

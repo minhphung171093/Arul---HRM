@@ -37,7 +37,8 @@ class tpt_general_ledger_from(osv.osv_memory):
                                   ('staff_payroll', 'Staff Payroll'),
                                   ('worker_payroll', 'Workers Payroll'),
                                   ('stock_adj_inc', 'Stock Adjustment Increase'),
-                                  ('stock_adj_dec', 'Stock Adjustment Decrease')
+                                  ('stock_adj_dec', 'Stock Adjustment Decrease'),
+                                  ('return_do', 'Return DO'),
                                   ],'Document Type'),   
         'doc_no':fields.char('Document No',size=1024),
         'narration':fields.char('Narration',size=1024),
