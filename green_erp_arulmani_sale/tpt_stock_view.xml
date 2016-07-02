@@ -439,7 +439,7 @@
 					/>
 					<button name="action_return_do" string="Return DO" type="object" 
 					class="oe_highlight" groups="green_erp_arulmani_sale.group_vvti_sale_user"
-					attrs="{'invisible': [('document_type','=','do'), ('state','in',('draft, done, cancel'))]}"
+					attrs="{'invisible': [('document_type','=','do'), ('state','in',('draft, 'done', 'cancel'))]}"
 					
 					/>
 				</button>
