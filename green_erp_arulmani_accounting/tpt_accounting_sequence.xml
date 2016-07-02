@@ -248,6 +248,41 @@
             <field name="implementation">no_gap</field>
         </record> 
 <!-- Delivery Order Posting -->
+<!-- TPT-BM-01/07/2016 -->
+<!-- Return Customer Invoice Posting -->
+        <record id="tpt_sequence_return_customer_invoice_posting" model="ir.sequence.type">
+            <field name="name">Return Customer Invoice Posting</field>
+            <field name="code">account.return.customer.invoice</field>
+        </record>
+        
+        <record id="tpt_sequence_return_customer_invoice_posting_item" model="ir.sequence">
+            <field name="name">Return Customer Invoice Posting</field>
+            <field name="code">account.return.customer.invoice</field>
+            <field name="prefix">RCI/</field>
+            <field name="padding">4</field>
+            <field name="number_next_actual">1</field>
+            <field name="implementation">no_gap</field>
+        </record> 
+        <!-- 
+        <record id="tpt_sequence_return_customer_invoice_trans" model="ir.sequence.type">
+            <field name="name">Return Customer Invoice Transaction</field>
+            <field name="code">account.return.customer.invoice.trans</field>
+        </record>
+        
+        <record id="tpt_sequence_return_customer_invoice_trans_item" model="ir.sequence">
+            <field name="name">Return Customer Invoice Transaction</field>
+            <field name="code">account.return.customer.invoice.trans</field>
+            <field name="prefix">R/</field>
+            <field name="padding">4</field>
+            <field name="number_next_actual">1</field>
+            <field name="implementation">no_gap</field>
+        </record> 
+         -->
+        
+      <!-- TPT-BM-END -->  
+<!--  - Delivery Order Posting -->
+
+
         <record id="tpt_sequence_delivery_order_posting" model="ir.sequence.type">
             <field name="name">Account Delivery Order</field>
             <field name="code">account.do.import</field>
@@ -261,6 +296,21 @@
             <field name="number_next_actual">1</field>
             <field name="implementation">no_gap</field>
         </record> 
+        <!-- Return DO Posting -->
+        <record id="tpt_sequence_return_delivery_order_posting" model="ir.sequence.type">
+            <field name="name">Account Return Delivery Order</field>
+            <field name="code">account.return.do.import</field>
+        </record>
+        
+        <record id="tpt_sequence_return_delivery_order_posting_item" model="ir.sequence">
+            <field name="name">Account Delivery Order</field>
+            <field name="code">account.return.do.import</field>
+            <field name="prefix">RDO/</field>
+            <field name="padding">5</field>
+            <field name="number_next_actual">1</field>
+            <field name="implementation">no_gap</field>
+        </record> 
+        
  <!-- Customer Payment Posting -->
         <record id="tpt_customer_payment_posting" model="ir.sequence.type">
             <field name="name">Customer Payment Account</field>

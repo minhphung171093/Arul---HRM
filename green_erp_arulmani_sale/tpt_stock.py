@@ -10,6 +10,7 @@ import datetime
 import calendar
 import openerp.addons.decimal_precision as dp
 from openerp import netsvc
+from global_utility import tpt_shared_component
 
 class stock_picking(osv.osv):
     _inherit = "stock.picking"
@@ -1001,20 +1002,38 @@ class stock_picking(osv.osv):
     def action_return_do(self, cr, uid, ids, context=None):
         stock_picking = self.pool.get('stock.picking')
         stock_move = self.pool.get('stock.move')
+        locat_obj = self.pool.get('stock.location')
+        warehouse =  tpt_shared_component.warehouse_module() #TPT-BalamuruganPurushothaman ON 30/06/2016 - Call global_utility module
+        location_id = False
+        location_dest_id = False
         for picking in self.browse(cr, uid, ids, context=context):
             if picking.warehouse:
                 for line in picking.move_lines:
-                    print line.product_id.name_template
-                    print line.state
-                    print line.product_uos_qty
-                    print line.product_qty
-                    print line.prodlot_id.name
+                    #parent_ids = locat_obj.search(cr, uid, [('name','=',name),('usage','=','internal')])            
+                    location_id, location_dest_id = warehouse.get_return_warehouse_finish(line.product_id.default_code)
                     vals = {'state': 'done',
-                           'location_id':9,
-                           'location_dest_id':13
+                           'location_id':location_id,
+                           'location_dest_id':location_dest_id,
+                           'product_uos_qty':line.product_qty
                            }
                     stock_move.write(cr, uid, [line.id], vals, context)
-            stock_picking.write(cr, uid, ids, {'state':'assigned'}, context)          
+                    #===========================================================
+                    # sql = '''
+                    # update stock_move set state='done', location_id=%s, location_dest_id=%s, product_uos_qty=%s where id=%s
+                    # '''%(location_id, location_dest_id, line.product_qty, line.id)
+                    # cr.execute(sql)
+                    #===========================================================
+            #if ends here
+            stock_picking.write(cr, uid, ids, {'state':'assigned', 'doc_status':'completed'}, context)  
+            #===================================================================
+            # sql = '''
+            # update stock_picking set state='assigned' where id=%s
+            # '''%ids[0]
+            # cr.execute(sql)
+            #===================================================================
+            #
+            
+            #        
                 #picking.force_assign(cr, uid, [picking.id])
         return True
     

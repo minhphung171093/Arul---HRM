@@ -720,42 +720,67 @@ class stock_picking(osv.osv):
                         asset_id = p.product_id.product_asset_acc_id.id
                     else:
                         raise osv.except_osv(_('Warning!'),_('Product Asset Account is not configured! Please configured it!'))
-                journal_line.append((0,0,{
-                            'name':line.name, 
-                            'account_id': account,
-                            'partner_id': line.partner_id and line.partner_id.id,
-                            'credit':0,
-                            'debit':debit,
-                            'product_id':product_id,
-                        }))
-                 
-                journal_line.append((0,0,{
-                    'name':line.name, 
-                    'account_id': asset_id,
-                    'partner_id': line.partner_id and line.partner_id.id,
-                    'credit':debit,
-                    'debit':0,
-                    'product_id':product_id,
-                    }))
+                #
+                doc_type = ''
+                if line.document_type=='return_do': #TPT-BM-30/06/2016 - FOR RETURN
+                    journal_line.append((0,0,{
+                                'name':line.name, 
+                                'account_id': account,
+                                'partner_id': line.partner_id and line.partner_id.id,
+                                'credit':debit,
+                                'debit':0,
+                                'product_id':product_id,
+                            }))
                       
+                    journal_line.append((0,0,{
+                        'name':line.name, 
+                        'account_id': asset_id,
+                        'partner_id': line.partner_id and line.partner_id.id,
+                        'credit':0,
+                        'debit':debit,
+                        'product_id':product_id,
+                        }))
+                    doc_type = 'return_do'
+                else:
+                    journal_line.append((0,0,{
+                                'name':line.name, 
+                                'account_id': account,
+                                'partner_id': line.partner_id and line.partner_id.id,
+                                'credit':0,
+                                'debit':debit,
+                                'product_id':product_id,
+                            }))
+                     
+                    journal_line.append((0,0,{
+                        'name':line.name, 
+                        'account_id': asset_id,
+                        'partner_id': line.partner_id and line.partner_id.id,
+                        'credit':debit,
+                        'debit':0,
+                        'product_id':product_id,
+                        }))
+                    doc_type = 'do'
+                #      
                 value={
                     'journal_id':journal.id,
                     'period_id':period_ids[0] ,
                     'date': date_period,
                     'line_id': journal_line,
-                    'doc_type':'do',
+                    'doc_type': doc_type or '',
                     'ref': line.name,
                     'name':name, # added by P.VINOTHKUMAR ON 08/04/2016
                     }
-                new_jour_id = account_move_obj.create(cr,uid,value)
-                auto_ids = self.pool.get('tpt.auto.posting').search(cr, uid, [])
-                if auto_ids:
-                    auto_id = self.pool.get('tpt.auto.posting').browse(cr, uid, auto_ids[0], context=context)
-                    if auto_id.delivery_order:
-                        try:
-                            account_move_obj.button_validate(cr,uid, [new_jour_id], context)
-                        except:
-                            pass
+                exist_ids = account_move_obj.search(cr, uid, [('ref', '=', line.name)])
+                if not exist_ids: #TPT-BM-01/07/2016 - FOR RETURN DO GL POSTING
+                    new_jour_id = account_move_obj.create(cr,uid,value)
+                    auto_ids = self.pool.get('tpt.auto.posting').search(cr, uid, [])
+                    if auto_ids:
+                        auto_id = self.pool.get('tpt.auto.posting').browse(cr, uid, auto_ids[0], context=context)
+                        if auto_id.delivery_order:
+                            try:
+                                account_move_obj.button_validate(cr,uid, [new_jour_id], context)
+                            except:
+                                pass  
 #                     if so_id:
 #                         sql = '''
 #                         update sale_order set journal_flag = True where id = %s
@@ -1815,12 +1840,23 @@ class account_invoice(osv.osv):
                     iml += invoice_line_obj.move_line_amount_tax_credit(cr, uid, inv.id) #TPT-ADDED - BM - ON 06/06/2016
                     iml += invoice_line_obj.move_line_amount_round_off(cr, uid, inv.id)
             if (inv.type == 'out_invoice'):
-                iml = invoice_line_obj.move_line_customer_fright(cr, uid, inv.id) 
-                iml += invoice_line_obj.move_line_customer_insurance(cr, uid, inv.id) 
-                iml += invoice_line_obj.move_line_customer_amount_tax(cr, uid, inv.id) 
-                iml += invoice_line_obj.move_line_customer_excise_duty(cr, uid, inv.id) 
-                iml += invoice_line_obj.move_line_customer_product_price(cr, uid, inv.id)
-                name = inv['vvt_number'] or '/'
+                #TPT-BM-ON0 - 01/07/2016 - For Customer Invoice Return GL Posting
+                # The "type" param is passed into the following method in addition to vice versa the posting entries of normal\
+                # Since -Value is Credit, +Value is Debit
+                if inv.sale_id.document_type=='saleorder':
+                    iml = invoice_line_obj.move_line_customer_fright(cr, uid, inv.id, inv.sale_id.document_type) 
+                    iml += invoice_line_obj.move_line_customer_insurance(cr, uid, inv.id, inv.sale_id.document_type) 
+                    iml += invoice_line_obj.move_line_customer_amount_tax(cr, uid, inv.id, inv.sale_id.document_type) 
+                    iml += invoice_line_obj.move_line_customer_excise_duty(cr, uid, inv.id, inv.sale_id.document_type) 
+                    iml += invoice_line_obj.move_line_customer_product_price(cr, uid, inv.id, inv.sale_id.document_type)
+                    name = inv['vvt_number'] or '/'
+                elif inv.sale_id.document_type=='return':
+                    iml = invoice_line_obj.move_line_customer_fright(cr, uid, inv.id, inv.sale_id.document_type) 
+                    iml += invoice_line_obj.move_line_customer_insurance(cr, uid, inv.id, inv.sale_id.document_type) 
+                    iml += invoice_line_obj.move_line_customer_amount_tax(cr, uid, inv.id, inv.sale_id.document_type) 
+                    iml += invoice_line_obj.move_line_customer_excise_duty(cr, uid, inv.id, inv.sale_id.document_type) 
+                    iml += invoice_line_obj.move_line_customer_product_price(cr, uid, inv.id, inv.sale_id.document_type)
+                    name = inv['vvt_number'] or '/'
                 
             if (inv.type == 'in_invoice' and inv.sup_inv_id):
                 # freight invoice 
@@ -1961,9 +1997,9 @@ class account_invoice(osv.osv):
             date = inv.date_invoice or time.strftime('%Y-%m-%d')
   
             part = self.pool.get("res.partner")._find_accounting_partner(inv.partner_id)
-  
+
             line = map(lambda x:(0,0,self.line_get_convert(cr, uid, x, part.id, date, context=ctx)),iml)
-  
+
             line = self.group_lines(cr, uid, iml, line, inv)
   
             journal_id = inv.journal_id.id
@@ -2660,7 +2696,7 @@ class account_invoice_line(osv.osv):
                         })
         return res 
      
-    def move_line_customer_product_price(self, cr, uid, invoice_id, context = None):
+    def move_line_customer_product_price(self, cr, uid, invoice_id, type, context = None):
         res = []
         account = False
         if context is None:
@@ -2700,6 +2736,8 @@ class account_invoice_line(osv.osv):
             if currency != 'INR':
                 voucher_rate = self.pool.get('res.currency').read(cr, uid, currency_id, ['rate'], context=ctx)['rate']
             price = t['price_unit']*t['quantity']/voucher_rate
+            if type=='return':
+                price = -price          
             if price:
                 if round(price):
                     res.append({
@@ -2713,7 +2751,7 @@ class account_invoice_line(osv.osv):
                         'account_analytic_id': t['account_analytic_id'],
                     })
         return res
-    def move_line_customer_excise_duty(self, cr, uid, invoice_id, context = None):
+    def move_line_customer_excise_duty(self, cr, uid, invoice_id, type, context = None):
         res = []
         voucher_rate = 1
         if context is None:
@@ -2748,12 +2786,17 @@ class account_invoice_line(osv.osv):
                 raise osv.except_osv(_('Warning!'),_('Account is not null, please configure it in GL Posting Configrution !'))
             if ed_amount:
                 if round(ed_amount):
+                    price = 0.0
+                    if type=='return':
+                        price = -round(ed_amount)
+                    else:
+                        price = round(ed_amount)
                     res.append({
                         'type':'tax',
                         'name':line.name,
                         'price_unit': line.price_unit,
                         'quantity': 1,
-                        'price':round(ed_amount),
+                        'price': price or 0.0,
                         'account_id': cus_inv_ed_id and cus_inv_ed_id['cus_inv_ed_id'] or False,
                         'account_analytic_id': line.account_analytic_id.id,
                     })
@@ -4218,9 +4261,10 @@ class account_invoice_line(osv.osv):
 #                                 raise osv.except_osv(_('Warning!'),_('Account is not null, please configure it in GL Posting Configrution !'))
         return res
     
-    def move_line_customer_amount_tax(self, cr, uid, invoice_id, context = None):
+    def move_line_customer_amount_tax(self, cr, uid, invoice_id, type, context = None):
         res = []
         voucher_rate = 1
+        tax = 0.0
         if context is None:
             context = {}
         ctx = context.copy()
@@ -4244,6 +4288,10 @@ class account_invoice_line(osv.osv):
             cr.execute('SELECT * FROM account_invoice WHERE id=%s', (invoice_id,))
             for account in cr.dictfetchall():
                 tax = account['amount_tax'] / voucher_rate
+                if type=='return':
+                    tax = -round(tax)
+                else:
+                    tax = round(tax)
                 if inv_id.sale_tax_id:
                     if 'CST' in inv_id.sale_tax_id.name:
                         sql = '''
@@ -4262,7 +4310,7 @@ class account_invoice_line(osv.osv):
                                     'name':t['name'],
                                     'price_unit': t['price_unit'],
                                     'quantity': 1,
-                                    'price': round(tax),
+                                    'price': tax,
                                     'account_id': account,
                                     'account_analytic_id': t['account_analytic_id'],
                                 })
@@ -4284,7 +4332,7 @@ class account_invoice_line(osv.osv):
                                     'name':t['name'],
                                     'price_unit': t['price_unit'],
                                     'quantity': 1,
-                                    'price': round(tax),
+                                    'price': tax,
                                     'account_id': account,
                                     'account_analytic_id': t['account_analytic_id'],
                                 })
@@ -4312,7 +4360,7 @@ class account_invoice_line(osv.osv):
                                         'name':t['name'],
                                         'price_unit': t['price_unit'],
                                         'quantity': 1,
-                                        'price': round(tax),
+                                        'price': tax,
                                         'account_id': account,
                                         'account_analytic_id': t['account_analytic_id'],
                                     })
@@ -4463,7 +4511,7 @@ class account_invoice_line(osv.osv):
                 })
         return res 
     
-    def move_line_customer_fright(self, cr, uid, invoice_id, context = None):
+    def move_line_customer_fright(self, cr, uid, invoice_id, type, context = None):
         res = []
         voucher_rate = 1
         if context is None:
@@ -4494,18 +4542,23 @@ class account_invoice_line(osv.osv):
                 raise osv.except_osv(_('Warning!'),_('Account is not null, please configure it in GL Posting Configrution !'))
             if t['freight']:
                 if round(t['freight']):
+                    price = 0.0
+                    if type=='return':
+                        price = -round(t['freight'] * t['quantity']/ voucher_rate)
+                    else:
+                        price = round(t['freight'] * t['quantity']/ voucher_rate)
                     res.append({
                         'type':'tax',
                         'name':t['name'],
                         'price_unit': t['price_unit'],
                         'quantity': 1,
-                        'price': round(t['freight'] * t['quantity']/ voucher_rate),
+                        'price': price or 0.00,
                         'account_id': cus_inv_fright_id and cus_inv_fright_id['cus_inv_fright_id'] or False,
                         'account_analytic_id': t['account_analytic_id'],
                     })
         return res 
     
-    def move_line_customer_insurance(self, cr, uid, invoice_id, context = None):
+    def move_line_customer_insurance(self, cr, uid, invoice_id, type, context = None):
         res = []
         voucher_rate = 1
         if context is None:
@@ -4536,12 +4589,19 @@ class account_invoice_line(osv.osv):
                 raise osv.except_osv(_('Warning!'),_('Account is not null, please configure it in GL Posting Configrution !'))
             if t['insurance']:
                 if (t['insurance']): # By BalamuruganPurushothaman ON 20/06/2015 Removed roundoff to get the insurance value for all the decimals.
+                    #TPT-BM - ON 01/07/2016
+                    price = 0.0
+                    if type=='return':
+                        price = -round(t['insurance'] * t['quantity']/ voucher_rate)
+                    else:
+                        price = round(t['insurance'] * t['quantity']/ voucher_rate)
+                    #TPT-BM
                     res.append({
                         'type':'tax',
                         'name':t['name'],
                         'price_unit': t['price_unit'],
                         'quantity': 1,
-                        'price': round(t['insurance'] * t['quantity']/ voucher_rate),
+                        'price': price or 0.00,
                         'account_id': cus_inv_insurance_id and cus_inv_insurance_id['cus_inv_insurance_id'] or False,
                         'account_analytic_id': t['account_analytic_id'],
                     })
@@ -8404,7 +8464,10 @@ class account_move(osv.osv):
                                   ('freight', 'Freight Invoice'),
                                   ('worker_payroll', 'Workers Payroll'),
                                   ('stock_adj_inc', 'Stock Adjustment Increase'),
-                                  ('stock_adj_dec', 'Stock Adjustment Decrease')],'Document Type'),  
+                                  ('stock_adj_dec', 'Stock Adjustment Decrease'),
+                                  ('return_do', 'Return DO'), #TPT-BM-01/07/2016
+                                  ],
+                                        'Document Type'),  
         'material_issue_id': fields.many2one('tpt.material.issue','Material Issue',ondelete='restrict'), 
         'ed_invoice_id': fields.many2one('tpt.ed.invoice.positing','ED Invoice Posting',ondelete='restrict'),  
         'grn_id': fields.many2one('stock.picking','GRN',ondelete='restrict'),
