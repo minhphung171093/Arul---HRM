@@ -53,4 +53,24 @@ class warehouse_module():
             location_id = 9
             location_dest_id = 25 #Physical Locations / VVTi Pigments / Store / FSH
         return location_id, location_dest_id
+    
+    # Added by P.vinothkumar on 02/07/2016 using this method for stock transfer report-finished products
+    def get_finished_location(self,default_code):
+        
+        location_dest_id = False
+        if default_code in ['M0501010001', 'M0501010008']:
+            location_dest_id = 13 #Physical Locations / VVTi Pigments / Store / TIO2
+        elif default_code=='M0501010002':
+            location_dest_id = 25 #Physical Locations / VVTi Pigments / Store / FSH
+        elif default_code=='M0501010006':
+            location_dest_id =26
+        elif default_code=='M0501010003':
+            location_dest_id =27  
+        elif default_code in ['M0501010004','M0501010005','M0501020028']:
+            location_dest_id =23
+        elif default_code in ['M0501010009','M0501010010']:
+            location_dest_id =24          
+        else:
+            location_dest_id = 13 
+        return location_dest_id
             
