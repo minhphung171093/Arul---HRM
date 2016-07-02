@@ -508,7 +508,7 @@ class stock_on_hand_report(osv.osv_memory):
                         FROM stock_move stm 
                             join stock_location loc1 on stm.location_id=loc1.id
                             join stock_location loc2 on stm.location_dest_id=loc2.id
-                        WHERE stm.state= 'done' and product_id=pp.id and stm.date<='%(date)s')foo) onhand_qty,
+                        WHERE stm.state= 'done' and product_id=pp.id and stm.date < '%(date)s')foo) onhand_qty,
             
             (select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton from 
                     (
@@ -522,7 +522,7 @@ class stock_on_hand_report(osv.osv_memory):
                         from stock_move st 
                         where st.state='done' and st.product_id = pp.id and 
                         st.location_id =(select id from stock_location where name='Raw Material' and 
-                        usage='internal' and location_id=(select id from stock_location where name='Store') and st.date<='%(date)s')
+                        usage='internal' and location_id=(select id from stock_location where name='Store') and st.date < '%(date)s')
                     )foo) store_rm,
                     
              (select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton from 
@@ -537,7 +537,7 @@ class stock_on_hand_report(osv.osv_memory):
                         from stock_move st 
                         where st.state='done' and st.product_id = pp.id and st.location_id 
                         =(select id from stock_location where name='Spares' and 
-                        usage='internal' and st.date<='%(date)s')
+                        usage='internal' and st.date < '%(date)s')
                     )foo) store_spare,
                     
             (select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton from 
@@ -552,7 +552,7 @@ class stock_on_hand_report(osv.osv_memory):
                         from stock_move st 
                         where st.state='done' and st.product_id = pp.id and 
                         st.location_id =(select id from stock_location where name='Inspection' and 
-                        usage='internal') and st.date<='%(date)s'
+                        usage='internal') and st.date < '%(date)s'
                     )foo) ins_qty,
             (select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton from 
                     (
@@ -560,25 +560,25 @@ class stock_on_hand_report(osv.osv_memory):
                         from stock_move st 
                         where st.state='done' and st.product_id = pp.id and 
                         st.location_dest_id =(select id from stock_location where name='Block List' and 
-                        usage='internal') and st.date<='%(date)s'
+                        usage='internal') and st.date < '%(date)s'
                     union all
                     select st.product_qty*-1
                         from stock_move st 
                         where st.state='done' and st.product_id = pp.id and 
                         st.location_id =(select id from stock_location where name='Block List' and 
-                        usage='internal') and st.date<='%(date)s'
+                        usage='internal') and st.date < '%(date)s'
                     )foo) block_qty,
              (select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton from 
                     (
                     select st.product_qty
                         from stock_move st 
-                        where st.state='done' and st.product_id = pp.id and  st.date<='%(date)s' and
+                        where st.state='done' and st.product_id = pp.id and  st.date < '%(date)s' and
                         st.location_dest_id =(select id from stock_location where name='Other' and 
                         usage='internal' and location_id=(select id from stock_location where name='Production Line'))
                     union all
                     select st.product_qty*-1
                         from stock_move st 
-                        where st.state='done' and st.product_id = pp.id and st.date<='%(date)s' and
+                        where st.state='done' and st.product_id = pp.id and st.date < '%(date)s' and
                         st.location_id =(select id from stock_location where name='Other' and 
                         usage='internal' and location_id=(select id from stock_location where name='Production Line'))
                     )foo) pl_others,
@@ -586,13 +586,13 @@ class stock_on_hand_report(osv.osv_memory):
                     (
                     select st.product_qty
                         from stock_move st 
-                        where st.state='done' and st.product_id = pp.id and st.date<='%(date)s' and
+                        where st.state='done' and st.product_id = pp.id and st.date < '%(date)s' and
                         st.location_dest_id =(select id from stock_location where name='FSH' and 
                         usage='internal' and location_id=(select id from stock_location where name='Store'))
                     union all
                     select st.product_qty*-1
                         from stock_move st 
-                        where st.state='done' and st.product_id = pp.id and st.date<='%(date)s' and
+                        where st.state='done' and st.product_id = pp.id and st.date < '%(date)s' and
                         st.location_id =(select id from stock_location where name='FSH' and 
                         usage='internal' and location_id=(select id from stock_location where name='Store'))
                     )foo) store_fsh    ,
@@ -600,13 +600,13 @@ class stock_on_hand_report(osv.osv_memory):
                     (
                     select st.product_qty
                         from stock_move st 
-                        where st.state='done' and st.product_id = pp.id and st.date<='%(date)s' and
+                        where st.state='done' and st.product_id = pp.id and st.date < '%(date)s' and
                         st.location_dest_id =(select id from stock_location where name='TIO2' and 
                         usage='internal' and location_id=(select id from stock_location where name='Store'))
                     union all
                     select st.product_qty*-1
                         from stock_move st 
-                        where st.state='done' and st.product_id = pp.id and st.date<='%(date)s' and
+                        where st.state='done' and st.product_id = pp.id and st.date < '%(date)s' and
                         st.location_id =(select id from stock_location where name='TIO2' and 
                         usage='internal' and location_id=(select id from stock_location where name='Store'))
                     )foo) store_tio2,
@@ -615,13 +615,13 @@ class stock_on_hand_report(osv.osv_memory):
                     (
                     select st.product_qty
                         from stock_move st 
-                        where st.state='done' and st.product_id = pp.id and st.date<='%(date)s' and
+                        where st.state='done' and st.product_id = pp.id and st.date < '%(date)s' and
                         st.location_dest_id =(select id from stock_location where name='Raw Material' and 
                         usage='internal' and location_id=(select id from stock_location where name='Production Line'))
                     union all
                     select st.product_qty*-1
                         from stock_move st 
-                        where st.state='done' and st.product_id = pp.id and st.date<='%(date)s' and
+                        where st.state='done' and st.product_id = pp.id and st.date < '%(date)s' and
                         st.location_id =(select id from stock_location where name='Raw Material' and 
                         usage='internal' and location_id=(select id from stock_location where name='Production Line'))
                     )foo) pl_rm, pp.id product_id, pp.cate_name as categ
@@ -707,19 +707,104 @@ class stock_on_hand_report(osv.osv_memory):
             if categ=='finish':
                 avg_cost = 0.00
             return float(avg_cost)
-            
-        ###
+       # Added by P.vinothkumar on 02/07/2016 for modify logics in stock on hand report
+        def opening_stock(product_id, default_code):
+            location = tpt_shared_component.warehouse_module() 
+            location_id = location.get_finished_location(default_code) 
+            sql='''
+            select
+            sum(st.product_qty) as product_qty
+            from stock_move st
+            where st.state='done' and st.product_id=%s and st.location_dest_id=%s 
+            and st.location_dest_id != st.location_id
+            and name = 'INV:Update'
+            and EXTRACT(month FROM st.date)<4 and EXTRACT(Year FROM st.date)=2015'''%(product_id,location_id)
+            cr.execute(sql)
+            Opening_stock = cr.fetchone()[0]
+            return Opening_stock or 0.00
+        
+        def sale_qty(product_id, date):
+            sql='''
+                select sum(ail.quantity) from account_invoice_line ail
+                inner join account_invoice ai on ail.invoice_id=ai.id
+                where ail.product_id=%s and ai.date_invoice < '%s'
+               
+                '''%(product_id,date)
+            cr.execute(sql)
+            sales_qty=cr.fetchone()[0]
+            return sales_qty or 0.00
+        
+        def production_qty(product_id, date):
+            sql='''
+                Select  sum(product_qty) as productionQty 
+                from mrp_production mrp 
+                Inner join product_product p on (p.id=mrp.product_id and p.id not in (7))  
+                where date_planned < '%s' 
+                and p.id =(%s)'''%(date,product_id)
+            cr.execute(sql)
+            prod_qty=cr.fetchone()[0]    
+            return prod_qty or 0.00
+        
+        def total_received_qty(product_id, date):
+            sql='''
+                select sum(a.AdjustedQty) as adjustedqty 
+                from (
+                select p.id as ProductID,si.id as ReferenceID, si.name as stockAdjustmentName, si.date as StockAdjustmentDate,
+                EXTRACT(month FROM si.date) transactionmonth, EXTRACT(year FROM si.date) transactionyear,
+                p.name_template as productName, spl.name as SystemBatchNo,spl.phy_batch_no as PhysicalBatchNo, 
+                product_qty as AdjustedQty,'Increased to 1 MT' as adjustmenttype from stock_inventory_line sil 
+                Inner join stock_production_lot spl on (spl.id=sil.prod_lot_id)
+                Inner join product_product p on (p.id=sil.product_id)
+                Inner join stock_inventory si on (si.id=sil.inventory_id)
+                where sil.product_id=4 and spl.name like '%s(M)%s' and 
+                 si.date < '%s'
+                )a '''%('%', '%', date)
+            cr.execute(sql)
+            received_qty=cr.fetchone()
+            if received_qty:
+                received_qty = received_qty[0]
+            return received_qty or 0.00  
+        # TPT P.Vinothkumar END      
         cr.execute('delete from tpt_stock_on_hand')
         stock_obj = self.pool.get('tpt.stock.on.hand')
         stock = self.browse(cr, uid, ids[0])
         stock_line = []
         for line in get_prod(stock):
+            # Added by P.vinothkumar on 02/07/2016 for calculate onhandqty,store(tio2) and store(fsh)  
+                if stock.categ_id.cate_name=='finish':
+                    prd_obj = self.pool.get('product.product')
+                    prd = prd_obj.browse(cr, uid, line['product_id'])
+                    open_qty = opening_stock(prd.id, prd.default_code)
+                    prod_qty = production_qty(prd.id, stock.date)
+                    sales_qty= sale_qty(prd.id, stock.date)
+                    receive_qty1= total_received_qty(prd.id, stock.date)
+                    receive_qty2=receive_qty1
+                    if prd.default_code=='M0501010001':
+                        receive_qty1=0.0
+                    elif  prd.default_code=='M0501010008':
+                        receive_qty2=0.0
+                        receive_qty1=-receive_qty1
+                    else:
+                        receive_qty1=0.0
+                        receive_qty2=0.0           
+                    onhand= open_qty+prod_qty+receive_qty1+receive_qty2-sales_qty
+                    store_tio2 = open_qty+prod_qty+receive_qty1+receive_qty2-sales_qty
+                    if prd.default_code=='M0501010002':
+                        store_fsh = open_qty+prod_qty+receive_qty1+receive_qty2-sales_qty
+                        store_tio2= 0.0
+                    else: 
+                        store_fsh=0.0    
+                    #onhand = 0
+                else:
+                    onhand = line['onhand_qty']
+                    store_tio2= line['store_tio2']
+                    store_fsh=line['store_fsh'] or ''
                 stock_line.append((0,0,{
                 'code': line['default_code'] or '',
                 'description': line['name'] or '',
                  'uom': line['uom'] or '',
                  'bin_loc': line['bin_location'] or '',
-                 'onhand_qty': line['onhand_qty'] or '',
+                 'onhand_qty': onhand or '', #line['onhand_qty'] or '',
                  #'mrp': line['mrp'] or '',
                  'min_stock': line['min_stock'] or '',
                  'max_stock': line['max_stock'] or '',
@@ -731,8 +816,8 @@ class stock_on_hand_report(osv.osv_memory):
                  'onhand_qty_qa_ins': line['ins_qty'] or '' , 
                  'onhand_qty_st_rm': line['store_rm'] or '',
                  'onhand_qty_st_spare': line['store_spare'] or '' ,
-                 'onhand_qty_st_fsh': line['store_fsh'] or '',
-                 'onhand_qty_st_tio2': line['store_tio2'] or '', 
+                 'onhand_qty_st_fsh': store_fsh or '', #'onhand_qty_st_fsh': line['store_fsh'] or '',
+                 'onhand_qty_st_tio2': store_tio2 or '',#'onhand_qty_st_tio2': line['store_tio2'] or '', 
                  'onhand_qty_pl_rm': line['pl_rm'] or '',   
                  'product_id': line['product_id'] or False,  
             }))

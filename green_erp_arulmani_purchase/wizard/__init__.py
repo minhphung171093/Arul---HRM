@@ -19,4 +19,6 @@ import po_above10lacs
 import purchase_vat_wizard
 import purchase_cst_wizard
 import rawmaterial_stock_statement
+import stock_movement_analysis_finished
+
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

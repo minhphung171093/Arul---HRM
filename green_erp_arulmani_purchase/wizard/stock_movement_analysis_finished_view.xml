@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- TPT - By P.Vinothkumar  - on 28/06/2016 
+Stock Movement Analysis-Finished Report -->
+<openerp>
+    <data>
+		<record id="stock_movement_finished_view" model="ir.ui.view">
+	        <field name="name">stock.movement.finished.view</field>
+	        <field name="model">stock.movement.finished</field>
+	        <field name="arch" type="xml">
+	            <form string="Stock Movement Analysis Finished Product" version="7.0">
+	               	<group>
+	               	<field name="product_id" domain="[('cate_name','=','finish')]" options="{'create': false, 'create_edit': false}" />
+	               	<field name="date_from" />
+	               	<field name="date_to" />
+	                </group>
+	                <footer>
+	                    <button name="print_report" type='object' string="OK" class="oe_highlight"/>
+	                    or
+	                    <button string="Cancel" class="oe_highlight" special="cancel" />
+	                </footer>
+	            </form>
+	        </field>
+    	</record>
+
+	    <record model="ir.actions.act_window" id="action_stock_movement_finished_view">
+	        <field name="name">Stock Movement Analysis Finished Product</field>
+	        <field name="res_model">stock.movement.finished</field>
+	        <field name="view_type">form</field>
+	        <field name="view_mode">form</field>
+	        <field name="view_id" ref="stock_movement_finished_view" />
+	        <field name="target">new</field>
+	    </record>
+	    
+	     
+       <menuitem action="action_stock_movement_finished_view" 
+       id="menu_action_stock_movement_finished_view" parent="stock.menu_stock_warehouse_mgmt" sequence="65"/>
+ <!--
+	  <menuitem action="action_stock_movement_analysis_view"
+            id="menu_action_stock_movement_analysis_view"
+            parent="base.next_id_73" 
+            sequence="3"/>
+	   --> 
+    </data>
+</openerp>

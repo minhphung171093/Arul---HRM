@@ -79,6 +79,10 @@
         'wizard/rawmaterial_stock.xml',
         'report/rawmaterial_stock_report.xml',
         
+        'wizard/stock_movement_analysis_finished_view.xml',
+        'report/report_stock_movement_analysis_finished_view.xml',
+        
+        
     ],
     'css' : [
     ],

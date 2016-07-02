@@ -1825,14 +1825,14 @@ class account_invoice(osv.osv):
                         iml += invoice_line_obj.tpt_move_line_amount_tax_14(cr, uid, inv.id)
                         iml += invoice_line_obj.tpt_move_line_amount_tax_5(cr, uid, inv.id)
                     elif line.tax_id.description in ['STax 15%']:
-                            iml += invoice_line_obj.move_line_amount_tax_sbc_14(cr, uid, inv.id)
-                            iml += invoice_line_obj.move_line_amount_tax_swachh_bharat_cess_5(cr, uid, inv.id)
-                            iml += invoice_line_obj.move_line_amount_tax_krishi_kalyan_cess_5(cr, uid, inv.id)
+                        iml += invoice_line_obj.move_line_amount_tax_sbc_14(cr, uid, inv.id)
+                        iml += invoice_line_obj.move_line_amount_tax_swachh_bharat_cess_5(cr, uid, inv.id)
+                        iml += invoice_line_obj.move_line_amount_tax_krishi_kalyan_cess_5(cr, uid, inv.id)
                     # Added by P.vinothkumar on 21/06/2016 for nullable taxes        
                     elif not line.tax_id:
-                            iml += invoice_line_obj.move_line_amount_tax_sbc_14(cr, uid, inv.id)
-                            iml += invoice_line_obj.move_line_amount_tax_swachh_bharat_cess_5(cr, uid, inv.id)
-                            iml += invoice_line_obj.move_line_amount_tax_krishi_kalyan_cess_5(cr, uid, inv.id)
+                        iml += invoice_line_obj.move_line_amount_tax_sbc_14(cr, uid, inv.id)
+                        iml += invoice_line_obj.move_line_amount_tax_swachh_bharat_cess_5(cr, uid, inv.id)
+                        iml += invoice_line_obj.move_line_amount_tax_krishi_kalyan_cess_5(cr, uid, inv.id)
                                  
                     else:
                         iml += invoice_line_obj.tpt_move_line_amount_tax(cr, uid, inv.id)
@@ -1992,7 +1992,8 @@ class account_invoice(osv.osv):
                             and total_currency or False,
                     'currency_id': diff_currency_p \
                             and inv.currency_id.id or False,
-                    'ref': ref
+                    'ref': ref,
+                    
             })
   
             date = inv.date_invoice or time.strftime('%Y-%m-%d')

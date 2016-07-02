@@ -19,3 +19,4 @@ import po_above10lacs
 import purchase_vat_report
 import purchase_cst_report
 import rawmaterial_stock_statement_report
+import report_stock_movement_analysis_finished
