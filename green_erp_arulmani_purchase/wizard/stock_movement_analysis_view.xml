@@ -7,7 +7,9 @@
 	        <field name="arch" type="xml">
 	            <form string="Stock Movement Analysis Report" version="7.0">
 	            	<group>
-	                <field name="categ_id" options="{'create': false, 'create_edit': false}" domain="[('cate_name','in',['finish', 'raw','spares'])]" on_change = "onchange_categ_id(categ_id)"/>
+	            	<!-- TPT-BM-ON 04/07/2016 'finish' domain is removed here, since other report is implemented for Finished Product -->
+	                <field name="categ_id" options="{'create': false, 'create_edit': false}" domain="[('cate_name','in',['raw','spares'])]" on_change = "onchange_categ_id(categ_id)"/>
+	               
 	               <!--  <field name="product_ids" widget = 'many2many_tags' 
 	                options="{'create': false, 'create_edit': false}" 
 	                context="{'search_product_id':True, 'categ_id':categ_id}"/>  -->
