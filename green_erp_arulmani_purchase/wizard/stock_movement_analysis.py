@@ -451,7 +451,7 @@ class tpt_movement_analysis_line(osv.osv):
             if categ=='raw':
                 parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
                 locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw Material','Raw Materials','Raw material']),('location_id','=',parent_ids[0])])
-                if move_type == 'freight':
+                if move_type in ('freight', 'sup_inv_po'): #TPT-BM-ON 07/07/2016
                     quantity = 0
                 if move_type == 'product':
                     production_id = self.pool.get('mrp.production').browse(cr,uid,product_dec)
@@ -499,8 +499,9 @@ class tpt_movement_analysis_line(osv.osv):
             if categ=='spares':
                 parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
                 locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Spares','Spare','spares']),('location_id','=',parent_ids[0])])
-                if move_type == 'freight':
+                if move_type in ('freight', 'sup_inv_po'): #TPT-BM-ON 07/07/2016 - sup_inv_po added
                     quantity = 0
+                
                 if move_type == 'good':
                     sql = '''
                         select case when sum(-1*product_isu_qty)!=0 then sum(-1*product_isu_qty) else 0 end product_isu_qty, product_id from tpt_material_issue_line
@@ -708,6 +709,8 @@ class tpt_movement_analysis_line(osv.osv):
                     self.id2 = line['id']
                 qty = get_transaction_qty(o,line['id'], line['material_issue_id'], line['product_dec'],line['doc_type'])
                 if line['doc_type']=='freight':
+                    qty=1
+                elif line['doc_type']=='sup_inv_po':
                     qty=1
                 value = get_line_stock_value(o,line['id'], line['material_issue_id'], line['doc_type'], line['date'])
                 closing += qty * value
@@ -2100,7 +2103,105 @@ class stock_movement_analysis(osv.osv_memory):
                        total_cost = inventory['total_cost'] or 0
                        avg_cost = hand_quantity and total_cost/hand_quantity or 0 
                return avg_cost
-           
+        
+        #TPT-BM-ON 07/07/2016 - FOR FREIGHT-CST INCLUSION
+        def get_frt_cst_amt(product_id, from_date, to_date):
+            amt_opening, amt_receipt = 0.0, 0.0
+            ##################
+            sql = '''
+                select 
+                
+                case when sum(ail.tpt_tax_amt)>=0 then sum(ail.tpt_tax_amt) else 0 end as cst_amt 
+                
+                from account_invoice ai
+                inner join account_invoice_line ail on ai.id=ail.invoice_id
+                inner join account_invoice_line_tax ailt on ail.id=ailt.invoice_line_id
+                inner join account_tax t on ailt.tax_id = t.id
+                where ail.product_id=%s and ai.state not in ('draft', 'cancel') 
+                and ai.doc_type='supplier_invoice' and t.description like '%sCST%s'
+                and ai.date_invoice < '%s' 
+            '''%(product_id, '%', '%', from_date)
+            cr.execute(sql)
+            cst_amt = cr.fetchone()
+            if cst_amt:
+                amt_opening += cst_amt[0]
+            #
+            sql = '''
+                select 
+                
+                case when 
+                SUM(case when ail.fright_fi_type='2' then ail.fright
+                when ail.fright_fi_type='3' then ail.fright*ail.quantity
+                else 0 end) >=0
+                
+                then 
+                
+                SUM(case when ail.fright_fi_type='2' then ail.fright
+                when ail.fright_fi_type='3' then ail.fright*ail.quantity
+                else 0 end)
+                
+                else 0 end as frt_amt
+
+                from account_invoice ai
+                inner join account_invoice_line ail on ai.id=ail.invoice_id
+                where ail.product_id=%s and ai.state not in ('draft', 'cancel')
+                and ai.doc_type='freight_invoice'
+                and ai.date_invoice < '%s'
+            '''%(product_id, from_date)
+            cr.execute(sql)
+            frt_amt = cr.fetchone()
+            if frt_amt:
+                amt_opening += frt_amt[0]    
+            # --------------- #
+            sql = '''
+                select
+                
+                 case when sum(ail.tpt_tax_amt)>=0 then sum(ail.tpt_tax_amt) else 0 end as cst_amt 
+                 
+                 from account_invoice ai
+                inner join account_invoice_line ail on ai.id=ail.invoice_id
+                inner join account_invoice_line_tax ailt on ail.id=ailt.invoice_line_id
+                inner join account_tax t on ailt.tax_id = t.id
+                where ail.product_id=%s and ai.state not in ('draft', 'cancel') 
+                and ai.doc_type='supplier_invoice' and t.description like '%sCST%s'
+                and ai.date_invoice between '%s' and '%s'
+            '''%(product_id, '%', '%', from_date, to_date)
+            cr.execute(sql)
+            cst_amt1 = cr.fetchone()
+            if cst_amt1:
+                amt_receipt += cst_amt1[0]
+            #
+            sql = '''
+                select 
+                
+                case when 
+                
+                SUM(case when ail.fright_fi_type='2' then ail.fright
+                when ail.fright_fi_type='3' then ail.fright*ail.quantity
+                else 0 end) >=0
+                
+                then 
+                
+                SUM(case when ail.fright_fi_type='2' then ail.fright
+                when ail.fright_fi_type='3' then ail.fright*ail.quantity
+                else 0 end)
+                
+                else 0 end as frt_amt
+                
+                from account_invoice ai
+                inner join account_invoice_line ail on ai.id=ail.invoice_id
+                where ail.product_id=%s and ai.state not in ('draft', 'cancel')
+                and ai.doc_type='freight_invoice'
+                and ai.date_invoice between '%s' and '%s'
+            '''%(product_id, from_date, to_date)
+            cr.execute(sql)
+            frt_amt1 = cr.fetchone()
+            if frt_amt1:
+                amt_receipt += frt_amt1[0]    
+            ##########              
+            return amt_opening, amt_receipt   
+        #
+        
         def get_consumption_value(o, product_id):
             date_from = o.date_from
             date_to = o.date_to
@@ -2226,6 +2327,11 @@ class stock_movement_analysis(osv.osv_memory):
                 receipt_value = get_receipt_value(stock,line.id)
                 consum_qty = get_qty_out(stock,line.id) + get_qty_chuaro(stock,line.id)
                 consum_value = get_consumption_value(stock, line.id)
+                #TPT-BM-ON 07/07/2016 - FOR FREIGHT-CST INCLUSION
+                opening, receipt = get_frt_cst_amt(line.id, stock.date_from, stock.date_to)
+                open_value += opening
+                receipt_value += receipt
+                #
                 move_analysis_line.append((0,0,{
                     'item_code': line.default_code,
                     'item_name': line.name,
@@ -2459,20 +2565,27 @@ class stock_movement_analysis(osv.osv_memory):
                     'location_spare_id':14,
                     }
                 cr.execute(sql) 
-            print sql
+            #print sql
             for line in cr.dictfetchall():
+                #
+                opening_value = line['opening_stock_value'] or 0
+                receipt_value = line['receipt_value'] or 0
+                opening, receipt = get_frt_cst_amt(line['product_id'], stock.date_from, stock.date_to)
+                opening_value += opening
+                receipt_value += receipt
+                #
                 move_analysis_line.append((0,0,{
                     'item_code': line['default_code'],
                     'item_name': line['name'],
                     'uom':line['uom'] or 0,
                     'open_stock': line['opening_stock'] or 0,
-                    'open_value': line['opening_stock_value'] or 0,
+                    'open_value': opening_value or 0,
                     'receipt_qty':line['receipt_qty'] or 0,
-                    'receipt_value':line['receipt_value'] or 0,
+                    'receipt_value':receipt_value or 0,
                     'consum_qty':line['consum_qty'] or 0,
                     'consum_value': line['consum_value'] or 0 , 
-                    'close_stock':line['opening_stock']+line['receipt_qty']-line['consum_qty'] or 0,
-                    'close_value':line['opening_stock_value']+line['receipt_value']-line['consum_value'], 
+                    'close_stock':line['opening_stock'] + line['receipt_qty'] - line['consum_qty'] or 0,
+                    'close_value':opening_value + receipt_value - line['consum_value'], 
                     'product_id': line['product_id'] or False,                              
                                                 
                                                 
