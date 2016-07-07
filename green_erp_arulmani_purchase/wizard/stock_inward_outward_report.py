@@ -402,6 +402,7 @@ class stock_inward_outward_report(osv.osv_memory):
             locat_ids_raw = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw Material','Raw Materials','Raw material']),('location_id','=',parent_ids_raw[0])])
             parent_ids_spares = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
             locat_ids_spares = self.pool.get('stock.location').search(cr, uid, [('name','in',['Spares','Spare','spares']),('location_id','=',parent_ids_spares[0])])
+            #TPT-BM-ON 07/07/2016 - Last "or" condition added in the the below sql ('OR' BLOCK CONTAINS : '%(percentage)sCST%(percentage)s')
             sql = '''
                 select * from account_move where doc_type in ('good', 'grn', 'product', 'freight') 
                     and date between '%(date_from)s' and '%(date_to)s'
@@ -411,12 +412,27 @@ class stock_inward_outward_report(osv.osv_memory):
                         )
                         or product_dec in (select id from mrp_production where date_planned between '%(date_from)s' and '%(date_to)s' and id in (select production_id from mrp_production_move_ids where move_id in (select id from stock_move where product_id = %(product_id)s and location_id in (%(location_row_id)s,%(location_spare_id)s) ))
                          )
+                         
+                         or
+                         ( id in (select am.id from account_move am 
+                                            inner join account_invoice ai on am.id=ai.move_id
+                                            inner join account_invoice_line ail on ai.id=ail.invoice_id
+                                            inner join account_invoice_line_tax ailt on ail.id=ailt.invoice_line_id
+                                            inner join account_tax t on ailt.tax_id = t.id
+                                            where ail.product_id=%(product_id)s and ai.state not in ('draft', 'cancel') 
+                                            and ai.doc_type='supplier_invoice' and t.description like '%(percentage)sCST%(percentage)s'
+                                            and am.doc_type = 'sup_inv_po' and 
+                                            am.date between '%(date_from)s' and '%(date_to)s')
+                         )
+
                          order by date,doc_type = 'grn' desc, doc_type = 'good' desc, doc_type = 'product' desc, id
             '''%{'date_from':date_from,
                  'date_to':date_to,
                  'product_id':product_id.id,
                  'location_row_id':locat_ids_raw[0],
-                 'location_spare_id':locat_ids_spares[0]}
+                 'location_spare_id':locat_ids_spares[0],
+                 'percentage':'%',
+                 }
             cr.execute(sql)
             res1 = cr.dictfetchall()
             #print sql
@@ -432,7 +448,29 @@ class stock_inward_outward_report(osv.osv_memory):
                  }
             cr.execute(sql)
             res2 = cr.dictfetchall()
-            res = res1 + res2
+            
+            #TPT-BM-ON-07/07/2016 - COMMENTED - MOVED TO MAIN SQL
+#===============================================================================
+#             sql = '''
+#             select am.* from account_move am 
+#                         inner join account_invoice ai on am.id=ai.move_id
+#                         inner join account_invoice_line ail on ai.id=ail.invoice_id
+#                         inner join account_invoice_line_tax ailt on ail.id=ailt.invoice_line_id
+#                         inner join account_tax t on ailt.tax_id = t.id
+#                         where ail.product_id=%s and ai.state not in ('draft', 'cancel') 
+#                         and ai.doc_type='supplier_invoice' and t.description like '%sCST%s'
+#                         and am.doc_type = 'sup_inv_po' and 
+#                         am.date between '%s' and '%s'
+# 
+#             '''%(product_id.id, '%', '%', date_from, date_to)
+#             cr.execute(sql)
+#             
+#             print sql
+#             res3 = cr.dictfetchall()
+#===============================================================================
+            #
+            
+            res = res1 + res2 #+ res3
             
             move_line = []
             for line in res:
@@ -506,6 +544,13 @@ class stock_inward_outward_report(osv.osv_memory):
                 cr.execute(sql)
                 for qty in cr.dictfetchall():
                     name = qty['name']
+            if move_type == 'sup_inv_po':#TPT-BM-07/07/2016
+                sql = '''
+                   select name from account_invoice where move_id = %s and grn_no is not null
+                '''%(move_id)
+                cr.execute(sql)
+                for invoice in cr.dictfetchall():
+                   name = invoice['name'] or 0
             return name
         
         def get_create_date(move_id, material_issue_id, product_dec, move_type):
@@ -547,6 +592,13 @@ class stock_inward_outward_report(osv.osv_memory):
                 for picking in cr.dictfetchall():
                     date = picking['create_date']
             ##
+            if move_type == 'sup_inv_po':#TPT-BM-07/07/2016
+                sql = '''
+                   select create_date from account_invoice where move_id = %s and grn_no is not null
+                '''%(move_id)
+                cr.execute(sql)
+                for invoice in cr.dictfetchall():
+                   date = invoice['create_date'] or 0
             return date
         
         def get_transaction_qty(o, move_id, material_issue_id, product_dec, move_type):
@@ -559,7 +611,7 @@ class stock_inward_outward_report(osv.osv_memory):
             if categ=='raw':
                 parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
                 locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw Material','Raw Materials','Raw material']),('location_id','=',parent_ids[0])])
-                if move_type == 'freight':
+                if move_type in ('freight', 'sup_inv_po'):#TPT-BM-07/07/2016
                     quantity = 0
                 if move_type == 'product':
                     production_id = self.pool.get('mrp.production').browse(cr,uid,product_dec)
@@ -618,7 +670,7 @@ class stock_inward_outward_report(osv.osv_memory):
             if categ=='spares':
                 parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
                 locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Spares','Spare','spares']),('location_id','=',parent_ids[0])])
-                if move_type == 'freight':
+                if move_type in ('freight', 'sup_inv_po'):#TPT-BM-07/07/2016
                     quantity = 0
                 if move_type == 'good':
                     sql = '''
@@ -721,7 +773,22 @@ class stock_inward_outward_report(osv.osv_memory):
                    cr.execute(sql)
                    for inventory in cr.dictfetchall():
                        avg_cost = inventory['line_net'] or 0
-               
+               #
+               if move_type == 'sup_inv_po':
+                   sql = '''
+                       select sum(ail.tpt_tax_amt) as line_net from account_move am 
+                        inner join account_invoice ai on am.id=ai.move_id
+                        inner join account_invoice_line ail on ai.id=ail.invoice_id
+                        inner join account_invoice_line_tax ailt on ail.id=ailt.invoice_line_id
+                        inner join account_tax t on ailt.tax_id = t.id
+                        where ail.product_id=%s and ai.state not in ('draft', 'cancel') 
+                        and ai.doc_type='supplier_invoice' and t.description like '%sCST%s'
+                        and am.doc_type = 'sup_inv_po' and am.id=%s
+                   '''%(product_id.id, '%', '%', move_id)
+                   cr.execute(sql)
+                   for inventory in cr.dictfetchall():
+                       avg_cost = inventory['line_net'] or 0
+               #
                if move_type == 'grn':
                    sql = '''
                        select * from stock_move where picking_id in (select id from stock_picking where name in (select ref from account_move_line where move_id = %s))
@@ -771,7 +838,20 @@ class stock_inward_outward_report(osv.osv_memory):
                    cr.execute(sql)
                    for inventory in cr.dictfetchall():
                        avg_cost = inventory['line_net'] or 0
-               
+               if move_type == 'sup_inv_po':
+                   sql = '''
+                       select sum(ail.tpt_tax_amt) as line_net from account_move am 
+                        inner join account_invoice ai on am.id=ai.move_id
+                        inner join account_invoice_line ail on ai.id=ail.invoice_id
+                        inner join account_invoice_line_tax ailt on ail.id=ailt.invoice_line_id
+                        inner join account_tax t on ailt.tax_id = t.id
+                        where ail.product_id=%s and ai.state not in ('draft', 'cancel') 
+                        and ai.doc_type='supplier_invoice' and t.description like '%sCST%s'
+                        and am.doc_type = 'sup_inv_po' and am.id=%s
+                   '''%(product_id.id, '%', '%', move_id)
+                   cr.execute(sql)
+                   for inventory in cr.dictfetchall():
+                       avg_cost = inventory['line_net'] or 0
                if move_type == 'grn':
                    sql = '''
                             select case when sum(st.product_qty)!=0 then sum(st.product_qty) else 0 end ton_sl,case when sum(st.price_unit*st.product_qty)!=0 then sum(st.price_unit*st.product_qty) else 0 end total_cost
@@ -855,6 +935,8 @@ class stock_inward_outward_report(osv.osv_memory):
                 return 'Stock Adj - Increase'
             if doc_type == 'stock_adj_dec':
                 return 'Stock Adj - Decrease'
+            if doc_type == 'sup_inv_po':#TPT0-BM-ON-07/07/2016
+                return 'CST Invoice'
         
         def stock_value(o, move_id, doc_type):
             if doc_type=='freight':
@@ -867,9 +949,20 @@ class stock_inward_outward_report(osv.osv_memory):
                 cr.execute(sql)
                 for inventory in cr.dictfetchall():
                     avg_cost = inventory['line_net'] or 0
-                    return self.current_transaction_qty*avg_cost
+                    return self.current_transaction_qty*avg_cost or 0.0
+            elif doc_type=='sup_inv_po': #TPT-BM-ON 07/07/2015 - cst invoice inclusion
+                self.current_transaction_qty = 1
+                sql = '''
+                    select case when sum(tpt_tax_amt)!=0 then sum(tpt_tax_amt) else 0 end line_net, product_id from account_invoice_line 
+                    where product_id = %s and invoice_id in (select id from account_invoice where move_id = %s and grn_no is not null)
+                    group by product_id
+                   '''%(o.product_id.id, move_id)
+                cr.execute(sql)
+                for inventory in cr.dictfetchall():
+                    avg_cost = inventory['line_net'] or 0
+                    return self.current_transaction_qty*avg_cost or 0.0
             else:
-                return self.current_transaction_qty*self.current_price_unit
+                return self.current_transaction_qty*self.current_price_unit or 0.0
         
         def qty_physical_inve(o):
             date_from = o.date_from
@@ -1068,8 +1161,11 @@ class stock_inward_outward_report(osv.osv_memory):
         sl_chuaro = 0
         qty_chuaro = 0
         price = 0
+        st_value = 0.0
         for seq,line in enumerate(get_detail_lines(stock)):
 #             sl_chuaro = get_line_qty_chuaro(stock,line['date'])
+            if line['name']=='SUPO/01360/2016':
+                print "debug"
             trans_qty = get_transaction_qty(stock,line['id'], line['material_issue_id'], line['product_dec'], line['doc_type'])
             closing_stock += trans_qty
             if line['doc_type']=='good':
@@ -1098,7 +1194,7 @@ class stock_inward_outward_report(osv.osv_memory):
                 cr.execute(sql)
                 unitprice = cr.dictfetchone()
                 #st_value = (unitprice and unitprice['avg_cost'])*(trans_qty)
-        #TPT START - By P.vinothkumar - ON 31/05/2015 - FOR (to calculate stock_value)
+                #TPT START - By P.vinothkumar - ON 31/05/2015 - FOR (to calculate stock_value)
                 sql = '''
                     select case when sum(product_qty * price_unit)!=0 then -sum(product_qty * price_unit) else 0 end tong
                         from stock_move st
@@ -1148,15 +1244,17 @@ class stock_inward_outward_report(osv.osv_memory):
                                 and pm.production_id=%s and location_id = %s 
                                 and location_id != location_dest_id))
                 '''%(stock.product_id.id, line['date'],stock.product_id.id,line['product_dec'],warehouse_id)  
-                #print line
-                #print sql
                 cr.execute(sql)
-                #print sql
                 st_value = cr.dictfetchone()['tong']
             else:
                 price = self.current_price_unit
                 st_value = stock_value(stock, line['id'], line['doc_type'])
+            #TPT-BM-ON 07/07/2016 - To avoid throwing error while st_value is in the type of "None"
+            if not isinstance(st_value, (int,float)):
+                st_value = 0.0
+            #TPT-END
             self.st_sum_value += st_value
+            
             if seq == 0:
                 cur = get_opening_stock_value(stock)+st_value+self.current
                 closing_qty = get_opening_stock(stock) - get_qty_opening_chuaro(stock) + trans_qty + self.closing_qty
