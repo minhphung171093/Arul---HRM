@@ -654,7 +654,6 @@ class day_wise_register(osv.osv_memory):
             order by pro.default_code
             '''%(norms, cb.date_from, cb.date_to)
             cr.execute(sql)
-            print sql
             temp_prd_list = cr.dictfetchall()
 
             if raw_mat:
@@ -969,9 +968,7 @@ class day_wise_register(osv.osv_memory):
                       'product_id': product_list['product_id'],
                     }                       
                         
-               # print sql
                 cr.execute(sql) 
-                print sql
                 res += cr.dictfetchall()
                     
             return res 

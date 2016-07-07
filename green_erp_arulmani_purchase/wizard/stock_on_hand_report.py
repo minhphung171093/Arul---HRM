@@ -669,7 +669,6 @@ class stock_on_hand_report(osv.osv_memory):
             str = " order by pp.default_code asc"
             sql = sql+str
             cr.execute(sql)
-            print sql
             return cr.dictfetchall()
         ###
         def get_avg_cost(product_id, categ, std_price):
