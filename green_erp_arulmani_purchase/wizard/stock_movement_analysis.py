@@ -2680,7 +2680,7 @@ class stock_movement_analysis(osv.osv_memory):
                     }
                 cr.execute(sql)
                 res = cr.dictfetchall() 
-                print sql
+                #print sql
                 '''
                 select case when sum(product_qty)!=0 then sum(product_qty) else 0 end ton_sl
                 from mrp_production where product_id=4 and date_planned between '2016-01-01' and '2016-01-31'

@@ -4424,7 +4424,6 @@ class arul_hr_employee_leave_details(osv.osv):
         new_id= cr.fetchone()[0]
         #TPT END
         #TPT-BM-ON 24/06/2016 To get days_total count 
-        print ','.join("bala")
         total_leaves = 0
         available_leave = 0
         total = self.days_total(cr, uid, [new_id], 'field_name', 'arg', context)
@@ -4432,9 +4431,7 @@ class arul_hr_employee_leave_details(osv.osv):
         avail = self._available_leave(cr, uid, [new_id], 'field_name', 'arg', context)
         available_leave =  avail[new_id]
         
-        print fields.date.context_today(self,cr,uid,context=context)
         create_date = fields.datetime.now()
-        print fields.datetime.now()
         #print a
         
         sql = '''
@@ -4943,9 +4940,6 @@ class arul_hr_employee_leave_details(osv.osv):
     def cancel_leave_request(self, cr, uid, ids, context=None):
         date_now = time.strftime('%Y-%m-%d')
         time_evalv_obj = self.pool.get('tpt.time.leave.evaluation')
-        print context.get('leave_cancel')
-        if context.get('leave_cancel')==1:
-            print "test"
         for line in self.browse(cr, uid, ids): 
             #TPT-Commented By BalamuruganPurushothaman ON 11/04/2015 - TO AVOID THROW THIS WARNING
             #if line.date_from < date_now:
