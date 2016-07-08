@@ -1507,7 +1507,14 @@ class account_invoice(osv.osv):
     #TPT END
     def create(self, cr, uid, vals, context=None):
         if vals.get('vvt_number','/')=='/' and 'type' in vals and vals['type']=='out_invoice':
-            vals['vvt_number'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.customer.invoice.import') or '/'
+            #TPT-BM-ON 08/07/2016 - FOR RETURN CUSTOMER INVOICE SEQUENCE UPDATE
+            if 'sale_id' in vals:
+                sale_obj = self.pool.get('sale.order').browse(cr, uid, vals['sale_id'], context)
+                if sale_obj.document_type=='saleorder':
+                    vals['vvt_number'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.customer.invoice.import') or '/'
+                elif sale_obj.document_type=='return':
+                    vals['vvt_number'] = self.pool.get('ir.sequence').get(cr, uid, 'account.return.customer.invoice') or '/'
+            
         return super(account_invoice, self).create(cr, uid, vals, context=context)
     
     def invoice_print(self, cr, uid, ids, context=None):
