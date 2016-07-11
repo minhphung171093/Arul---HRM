@@ -435,7 +435,7 @@ class stock_inward_outward_report(osv.osv_memory):
                  }
             cr.execute(sql)
             res1 = cr.dictfetchall()
-            #print sql
+            print sql
             sql = '''
             select am.* from account_move am
             inner join stock_adjustment sa on am.ref=sa.name
@@ -773,7 +773,7 @@ class stock_inward_outward_report(osv.osv_memory):
                    cr.execute(sql)
                    for inventory in cr.dictfetchall():
                        avg_cost = inventory['line_net'] or 0
-               #
+               #TPT-BM-ON 07/07/2016 - TO INCLUDE CST VALUE
                if move_type == 'sup_inv_po':
                    sql = '''
                        select sum(ail.tpt_tax_amt) as line_net from account_move am 
