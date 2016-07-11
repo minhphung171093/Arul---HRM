@@ -55,6 +55,9 @@ class purchase_order_list(osv.osv_memory):
         'po_indent_no': fields.many2one('tpt.purchase.indent','Indent No', readonly=True),
         'indent_date': fields.date('Indent Date', readonly=True),
         'indent_release_date': fields.date('Indent Release Date', readonly=True),
+        #TPT-BM-ON 11/07/2016- Redmine 3474
+        'section_id': fields.many2one('tpt.project.section','Section', readonly=True),
+        'cost_center_id': fields.many2one('tpt.cost.center','Cost Center', readonly=True),
     }
 
 purchase_order_list()
@@ -79,6 +82,9 @@ class purchase_order_list_wizard(osv.osv_memory):
         'indent_release_date_from': fields.date('Indent Release Date From'),
         'indent_release_date_to': fields.date('Indent Release Date To'),
         'type_pend_qty':fields.selection([('with_zero', 'With Zero'),('without_zero', 'Without Zero')],'Pending Quantity'),
+        #TPT-BM-ON 11/07/2016- Redmine 3474
+        'section_id': fields.many2one('tpt.project.section','Section', ),
+        'cost_center_id': fields.many2one('tpt.cost.center','Cost Center', ),
     }
 
     def _check_date(self, cr, uid, ids, context=None):
@@ -90,7 +96,7 @@ class purchase_order_list_wizard(osv.osv_memory):
     _constraints = [
         (_check_date, 'Identical Data', []),
     ]
-    
+     
     #Code changed by TPT-Y on 21Spet2015, for add more filtration      
     def view_report(self, cr, uid, ids, context=None):
         cr.execute('delete from purchase_order_list')
@@ -99,6 +105,8 @@ class purchase_order_list_wizard(osv.osv_memory):
         line = self.browse(cr, uid, ids[0])
         date_from = line.date_from
         date_to = line.date_to
+        section_id = line.section_id
+        cost_center_id = line.cost_center_id
         
         po_no_from = ''
         po_no_to = ''
@@ -137,7 +145,7 @@ class purchase_order_list_wizard(osv.osv_memory):
         indent_release_date_to = line.indent_release_date_to
         type_pend_qty = line.type_pend_qty
         
-        if not date_from and not date_to and not po_no_from and not po_no_to and not po_indent_no_from and not po_indent_no_to and not sup_id and not prod_id and not dept_id and not ind_date_from and not ind_date_to and not indent_release_date_from and not indent_release_date_to and not type_pend_qty:
+        if not date_from and not date_to and not po_no_from and not po_no_to and not po_indent_no_from and not po_indent_no_to and not sup_id and not prod_id and not dept_id and not ind_date_from and not ind_date_to and not indent_release_date_from and not indent_release_date_to and not type_pend_qty and not section_id and not cost_center_id:
             raise osv.except_osv(_('Warning!'),_('Please Choose any one of Parameter'))
         
         
@@ -155,127 +163,149 @@ class purchase_order_list_wizard(osv.osv_memory):
             join tpt_purchase_product pp on (pp.pur_product_id = pi.id and pol.product_id = pp.product_id)            
             '''
         
-        if date_from or date_to or po_no_from or po_no_to or po_indent_no_from or po_indent_no_to or sup_id or prod_id or dept_id or ind_date_from or ind_date_to or indent_release_date_from or indent_release_date_to or type_pend_qty:
-                    str = " where "
-                    sql = sql+str
+        if date_from or date_to or po_no_from or po_no_to or po_indent_no_from or po_indent_no_to or sup_id or prod_id or dept_id or ind_date_from or ind_date_to or indent_release_date_from or indent_release_date_to or type_pend_qty or section_id or cost_center_id:
+            str = " where "
+            sql = sql+str
         if date_from and not date_to:
-                    str = " po.date_order <= '%s'"%(date_from)
-                    sql = sql+str               
+            str = " po.date_order <= '%s'"%(date_from)
+            sql = sql+str               
         if date_to and not date_from:
-                    str = " po.date_order >= '%s'"%(date_to)
-                    sql = sql+str
+            str = " po.date_order >= '%s'"%(date_to)
+            sql = sql+str
         if date_to and date_from:
-                    str = " po.date_order between '%s' and '%s'"%(date_from,date_to)
-                    sql = sql+str                    
+            str = " po.date_order between '%s' and '%s'"%(date_from,date_to)
+            sql = sql+str                    
         if po_no_from and not po_no_to and not date_to and not date_from:
-                    str = " po.name <= '%s'"%(po_no_from)
-                    sql = sql+str                    
+            str = " po.name <= '%s'"%(po_no_from)
+            sql = sql+str                    
         if po_no_from and not po_no_to and (date_to or date_from):
-                    str = " and po.name <= '%s'"%(po_no_from)
-                    sql = sql+str                    
+            str = " and po.name <= '%s'"%(po_no_from)
+            sql = sql+str                    
         if po_no_to and not po_no_from and not date_to and not date_from:
-                    str = " po.name >= '%s' "%(po_no_to)
-                    sql = sql+str                    
+            str = " po.name >= '%s' "%(po_no_to)
+            sql = sql+str                    
         if po_no_to and not po_no_from and (date_to or date_from):
-                    str = " and po.name >= '%s' "%(po_no_to)
-                    sql = sql+str
+            str = " and po.name >= '%s' "%(po_no_to)
+            sql = sql+str
         if po_no_to and po_no_from and not date_to and not date_from:
-                    str = " po.name between '%s' and '%s'"%(po_no_from,po_no_to)
-                    sql = sql+str
+            str = " po.name between '%s' and '%s'"%(po_no_from,po_no_to)
+            sql = sql+str
         if po_no_to and po_no_from and (date_to or date_from):
-                    str = " and po.name between '%s' and '%s'"%(po_no_from,po_no_to)
-                    sql = sql+str             
+            str = " and po.name between '%s' and '%s'"%(po_no_from,po_no_to)
+            sql = sql+str             
         if sup_id and not po_no_to and not po_no_from and not date_to and not date_from:
-                    str = " pol.partner_id = %s"%(sup_id)
-                    sql = sql+str       
+            str = " pol.partner_id = %s"%(sup_id)
+            sql = sql+str       
         if sup_id and (po_no_to or po_no_from or date_to or date_from):
-                    str = " and pol.partner_id = %s"%(sup_id)
-                    sql = sql+str                    
+            str = " and pol.partner_id = %s"%(sup_id)
+            sql = sql+str                    
         if prod_id and not sup_id and not po_no_to and not po_no_from and not date_to and not date_from:
-                    str = " pol.product_id = %s"%(prod_id)
-                    sql = sql+str  
+            str = " pol.product_id = %s"%(prod_id)
+            sql = sql+str  
         if prod_id and (sup_id or po_no_to or po_no_from or date_to or date_from):
-                    str = " and pol.product_id = %s"%(prod_id)
-                    sql = sql+str        
+            str = " and pol.product_id = %s"%(prod_id)
+            sql = sql+str        
         if dept_id and not prod_id and not sup_id and not po_no_to and not po_no_from and not date_to and not date_from:
-                    str = " pi.department_id = %s"%(dept_id)
-                    sql = sql+str  
+            str = " pi.department_id = %s"%(dept_id)
+            sql = sql+str  
         if dept_id and (prod_id or sup_id or po_no_to or po_no_from or date_to or date_from):
-                    str = " and pi.department_id = %s"%(dept_id)
-                    sql = sql+str        
+            str = " and pi.department_id = %s"%(dept_id)
+            sql = sql+str        
         if po_indent_no_from and not po_indent_no_to and not dept_id and not prod_id and not sup_id and not po_no_to and not po_no_from and not date_to and not date_from:
-                    str = " pi.name <= '%s'"%(po_indent_no_from)
-                    sql = sql+str  
+            str = " pi.name <= '%s'"%(po_indent_no_from)
+            sql = sql+str  
         if po_indent_no_from and not po_indent_no_to and (dept_id or prod_id or sup_id or po_no_to or po_no_from or date_to or date_from):
-                    str = " and pi.name <= '%s'"%(po_indent_no_from)
-                    sql = sql+str                    
+            str = " and pi.name <= '%s'"%(po_indent_no_from)
+            sql = sql+str                    
         if po_indent_no_to and not po_indent_no_from and not dept_id and not prod_id and not sup_id and not po_no_to and not po_no_from and not date_to and not date_from:
-                    str = " pi.name >= '%s'"%(po_indent_no_to)
-                    sql = sql+str  
+            str = " pi.name >= '%s'"%(po_indent_no_to)
+            sql = sql+str  
         if po_indent_no_to and not po_indent_no_from and (dept_id or prod_id or sup_id or po_no_to or po_no_from or date_to or date_from):
-                    str = " and pi.name >= '%s'"%(po_indent_no_to)
-                    sql = sql+str
+            str = " and pi.name >= '%s'"%(po_indent_no_to)
+            sql = sql+str
         if po_indent_no_to and po_indent_no_from and not dept_id and not prod_id and not sup_id and not po_no_to and not po_no_from and not date_to and not date_from:
-                    str = " pi.name between '%s' and '%s'"%(po_indent_no_from,po_indent_no_to)
-                    sql = sql+str  
+            str = " pi.name between '%s' and '%s'"%(po_indent_no_from,po_indent_no_to)
+            sql = sql+str  
         if po_indent_no_to and po_indent_no_from and (dept_id or prod_id or sup_id or po_no_to or po_no_from or date_to or date_from):
-                    str = " and pi.name between '%s' and '%s'"%(po_indent_no_from,po_indent_no_to)
-                    sql = sql+str
+            str = " and pi.name between '%s' and '%s'"%(po_indent_no_from,po_indent_no_to)
+            sql = sql+str
         if ind_date_from and not ind_date_to and not po_indent_no_to and not po_indent_no_from and not dept_id and not prod_id and not sup_id and not po_no_to and not po_no_from and not date_to and not date_from:
-                    str = " pi.date_indent <= '%s'"%(ind_date_from)
-                    sql = sql+str  
+            str = " pi.date_indent <= '%s'"%(ind_date_from)
+            sql = sql+str  
         if ind_date_from and not ind_date_to and (po_indent_no_to or po_indent_no_from or dept_id or prod_id or sup_id or po_no_to or po_no_from or date_to or date_from):
-                    str = " and pi.date_indent <= '%s'"%(ind_date_from)
-                    sql = sql+str
+            str = " and pi.date_indent <= '%s'"%(ind_date_from)
+            sql = sql+str
         if ind_date_to and not ind_date_from and not po_indent_no_to and not po_indent_no_from and not dept_id and not prod_id and not sup_id and not po_no_to and not po_no_from and not date_to and not date_from:
-                    str = " pi.date_indent <= '%s'"%(ind_date_to)
-                    sql = sql+str  
+            str = " pi.date_indent <= '%s'"%(ind_date_to)
+            sql = sql+str  
         if ind_date_to and not ind_date_from and (po_indent_no_to or po_indent_no_from or dept_id or prod_id or sup_id or po_no_to or po_no_from or date_to or date_from):
-                    str = " and pi.date_indent <= '%s'"%(ind_date_to)
-                    sql = sql+str
+            str = " and pi.date_indent <= '%s'"%(ind_date_to)
+            sql = sql+str
         if ind_date_to and ind_date_from and not po_indent_no_to and not po_indent_no_from and not dept_id and not prod_id and not sup_id and not po_no_to and not po_no_from and not date_to and not date_from:
-                    str = " pi.date_indent between '%s' and '%s'"%(ind_date_from,ind_date_to)
-                    sql = sql+str  
+            str = " pi.date_indent between '%s' and '%s'"%(ind_date_from,ind_date_to)
+            sql = sql+str  
         if ind_date_to and ind_date_from and (po_indent_no_to or po_indent_no_from or dept_id or prod_id or sup_id or po_no_to or po_no_from or date_to or date_from):
-                    str = " and pi.date_indent between '%s' and '%s'"%(ind_date_from,ind_date_to)
-                    sql = sql+str
+            str = " and pi.date_indent between '%s' and '%s'"%(ind_date_from,ind_date_to)
+            sql = sql+str
         if indent_release_date_from and not indent_release_date_to and not ind_date_to and not ind_date_from and not po_indent_no_to and not po_indent_no_from and not dept_id and not prod_id and not sup_id and not po_no_to and not po_no_from and not date_to and not date_from:
-                    str = " to_date(to_char(pp.hod_date, 'YYYY/MM/DD'), 'YYYY/MM/DD') <= %s"%(indent_release_date_from)
-                    sql = sql+str
+            str = " to_date(to_char(pp.hod_date, 'YYYY/MM/DD'), 'YYYY/MM/DD') <= %s"%(indent_release_date_from)
+            sql = sql+str
         if indent_release_date_from and not indent_release_date_to and (ind_date_to or ind_date_from or po_indent_no_to or po_indent_no_from or dept_id or prod_id or sup_id or po_no_to or po_no_from or date_to or date_from):
-                    str = " and to_date(to_char(pp.hod_date, 'YYYY/MM/DD'), 'YYYY/MM/DD') <= %s"%(indent_release_date_from)
-                    sql = sql+str                    
+            str = " and to_date(to_char(pp.hod_date, 'YYYY/MM/DD'), 'YYYY/MM/DD') <= %s"%(indent_release_date_from)
+            sql = sql+str                    
         if indent_release_date_to and not indent_release_date_from and not ind_date_to and not ind_date_from and not po_indent_no_to and not po_indent_no_from and not dept_id and not prod_id and not sup_id and not po_no_to and not po_no_from and not date_to and not date_from:
-                    str = " to_date(to_char(pp.hod_date, 'YYYY/MM/DD'), 'YYYY/MM/DD') >= %s"%(indent_release_date_to)
-                    sql = sql+str
+            str = " to_date(to_char(pp.hod_date, 'YYYY/MM/DD'), 'YYYY/MM/DD') >= %s"%(indent_release_date_to)
+            sql = sql+str
         if indent_release_date_to and not indent_release_date_from and (ind_date_to or ind_date_from or po_indent_no_to or po_indent_no_from or dept_id or prod_id or sup_id or po_no_to or po_no_from or date_to or date_from):
-                    str = " and to_date(to_char(pp.hod_date, 'YYYY/MM/DD'), 'YYYY/MM/DD') >= %s"%(indent_release_date_to)
-                    sql = sql+str
+            str = " and to_date(to_char(pp.hod_date, 'YYYY/MM/DD'), 'YYYY/MM/DD') >= %s"%(indent_release_date_to)
+            sql = sql+str
         if indent_release_date_to and indent_release_date_from and not ind_date_to and not ind_date_from and not po_indent_no_to and not po_indent_no_from and not dept_id and not prod_id and not sup_id and not po_no_to and not po_no_from and not date_to and not date_from:
-                    str = " to_date(to_char(pp.hod_date, 'YYYY/MM/DD'), 'YYYY/MM/DD') between '%s' and '%s'"%(indent_release_date_from,indent_release_date_to)
-                    sql = sql+str
+            str = " to_date(to_char(pp.hod_date, 'YYYY/MM/DD'), 'YYYY/MM/DD') between '%s' and '%s'"%(indent_release_date_from,indent_release_date_to)
+            sql = sql+str
         if indent_release_date_to and indent_release_date_from and (ind_date_to or ind_date_from or po_indent_no_to or po_indent_no_from or dept_id or prod_id or sup_id or po_no_to or po_no_from or date_to or date_from):
-                    str = " and to_date(to_char(pp.hod_date, 'YYYY/MM/DD'), 'YYYY/MM/DD') between '%s' and '%s'"%(indent_release_date_from,indent_release_date_to)
-                    sql = sql+str                    
+            str = " and to_date(to_char(pp.hod_date, 'YYYY/MM/DD'), 'YYYY/MM/DD') between '%s' and '%s'"%(indent_release_date_from,indent_release_date_to)
+            sql = sql+str                    
         if type_pend_qty == 'with_zero' and not indent_release_date_to and not indent_release_date_from and not ind_date_to and not ind_date_from and not po_indent_no_to and not po_indent_no_from and not dept_id and not prod_id and not sup_id and not po_no_to and not po_no_from and not date_to and not date_from:
-                    str = " pol.product_qty - (select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty from stock_move where purchase_line_id=pol.id and state='done') = '0.00'"
-                    sql = sql+str                    
+            str = " pol.product_qty - (select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty from stock_move where purchase_line_id=pol.id and state='done') = '0.00'"
+            sql = sql+str                    
         if type_pend_qty == 'with_zero' and (indent_release_date_to or indent_release_date_from or ind_date_to or ind_date_from or po_indent_no_to or po_indent_no_from or dept_id or prod_id or sup_id or po_no_to or po_no_from or date_to or date_from):
-                    str = " and pol.product_qty - (select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty from stock_move where purchase_line_id=pol.id and state='done') = '0.00'"
-                    sql = sql+str
+            str = " and pol.product_qty - (select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty from stock_move where purchase_line_id=pol.id and state='done') = '0.00'"
+            sql = sql+str
         if type_pend_qty == 'without_zero' and not indent_release_date_to and not indent_release_date_from and not ind_date_to and not ind_date_from and not po_indent_no_to and not po_indent_no_from and not dept_id and not prod_id and not sup_id and not po_no_to and not po_no_from and not date_to and not date_from:
-                    str = " pol.product_qty - (select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty from stock_move where purchase_line_id=pol.id and state='done') <> '0.00'"
-                    sql = sql+str                    
+            str = " pol.product_qty - (select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty from stock_move where purchase_line_id=pol.id and state='done') <> '0.00'"
+            sql = sql+str                    
         if type_pend_qty == 'without_zero' and (indent_release_date_to or indent_release_date_from or ind_date_to or ind_date_from or po_indent_no_to or po_indent_no_from or dept_id or prod_id or sup_id or po_no_to or po_no_from or date_to or date_from):
-                    str = " and pol.product_qty - (select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty from stock_move where purchase_line_id=pol.id and state='done') <> '0.00'"
-                    sql = sql+str
-         
+            str = " and pol.product_qty - (select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty from stock_move where purchase_line_id=pol.id and state='done') <> '0.00'"
+            sql = sql+str
+        #
+        if section_id and not cost_center_id and not date_from and not date_to:
+            str = " pi.project_section_id=%s "%section_id.id
+            sql += str
+        if not section_id and cost_center_id and not date_from and not date_to:
+            str = " pi.cost_center_id=%s "%cost_center_id.id
+            sql += str    
+        if section_id and not cost_center_id and date_from and not date_to:
+            str = " and pi.project_section_id=%s "%(section_id.id)
+            sql += str
+        if section_id and not cost_center_id and date_from and date_to:
+            str = " and pi.project_section_id=%s "%(section_id.id)
+            sql += str   
+        if not section_id and cost_center_id and date_from and not date_to:
+            str = " and pi.cost_center_id=%s"%(cost_center_id.id)
+            sql += str
+        if not section_id and cost_center_id and date_from and date_to:
+            str = " and pi.cost_center_id=%s "%(cost_center_id.id,)
+            sql += str   
+             
         sql=sql+" order by id"       
-                 
-          
+                   
+        #print sql
         
         cr.execute(sql)
         order_line_ids = [r[0] for r in cr.fetchall()]
+        #
+        indent_obj = self.pool.get('tpt.purchase.indent') 
+        #
         for seq,order_line in enumerate(order_line_obj.browse(cr, uid, order_line_ids)):            
             
             grn_qty_1 = 0
@@ -315,6 +345,12 @@ class purchase_order_list_wizard(osv.osv_memory):
             indent_line_obj1 = indent_line_obj.browse(cr,uid,indent_line_obj_ids[0])
             hod_date = indent_line_obj1.hod_date   
             ##
+            #indent_line_obj_ids = indent_line_obj.search(cr, uid, [('pur_product_id','=',order_line.po_indent_no.id)])
+            indent_ids = indent_obj.browse(cr,uid,order_line.po_indent_no.id)
+            
+            if indent_ids.project_section_id and indent_ids.project_section_id.id==17:
+                print "test"
+            ##
             vals = {
                 'si_no': seq+1,
                 'po_id': order_line.order_id.id,
@@ -334,18 +370,21 @@ class purchase_order_list_wizard(osv.osv_memory):
                 'po_indent_no': order_line.po_indent_no.id,
                 'indent_date': order_line.po_indent_no.date_indent,
                 'indent_release_date': hod_date or False,
+                'section_id': indent_ids.project_section_id and indent_ids.project_section_id.id or False, 
+                'cost_center_id':indent_ids.cost_center_id and indent_ids.cost_center_id.id or False
+                
             }
             purchase_order_list_obj.create(cr, uid, vals)
         res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
                                         'green_erp_arulmani_accounting', 'view_purchase_order_list_tree')
         return {
-                    'name': 'Purchase Order List',
-                    'view_type': 'form',
-                    'view_mode': 'tree',
-                    'res_model': 'purchase.order.list',
-                    'domain': [],
-                    'type': 'ir.actions.act_window',
-                    'target': 'current',
+            'name': 'Purchase Order List',
+            'view_type': 'form',
+            'view_mode': 'tree',
+            'res_model': 'purchase.order.list',
+            'domain': [],
+            'type': 'ir.actions.act_window',
+            'target': 'current',
                 }
     def print_report(self, cr, uid, ids, context=None):
         if context is None:
@@ -364,18 +403,15 @@ class Parser(report_sxw.rml_parse):
         super(Parser, self).__init__(cr, uid, name, context=context)
         pool = pooler.get_pool(self.cr.dbname)
         self.localcontext.update({
-
             'view_report_xls':self.view_report_xls,
-            'convert_date_cash':self.convert_date_cash,
-            
+            'convert_date_cash':self.convert_date_cash,   
         })
     
     def convert_date_cash(self,date):
-            if date:
-                date = datetime.strptime(date, DATE_FORMAT)
-                return date.strftime('%d/%m/%Y')
-            
-            
+        if date:
+            date = datetime.strptime(date, DATE_FORMAT)
+            return date.strftime('%d/%m/%Y')
+                        
     def view_report_xls(self):
         self.cr.execute('delete from purchase_order_list')
         purchase_order_list_obj = self.pool.get('purchase.order.list')
@@ -387,6 +423,11 @@ class Parser(report_sxw.rml_parse):
         #line = wizard_obj.browse(self.cr, self.uid, ids[0])        
         date_from = wizard_data['date_from']
         date_to = wizard_data['date_to']
+        
+        #TPT-BM-ON 11/07/2016
+        section_id = wizard_data['section_id'][0] if wizard_data['section_id'] else False
+        cost_center_id = wizard_data['cost_center_id'][0] if wizard_data['cost_center_id'] else False
+        #
         
         po_no_from = ''
         po_no_to = ''
@@ -413,7 +454,7 @@ class Parser(report_sxw.rml_parse):
         type_pend_qty = wizard_data['type_pend_qty']
         
         
-        if not date_from and not date_to and not po_no_from and not po_no_to and not po_indent_no_from and not po_indent_no_to and not sup_id and not prod_id and not dept_id and not ind_date_from and not ind_date_to and not indent_release_date_from and not indent_release_date_to and not type_pend_qty:
+        if not date_from and not date_to and not po_no_from and not po_no_to and not po_indent_no_from and not po_indent_no_to and not sup_id and not prod_id and not dept_id and not ind_date_from and not ind_date_to and not indent_release_date_from and not indent_release_date_to and not type_pend_qty and not section_id and not cost_center_id:
             raise osv.except_osv(_('Warning!'),_('Please Choose any one of Parameter'))
         
         
@@ -431,126 +472,147 @@ class Parser(report_sxw.rml_parse):
             join tpt_purchase_product pp on (pp.pur_product_id = pi.id and pol.product_id = pp.product_id)
              '''
         
-        if date_from or date_to or po_no_from or po_no_to or po_indent_no_from or po_indent_no_to or sup_id or prod_id or dept_id or ind_date_from or ind_date_to or indent_release_date_from or indent_release_date_to or type_pend_qty:
-                    str = " where "
-                    sql = sql+str
+        if date_from or date_to or po_no_from or po_no_to or po_indent_no_from or po_indent_no_to or sup_id or prod_id or dept_id or ind_date_from or ind_date_to or indent_release_date_from or indent_release_date_to or type_pend_qty or section_id or cost_center_id:
+            str = " where "
+            sql = sql+str
         if date_from and not date_to:
-                    str = " po.date_order <= '%s'"%(date_from)
-                    sql = sql+str               
+            str = " po.date_order <= '%s'"%(date_from)
+            sql = sql+str               
         if date_to and not date_from:
-                    str = " po.date_order >= '%s'"%(date_to)
-                    sql = sql+str
+            str = " po.date_order >= '%s'"%(date_to)
+            sql = sql+str
         if date_to and date_from:
-                    str = " po.date_order between '%s' and '%s'"%(date_from,date_to)
-                    sql = sql+str                    
+            str = " po.date_order between '%s' and '%s'"%(date_from,date_to)
+            sql = sql+str                    
         if po_no_from and not po_no_to and not date_to and not date_from:
-                    str = " po.name <= '%s'"%(po_no_from)
-                    sql = sql+str                    
+            str = " po.name <= '%s'"%(po_no_from)
+            sql = sql+str                    
         if po_no_from and not po_no_to and (date_to or date_from):
-                    str = " and po.name <= '%s'"%(po_no_from)
-                    sql = sql+str                    
+            str = " and po.name <= '%s'"%(po_no_from)
+            sql = sql+str                    
         if po_no_to and not po_no_from and not date_to and not date_from:
-                    str = " po.name >= '%s' "%(po_no_to)
-                    sql = sql+str                    
+            str = " po.name >= '%s' "%(po_no_to)
+            sql = sql+str                    
         if po_no_to and not po_no_from and (date_to or date_from):
-                    str = " and po.name >= '%s' "%(po_no_to)
-                    sql = sql+str
+            str = " and po.name >= '%s' "%(po_no_to)
+            sql = sql+str
         if po_no_to and po_no_from and not date_to and not date_from:
-                    str = " po.name between '%s' and '%s'"%(po_no_from,po_no_to)
-                    sql = sql+str
+            str = " po.name between '%s' and '%s'"%(po_no_from,po_no_to)
+            sql = sql+str
         if po_no_to and po_no_from and (date_to or date_from):
-                    str = " and po.name between '%s' and '%s'"%(po_no_from,po_no_to)
-                    sql = sql+str             
+            str = " and po.name between '%s' and '%s'"%(po_no_from,po_no_to)
+            sql = sql+str             
         if sup_id and not po_no_to and not po_no_from and not date_to and not date_from:
-                    str = " pol.partner_id = %s"%(sup_id[0])
-                    sql = sql+str       
+            str = " pol.partner_id = %s"%(sup_id[0])
+            sql = sql+str       
         if sup_id and (po_no_to or po_no_from or date_to or date_from):
-                    str = " and pol.partner_id = %s"%(sup_id[0])
-                    sql = sql+str                    
+            str = " and pol.partner_id = %s"%(sup_id[0])
+            sql = sql+str                    
         if prod_id and not sup_id and not po_no_to and not po_no_from and not date_to and not date_from:
-                    str = " pol.product_id = %s"%(prod_id[0])
-                    sql = sql+str  
+            str = " pol.product_id = %s"%(prod_id[0])
+            sql = sql+str  
         if prod_id and (sup_id or po_no_to or po_no_from or date_to or date_from):
-                    str = " and pol.product_id = %s"%(prod_id[0])
-                    sql = sql+str        
+            str = " and pol.product_id = %s"%(prod_id[0])
+            sql = sql+str        
         if dept_id and not prod_id and not sup_id and not po_no_to and not po_no_from and not date_to and not date_from:
-                    str = " pi.department_id = %s"%(dept_id[0])
-                    sql = sql+str  
+            str = " pi.department_id = %s"%(dept_id[0])
+            sql = sql+str  
         if dept_id and (prod_id or sup_id or po_no_to or po_no_from or date_to or date_from):
-                    str = " and pi.department_id = %s"%(dept_id[0])
-                    sql = sql+str        
+            str = " and pi.department_id = %s"%(dept_id[0])
+            sql = sql+str        
         if po_indent_no_from and not po_indent_no_to and not dept_id and not prod_id and not sup_id and not po_no_to and not po_no_from and not date_to and not date_from:
-                    str = " pi.name <= '%s'"%(po_indent_no_from)
-                    sql = sql+str  
+            str = " pi.name <= '%s'"%(po_indent_no_from)
+            sql = sql+str  
         if po_indent_no_from and not po_indent_no_to and (dept_id or prod_id or sup_id or po_no_to or po_no_from or date_to or date_from):
-                    str = " and pi.name <= '%s'"%(po_indent_no_from)
-                    sql = sql+str                    
+            str = " and pi.name <= '%s'"%(po_indent_no_from)
+            sql = sql+str                    
         if po_indent_no_to and not po_indent_no_from and not dept_id and not prod_id and not sup_id and not po_no_to and not po_no_from and not date_to and not date_from:
-                    str = " pi.name >= '%s'"%(po_indent_no_to)
-                    sql = sql+str  
+            str = " pi.name >= '%s'"%(po_indent_no_to)
+            sql = sql+str  
         if po_indent_no_to and not po_indent_no_from and (dept_id or prod_id or sup_id or po_no_to or po_no_from or date_to or date_from):
-                    str = " and pi.name >= '%s'"%(po_indent_no_to)
-                    sql = sql+str
+            str = " and pi.name >= '%s'"%(po_indent_no_to)
+            sql = sql+str
         if po_indent_no_to and po_indent_no_from and not dept_id and not prod_id and not sup_id and not po_no_to and not po_no_from and not date_to and not date_from:
-                    str = " pi.name between '%s' and '%s'"%(po_indent_no_from,po_indent_no_to)
-                    sql = sql+str  
+            str = " pi.name between '%s' and '%s'"%(po_indent_no_from,po_indent_no_to)
+            sql = sql+str  
         if po_indent_no_to and po_indent_no_from and (dept_id or prod_id or sup_id or po_no_to or po_no_from or date_to or date_from):
-                    str = " and pi.name between '%s' and '%s'"%(po_indent_no_from,po_indent_no_to)
-                    sql = sql+str
+            str = " and pi.name between '%s' and '%s'"%(po_indent_no_from,po_indent_no_to)
+            sql = sql+str
         if ind_date_from and not ind_date_to and not po_indent_no_to and not po_indent_no_from and not dept_id and not prod_id and not sup_id and not po_no_to and not po_no_from and not date_to and not date_from:
-                    str = " pi.date_indent <= '%s'"%(ind_date_from)
-                    sql = sql+str  
+            str = " pi.date_indent <= '%s'"%(ind_date_from)
+            sql = sql+str  
         if ind_date_from and not ind_date_to and (po_indent_no_to or po_indent_no_from or dept_id or prod_id or sup_id or po_no_to or po_no_from or date_to or date_from):
-                    str = " and pi.date_indent <= '%s'"%(ind_date_from)
-                    sql = sql+str
+            str = " and pi.date_indent <= '%s'"%(ind_date_from)
+            sql = sql+str
         if ind_date_to and not ind_date_from and not po_indent_no_to and not po_indent_no_from and not dept_id and not prod_id and not sup_id and not po_no_to and not po_no_from and not date_to and not date_from:
-                    str = " pi.date_indent <= '%s'"%(ind_date_to)
-                    sql = sql+str  
+            str = " pi.date_indent <= '%s'"%(ind_date_to)
+            sql = sql+str  
         if ind_date_to and not ind_date_from and (po_indent_no_to or po_indent_no_from or dept_id or prod_id or sup_id or po_no_to or po_no_from or date_to or date_from):
-                    str = " and pi.date_indent <= '%s'"%(ind_date_to)
-                    sql = sql+str
+            str = " and pi.date_indent <= '%s'"%(ind_date_to)
+            sql = sql+str
         if ind_date_to and ind_date_from and not po_indent_no_to and not po_indent_no_from and not dept_id and not prod_id and not sup_id and not po_no_to and not po_no_from and not date_to and not date_from:
-                    str = " pi.date_indent between '%s' and '%s'"%(ind_date_from,ind_date_to)
-                    sql = sql+str  
+            str = " pi.date_indent between '%s' and '%s'"%(ind_date_from,ind_date_to)
+            sql = sql+str  
         if ind_date_to and ind_date_from and (po_indent_no_to or po_indent_no_from or dept_id or prod_id or sup_id or po_no_to or po_no_from or date_to or date_from):
-                    str = " and pi.date_indent between '%s' and '%s'"%(ind_date_from,ind_date_to)
-                    sql = sql+str
+            str = " and pi.date_indent between '%s' and '%s'"%(ind_date_from,ind_date_to)
+            sql = sql+str
         if indent_release_date_from and not indent_release_date_to and not ind_date_to and not ind_date_from and not po_indent_no_to and not po_indent_no_from and not dept_id and not prod_id and not sup_id and not po_no_to and not po_no_from and not date_to and not date_from:
-                    str = " to_date(to_char(pp.hod_date, 'YYYY/MM/DD'), 'YYYY/MM/DD') <= %s"%(indent_release_date_from)
-                    sql = sql+str
+            str = " to_date(to_char(pp.hod_date, 'YYYY/MM/DD'), 'YYYY/MM/DD') <= %s"%(indent_release_date_from)
+            sql = sql+str
         if indent_release_date_from and not indent_release_date_to and (ind_date_to or ind_date_from or po_indent_no_to or po_indent_no_from or dept_id or prod_id or sup_id or po_no_to or po_no_from or date_to or date_from):
-                    str = " and to_date(to_char(pp.hod_date, 'YYYY/MM/DD'), 'YYYY/MM/DD') <= %s"%(indent_release_date_from)
-                    sql = sql+str                    
+            str = " and to_date(to_char(pp.hod_date, 'YYYY/MM/DD'), 'YYYY/MM/DD') <= %s"%(indent_release_date_from)
+            sql = sql+str                    
         if indent_release_date_to and not indent_release_date_from and not ind_date_to and not ind_date_from and not po_indent_no_to and not po_indent_no_from and not dept_id and not prod_id and not sup_id and not po_no_to and not po_no_from and not date_to and not date_from:
-                    str = " to_date(to_char(pp.hod_date, 'YYYY/MM/DD'), 'YYYY/MM/DD') >= %s"%(indent_release_date_to)
-                    sql = sql+str
+            str = " to_date(to_char(pp.hod_date, 'YYYY/MM/DD'), 'YYYY/MM/DD') >= %s"%(indent_release_date_to)
+            sql = sql+str
         if indent_release_date_to and not indent_release_date_from and (ind_date_to or ind_date_from or po_indent_no_to or po_indent_no_from or dept_id or prod_id or sup_id or po_no_to or po_no_from or date_to or date_from):
-                    str = " and to_date(to_char(pp.hod_date, 'YYYY/MM/DD'), 'YYYY/MM/DD') >= %s"%(indent_release_date_to)
-                    sql = sql+str
+            str = " and to_date(to_char(pp.hod_date, 'YYYY/MM/DD'), 'YYYY/MM/DD') >= %s"%(indent_release_date_to)
+            sql = sql+str
         if indent_release_date_to and indent_release_date_from and not ind_date_to and not ind_date_from and not po_indent_no_to and not po_indent_no_from and not dept_id and not prod_id and not sup_id and not po_no_to and not po_no_from and not date_to and not date_from:
-                    str = " to_date(to_char(pp.hod_date, 'YYYY/MM/DD'), 'YYYY/MM/DD') between '%s' and '%s'"%(indent_release_date_from,indent_release_date_to)
-                    sql = sql+str
+            str = " to_date(to_char(pp.hod_date, 'YYYY/MM/DD'), 'YYYY/MM/DD') between '%s' and '%s'"%(indent_release_date_from,indent_release_date_to)
+            sql = sql+str
         if indent_release_date_to and indent_release_date_from and (ind_date_to or ind_date_from or po_indent_no_to or po_indent_no_from or dept_id or prod_id or sup_id or po_no_to or po_no_from or date_to or date_from):
-                    str = " and to_date(to_char(pp.hod_date, 'YYYY/MM/DD'), 'YYYY/MM/DD') between '%s' and '%s'"%(indent_release_date_from,indent_release_date_to)
-                    sql = sql+str                    
+            str = " and to_date(to_char(pp.hod_date, 'YYYY/MM/DD'), 'YYYY/MM/DD') between '%s' and '%s'"%(indent_release_date_from,indent_release_date_to)
+            sql = sql+str                    
         if type_pend_qty == 'with_zero' and not indent_release_date_to and not indent_release_date_from and not ind_date_to and not ind_date_from and not po_indent_no_to and not po_indent_no_from and not dept_id and not prod_id and not sup_id and not po_no_to and not po_no_from and not date_to and not date_from:
-                    str = " pol.product_qty - (select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty from stock_move where purchase_line_id=pol.id and state='done') = '0.00'"
-                    sql = sql+str                    
+            str = " pol.product_qty - (select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty from stock_move where purchase_line_id=pol.id and state='done') = '0.00'"
+            sql = sql+str                    
         if type_pend_qty == 'with_zero' and (indent_release_date_to or indent_release_date_from or ind_date_to or ind_date_from or po_indent_no_to or po_indent_no_from or dept_id or prod_id or sup_id or po_no_to or po_no_from or date_to or date_from):
-                    str = " and pol.product_qty - (select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty from stock_move where purchase_line_id=pol.id and state='done') = '0.00'"
-                    sql = sql+str
+            str = " and pol.product_qty - (select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty from stock_move where purchase_line_id=pol.id and state='done') = '0.00'"
+            sql = sql+str
         if type_pend_qty == 'without_zero' and not indent_release_date_to and not indent_release_date_from and not ind_date_to and not ind_date_from and not po_indent_no_to and not po_indent_no_from and not dept_id and not prod_id and not sup_id and not po_no_to and not po_no_from and not date_to and not date_from:
-                    str = " pol.product_qty - (select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty from stock_move where purchase_line_id=pol.id and state='done') <> '0.00'"
-                    sql = sql+str                    
+            str = " pol.product_qty - (select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty from stock_move where purchase_line_id=pol.id and state='done') <> '0.00'"
+            sql = sql+str                    
         if type_pend_qty == 'without_zero' and (indent_release_date_to or indent_release_date_from or ind_date_to or ind_date_from or po_indent_no_to or po_indent_no_from or dept_id or prod_id or sup_id or po_no_to or po_no_from or date_to or date_from):
-                    str = " and pol.product_qty - (select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty from stock_move where purchase_line_id=pol.id and state='done') <> '0.00'"
-                    sql = sql+str
+            str = " and pol.product_qty - (select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty from stock_move where purchase_line_id=pol.id and state='done') <> '0.00'"
+            sql = sql+str
+        #TPT-BM-ON 11/07/2016
+        if section_id and not cost_center_id and not date_from and not date_to:
+            str = " pi.project_section_id=%s "%section_id
+            sql += str
+        if not section_id and cost_center_id and not date_from and not date_to:
+            str = " pi.cost_center_id=%s "%cost_center_id
+            sql += str    
+        if section_id and not cost_center_id and date_from and not date_to:
+            str = " and pi.project_section_id=%s "%(section_id)
+            sql += str
+        if section_id and not cost_center_id and date_from and date_to:
+            str = " and pi.project_section_id=%s "%(section_id)
+            sql += str   
+        if not section_id and cost_center_id and date_from and not date_to:
+            str = " and pi.cost_center_id=%s"%(cost_center_id)
+            sql += str
+        if not section_id and cost_center_id and date_from and date_to:
+            str = " and pi.cost_center_id=%s "%(cost_center_id,)
+            sql += str   
+        
 
-        sql=sql+" order by id"
+        sql = sql+" order by id"
                     
         
         self.cr.execute(sql)
         order_line_ids = [r[0] for r in self.cr.fetchall()]
+        indent_obj = self.pool.get('tpt.purchase.indent') 
         for seq,order_line in enumerate(order_line_obj.browse(self.cr, self.uid, order_line_ids)):
             
             grn_qty_1 = 0
@@ -589,6 +651,8 @@ class Parser(report_sxw.rml_parse):
             indent_line_obj_ids = indent_line_obj.search(self.cr, self.uid, [('pur_product_id','=',order_line.po_indent_no.id)])
             indent_line_obj1 = indent_line_obj.browse(self.cr,self.uid,indent_line_obj_ids[0])
             hod_date = indent_line_obj1.hod_date   
+           
+            indent_ids = indent_obj.browse(self.cr,self.uid,order_line.po_indent_no.id)           
             ##
             vals.append ( {
                 'si_no': seq+1,
@@ -609,6 +673,8 @@ class Parser(report_sxw.rml_parse):
                 'po_indent_no': order_line.po_indent_no.name,
                 'indent_date': order_line.po_indent_no.date_indent,
                 'indent_release_date': hod_date or False,
+                'section_id': indent_ids.project_section_id and indent_ids.project_section_id.id or False, 
+                'cost_center_id':indent_ids.cost_center_id and indent_ids.cost_center_id.id or False
             })
         return vals
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
