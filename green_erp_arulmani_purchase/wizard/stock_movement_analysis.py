@@ -2107,6 +2107,8 @@ class stock_movement_analysis(osv.osv_memory):
         #TPT-BM-ON 07/07/2016 - FOR FREIGHT-CST INCLUSION
         def get_frt_cst_amt(product_id, from_date, to_date):
             amt_opening, amt_receipt = 0.0, 0.0
+            amt_opening1, amt_receipt1 = 0.0, 0.0
+            amt_opening2, amt_receipt2 = 0.0, 0.0
             ##################
             sql = '''
                 select 
@@ -2127,21 +2129,15 @@ class stock_movement_analysis(osv.osv_memory):
                 amt_opening += cst_amt[0]
             #
             sql = '''
-                select 
-                
-                case when 
+                select  case when 
                 SUM(case when ail.fright_fi_type='2' then ail.fright
                 when ail.fright_fi_type='3' then ail.fright*ail.quantity
                 else 0 end) >=0
-                
                 then 
-                
                 SUM(case when ail.fright_fi_type='2' then ail.fright
                 when ail.fright_fi_type='3' then ail.fright*ail.quantity
                 else 0 end)
-                
                 else 0 end as frt_amt
-
                 from account_invoice ai
                 inner join account_invoice_line ail on ai.id=ail.invoice_id
                 where ail.product_id=%s and ai.state not in ('draft', 'cancel')
@@ -2155,10 +2151,8 @@ class stock_movement_analysis(osv.osv_memory):
             # --------------- #
             sql = '''
                 select
-                
-                 case when sum(ail.tpt_tax_amt)>=0 then sum(ail.tpt_tax_amt) else 0 end as cst_amt 
-                 
-                 from account_invoice ai
+                case when sum(ail.tpt_tax_amt)>=0 then sum(ail.tpt_tax_amt) else 0 end as cst_amt 
+                from account_invoice ai
                 inner join account_invoice_line ail on ai.id=ail.invoice_id
                 inner join account_invoice_line_tax ailt on ail.id=ailt.invoice_line_id
                 inner join account_tax t on ailt.tax_id = t.id
@@ -2167,25 +2161,20 @@ class stock_movement_analysis(osv.osv_memory):
                 and ai.date_invoice between '%s' and '%s'
             '''%(product_id, '%', '%', from_date, to_date)
             cr.execute(sql)
+            print sql
             cst_amt1 = cr.fetchone()
             if cst_amt1:
                 amt_receipt += cst_amt1[0]
             #
             sql = '''
-                select 
-                
-                case when 
-                
+                select case when 
                 SUM(case when ail.fright_fi_type='2' then ail.fright
                 when ail.fright_fi_type='3' then ail.fright*ail.quantity
                 else 0 end) >=0
-                
-                then 
-                
+                then    
                 SUM(case when ail.fright_fi_type='2' then ail.fright
                 when ail.fright_fi_type='3' then ail.fright*ail.quantity
-                else 0 end)
-                
+                else 0 end)                
                 else 0 end as frt_amt
                 
                 from account_invoice ai
@@ -2195,6 +2184,7 @@ class stock_movement_analysis(osv.osv_memory):
                 and ai.date_invoice between '%s' and '%s'
             '''%(product_id, from_date, to_date)
             cr.execute(sql)
+            print sql
             frt_amt1 = cr.fetchone()
             if frt_amt1:
                 amt_receipt += frt_amt1[0]    
@@ -2329,8 +2319,10 @@ class stock_movement_analysis(osv.osv_memory):
                 consum_value = get_consumption_value(stock, line.id)
                 #TPT-BM-ON 07/07/2016 - FOR FREIGHT-CST INCLUSION
                 opening, receipt = get_frt_cst_amt(line.id, stock.date_from, stock.date_to)
-                open_value += opening
-                receipt_value += receipt
+                print open_value, opening
+                #open_value += opening
+                print receipt_value, receipt
+                #receipt_value += receipt
                 #
                 move_analysis_line.append((0,0,{
                     'item_code': line.default_code,

@@ -6,6 +6,7 @@ from openerp.osv import fields, osv
 from openerp.tools.translate import _
 import openerp.tools
 from openerp.tools import DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_DATETIME_FORMAT, float_compare
+from global_utility import tpt_shared_component
 
 
 class tpt_stock_on_hand(osv.osv):
