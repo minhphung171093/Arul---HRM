@@ -411,7 +411,20 @@ class Parser(report_sxw.rml_parse):
         if date:
             date = datetime.strptime(date, DATE_FORMAT)
             return date.strftime('%d/%m/%Y')
-                        
+    def get_section(self,section_id):
+        name = ''
+        if section_id:
+            sec_obj = self.pool.get('tpt.project.section')  
+            sec_obj_ids = sec_obj.browse(self.cr, self.uid, section_id)
+            name = sec_obj_ids.name   
+        return name   
+    def get_cost_center(self,cc_id):
+        name = ''
+        if cc_id:
+            cc_obj = self.pool.get('tpt.cost.center')  
+            cc_obj_ids = cc_obj.browse(self.cr, self.uid, cc_id)
+            name = cc_obj_ids.name   
+        return name               
     def view_report_xls(self):
         self.cr.execute('delete from purchase_order_list')
         purchase_order_list_obj = self.pool.get('purchase.order.list')
@@ -606,10 +619,8 @@ class Parser(report_sxw.rml_parse):
             str = " and pi.cost_center_id=%s "%(cost_center_id,)
             sql += str   
         
-
         sql = sql+" order by id"
                     
-        
         self.cr.execute(sql)
         order_line_ids = [r[0] for r in self.cr.fetchall()]
         indent_obj = self.pool.get('tpt.purchase.indent') 
@@ -673,8 +684,8 @@ class Parser(report_sxw.rml_parse):
                 'po_indent_no': order_line.po_indent_no.name,
                 'indent_date': order_line.po_indent_no.date_indent,
                 'indent_release_date': hod_date or False,
-                'section_id': indent_ids.project_section_id and indent_ids.project_section_id.id or False, 
-                'cost_center_id':indent_ids.cost_center_id and indent_ids.cost_center_id.id or False
+                'section_id': self.get_section(indent_ids.project_section_id and indent_ids.project_section_id.id), 
+                'cost_center_id':self.get_cost_center(indent_ids.cost_center_id and indent_ids.cost_center_id.id)
             })
         return vals
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
