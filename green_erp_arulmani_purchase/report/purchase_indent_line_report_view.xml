@@ -100,6 +100,7 @@
 		                			<field name="requi"/>
 		                			<field name="mat_code"/>
 		                			<field name="mat_desc"/>
+		                			<field name="item_text"/>
 		                			<field name="proj"/>
 		                			<field name="proj_sec"/>
 		                			<field name="uom"/>

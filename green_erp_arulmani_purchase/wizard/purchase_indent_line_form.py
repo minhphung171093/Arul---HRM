@@ -10,25 +10,25 @@ from openerp.tools import DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_DATETIME_FO
 class tpt_purchase_indent_report(osv.osv_memory):
     _name = "tpt.purchase.indent.report"
     _columns = {
-             'name': fields.char('', readonly=True),                               
-             'date_from':fields.date('Date From'),
-             'date_to':fields.date('Date To'),
-             'pur_product_id':fields.many2one('tpt.purchase.indent','Purchase Indent No',ondelete='cascade' ),
-             'department_id':fields.many2one('hr.department','Department'),
-             'section_id': fields.many2one('arul.hr.section','Section'),
-             'requisitioner':fields.many2one('hr.employee','Requisitioner'),
-             'project_id': fields.many2one('tpt.project','Project'),
-             'project_section_id': fields.many2one('tpt.project.section','Project Sub Category'),
-             'state':fields.selection([('draft', 'Draft'),('confirm', 'Confirmed'),('close', 'Closed'),
-                                          ('+', 'Store Approved'),('++', 'Store & HOD Approved'),
-                                          ('x', 'Store Rejected'),('xx', 'Store & HOD Rejected'),
-                                          ('rfq_raised','RFQ Raised'),
-                                          ('cancel','PO Cancelled'),
-                                          ('quotation_raised','Quotation Raised'),
-                                          ('po_raised','PO Raised'),
-                                          ('quotation_cancel','Quotation Cancelled'),
-                                          ],'Status'),    
-             'purchase_indent_line_id': fields.one2many('tpt.purchase.indent.line.report', 'purchase_indent_id', 'Purchase Indent Line'),
+         'name': fields.char('', readonly=True),                               
+         'date_from':fields.date('Date From'),
+         'date_to':fields.date('Date To'),
+         'pur_product_id':fields.many2one('tpt.purchase.indent','Purchase Indent No',ondelete='cascade' ),
+         'department_id':fields.many2one('hr.department','Department'),
+         'section_id': fields.many2one('arul.hr.section','Section'),
+         'requisitioner':fields.many2one('hr.employee','Requisitioner'),
+         'project_id': fields.many2one('tpt.project','Project'),
+         'project_section_id': fields.many2one('tpt.project.section','Project Sub Category'),
+         'state':fields.selection([('draft', 'Draft'),('confirm', 'Confirmed'),('close', 'Closed'),
+                                      ('+', 'Store Approved'),('++', 'Store & HOD Approved'),
+                                      ('x', 'Store Rejected'),('xx', 'Store & HOD Rejected'),
+                                      ('rfq_raised','RFQ Raised'),
+                                      ('cancel','PO Cancelled'),
+                                      ('quotation_raised','Quotation Raised'),
+                                      ('po_raised','PO Raised'),
+                                      ('quotation_cancel','Quotation Cancelled'),
+                                      ],'Status'),    
+         'purchase_indent_line_id': fields.one2many('tpt.purchase.indent.line.report', 'purchase_indent_id', 'Purchase Indent Line'),
     }
       
     def print_report_pdf(self, cr, uid, ids, context=None):
@@ -75,39 +75,39 @@ class tpt_purchase_indent_line_report(osv.osv_memory):
         'tot': fields.char('Total Value', size = 1024),
         'state': fields.char('State', size = 1024),
         'product_id' : fields.many2one('product.product','Product'),
-                  
-             
+        'item_text': fields.char('Item Text', size = 1024), #TPT-BM-ON 11/07/2016 - Redmine 3467
+                          
  }
     
     def print_pr_history(self, cr, uid, ids, context=None):
         
         def get_invoice(cb):
-                res = {}
-                indent_no = cb.ind_no.name
-                         
-                sql = '''
-                    select distinct tpi.date_indent as indentdate,tpi.name as indent_no,pp.name_template as mat_name,pp.default_code as mat_code,
-                    tpp.hod_date as hodreldate,tpp.product_uom_qty as indentqty,pu.name as uom,rfql.product_uom_qty as rfqquantity,
-                    rfq.rfq_date as rfqdate,rfq.name as rfqname,pol.product_qty as poqty,po.name as purchaseorderno,
-                    po.date_order as podate,po.md_approve_date as mdapproveddate,rp.name as vendor,sm.product_qty as grnqty,
-                    sp.name as grnno,sp.date as grndate,ai.name as invoiceno,ai.date_invoice as invoicedate,ai.amount_total as invoicetotal                    
-                    from tpt_purchase_indent as tpi
-                    inner join tpt_purchase_product as tpp on tpi.id = tpp.pur_product_id
-                    join product_product pp on pp.id = tpp.product_id
-                    inner join product_uom as pu on tpp.uom_po_id=pu.id
-                    left join tpt_rfq_line as rfql on tpp.id = rfql.indent_line_id
-                    left join tpt_request_for_quotation as rfq on rfql.rfq_id=rfq.id
-                    left join purchase_order_line as pol on tpp.pur_product_id=pol.po_indent_no and tpp.description = pol.description
-                    left join purchase_order as po on pol.order_id=po.id
-                    left join res_partner as rp on po.partner_id=rp.id
-                    left join stock_move as sm on tpp.pur_product_id=sm.po_indent_id and tpp.description=sm.description
-                    left join stock_picking as sp on sm.picking_id=sp.id and po.id=sp.purchase_id
-                    left join account_invoice as ai on sm.picking_id=ai.grn_no
-                    where tpi.name = '%s'                    
-                    '''%(indent_no)                
-                               
-                cr.execute(sql)
-                return cr.dictfetchall()
+            res = {}
+            indent_no = cb.ind_no.name
+                     
+            sql = '''
+                select distinct tpi.date_indent as indentdate,tpi.name as indent_no,pp.name_template as mat_name,pp.default_code as mat_code,
+                tpp.hod_date as hodreldate,tpp.product_uom_qty as indentqty,pu.name as uom,rfql.product_uom_qty as rfqquantity,
+                rfq.rfq_date as rfqdate,rfq.name as rfqname,pol.product_qty as poqty,po.name as purchaseorderno,
+                po.date_order as podate,po.md_approve_date as mdapproveddate,rp.name as vendor,sm.product_qty as grnqty,
+                sp.name as grnno,sp.date as grndate,ai.name as invoiceno,ai.date_invoice as invoicedate,ai.amount_total as invoicetotal                    
+                from tpt_purchase_indent as tpi
+                inner join tpt_purchase_product as tpp on tpi.id = tpp.pur_product_id
+                join product_product pp on pp.id = tpp.product_id
+                inner join product_uom as pu on tpp.uom_po_id=pu.id
+                left join tpt_rfq_line as rfql on tpp.id = rfql.indent_line_id
+                left join tpt_request_for_quotation as rfq on rfql.rfq_id=rfq.id
+                left join purchase_order_line as pol on tpp.pur_product_id=pol.po_indent_no and tpp.description = pol.description
+                left join purchase_order as po on pol.order_id=po.id
+                left join res_partner as rp on po.partner_id=rp.id
+                left join stock_move as sm on tpp.pur_product_id=sm.po_indent_id and tpp.description=sm.description
+                left join stock_picking as sp on sm.picking_id=sp.id and po.id=sp.purchase_id
+                left join account_invoice as ai on sm.picking_id=ai.grn_no
+                where tpi.name = '%s'                    
+                '''%(indent_no)                
+                           
+            cr.execute(sql)
+            return cr.dictfetchall()
         
         cr.execute('delete from tpt_pr_history_report')
         cb_obj = self.pool.get('tpt.pr.history.report')
@@ -116,48 +116,47 @@ class tpt_purchase_indent_line_report(osv.osv_memory):
         
         for line in get_invoice(cb):
             cb_line.append((0,0,{
-                            'pr_req_no' : line['indent_no'] or '',
-                            'pr_date': line['indentdate'] or False,
-                            'pr_rel_date':line['hodreldate'] or False,
-                            'mat_code':line['mat_code'] or '',
-                            'mat_name':line['mat_name'] or '',
-                            'pr_qty':line['indentqty'] or '',
-                            'uom':line['uom'] or '',
-                            'rfq_date':line['rfqdate'] or False,
-                            'rfq_no':line['rfqname'] or '',
-                            'rfq_qty':line['rfqquantity'] or '',
-                            'po_date':line['podate'] or False,
-                            'po_no':line['purchaseorderno'] or '',
-                            'ven_name':line['vendor'] or '',
-                            'po_qty':line['poqty'] or '',                            
-                            'po_md_date':line['mdapproveddate'] or False,
-                            'grn_date':line['grndate'] or False,
-                            'grn_no':line['grnno'] or '',
-                            'grn_qty':line['grnqty'] or '',
-                            'inv_date':line['invoicedate'] or False,
-                            'inv_no':line['invoiceno'] or '',
-                            'inv_tot_amt':line['invoicetotal'] or '', 
-                        
+                'pr_req_no' : line['indent_no'] or '',
+                'pr_date': line['indentdate'] or False,
+                'pr_rel_date':line['hodreldate'] or False,
+                'mat_code':line['mat_code'] or '',
+                'mat_name':line['mat_name'] or '',
+                'pr_qty':line['indentqty'] or '',
+                'uom':line['uom'] or '',
+                'rfq_date':line['rfqdate'] or False,
+                'rfq_no':line['rfqname'] or '',
+                'rfq_qty':line['rfqquantity'] or '',
+                'po_date':line['podate'] or False,
+                'po_no':line['purchaseorderno'] or '',
+                'ven_name':line['vendor'] or '',
+                'po_qty':line['poqty'] or '',                            
+                'po_md_date':line['mdapproveddate'] or False,
+                'grn_date':line['grndate'] or False,
+                'grn_no':line['grnno'] or '',
+                'grn_qty':line['grnqty'] or '',
+                'inv_date':line['invoicedate'] or False,
+                'inv_no':line['invoiceno'] or '',
+                'inv_tot_amt':line['invoicetotal'] or '',          
                 }))
               
         vals = {
-                    'name': 'PR History Report',
-                    'ind_id':cb.ind_no.id,
-                    'pr_hist_line_id': cb_line,
+            'name': 'PR History Report',
+            'ind_id':cb.ind_no.id,
+            'pr_hist_line_id': cb_line,
         }
         
         cb_id = cb_obj.create(cr, uid, vals)
         res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
                                             'green_erp_arulmani_purchase', 'view_tpt_pr_history_report')
         return {
-                        'name': 'PR History Report',
-                        'view_type': 'form',
-                        'view_mode': 'form',
-                        'res_model': 'tpt.pr.history.report',
-                        'domain': [],
-                        'type': 'ir.actions.act_window',
-                        'target': 'current',
-                        'res_id': cb_id,
+            'name': 'PR History Report',
+            'view_type': 'form',
+            'view_mode': 'form',
+            'res_model': 'tpt.pr.history.report',
+            'domain': [],
+            'type': 'ir.actions.act_window',
+            'target': 'current',
+            'res_id': cb_id,
                 }
 tpt_purchase_indent_line_report()
 
@@ -230,23 +229,23 @@ class purchase_indent_line_report(osv.osv_memory):
      _name = "purchase.indent.line.report"
      
      _columns = {
-             'date_from':fields.date('Date From'),
-             'date_to':fields.date('Date To'),
-             'pur_product_id':fields.many2one('tpt.purchase.indent','Purchase Indent No',ondelete='cascade' ),
-             'department_id':fields.many2one('hr.department','Department'),
-             'section_id': fields.many2one('arul.hr.section','Section'),
-             'requisitioner':fields.many2one('hr.employee','Requisitioner'),
-             'project_id': fields.many2one('tpt.project','Project'),
-             'project_section_id': fields.many2one('tpt.project.section','Project Sub Category'),
-             'state':fields.selection([('draft', 'Draft'),('confirm', 'Confirmed'),('close', 'Closed'),
-                                          ('+', 'Store Approved'),('++', 'Store & HOD Approved'),
-                                          ('x', 'Store Rejected'),('xx', 'Store & HOD Rejected'),
-                                          ('rfq_raised','RFQ Raised'),
-                                          ('cancel','PO Cancelled'),
-                                          ('quotation_raised','Quotation Raised'),
-                                          ('po_raised','PO Raised'),
-                                          ('quotation_cancel','Quotation Cancelled'),
-                                          ],'Status'),
+         'date_from':fields.date('Date From'),
+         'date_to':fields.date('Date To'),
+         'pur_product_id':fields.many2one('tpt.purchase.indent','Purchase Indent No',ondelete='cascade' ),
+         'department_id':fields.many2one('hr.department','Department'),
+         'section_id': fields.many2one('arul.hr.section','Section'),
+         'requisitioner':fields.many2one('hr.employee','Requisitioner'),
+         'project_id': fields.many2one('tpt.project','Project'),
+         'project_section_id': fields.many2one('tpt.project.section','Project Sub Category'),
+         'state':fields.selection([('draft', 'Draft'),('confirm', 'Confirmed'),('close', 'Closed'),
+                                  ('+', 'Store Approved'),('++', 'Store & HOD Approved'),
+                                  ('x', 'Store Rejected'),('xx', 'Store & HOD Rejected'),
+                                  ('rfq_raised','RFQ Raised'),
+                                  ('cancel','PO Cancelled'),
+                                  ('quotation_raised','Quotation Raised'),
+                                  ('po_raised','PO Raised'),
+                                  ('quotation_cancel','Quotation Cancelled'),
+                                  ],'Status'),
      }
     
      def _check_date(self, cr, uid, ids, context=None):
@@ -456,7 +455,8 @@ class purchase_indent_line_report(osv.osv_memory):
                 pp.description,pp.uom_po_id,u.name as uom,pp.id as line_id,pp.mrs_qty as res_qty,pp.state as status,
                 e.name_related as requisitioner,e.employee_id as requisitioner_code,e.last_name as lname,pp.product_uom_qty as ind_qty,
                 pp.product_id as prod_id,prr.name as project,prs.name as proj_sec,COALESCE(pp.pur_product_id,0) as stock_id,
-                COALESCE(pi.id,0) as line_id,pp.item_text as item_text,pp.description as desc
+                COALESCE(pi.id,0) as line_id,pp.item_text as item_text,pp.description as desc, 
+                case when pp.item_text is NULL then '' else pp.item_text end as item_text
                 from tpt_purchase_product pp
                 inner join tpt_purchase_indent pi on (pi.id = pp.pur_product_id)
                 left join hr_department d on (d.id = pp.department_id_relate)
@@ -534,54 +534,55 @@ class purchase_indent_line_report(osv.osv_memory):
         cb_line = []
         for line in get_invoice(cb):
             cb_line.append((0,0,{
-                        'ind_no' :line['indent_no'] or '',
-                        'ind_date':line['ind_date'] or False,
-                        'doc_type':get_doc_type(line['doc_type']) or '',
-                        'dep':line['dept'],
-                        'sec':line['sec'],        
-                        'requi':get_req_name_code(line['requisitioner'],line['requisitioner_code'],line['lname']) or '',        
-                        'mat_code':line['mat_code'] or '',
-                        'mat_desc':line['mat_desc'] or '',
-                        'proj':line['project'],
-                        'proj_sec':line['proj_sec'],
-                        'uom':line['uom'] or '',
-                        'unit_price':line['unit_price'] or 0.000,
-                        'ind_qty':line['ind_qty'] or 0.000,
-                        'res_qty':line['res_qty'] or 0.000,
-                        'on_hand_qty':get_on_hand_qty(line['prod_id']),
-                        #'pend_qty':get_pending_qty(line['line_id'],line['stock_id'],line['ind_qty']),
-                        'pend_qty':get_pending_qty(get_issue_qty_count(line['line_id'],line['prod_id'],line['item_text'],line['desc']),line['line_id'],line['prod_id'],line['ind_qty'],line['item_text'],line['desc']),
-                        'tot':line['total_val'] or 0.000,
-                        'state':get_status(line['status']) or '',
-                        'product_id':line['product_id'] or False,
+                'ind_no' :line['indent_no'] or '',
+                'ind_date':line['ind_date'] or False,
+                'doc_type':get_doc_type(line['doc_type']) or '',
+                'dep':line['dept'],
+                'sec':line['sec'],        
+                'requi':get_req_name_code(line['requisitioner'],line['requisitioner_code'],line['lname']) or '',        
+                'mat_code':line['mat_code'] or '',
+                'mat_desc':line['mat_desc'] or '',
+                'proj':line['project'],
+                'proj_sec':line['proj_sec'],
+                'uom':line['uom'] or '',
+                'unit_price':line['unit_price'] or 0.000,
+                'ind_qty':line['ind_qty'] or 0.000,
+                'res_qty':line['res_qty'] or 0.000,
+                'on_hand_qty':get_on_hand_qty(line['prod_id']),
+                #'pend_qty':get_pending_qty(line['line_id'],line['stock_id'],line['ind_qty']),
+                'pend_qty':get_pending_qty(get_issue_qty_count(line['line_id'],line['prod_id'],line['item_text'],line['desc']),line['line_id'],line['prod_id'],line['ind_qty'],line['item_text'],line['desc']),
+                'tot':line['total_val'] or 0.000,
+                'state':get_status(line['status']) or '',
+                'product_id':line['product_id'] or False,
+                'item_text': line['item_text'] or ''
                                               
                 }))
               
         vals = {
-                    'name': 'Purchase Indent Line Report',
-                    'date_from': cb.date_from,
-                    'date_to': cb.date_to,
-                    'pur_product_id': cb.pur_product_id.id,
-                    'department_id' : cb.department_id.id,
-                    'section_id' : cb.section_id.id,
-                    'requisitioner' : cb.requisitioner.id,
-                    'project_id' : cb.project_id.id,
-                    'project_section_id' : cb.project_section_id.id,
-                    'state' : cb.state,
-                    'purchase_indent_line_id': cb_line,
+            'name': 'Purchase Indent Line Report',
+            'date_from': cb.date_from,
+            'date_to': cb.date_to,
+            'pur_product_id': cb.pur_product_id.id,
+            'department_id' : cb.department_id.id,
+            'section_id' : cb.section_id.id,
+            'requisitioner' : cb.requisitioner.id,
+            'project_id' : cb.project_id.id,
+            'project_section_id' : cb.project_section_id.id,
+            'state' : cb.state,
+            'purchase_indent_line_id': cb_line,
         }
         cb_id = cb_obj.create(cr, uid, vals)
         res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
                                             'green_erp_arulmani_purchase', 'view_tpt_purchase_indent_report')
         return {
-                            'name': 'Purchase Indent Line Report',
-                            'view_type': 'form',
-                            'view_mode': 'form',
-                            'res_model': 'tpt.purchase.indent.report',
-                            'domain': [],
-                            'type': 'ir.actions.act_window',
-                            'target': 'current',
-                            'res_id': cb_id,
+            'name': 'Purchase Indent Line Report',
+            'view_type': 'form',
+            'view_mode': 'form',
+            'res_model': 'tpt.purchase.indent.report',
+            'domain': [],
+            'type': 'ir.actions.act_window',
+            'target': 'current',
+            'res_id': cb_id,
                    }
          
             #===================================================================
