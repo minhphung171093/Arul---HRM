@@ -5490,10 +5490,11 @@ class product_product(osv.osv):
                         avg_cost = hand_quantity and total_cost/hand_quantity or 0
                     #
                     #TPT START - BM - ON 05/07/2016 - GET CST INVOICE ATM + FREIGHT AMT ADDED in TOTAL COST
-                    cst_amt = 0
-                    frt_amt = 0
+                    cst_amt = 0.00
+                    frt_amt = 0.00
+                    total_cost = 0.00
                     sql = '''
-                        select sum(ail.tpt_tax_amt) as cst_amt from account_invoice ai
+                        select case when sum(ail.tpt_tax_amt) is NULL then 0 else sum(ail.tpt_tax_amt) end as cst_amt from account_invoice ai
                         inner join account_invoice_line ail on ai.id=ail.invoice_id
                         inner join account_invoice_line_tax ailt on ail.id=ailt.invoice_line_id
                         inner join account_tax t on ailt.tax_id = t.id
@@ -5503,12 +5504,17 @@ class product_product(osv.osv):
                     cr.execute(sql)
                     cst_amt = cr.fetchone()
                     if cst_amt:
-                        cst_amt = cst_amt[0] 
+                        cst_amt = cst_amt[0]
                     #
                     sql = '''
-                        select SUM(case when ail.fright_fi_type='2' then ail.fright
+                        select 
+                        case when 
+                        sum(case when ail.fright_fi_type='2' then ail.fright
                         when ail.fright_fi_type='3' then ail.fright*ail.quantity
-                        else 0 end) frt_amt
+                        else 0 end) is NULL then 0 else 
+                        sum(case when ail.fright_fi_type='2' then ail.fright
+                        when ail.fright_fi_type='3' then ail.fright*ail.quantity
+                        else 0 end) end frt_amt
                         from account_invoice ai
                         inner join account_invoice_line ail on ai.id=ail.invoice_id
                         where ail.product_id=%s and ai.state not in ('draft', 'cancel')
@@ -5517,11 +5523,10 @@ class product_product(osv.osv):
                     cr.execute(sql)
                     frt_amt = cr.fetchone()
                     if frt_amt:
-                        frt_amt = frt_amt[0]
-                    #
+                        frt_amt = frt_amt[0]    
+                    #      
                     if hand_quantity>0 and loc['loc'] in [14, 15]: #Spares, Raw respectively 
-                        total_cost+= cst_amt + frt_amt
-                        type(total_cost=none) # added by P.vinothkumar on 12/07/2016  
+                        total_cost += (cst_amt + frt_amt)
                         avg_cost = total_cost  / hand_quantity
                     #TPT-END
                     #
