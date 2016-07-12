@@ -5503,7 +5503,7 @@ class product_product(osv.osv):
                     cr.execute(sql)
                     cst_amt = cr.fetchone()
                     if cst_amt:
-                        cst_amt = cst_amt[0]
+                        cst_amt = cst_amt[0] 
                     #
                     sql = '''
                         select SUM(case when ail.fright_fi_type='2' then ail.fright
@@ -5517,10 +5517,11 @@ class product_product(osv.osv):
                     cr.execute(sql)
                     frt_amt = cr.fetchone()
                     if frt_amt:
-                        frt_amt = frt_amt[0]    
+                        frt_amt = frt_amt[0]
                     #
                     if hand_quantity>0 and loc['loc'] in [14, 15]: #Spares, Raw respectively 
-                        total_cost += (cst_amt + frt_amt)
+                        total_cost+= cst_amt + frt_amt
+                        type(total_cost=none) # added by P.vinothkumar on 12/07/2016  
                         avg_cost = total_cost  / hand_quantity
                     #TPT-END
                     #

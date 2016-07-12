@@ -1286,6 +1286,7 @@ class tpt_material_issue(osv.osv):
              
             for p in line.material_issue_line:
                 onhand_qty = 0.0
+                opening_stock_value = 0 # added by P.vinothkumar on 12/07/2016
                 location_id = False
                 locat_ids = []
                 parent_ids = []
