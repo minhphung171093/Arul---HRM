@@ -402,7 +402,7 @@ class stock_inward_outward_report(osv.osv_memory):
             locat_ids_raw = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw Material','Raw Materials','Raw material']),('location_id','=',parent_ids_raw[0])])
             parent_ids_spares = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
             locat_ids_spares = self.pool.get('stock.location').search(cr, uid, [('name','in',['Spares','Spare','spares']),('location_id','=',parent_ids_spares[0])])
-            #TPT-BM-ON 07/07/2016 - Last "or" condition added in the the below sql ('OR' BLOCK CONTAINS : '%(percentage)sCST%(percentage)s')
+            #TPT-BM-ON 07/07/2016 - Last "or" condition added in the the below sql ('OR' BLOCK CONTAINS : '%(percentage)sCST%(percentage)s') - FOR CST INCLUSION
             sql = '''
                 select * from account_move where doc_type in ('good', 'grn', 'product', 'freight') 
                     and date between '%(date_from)s' and '%(date_to)s'
@@ -435,7 +435,6 @@ class stock_inward_outward_report(osv.osv_memory):
                  }
             cr.execute(sql)
             res1 = cr.dictfetchall()
-            print sql
             sql = '''
             select am.* from account_move am
             inner join stock_adjustment sa on am.ref=sa.name

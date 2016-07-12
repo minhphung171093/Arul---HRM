@@ -2161,7 +2161,7 @@ class stock_movement_analysis(osv.osv_memory):
                 and ai.date_invoice between '%s' and '%s'
             '''%(product_id, '%', '%', from_date, to_date)
             cr.execute(sql)
-            print sql
+            #print sql
             cst_amt1 = cr.fetchone()
             if cst_amt1:
                 amt_receipt += cst_amt1[0]
@@ -2184,7 +2184,7 @@ class stock_movement_analysis(osv.osv_memory):
                 and ai.date_invoice between '%s' and '%s'
             '''%(product_id, from_date, to_date)
             cr.execute(sql)
-            print sql
+            #print sql
             frt_amt1 = cr.fetchone()
             if frt_amt1:
                 amt_receipt += frt_amt1[0]    
