@@ -670,6 +670,7 @@ class stock_on_hand_report(osv.osv_memory):
             str = " order by pp.default_code asc"
             sql = sql+str
             cr.execute(sql)
+            #print sql
             return cr.dictfetchall()
         ###
         def get_avg_cost(product_id, categ, std_price):
@@ -799,6 +800,8 @@ class stock_on_hand_report(osv.osv_memory):
                     onhand = line['onhand_qty']
                     store_tio2= line['store_tio2']
                     store_fsh=line['store_fsh'] or ''
+                if prd.default_code=='M0501010002':
+                    onhand = line['store_fsh']
                 stock_line.append((0,0,{
                 'code': line['default_code'] or '',
                 'description': line['name'] or '',
@@ -816,7 +819,7 @@ class stock_on_hand_report(osv.osv_memory):
                  'onhand_qty_qa_ins': line['ins_qty'] or '' , 
                  'onhand_qty_st_rm': line['store_rm'] or '',
                  'onhand_qty_st_spare': line['store_spare'] or '' ,
-                 'onhand_qty_st_fsh': store_fsh or '', #'onhand_qty_st_fsh': line['store_fsh'] or '',
+                 'onhand_qty_st_fsh': line['store_fsh'] or '',#store_fsh or '', #: 
                  'onhand_qty_st_tio2': store_tio2 or '',#'onhand_qty_st_tio2': line['store_tio2'] or '', 
                  'onhand_qty_pl_rm': line['pl_rm'] or '',   
                  'product_id': line['product_id'] or False,  

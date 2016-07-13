@@ -158,7 +158,6 @@ class customer_ageing(osv.osv_memory):
                    and(select timestamp '%s' - interval '31 days'))  as balance_45
                  '''%(code,date,date,code,date,date)
             cr.execute(sql)
-            print sql
             credit = cr.fetchone()
             if credit:
                credit = credit[0]            
@@ -181,7 +180,6 @@ class customer_ageing(osv.osv_memory):
                    and(select timestamp '%s' - interval '46 days'))  as balance_60
                  '''%(code,date,date,code,date,date)
             cr.execute(sql)
-            print sql
             credit = cr.fetchone()
             if credit:
                credit = credit[0]            
@@ -226,7 +224,6 @@ class customer_ageing(osv.osv_memory):
               '''%(code, date,code,date) 
               
             cr.execute(sql)
-            print sql
             credit = cr.fetchone()
             if credit:
                credit = credit[0]            
