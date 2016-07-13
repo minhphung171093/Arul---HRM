@@ -448,7 +448,7 @@ class stock_inward_outward_report(osv.osv_memory):
             cr.execute(sql)
             res2 = cr.dictfetchall()
             
-            #TPT-BM-ON-07/07/2016 - COMMENTED - MOVED TO MAIN SQL
+            #TPT-BM-ON-07/07/2016 - COMMENTED & MOVED INTO TO MAIN SQL BLOCK - REF: res1 variable
 #===============================================================================
 #             sql = '''
 #             select am.* from account_move am 
