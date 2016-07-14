@@ -14,6 +14,7 @@ from openerp import netsvc
 import base64
 import xlrd
 from xlrd import open_workbook,xldate_as_tuple
+import os
 
 class tpt_update_stock_move_report(osv.osv):
     _name = "tpt.update.stock.move.report"
@@ -3633,34 +3634,64 @@ class tpt_update_stock_move_report(osv.osv):
                 cr.execute(sql)
         return True
     def config_GRN_3451_3883(self, cr, uid, ids, context=None):
-        jl_obj = self.pool.get('account.voucher')
-        debit = credit = 0.0
+        #=======================================================================
+        # aa_obj = self.pool.get('account.account')   
+        # aa_ids = aa_obj.search(cr, uid, [])
+        # aa = aa_obj.browse(cr, uid, aa_ids)
+        # file1 = open("/home/dev127/Desktop/acc_data.txt", "r+")
+        # for acc in aa:
+        #     if acc.debit==0.0 and acc.credit==0.0:
+        #         pass 
+        #     elif acc.type=='view':
+        #         pass
+        #     else:
+        #         file1.write(str(acc.id) +' '+ acc.code+' '+str(acc.debit)+' '+str(acc.credit)+'\n')
+        # file1.close
+        #=======================================================================
+        
         sql = '''
-        select id from account_voucher --where id between 1 and 1000 order by id
+        select sp.id, sp.name, sm.price_unit, sm.product_qty, po.date_order, po.currency_id
+        from stock_picking sp
+        inner join stock_move sm on sp.id=sm.picking_id
+        inner join purchase_order po on sp.purchase_id=po.id
+        where sp.name in (
+        select distinct ref from account_move_line where ref in (
+        select name from stock_picking where purchase_id in (
+        select id from purchase_order where currency_id not in (select id from res_currency where name='INR')
+         ))
+         ) 
         '''
         cr.execute(sql)
-        inv_ids = [r[0] for r in cr.fetchall()]
-        a = 0
-        for voucher in jl_obj.browse(cr, uid, inv_ids):
-            #===================================================================
-            # for dr in voucher.line_dr_ids:
-            #     debit += dr.amount
-            # for cr in voucher.line_cr_ids:
-            #     credit += cr.amount
-            #===================================================================
-            sql = '''select case when sum(amount)>0 then sum(amount) else 0 end as sum from account_voucher_line where type='cr' and voucher_id=%s
-            '''%(voucher.id)
-            cr.execute(sql)
-            res = cr.fetchone()
-            if res:
-                credit = res[0]
-            if float(credit)!=float(voucher.tpt_amount_total):
-                sql = '''
-                update account_voucher set tpt_amount_total=%s where id=%s
-                '''%(credit, voucher.id)
-                #print sql
-                a+=1
-        print a
+        
+        
+        #----------------------------- jl_obj = self.pool.get('account.voucher')
+        #-------------------------------------------------- debit = credit = 0.0
+        #------------------------------------------------------------- sql = '''
+        # select id from account_voucher --where id between 1 and 1000 order by id
+        #------------------------------------------------------------------- '''
+        #------------------------------------------------------- cr.execute(sql)
+        #------------------------------- inv_ids = [r[0] for r in cr.fetchall()]
+        #----------------------------------------------------------------- a = 0
+        #----------------------- for voucher in jl_obj.browse(cr, uid, inv_ids):
+            # #===================================================================
+            #---------------------------------- # for dr in voucher.line_dr_ids:
+            #------------------------------------------ #     debit += dr.amount
+            #---------------------------------- # for cr in voucher.line_cr_ids:
+            #----------------------------------------- #     credit += cr.amount
+            # #===================================================================
+            # sql = '''select case when sum(amount)>0 then sum(amount) else 0 end as sum from account_voucher_line where type='cr' and voucher_id=%s
+            #-------------------------------------------------- '''%(voucher.id)
+            #--------------------------------------------------- cr.execute(sql)
+            #----------------------------------------------- res = cr.fetchone()
+            #----------------------------------------------------------- if res:
+                #----------------------------------------------- credit = res[0]
+            #---------------- if float(credit)!=float(voucher.tpt_amount_total):
+                #----------------------------------------------------- sql = '''
+                #---- update account_voucher set tpt_amount_total=%s where id=%s
+                #-------------------------------------- '''%(credit, voucher.id)
+                #---------------------------------------------------- #print sql
+                #---------------------------------------------------------- a+=1
+        #--------------------------------------------------------------- print a
             #cr.execute(sql)
             
             #jl_obj.write(cr, uid, [voucher.id], {'tpt_amount_total':credit or 0})  

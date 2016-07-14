@@ -30,6 +30,7 @@ DATE_FORMAT = "%Y-%m-%d"
 from openerp.tools import DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_DATETIME_FORMAT, float_compare
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
+from global_utility import tpt_shared_component
 
 class Parser(report_sxw.rml_parse):
     
@@ -98,6 +99,69 @@ class Parser(report_sxw.rml_parse):
         if categ=='finish':
             avg_cost = 0.00
         return float(avg_cost)
+    #
+    
+    # Added by P.vinothkumar on 02/07/2016 for modify logics in stock on hand report
+    def opening_stock(self, product_id, default_code):
+        location = tpt_shared_component.warehouse_module() 
+        location_id = location.get_finished_location(default_code) 
+        sql='''
+        select
+        sum(st.product_qty) as product_qty
+        from stock_move st
+        where st.state='done' and st.product_id=%s and st.location_dest_id=%s 
+        and st.location_dest_id != st.location_id
+        and name = 'INV:Update'
+        and EXTRACT(month FROM st.date)<4 and EXTRACT(Year FROM st.date)=2015'''%(product_id,location_id)
+        self.cr.execute(sql)
+        Opening_stock = self.cr.fetchone()[0]
+        return Opening_stock or 0.00
+    
+    def sale_qty(self, product_id, date):
+        sql='''
+            select sum(ail.quantity) from account_invoice_line ail
+            inner join account_invoice ai on ail.invoice_id=ai.id
+            where ail.product_id=%s and ai.date_invoice < '%s'
+           
+            '''%(product_id,date)
+        self.cr.execute(sql)
+        sales_qty=self.cr.fetchone()[0]
+        return sales_qty or 0.00
+    
+    def production_qty(self, product_id, date):
+        sql='''
+            Select  sum(product_qty) as productionQty 
+            from mrp_production mrp 
+            Inner join product_product p on (p.id=mrp.product_id and p.id not in (7))  
+            where date_planned < '%s' 
+            and p.id =(%s)'''%(date,product_id)
+        self.cr.execute(sql)
+        prod_qty=self.cr.fetchone()[0]    
+        return prod_qty or 0.00
+    
+    def total_received_qty(self, product_id, date):
+        sql='''
+            select sum(a.AdjustedQty) as adjustedqty 
+            from (
+            select p.id as ProductID,si.id as ReferenceID, si.name as stockAdjustmentName, si.date as StockAdjustmentDate,
+            EXTRACT(month FROM si.date) transactionmonth, EXTRACT(year FROM si.date) transactionyear,
+            p.name_template as productName, spl.name as SystemBatchNo,spl.phy_batch_no as PhysicalBatchNo, 
+            product_qty as AdjustedQty,'Inself.creased to 1 MT' as adjustmenttype from stock_inventory_line sil 
+            Inner join stock_production_lot spl on (spl.id=sil.prod_lot_id)
+            Inner join product_product p on (p.id=sil.product_id)
+            Inner join stock_inventory si on (si.id=sil.inventory_id)
+            where sil.product_id=4 and spl.name like '%s(M)%s' and 
+             si.date < '%s'
+            )a '''%('%', '%', date)
+        self.cr.execute(sql)
+        received_qty=self.cr.fetchone()
+        if received_qty:
+            received_qty = received_qty[0]
+        return received_qty or 0.00  
+    # TPT P.Vinothkumar END      
+        
+        
+    #
     ##TPT-START - TO ADDRESS PERFORMANCE ISSUE - By BalamuruganPurushothaman on 02/09/2015
     def get_prod(self): 
         #TPT_BM-07/06/2016 - AS ON DATE AS PARAM
@@ -237,7 +301,39 @@ class Parser(report_sxw.rml_parse):
                     where st.state='done' and st.product_id = pp.id and st.date<='%(date)s' and
                     st.location_id =(select id from stock_location where name='Raw Material' and 
                     usage='internal' and location_id=(select id from stock_location where name='Production Line'))
-                )foo) pl_rm, pp.id product_id, pp.cate_name as categ
+                )foo) pl_rm, 
+                
+                (select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton from 
+                    (
+                    select st.product_qty
+                        from stock_move st 
+                        where st.state='done' and st.product_id = pp.id and st.date < '%(date)s' and
+                        st.location_dest_id =(select id from stock_location where name='Ferric Sulphate' and 
+                        usage='internal' )
+                    union all
+                    select st.product_qty*-1
+                        from stock_move st 
+                        where st.state='done' and st.product_id = pp.id and st.date < '%(date)s' and
+                        st.location_id =(select id from stock_location where name='Ferric Sulphate' and 
+                        usage='internal' )
+                    )foo) pl_ferric,
+                    
+                    (select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton from 
+                    (
+                    select st.product_qty
+                        from stock_move st 
+                        where st.state='done' and st.product_id = pp.id and st.date < '%(date)s' and
+                        st.location_dest_id =(select id from stock_location where name='Other' and 
+                        usage='internal' and location_id=(select id from stock_location where name='Production Line'))
+                    union all
+                    select st.product_qty*-1
+                        from stock_move st 
+                        where st.state='done' and st.product_id = pp.id and st.date < '%(date)s' and
+                        st.location_id =(select id from stock_location where name='Other' and 
+                        usage='internal' and location_id=(select id from stock_location where name='Production Line'))
+                    )foo) pl_other, 
+                
+                pp.id product_id, pp.cate_name as categ
                  
         from product_product pp
         inner join product_template pt on pp.product_tmpl_id=pt.id 
@@ -279,13 +375,57 @@ class Parser(report_sxw.rml_parse):
         str = " order by pp.default_code asc"
         sql = sql+str
         self.cr.execute(sql)        
+        prd_obj = self.pool.get('product.product')
+        #prd = prd_obj.browse(self.cr, self.uid, product_id[0])
         for line in self.cr.dictfetchall():
+            #
+            #if prd.cate_name == 'finish':
+            prd_obj = self.pool.get('product.product')
+            prd = prd_obj.browse(self.cr, self.uid, line['product_id'])
+            if prd.cate_name == 'finish':
+                open_qty = self.opening_stock(prd.id, prd.default_code)
+                prod_qty = self.production_qty(prd.id, date)
+                sales_qty = self.sale_qty(prd.id, date)
+                receive_qty1 = self.total_received_qty(prd.id, date)
+                receive_qty2 = receive_qty1
+                if prd.default_code=='M0501010001':
+                    receive_qty1=0.0
+                elif  prd.default_code=='M0501010008':
+                    receive_qty2=0.0
+                    receive_qty1=-receive_qty1
+                else:
+                    receive_qty1=0.0
+                    receive_qty2=0.0           
+                onhand= open_qty + prod_qty + receive_qty1 + receive_qty2 - sales_qty
+                store_tio2 = open_qty + prod_qty + receive_qty1 + receive_qty2 - sales_qty
+                if prd.default_code=='M0501010002':
+                    store_fsh = open_qty + prod_qty + receive_qty1+receive_qty2 - sales_qty
+                    store_tio2= 0.0
+                else: 
+                    store_fsh=0.0  
+    
+                if prd.default_code in ['M0501010006']:#FERRIC SULPHATE
+                    onhand = line['pl_ferric'] or ''
+                    store_tio2, store_fsh = 0, 0
+                elif prd.default_code in ['M0501010001', 'M0501010008']:#Anatase, Rutile
+                    store_fsh = 0
+                elif prd.default_code in ['M0501010009', 'M0501010010']:# COAL TAR, COAL FINES - pl_other
+                    onhand = line['pl_other'] or ''
+                    onhand = line['onhand_qty']
+                    store_tio2, store_fsh = 0, 0
+                elif prd.default_code=='M0501010002': #FERROUS
+                    onhand = line['store_fsh']
+                else:
+                    onhand = line['onhand_qty']
+                    store_tio2 = line['store_tio2']
+                    store_fsh = line['store_fsh'] or ''
+            #
             res.append({
                 'code': line['default_code'] or '',
                 'description': line['name'] or '',
                  'uom': line['uom'] or '',
                  'bin_loc': line['bin_location'] or '',
-                 'onhand_qty': line['onhand_qty'] or 0,
+                 'onhand_qty': onhand or 0, #line['onhand_qty'] or 0,
                  #'mrp': line['mrp'] or '',
                  'min_stock': line['min_stock'] or 0,
                  'max_stock': line['max_stock'] or 0,
@@ -297,8 +437,8 @@ class Parser(report_sxw.rml_parse):
                  'onhand_qty_qa_ins': line['ins_qty'] or 0 , 
                  'onhand_qty_st_rm': line['store_rm'] or 0,
                  'onhand_qty_st_spare': line['store_spare'] or 0 ,
-                 'onhand_qty_st_fsh': line['store_fsh'] or 0,
-                 'onhand_qty_st_tio2': line['store_tio2'] or 0,  
+                 'onhand_qty_st_fsh': line['store_fsh'] or 0, #line['store_fsh'] or 0,
+                 'onhand_qty_st_tio2': store_tio2 or 0, #line['store_tio2'] or 0,  
                  'onhand_qty_pl_rm': line['pl_rm'] or 0,
             })
         return res
