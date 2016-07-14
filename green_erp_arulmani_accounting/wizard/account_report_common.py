@@ -319,7 +319,7 @@ class account_balance_report(osv.osv_memory):
                         select case when sum(aml.debit)!=0 then sum(aml.debit) else 0 end open_sumdebit
                         from account_move_line aml
                         join account_move am on (am.id=aml.move_id)
-                        where aml.account_id in %s and aml.date < '%s'and am.state in %s 
+                        where aml.account_id in %s and am.date < '%s'and am.state in %s 
                     '''%(acc_ids,from_date,state)
                     cr.execute(sql)
                     open_sumdebit = cr.fetchone()[0]
@@ -328,7 +328,7 @@ class account_balance_report(osv.osv_memory):
                         select case when sum(aml.credit)!=0 then sum(aml.credit) else 0 end open_sumcredit
                         from account_move_line aml
                         join account_move am on (am.id=aml.move_id)
-                        where aml.account_id in %s and aml.date < '%s'and am.state in %s 
+                        where aml.account_id in %s and am.date < '%s'and am.state in %s 
                     '''%(acc_ids,from_date,state)
                     cr.execute(sql)
                     open_sumcredit = cr.fetchone()[0]
@@ -337,7 +337,7 @@ class account_balance_report(osv.osv_memory):
                          select case when sum(aml.debit)!=0 then sum(aml.debit) else 0 end sumdebit
                         from account_move_line aml
                         join account_move am on (am.id=aml.move_id)
-                        where aml.account_id in %s and aml.date between '%s' and '%s' and am.state in %s 
+                        where aml.account_id in %s and am.date between '%s' and '%s' and am.state in %s 
                     '''%(acc_ids,from_date,to_date,state)
                     cr.execute(sql)
                     sumdebit = cr.fetchone()[0]
@@ -346,10 +346,11 @@ class account_balance_report(osv.osv_memory):
                          select case when sum(aml.credit)!=0 then sum(aml.credit) else 0 end sumcredit
                         from account_move_line aml
                         join account_move am on (am.id=aml.move_id)
-                        where aml.account_id in %s and aml.date between '%s' and '%s' and am.state in %s 
+                        where aml.account_id in %s and am.date between '%s' and '%s' and am.state in %s 
                     '''%(acc_ids,from_date,to_date,state)
                     cr.execute(sql)
                     sumcredit = cr.fetchone()[0]
+                    #print sql
                     #TPT-Code commented for closing balance                
     #===========================================================================
     #                 

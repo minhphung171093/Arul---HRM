@@ -625,7 +625,39 @@ class stock_on_hand_report(osv.osv_memory):
                         where st.state='done' and st.product_id = pp.id and st.date < '%(date)s' and
                         st.location_id =(select id from stock_location where name='Raw Material' and 
                         usage='internal' and location_id=(select id from stock_location where name='Production Line'))
-                    )foo) pl_rm, pp.id product_id, pp.cate_name as categ
+                    )foo) pl_rm, 
+                    
+                    (select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton from 
+                    (
+                    select st.product_qty
+                        from stock_move st 
+                        where st.state='done' and st.product_id = pp.id and st.date < '%(date)s' and
+                        st.location_dest_id =(select id from stock_location where name='Ferric Sulphate' and 
+                        usage='internal' )
+                    union all
+                    select st.product_qty*-1
+                        from stock_move st 
+                        where st.state='done' and st.product_id = pp.id and st.date < '%(date)s' and
+                        st.location_id =(select id from stock_location where name='Ferric Sulphate' and 
+                        usage='internal' )
+                    )foo) pl_ferric,
+                    
+                    (select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton from 
+                    (
+                    select st.product_qty
+                        from stock_move st 
+                        where st.state='done' and st.product_id = pp.id and st.date < '%(date)s' and
+                        st.location_dest_id =(select id from stock_location where name='Other' and 
+                        usage='internal' and location_id=(select id from stock_location where name='Production Line'))
+                    union all
+                    select st.product_qty*-1
+                        from stock_move st 
+                        where st.state='done' and st.product_id = pp.id and st.date < '%(date)s' and
+                        st.location_id =(select id from stock_location where name='Other' and 
+                        usage='internal' and location_id=(select id from stock_location where name='Production Line'))
+                    )foo) pl_other, 
+                    
+                    pp.id product_id, pp.cate_name as categ
             
             
             from product_product pp
@@ -770,6 +802,7 @@ class stock_on_hand_report(osv.osv_memory):
         stock_obj = self.pool.get('tpt.stock.on.hand')
         stock = self.browse(cr, uid, ids[0])
         stock_line = []
+        
         for line in get_prod(stock):
             # Added by P.vinothkumar on 02/07/2016 for calculate onhandqty,store(tio2) and store(fsh)  
                 if stock.categ_id.cate_name=='finish':
@@ -794,17 +827,27 @@ class stock_on_hand_report(osv.osv_memory):
                         store_fsh = open_qty+prod_qty+receive_qty1+receive_qty2-sales_qty
                         store_tio2= 0.0
                     else: 
-                        store_fsh=0.0    
+                        store_fsh=0.0  
+                       
                     #onhand = 0
-                else:
-                    onhand = line['onhand_qty']
-                    store_tio2= line['store_tio2']
-                    store_fsh=line['store_fsh'] or ''
-                if prd.default_code=='M0501010002':
-                    onhand = line['store_fsh']
+                    if prd.default_code in ['M0501010006']:#FERRIC SULPHATE
+                        onhand = line['pl_ferric'] or ''
+                        store_tio2, store_fsh = 0, 0
+                    elif prd.default_code in ['M0501010001', 'M0501010008']:#Anatase, Rutile
+                        store_fsh = 0
+                    elif prd.default_code in ['M0501010009', 'M0501010010']:# COAL TAR, COAL FINES - pl_other
+                        onhand = line['pl_other'] or ''
+                        onhand = line['onhand_qty']
+                        store_tio2, store_fsh = 0, 0
+                    elif prd.default_code=='M0501010002': #FERROUS
+                        onhand = line['store_fsh']
+                    else:
+                        onhand = line['onhand_qty']
+                        store_tio2 = line['store_tio2']
+                        store_fsh = line['store_fsh'] or ''
                 stock_line.append((0,0,{
-                'code': line['default_code'] or '',
-                'description': line['name'] or '',
+                 'code': line['default_code'] or '',
+                 'description': line['name'] or '',
                  'uom': line['uom'] or '',
                  'bin_loc': line['bin_location'] or '',
                  'onhand_qty': onhand or '', #line['onhand_qty'] or '',
@@ -823,7 +866,7 @@ class stock_on_hand_report(osv.osv_memory):
                  'onhand_qty_st_tio2': store_tio2 or '',#'onhand_qty_st_tio2': line['store_tio2'] or '', 
                  'onhand_qty_pl_rm': line['pl_rm'] or '',   
                  'product_id': line['product_id'] or False,  
-            }))
+            }))        
         ## TPT-FOLLOWING SNIPPET IS COMMENTED - BY BalamuruganPurushothaman
         #=======================================================================
         # for line in get_categ(stock):
