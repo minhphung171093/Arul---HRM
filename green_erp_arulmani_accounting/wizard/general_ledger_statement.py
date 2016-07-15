@@ -447,7 +447,7 @@ class general_ledger_statement(osv.osv_memory):
             
         def get_gl_acct(o):            
             gl_account = o.account_id
-            gl_act = gl_account.code +''+gl_account.name
+            gl_act = ' '+gl_account.code +' '+gl_account.name
             return gl_act
         #TPT-Y
         def get_employee_id(cb,move_id):
@@ -518,14 +518,14 @@ class general_ledger_statement(osv.osv_memory):
         cb_line.append((0,0,{   
             'narration': 'Closing Balance', 
             #'credit': get_balance(get_invoice(cb)),  #TPT-Y
-            'credit': get_total_balance_cr(get_invoice(cb), get_opening_balance(cb)), # TPT START BALAMURUGAN ON 18/02/2016   #TPT START BY P.VINOTHKUMAR ON 01/03/2016 for calculate closing balance credit (modify method name)
+            'credit': get_total_balance_cr(get_invoice(cb), get_opening_balance(cb)), # TPT BALAMURUGAN ON 18/02/2016   #TPT START BY P.VINOTHKUMAR ON 01/03/2016 for calculate closing balance credit (modify method name)
             'debit': get_total_balance_dr(get_invoice(cb), get_opening_balance(cb)),   #TPT START BY P.VINOTHKUMAR ON 01/03/2016 for calculate closing balance debit 
         }))
         vals = {
             'name': 'General Ledger Statement',
-            'date_from_title': 'Date From: ', #TPT-Y
-            'date_to_title': 'Date To: ', #TPT-Y
-            'gl_code_desc': 'GL Code With Description  : ', #TPT-Y
+            'date_from_title': 'Date From : ', #TPT-Y
+            'date_to_title': 'Date To : ', #TPT-Y
+            'gl_code_desc': 'GL Code : ', #TPT-Y
             'emp_desc': 'Employee Dimension  : ', 
             'account_id': cb.account_id and cb.account_id.id or False,
             'doc_type': cb.doc_type and cb.doc_type or False,
