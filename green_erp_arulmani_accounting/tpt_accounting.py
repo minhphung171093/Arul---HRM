@@ -2326,7 +2326,11 @@ class account_invoice(osv.osv):
                     cst_amt = 0
                     frt_amt = 0
                     sql = '''
-                        select sum(ail.tpt_tax_amt) as cst_amt from account_invoice ai
+                        select 
+                        
+                        case when sum(ail.tpt_tax_amt)>=0 then sum(ail.tpt_tax_amt) else 0 end as cst_amt 
+                        
+                        from account_invoice ai
                         inner join account_invoice_line ail on ai.id=ail.invoice_id
                         inner join account_invoice_line_tax ailt on ail.id=ailt.invoice_line_id
                         inner join account_tax t on ailt.tax_id = t.id
@@ -2339,9 +2343,18 @@ class account_invoice(osv.osv):
                         cst_amt = cst_amt[0]
                     #
                     sql = '''
-                        select SUM(case when ail.fright_fi_type='2' then ail.fright
+                        select 
+                        
+                        case when 
+                        SUM(case when ail.fright_fi_type='2' then ail.fright
                         when ail.fright_fi_type='3' then ail.fright*ail.quantity
-                        else 0 end) frt_amt
+                        else 0 end) >=0
+                        then    
+                        SUM(case when ail.fright_fi_type='2' then ail.fright
+                        when ail.fright_fi_type='3' then ail.fright*ail.quantity
+                        else 0 end)                
+                        else 0 end as frt_amt
+                        
                         from account_invoice ai
                         inner join account_invoice_line ail on ai.id=ail.invoice_id
                         where ail.product_id=%s and ai.state not in ('draft', 'cancel')
@@ -2422,7 +2435,11 @@ class account_invoice(osv.osv):
                         #TPT-BM-ON 05/07/2016 - GET CST INVOICE AMT
                         cst_amt = 0.0
                         sql = '''
-                        select sum(ail.tpt_tax_amt) as cst_amt from account_invoice ai
+                        select 
+                        
+                        case when sum(ail.tpt_tax_amt)>=0 then sum(ail.tpt_tax_amt) else 0 end as cst_amt 
+                        
+                        from account_invoice ai
                         inner join account_invoice_line ail on ai.id=ail.invoice_id
                         inner join account_invoice_line_tax ailt on ail.id=ailt.invoice_line_id
                         inner join account_tax t on ailt.tax_id = t.id
@@ -2436,9 +2453,18 @@ class account_invoice(osv.osv):
                         
                         frt_amt = 0.0
                         sql = '''
-                            select SUM(case when ail.fright_fi_type='2' then ail.fright
+                            select
+                            
+                            case when 
+                            SUM(case when ail.fright_fi_type='2' then ail.fright
                             when ail.fright_fi_type='3' then ail.fright*ail.quantity
-                            else 0 end) frt_amt
+                            else 0 end) >=0
+                            then 
+                            SUM(case when ail.fright_fi_type='2' then ail.fright
+                            when ail.fright_fi_type='3' then ail.fright*ail.quantity
+                            else 0 end)
+                            else 0 end as frt_amt
+                            
                             from account_invoice ai
                             inner join account_invoice_line ail on ai.id=ail.invoice_id
                             where ail.product_id=%s and ai.state not in ('draft', 'cancel')
