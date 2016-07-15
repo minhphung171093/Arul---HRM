@@ -3759,20 +3759,18 @@ class tpt_update_stock_move_report(osv.osv):
                 cr.execute(sql)
         return True
     def config_GRN_3451_3883(self, cr, uid, ids, context=None):
-        #=======================================================================
-        # aa_obj = self.pool.get('account.account')   
-        # aa_ids = aa_obj.search(cr, uid, [])
-        # aa = aa_obj.browse(cr, uid, aa_ids)
-        # file1 = open("/home/dev127/Desktop/acc_data.txt", "r+")
-        # for acc in aa:
-        #     if acc.debit==0.0 and acc.credit==0.0:
-        #         pass 
-        #     elif acc.type=='view':
-        #         pass
-        #     else:
-        #         file1.write(str(acc.id) +' '+ acc.code+' '+str(acc.debit)+' '+str(acc.credit)+'\n')
-        # file1.close
-        #=======================================================================
+        aa_obj = self.pool.get('account.account')   
+        aa_ids = aa_obj.search(cr, uid, [])
+        aa = aa_obj.browse(cr, uid, aa_ids)
+        file1 = open("/home/dev127/Desktop/acc_data.txt", "r+")
+        for acc in aa:
+            if acc.debit==0.0 and acc.credit==0.0:
+                pass 
+            elif acc.type=='view':
+                pass
+            else:
+                file1.write(str(acc.id) +' '+ acc.code+' '+str(acc.debit)+' '+str(acc.credit)+'\n')
+        file1.close
         
         sql = '''
         select sp.id, sp.name, sm.price_unit, sm.product_qty, po.date_order, po.currency_id

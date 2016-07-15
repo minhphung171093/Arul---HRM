@@ -311,6 +311,7 @@ class account_balance_report(osv.osv_memory):
                 if o.tb_type:
                     child_ids = [x for x in child_ids if x not in vendor_child_ids]
                 ##TPT-END
+                #TPT-BM-ON 14/07/2016 - 3619, 3622 - changed to compare as account_move date instead of account_move_line date column
                 if child_ids:
                     acc_ids = str(child_ids).replace("[","(")
                     acc_ids = str(acc_ids).replace("]",")")

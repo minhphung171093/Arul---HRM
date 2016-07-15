@@ -402,7 +402,7 @@ class general_ledger_statement(osv.osv_memory):
         #         cost_center = self.pool.get('tpt.cost.center').browse(cr,uid, p[0]).name
         #     return cost_center
         #=======================================================================
-        # TPT START-P.vinothkumar, on 29/01/2016
+        # TPT START-P.Vinothkumar, on 29/01/2016
         def get_voucher(cb,move_id,doc_type):
             if doc_type in ['sup_inv', 'sup_pay','ser_inv', 'sup_inv_po']:
                 sql='''select cost_center_id from account_invoice where move_id =%s'''%(move_id)
@@ -473,13 +473,13 @@ class general_ledger_statement(osv.osv_memory):
         cb = self.browse(cr, uid, ids[0])
         cb_line = []
         
-        # TPT START BALAMURUGAN ON 18/02/2016       
+        # TPT START BalamuruganPurushothaman ON 18/02/2016       
         if get_opening_balance(cb)>0:
             cb_line.append((0,0,{
                  'doc_no_line': False, #TPT-Y on 22/09/2015
                  'employee_id': 'Opening Balance:', #TPT-Y on 22/09/2015
                  'debit': get_opening_balance(cb), #TPT-Y on 22/09/2015
-                 'credit': 0.00      # TPT BALAMURUGAN ON 18/02/2016  
+                 'credit': 0.00      # TPT BM ON 18/02/2016  
                 
              }))
         else:
@@ -489,7 +489,7 @@ class general_ledger_statement(osv.osv_memory):
                  #'debit': get_opening_balance(cb), #TPT-Y on 22/09/2015
                  'debit': 0.00,
                  'credit': abs(get_opening_balance(cb)), ##TPT RK on 18/02/2016 
-        # TPT END BALAMURUGAN ON 18/02/2016             
+        # TPT END         
              }))
         for line in get_invoice(cb):
             cb_line.append((0,0,{
