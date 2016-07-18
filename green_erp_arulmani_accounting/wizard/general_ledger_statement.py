@@ -491,6 +491,7 @@ class general_ledger_statement(osv.osv_memory):
                  'credit': abs(get_opening_balance(cb)), ##TPT RK on 18/02/2016 
         # TPT END         
              }))
+        db_val = 0
         for line in get_invoice(cb):
             cb_line.append((0,0,{
                     'doc_no_line': line.move_id and line.move_id.name, #TPT-Y             
@@ -509,6 +510,8 @@ class general_ledger_statement(osv.osv_memory):
                     'order_id': get_po_id(line.move_id.id) or False,  
                     'partner_id': line.partner_id and line.partner_id.id or False,  
             }))
+            db_val += line.debit
+        print "----", db_val
         cb_line.append((0,0,{
             'narration': 'Total Transaction',
             #'debit': get_total(get_invoice(cb),'debit'),
