@@ -3634,117 +3634,19 @@ class tpt_update_stock_move_report(osv.osv):
                 cr.execute(sql)
         return True
     def config_GRN_3451_3883(self, cr, uid, ids, context=None):
-        #Product Master
-        pp_obj = self.pool.get('product.product')   
-        pp_ids = pp_obj.search(cr, uid, [('cate_name', '=', 'finish')])
-        pp = pp_obj.browse(cr, uid, pp_ids)
-        for prd in pp:
-            vals = {
-                    'standard_price':round(prd.standard_price/2, 2),   
-                    }
-            pp_obj.write(cr, uid, [prd.id], vals, context)
-        #BO
-        bo_obj = self.pool.get('tpt.blanket.order')   
-        bol_obj = self.pool.get('tpt.blank.order.line')  
-        bo_ids = bo_obj.search(cr, uid, [])
-        bo = bo_obj.browse(cr, uid, bo_ids)
-        for blank in bo:
-            #print blank.amount_untaxed, blank.amount_tax
-            vals = {
-                    'amount_untaxed':round(blank.amount_untaxed/2, 2), 
-                    'amount_tax':round(blank.amount_tax/2, 2), 
-                    'amount_total':round(blank.amount_total/2, 2), 
-                    }
-            bo_obj.write(cr, uid, [blank.id], vals, context)
-            for line in blank.blank_order_line:
-                #print line.price_unit  , line.sub_total, line.amount_basic, line.amount_ed  
-                vals = {
-                    'price_unit':round(line.price_unit/2, 2), 
-                    'sub_total':round(line.sub_total/2, 2), 
-                    'amount_basic':round(line.amount_basic/2, 2), 
-                    'amount_ed':round(line.amount_ed/2, 2), 
-                    }
-                bol_obj.write(cr, uid, [line.id], vals, context)   
-        #SO
-        so_obj = self.pool.get('sale.order')   
-        sol_obj = self.pool.get('sale.order.line')  
-        so_ids = so_obj.search(cr, uid, [])
-        so = so_obj.browse(cr, uid, so_ids)
-        for sale in so:
-            #print blank.amount_untaxed, blank.amount_tax
-            vals = {
-                    'amount_untaxed':round(sale.amount_untaxed/2, 2), 
-                    'amount_tax':round(sale.amount_tax/2, 2), 
-                    'amount_total':round(sale.amount_total/2, 2), 
-                    }
-            so_obj.write(cr, uid, [sale.id], vals, context)
-            for line in sale.order_line:
-                #print line.price_unit  , line.sub_total, line.amount_basic, line.amount_ed  
-                vals = {
-                    'price_unit':round(line.price_unit/2, 2), 
-                    'price_subtotal':round(line.price_subtotal/2, 2), 
-                    'amount_basic':round(line.amount_basic/2, 2), 
-                    'amount_ed':round(line.amount_ed/2, 2), 
-                    }
-                sol_obj.write(cr, uid, [line.id], vals, context)    
-        #=======================================================================
         
-        #DO
-        #=======================================================================
-        # sp_obj = self.pool.get('stock.picking')   
-        # spl_obj = self.pool.get('stock.move')  
-        # sp_ids = sp_obj.search(cr, uid, [''])
-        # do = sp_obj.browse(cr, uid, sp_ids)
-        # for deliver in do.move_lines:
-        #     #print line.price_unit  , line.sub_total, line.amount_basic, line.amount_ed  
-        #     vals = {
-        #         'price_unit':round(line.price_unit/2, 2),       
-        #         }
-        #     spl_obj.write(cr, uid, [line.id], vals, context)  
-        #=======================================================================
-    
-        
-        #CI
-        ai_obj = self.pool.get('account.invoice')   
-        ail_obj = self.pool.get('account.invoice.line')  
-        ai_ids = ai_obj.search(cr, uid, [('type','=','out_invoice')])
-        ai = ai_obj.browse(cr, uid, ai_ids)
-        for ci in ai:
-            #print blank.amount_untaxed, blank.amount_tax
-            vals = {
-                    'amount_untaxed':round(ci.amount_untaxed/2, 2), 
-                    'amount_tax':round(ci.amount_tax/2, 2), 
-                    'amount_total':round(ci.amount_total/2, 2), 
-                    'amount_total_inr':round(ci.amount_total_inr/2, 2), 
-                    }
-            ai_obj.write(cr, uid, [ci.id], vals, context)
-            for line in ci.invoice_line:
-                #print line.price_unit  , line.sub_total, line.amount_basic, line.amount_ed  
-                vals = {
-                    'price_unit':round(line.price_unit/2, 2), 
-                    'price_subtotal':round(line.price_subtotal/2, 2), 
-                    'amount_basic':round(line.amount_basic/2, 2), 
-                    'amount_ed':round(line.amount_ed/2, 2), 
-                    'line_net':round(line.line_net/2, 2), 
-                    }
-                ail_obj.write(cr, uid, [line.id], vals, context)          
-        
-        ## 
-        return True        
-        #=======================================================================
-        # aa_obj = self.pool.get('account.account')   
-        # aa_ids = aa_obj.search(cr, uid, [])
-        # aa = aa_obj.browse(cr, uid, aa_ids)
-        # file1 = open("/home/dev127/Desktop/acc_data.txt", "r+")
-        # for acc in aa:
-        #     if acc.debit==0.0 and acc.credit==0.0:
-        #         pass 
-        #     elif acc.type=='view':
-        #         pass
-        #     else:
-        #         file1.write(str(acc.id) +' '+ acc.code+' '+str(acc.debit)+' '+str(acc.credit)+'\n')
-        # file1.close
-        #=======================================================================
+        aa_obj = self.pool.get('account.account')   
+        aa_ids = aa_obj.search(cr, uid, [])
+        aa = aa_obj.browse(cr, uid, aa_ids)
+        file1 = open("/home/dev127/Desktop/acc_data.txt", "r+")
+        for acc in aa:
+            if acc.debit==0.0 and acc.credit==0.0:
+                pass 
+            elif acc.type=='view':
+                pass
+            else:
+                file1.write(str(acc.id) +' '+ acc.code+' '+str(acc.debit)+' '+str(acc.credit)+'\n')
+        file1.close
     
         
         
