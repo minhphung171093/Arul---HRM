@@ -377,9 +377,12 @@ class Parser(report_sxw.rml_parse):
         self.cr.execute(sql)        
         prd_obj = self.pool.get('product.product')
         #prd = prd_obj.browse(self.cr, self.uid, product_id[0])
+        onhand, store_tio2, store_fsh  = 0, 0, 0
         for line in self.cr.dictfetchall():
             #
             #if prd.cate_name == 'finish':
+            onhand = line['onhand_qty']
+            store_tio2 = line['store_tio2']
             prd_obj = self.pool.get('product.product')
             prd = prd_obj.browse(self.cr, self.uid, line['product_id'])
             if prd.cate_name == 'finish':

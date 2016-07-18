@@ -802,9 +802,12 @@ class stock_on_hand_report(osv.osv_memory):
         stock_obj = self.pool.get('tpt.stock.on.hand')
         stock = self.browse(cr, uid, ids[0])
         stock_line = []
-        
+        onhand, store_tio2, store_fsh  = 0, 0, 0
         for line in get_prod(stock):
             # Added by P.vinothkumar on 02/07/2016 for calculate onhandqty,store(tio2) and store(fsh)  
+                onhand = line['onhand_qty']
+                store_tio2 = line['store_tio2']
+                #store_fsh = line['store_fsh']
                 if stock.categ_id.cate_name=='finish':
                     prd_obj = self.pool.get('product.product')
                     prd = prd_obj.browse(cr, uid, line['product_id'])
