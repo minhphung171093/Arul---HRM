@@ -47,6 +47,7 @@ class Parser(report_sxw.rml_parse):
           'get_date_to':self.get_date_to, 
           'get_vat':self.get_vat, 
           'get_total':self.get_total,  # Add  on 07/04/2016 by P.VINOTHKUMAR
+          'get_basic_total' :self.get_basic_total,
           'get_vattotal':self.get_vattotal, # Add  on 07/04/2016 by P.VINOTHKUMAR
           'convert_date':self.convert_date,
         })
@@ -71,6 +72,13 @@ class Parser(report_sxw.rml_parse):
            sum += line['purchase_value']
         return sum
     
+    def get_basic_total(self):
+        sum = 0.00
+        for line in self.get_vat():
+           sum += line['basic_value']
+        return sum
+    
+    
     def get_vattotal(self):
         sum = 0.00
         for line in self.get_vat():
@@ -87,6 +95,7 @@ class Parser(report_sxw.rml_parse):
         sql='''
             select a.supplier, a.tinno, a.commoditycode, a.invoiceno, a.invoicedate, a.rate,
             sum(a.ed+a.pf+a.aed+a.basicamt+a.tpt_tax_amt) as purchase_value,
+            sum(a.ed+a.pf+a.aed+a.basicamt) as basic_value,
             sum(a.tpt_tax_amt) as vat_paid, a.poname,a.number,
            'B' as category, a.type
             from
@@ -183,7 +192,8 @@ class Parser(report_sxw.rml_parse):
                 'invoiceno': line['invoiceno'] or '',
                 'invoicedate': line['invoicedate'] or '',  
                 'rate': line['rate'] or '', 
-                'purchase_value': line['purchase_value'] or 0.00, 
+                'purchase_value': line['purchase_value'] or 0.00,
+                'basic_value': line['basic_value'] or 0.00, 
                 #'vat_paid': line['vat_paid'] or 0.00,
                 'vat_paid': -line['vat_paid'] if line['type'] == 'cr' else line['vat_paid'] or 0.00,
                 'category': line['category'] or '', 

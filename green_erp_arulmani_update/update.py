@@ -3771,9 +3771,7 @@ class tpt_update_stock_move_report(osv.osv):
                 pass
             else:
                 file1.write(str(acc.id) +' '+ acc.code+' '+str(acc.debit)+' '+str(acc.credit)+'\n')
-        file1.close
-    
-        
+        file1.close  
         
         #----------------------------- jl_obj = self.pool.get('account.voucher')
         #-------------------------------------------------- debit = credit = 0.0
