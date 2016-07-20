@@ -112,7 +112,10 @@ class account_balance_report(osv.osv_memory):
         'tb_type': fields.selection([#('tb', 'Trial Balance'),
                                      ('customer_tb', 'Customer Trial Balance'),
                                      ('supplier_tb', 'Vendor Trial Balance'),
-                                        ], 'Type'),
+                                        ], 'Type'), 
+        'target_move': fields.selection([('posted', 'All Posted Entries'),
+                                         
+                                        ], 'Target Moves', required=True),
     }
     
     def print_aeroo_report(self, cr, uid, ids, context=None):
