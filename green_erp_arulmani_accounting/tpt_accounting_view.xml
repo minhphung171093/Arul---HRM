@@ -2064,7 +2064,7 @@
                 <data>
                 	<xpath expr="//button[@name='proforma_voucher']" position="after" >
                 		<button name="%(action_review_posting_view)d" type="action" string="Review Posting" states="draft" context="{'tpt_voucher':True}"/>
-                    	<button name="action_auto_reconcile" type="object" states="posted" string="Reconcile" />
+                    	<!-- <button name="action_auto_reconcile" type="object" states="posted" string="Reconcile" />  -->
                     </xpath> 
                     <xpath expr="//field[@name='account_id']" position="replace"/>
                     <xpath expr="//field[@name='partner_id']" position="attributes">

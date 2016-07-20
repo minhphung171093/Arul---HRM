@@ -13,7 +13,11 @@
 					<field name="display_account" />
 					<field name="tb_type" />
 				</xpath> -->
-				 
+				
+				<xpath expr="//field[@name='fiscalyear_id']" position="replace">
+					<field name="fiscalyear_id" required="1" on_change="onchange_fiscalyear_id(fiscalyear_id)"/>
+				</xpath>	
+					 
 				<xpath expr="//field[@name='display_account']" position="after">
 					<field name="tb_type" />
 				</xpath> 

@@ -114,9 +114,20 @@ class account_balance_report(osv.osv_memory):
                                      ('supplier_tb', 'Vendor Trial Balance'),
                                         ], 'Type'), 
         'target_move': fields.selection([('posted', 'All Posted Entries'),
-                                         
                                         ], 'Target Moves', required=True),
+        'fiscalyear_id': fields.many2one('account.fiscalyear', 'Fiscal Year', help='Keep empty for all open fiscal year'),
+        'date_from': fields.date("Start Date"),
+        'date_to': fields.date("End Date"),
     }
+    _defaults = {
+                'filter': 'filter_date'
+                }
+    def onchange_fiscalyear_id(self, cr, uid, ids,fiscalyear_id=False, context=None): 
+        fiscal_obj = self.pool.get('account.fiscalyear')  
+        for fiscal_date in fiscal_obj.browse(cr, uid, [fiscalyear_id], context):
+             date_start = fiscal_date.date_start
+             date_stop  = fiscal_date.date_stop
+        return {'value': {'date_from': date_start,  'date_to': date_stop,}}  
     
     def print_aeroo_report(self, cr, uid, ids, context=None):
 #         if context is None:
