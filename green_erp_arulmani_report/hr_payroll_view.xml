@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+    
+		<record id="view_arul_hr_payroll_contribution_parameters_form_vew_inherit" model="ir.ui.view">
+            <field name="name">arul.hr.payroll.contribution.parameters.form.inherit</field>
+            <field name="model">arul.hr.payroll.contribution.parameters</field>
+            <field name="inherit_id" ref="green_erp_arulmani_hrm.view_arul_hr_payroll_contribution_parameters_form_vew"/>
+            <field name="arch" type="xml">
+            	<xpath expr="//group" position="after">
+            		<notebook>
+            			<page string="History">
+            				<group>
+            					<field name="contribution_parameters_history_line" nolabel='1' readonly='1'>
+            						<tree editable='bottom'>
+            							<field name="date"/>
+            							<field name="emp_lwf_amt"/>
+            							<field name="employer_lwf_con_amt"/>
+            						</tree>
+            					</field>
+            				</group>
+            			</page>
+            		</notebook>
+            	</xpath>
+            </field>
+        </record>
+           
+    </data>
+</openerp>

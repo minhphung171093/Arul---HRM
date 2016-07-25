@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>   
+        <record id="view_customer_master_report" model="ir.ui.view">
+            <field name="name">customer.master.report</field>
+            <field name="model">customer.master.report</field>
+            <field name="arch" type="xml">
+                <form string="Customer Master Report" version="7.0">
+                	<group>
+	                    <field name='customer_account_group_id' options="{'create': false, 'create_edit': false}"/>
+                 	</group>
+                    <footer>
+                        <button name="print_report" string="Submit" type="object" class="oe_highlight"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+        <record id="action_customer_master_report" model="ir.actions.act_window">
+            <field name="name">Customer Master Report</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">customer.master.report</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+        </record>
+        
+    </data>
+</openerp>
+
