@@ -760,8 +760,7 @@ class stock_on_hand_report(osv.osv_memory):
             sql='''
                 select sum(ail.quantity) from account_invoice_line ail
                 inner join account_invoice ai on ail.invoice_id=ai.id
-                where ail.product_id=%s and ai.date_invoice <= '%s'
-               
+                where ail.product_id=%s and ai.date_invoice <= '%s' and ai.state not in ('draft','cancel')
                 '''%(product_id,date)
             cr.execute(sql)
             sales_qty=cr.fetchone()[0]
@@ -772,7 +771,7 @@ class stock_on_hand_report(osv.osv_memory):
                 Select  sum(product_qty) as productionQty 
                 from mrp_production mrp 
                 Inner join product_product p on (p.id=mrp.product_id and p.id not in (7))  
-                where date_planned <= '%s' 
+                where date_planned <= '%s' and mrp.state='done'
                 and p.id =(%s)'''%(date,product_id)
             cr.execute(sql)
             prod_qty=cr.fetchone()[0]    

@@ -175,7 +175,7 @@ class stock_movement_finished(osv.osv):
             sql='''
                 select sum(ail.quantity) from account_invoice_line ail
                 inner join account_invoice ai on ail.invoice_id=ai.id
-                where ail.product_id=%s and ai.date_invoice < '%s'
+                where ail.product_id=%s and ai.date_invoice < '%s' and ai.state not in ('draft','cancel')
                
                 '''%(product_id,date)
             cr.execute(sql)
@@ -187,7 +187,7 @@ class stock_movement_finished(osv.osv):
                 Select  sum(product_qty) as productionQty 
                 from mrp_production mrp 
                 Inner join product_product p on (p.id=mrp.product_id and p.id not in (7))  
-                where date_planned < '%s' 
+                where date_planned < '%s' and mrp.state='done'
                 and p.id =(%s)'''%(date,product_id)
             cr.execute(sql)
             prod_qty=cr.fetchone()[0]    
@@ -253,8 +253,8 @@ class stock_movement_finished(osv.osv):
             from mrp_production mrp 
             Inner join product_product p on (p.id=mrp.product_id and p.id not in (7))  
             where date_planned >='%(date_from)s' and date_planned <='%(date_to)s'
-            and p.id =(%(product_id)s)
-            
+            and p.id =(%(product_id)s) and mrp.state='done'
+             
             union all
             
             select p.default_code as product_code, ai.date_invoice as transactiondate,0 as productionqty, 
@@ -264,7 +264,7 @@ class stock_movement_finished(osv.osv):
             inner join account_invoice ai on (ai.id=ail.invoice_id and ai.type='out_invoice') 
             Inner join product_product p on (p.id=ail.product_id and p.id not in (7))  
             where ai.date_invoice >='%(date_from)s' and ai.date_invoice <='%(date_to)s' and p.id=(%(product_id)s)
-            
+            and ai.state not in ('draft','cancel')
             )a 
             group by a.transactionYear, a.mon,a.transactionmonth,a.product_code
             order by a.transactionYear,a.mon
