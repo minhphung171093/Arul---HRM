@@ -834,7 +834,7 @@ class stock_on_hand_report(osv.osv_memory):
                        
                     #onhand = 0
                     if prd.default_code in ['M0501010006']:#FERRIC SULPHATE
-                        onhand = line['pl_ferric'] or ''
+                        onhand = onhand #line['pl_ferric'] or ''
                         store_tio2, store_fsh = 0, 0
                     elif prd.default_code in ['M0501010001', 'M0501010008']:#Anatase, Rutile
                         store_fsh = 0
