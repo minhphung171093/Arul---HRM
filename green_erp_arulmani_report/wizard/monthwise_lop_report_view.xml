@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>   
+        <record id="view_monthwise_lop_wizard" model="ir.ui.view">
+            <field name="name">monthwise.lop.wizard</field>
+            <field name="model">monthwise.lop.wizard</field>
+            <field name="arch" type="xml">
+                <form string="Monthwise LOP Report" version="7.0">
+                	<group col='4' colspan='2'>
+	                    <field name='year'/>
+	                    <newline/>
+	                    <field name='date_from'/>
+	                    <field name='date_to'/>
+                 	</group>
+                    <footer>
+                        <button name="print_report" string="Submit" type="object" class="oe_highlight"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+        <record id="action_monthwise_lop_wizard" model="ir.actions.act_window">
+            <field name="name">Monthwise LOP Report</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">monthwise.lop.wizard</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+        </record>
+        
+        <record id="view_monthwise_lop_screen" model="ir.ui.view">
+            <field name="name">monthwise.lop.screen</field>
+            <field name="model">monthwise.lop.screen</field>
+            <field name="arch" type="xml">
+                <form string="Monthwise LOP Report" version="7.0">
+                	<header>
+                        <button name="print_report_xls" string="Print (.xls)" type="object" class="oe_highlight"/>
+                        <button name="print_report_pdf" string="Print (.pdf)" type="object" class="oe_highlight"/>
+                    </header>
+                    <div class="oe_text_center">
+        				<h2>V.V. TITANIUM PIGMENTS PRIVATE LIMITED</h2>
+        				<h2>THOOTHUKKUDI</h2>
+        			</div>
+        			<div class="oe_text_center oe_bold">
+        				<h1>Month Wise LOP Report</h1>
+        			</div>
+                	<group>
+	                    <field name='screen_line' readonly='1' nolabel='1'>
+	                    	<tree editable='bottom'>
+	                    		<field name="sequence"/>
+	                    		<field name="emp_code"/>
+	                    		<field name="emp_name"/>
+	                    		<field name="designation"/>
+	                    		<field name="jan"/>
+	                    		<field name="feb"/>
+	                    		<field name="mar"/>
+	                    		<field name="apr"/>
+	                    		<field name="may"/>
+	                    		<field name="june"/>
+	                    		<field name="july"/>
+	                    		<field name="aug"/>
+	                    		<field name="sep"/>
+	                    		<field name="oct"/>
+	                    		<field name="nov"/>
+	                    		<field name="dec"/>
+	                    		<field name="total"/>
+	                    	</tree>
+	                    </field>
+                 	</group>
+                </form>
+            </field>
+        </record>
+        
+    </data>
+</openerp>
+

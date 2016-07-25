@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>   
+        <record id="view_lwf_deduction_wizard" model="ir.ui.view">
+            <field name="name">lwf.deduction.wizard</field>
+            <field name="model">lwf.deduction.wizard</field>
+            <field name="arch" type="xml">
+                <form string="LWF Deduction Report" version="7.0">
+                	<group>
+	                    <field name='category_id' options="{'create': false, 'create_edit': false}"/>
+	                    <field name='month'/>  
+	                    <field name='year'/>
+                 	</group>
+                    <footer>
+                        <button name="print_report" string="Submit" type="object" class="oe_highlight"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+        <record id="action_lwf_deduction_wizard" model="ir.actions.act_window">
+            <field name="name">LWF Deduction Report</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">lwf.deduction.wizard</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+        </record>
+        
+        <record id="view_lwf_deduction_screen" model="ir.ui.view">
+            <field name="name">lwf.deduction.screen</field>
+            <field name="model">lwf.deduction.screen</field>
+            <field name="arch" type="xml">
+                <form string="LWF Deduction Report" version="7.0">
+                	<header>
+                        <button name="print_report_xls" string="Print (.xls)" type="object" class="oe_highlight"/>
+                        <button name="print_report_pdf" string="Print (.pdf)" type="object" class="oe_highlight"/>
+                    </header>
+                    <div class="oe_text_center">
+        				<h2>V.V. TITANIUM PIGMENTS PRIVATE LIMITED</h2>
+        				<h2>THOOTHUKKUDI</h2>
+        			</div>
+        			<div class="oe_text_center oe_bold">
+        				<h1>LABOUR WELFARE FUND DEDUCTION FOR THE YEAR <field name="year" nolabel="1" class="oe_inline"/></h1>
+        			</div>
+                	<group>
+	                    <field name='screen_line' readonly='1' nolabel='1'>
+	                    	<tree editable='bottom'>
+	                    		<field name="sequence"/>
+	                    		<field name="emp_code"/>
+	                    		<field name="emp_name"/>
+	                    		<field name="employee_share"/>
+	                    		<field name="employer_share"/>
+	                    	</tree>
+	                    </field>
+                 	</group>
+                </form>
+            </field>
+        </record>
+        
+    </data>
+</openerp>
+
