@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+    	<record id="lwf_deduction_report_xls" model="ir.actions.report.xml">
+	        <field name="name">lwf_deduction_report_xls</field>
+	        <field name="type">ir.actions.report.xml</field>
+	        <field name="model">lwf.deduction.screen</field>
+	        <field name="report_name">lwf_deduction_report_xls</field>
+	        <field name="report_type">aeroo</field>
+	        <field name="in_format">oo-ods</field>
+	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-xls'),('compatible_types','=','oo-ods')]"/>
+	        <field name="parser_loc">green_erp_arulmani_report/report/lwf_deduction_report.py</field>
+	        <field name="report_rml">green_erp_arulmani_report/report/lwf_deduction_report.ods</field>
+	        <field name="parser_state">loc</field>
+	        <field name="tml_source">file</field>
+	        <field name="attachment_use" eval="0"/>
+    	</record>		    
+		<report 
+			auto="True" 
+			menu="False"
+			id="lwf_deduction_report_xls" 
+			model="lwf.deduction.screen" 
+			name="lwf_deduction_report_xls"
+	        string="LWF Deduction Report"
+	        rml="green_erp_arulmani_report/report/lwf_deduction_report.ods"/>
+	        
+        <record id="lwf_deduction_report_pdf" model="ir.actions.report.xml">
+	        <field name="name">lwf_deduction_report_pdf</field>
+	        <field name="type">ir.actions.report.xml</field>
+	        <field name="model">lwf.deduction.screen</field>
+	        <field name="report_name">lwf_deduction_report_pdf</field>
+	        <field name="report_type">aeroo</field>
+	        <field name="in_format">oo-ods</field>
+	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-pdf'),('compatible_types','=','oo-ods')]"/>
+	        <field name="parser_loc">green_erp_arulmani_report/report/lwf_deduction_report.py</field>
+	        <field name="report_rml">green_erp_arulmani_report/report/lwf_deduction_report.ods</field>
+	        <field name="parser_state">loc</field>
+	        <field name="tml_source">file</field>
+	        <field name="attachment_use" eval="0"/>
+    	</record>		    
+		<report 
+			auto="True" 
+			menu="False"
+			id="lwf_deduction_report_pdf" 
+			model="lwf.deduction.screen" 
+			name="lwf_deduction_report_pdf"
+	        string="LWF Deduction Report"
+	        rml="green_erp_arulmani_report/report/lwf_deduction_report.ods"/>		
+    </data>
+</openerp>

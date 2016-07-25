@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+    	<menuitem action="action_lwf_deduction_wizard"
+            id="menu_action_lwf_deduction_wizard"
+            parent="green_erp_arulmani_hrm.menu_hr_payroll_management" sequence="102"
+            />
+        <menuitem action="action_customer_master_report"
+            id="menu_action_customer_master_report"
+            parent="green_erp_arulmani_hrm.menu_hr_payroll_management" sequence="103"
+            />
+        <menuitem action="action_monthwise_lop_wizard"
+            id="menu_action_monthwise_lop_wizard"
+            parent="green_erp_arulmani_hrm.menu_hr_payroll_management" sequence="104"
+            /> 
+            
+    </data>
+</openerp>
