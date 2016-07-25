@@ -254,7 +254,7 @@ class stock_movement_finished(osv.osv):
             Inner join product_product p on (p.id=mrp.product_id and p.id not in (7))  
             where date_planned >='%(date_from)s' and date_planned <='%(date_to)s'
             and p.id =(%(product_id)s) and mrp.state='done'
-            
+             
             union all
             
             select p.default_code as product_code, ai.date_invoice as transactiondate,0 as productionqty, 
