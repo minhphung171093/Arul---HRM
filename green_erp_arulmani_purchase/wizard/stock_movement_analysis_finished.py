@@ -79,6 +79,7 @@ class stock_movement_finished(osv.osv):
             context = {}
         movement_obj = self.pool.get('stock.movement.analysis.finished')
         movement = self.browse(cr, uid, ids[0])
+        
         def get_amount(amt):       
             locale.setlocale(locale.LC_NUMERIC, "en_IN")
             inr_comma_format = locale.format("%.3f", amt, grouping=True)
@@ -163,9 +164,10 @@ class stock_movement_finished(osv.osv):
             from stock_move st
             where st.state='done' and st.product_id=%s and st.location_dest_id=%s 
             and st.location_dest_id != st.location_id
-            and name = 'INV:Update'
-            and EXTRACT(month FROM st.date)<4 and EXTRACT(Year FROM st.date)=2015'''%(product_id,location_id)
+            and name like 'INV:%s'
+            and EXTRACT(month FROM st.date)<4 and EXTRACT(Year FROM st.date)=2015'''%(product_id,location_id, '%')
             cr.execute(sql)
+            #print sql
             stock_opening = cr.fetchone()[0]
             return stock_opening or 0.00
         
@@ -268,8 +270,10 @@ class stock_movement_finished(osv.osv):
             order by a.transactionYear,a.mon
             ''' %{'date_from':movement.date_from,
                   'date_to':movement.date_to,
-                  'product_id':movement.product_id.id or False
+#                   'product_id':movement.product_id.id or False # Modified by P.vinothkumar on 25/07/2016
+                  'product_id': movement.product_id.id or False
                     }
+        #print sql
         cr.execute(sql)
         #print sql
         #closing_stock_onhand = 0.0
@@ -281,8 +285,8 @@ class stock_movement_finished(osv.osv):
             #open_qty = opening_stock(movement.product_id.id,int(line['yearperiod']),int(line['mon']))
             open_date = str(int(line['yearperiod']))+'-'+str(int(line['mon']))+'-'+'01' # To find starting date of every month 
             open_qty = opening_stock(movement.product_id.id, movement.product_id.default_code)
-            sales_qty= sale_qty(movement.product_id.id, open_date)
-            prod_qty= production_qty(movement.product_id.id, open_date)
+            sales_qty= sale_qty(movement.product_id.id, open_date) #To calc opening stock
+            prod_qty= production_qty(movement.product_id.id, open_date) #To calc opening stock
             receive_qty1= total_received_qty(movement.product_id.id, open_date)
             receive_qty2=receive_qty1
             trans_qty1 = monthly_received_qty(movement.product_id.id,int(line['mon']),int(line['yearperiod']))
@@ -301,7 +305,8 @@ class stock_movement_finished(osv.osv):
                 receive_qty1=0.0
                 receive_qty2=0.0
                 
-            opening_qty= open_qty+prod_qty+receive_qty1+receive_qty2-sales_qty    
+            opening_qty= open_qty+prod_qty+receive_qty1+receive_qty2-sales_qty  
+            #opening_qty= open_qty+line['producedqty']+receive_qty1+receive_qty2-line['salesqty']       
             #closing_qty =  open_qty+line['producedqty']+trans_qty1+trans_qty2 -line['salesqty']  
             closing_qty =  opening_qty+line['producedqty']+trans_qty1+trans_qty2 -line['salesqty']  
             movement_line.append((0,0,{ 
