@@ -192,6 +192,31 @@ class stock_movement_finished(osv.osv):
             cr.execute(sql)
             prod_qty=cr.fetchone()[0]    
             return prod_qty or 0.00
+        #
+        def fsh_ferric_prd_qty(product_id, date):
+            sql='''
+                select case when sum(product_qty)!=0 then sum(product_qty) else 0 end as fsh_cons_qty from stock_move where 
+                prodlot_id is not null and
+                location_id=(select id from stock_location where complete_name='Physical Locations / VVTi Pigments / Production Line / Raw Material')
+                and location_dest_id=(select id from stock_location where complete_name='Virtual Locations / Production') and
+                state='done' and date < '%s' and product_id=%s
+                 '''%(date,product_id)
+            cr.execute(sql)
+            fsh_cons_qty = cr.fetchone()[0]     
+            return fsh_cons_qty or 0.00
+        #coal tar
+        def coal_tar_qty(product_id, date):
+            sql='''
+                select case when sum(mv.product_qty) > 0 then sum(mv.product_qty) else 0 end as production_qty
+                    from stock_move mv
+                    join mrp_production mp on mv.production_id=mp.id
+                    where production_id is not null and mv.state='done' and
+                    mv.location_dest_id=23  and mp.date_planned < %s and mv.product_id=%s
+                 '''%(date,product_id)
+            cr.execute(sql)
+            coal_tar_qty = cr.fetchone()[0]     
+            return coal_tar_qty or 0.00
+        #
         
         def total_received_qty(product_id, date):
             sql='''
@@ -287,8 +312,8 @@ class stock_movement_finished(osv.osv):
             open_qty = opening_stock(movement.product_id.id, movement.product_id.default_code)
             sales_qty= sale_qty(movement.product_id.id, open_date) #To calc opening stock
             prod_qty= production_qty(movement.product_id.id, open_date) #To calc opening stock
-            receive_qty1= total_received_qty(movement.product_id.id, open_date)
-            receive_qty2=receive_qty1
+            receive_qty1 = total_received_qty(movement.product_id.id, open_date)
+            receive_qty2 = receive_qty1
             trans_qty1 = monthly_received_qty(movement.product_id.id,int(line['mon']),int(line['yearperiod']))
             trans_qty2 = trans_qty1
             if line['product_code']=='M0501010001':
@@ -309,11 +334,45 @@ class stock_movement_finished(osv.osv):
             #opening_qty= open_qty+line['producedqty']+receive_qty1+receive_qty2-line['salesqty']       
             #closing_qty =  open_qty+line['producedqty']+trans_qty1+trans_qty2 -line['salesqty']  
             closing_qty =  opening_qty+line['producedqty']+trans_qty1+trans_qty2 -line['salesqty']  
+            #
+            # TPT START - TPT P.vinothkumar and BP on 26/07/2016 for calculate produced qty(COAL TAR) 
+            prd_qty = line['producedqty']
+            if movement.product_id.default_code=='M0501010002':
+                temp_fsh_ferric_qty= fsh_ferric_prd_qty(movement.product_id.id, open_date) #To calc opening stock
+                sql = '''
+                select case when sum(product_qty)!=0 then sum(product_qty) else 0 end as fsh_cons_qty from stock_move where 
+                prodlot_id is not null and
+                location_id=(select id from stock_location where complete_name='Physical Locations / VVTi Pigments / Production Line / Raw Material')
+                and location_dest_id=(select id from stock_location where complete_name='Virtual Locations / Production') and
+                state='done' and product_id=%s and 
+                extract(month from date)=%s and  extract(year from date)=%s
+                '''%(movement.product_id.id, int(line['mon']), int(line['yearperiod']))
+                cr.execute(sql)
+                fsh_cons_qty = cr.fetchone()[0]   
+                opening_qty= open_qty + prod_qty - sales_qty - temp_fsh_ferric_qty
+                closing_qty =  opening_qty+line['producedqty']+trans_qty1+trans_qty2 - line['salesqty'] - fsh_cons_qty  
+                
+            elif movement.product_id.default_code=='M0501010009':
+                temp_coal_tar_qty = fsh_ferric_prd_qty(movement.product_id.id, open_date) #To calc opening stock
+                sql = '''
+                 select case when sum(mv.product_qty) > 0 then sum(mv.product_qty) else 0 end as production_qty
+                    from stock_move mv
+                    join mrp_production mp on mv.production_id=mp.id
+                    where mv.product_id=%s and production_id is not null and mv.state='done' and
+                    mv.location_dest_id=23  and extract(month from mp.date_planned)=%s and  extract(year from mp.date_planned)=%s 
+                 '''%(movement.product_id.id, line['mon'], line['yearperiod'])
+                cr.execute(sql)
+                monthly_produced_qty = cr.fetchone()[0]   
+                opening_qty= open_qty + temp_coal_tar_qty - sales_qty   
+                closing_qty =  opening_qty + monthly_produced_qty -line['salesqty']
+                prd_qty = monthly_produced_qty
+            # TPT END   
+            #
             movement_line.append((0,0,{ 
                 'month': line['monthperiod'],
                 'year': int(line['yearperiod']) or '',
                 'open_stock': opening_qty or 0.0,
-                'prod_qty': line['producedqty'],
+                'prod_qty': prd_qty, #line['producedqty'],
                 'trans_qty': trans_qty1 ,
                 'receive_qty': trans_qty2 ,
                 'sold_qty': line['salesqty'],
