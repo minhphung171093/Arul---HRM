@@ -282,7 +282,7 @@ class stock_movement_finished(osv.osv):
              
             union all
             
-            select p.default_code as product_code, ai.date_invoice as transactiondate,0 as productionqty, 
+            select p.default_code as product_code, ai.date_invoice as transactiondate, 0 as productionqty, 
             ail.quantity as salesqty,
             EXTRACT(YEAR FROM ai.date_invoice) as transactionYear, EXTRACT(month FROM date_invoice) as mon,(select to_char((ai.date_invoice)::date,'Month')) as transactionmonth
             from account_invoice_line ail
@@ -337,7 +337,7 @@ class stock_movement_finished(osv.osv):
             #
             # TPT START - TPT P.vinothkumar and BP on 26/07/2016 for calculate produced qty(COAL TAR) 
             prd_qty = line['producedqty']
-            if movement.product_id.default_code=='M0501010002':
+            if movement.product_id.default_code=='M0501010002':#FSH
                 temp_fsh_ferric_qty= fsh_ferric_prd_qty(movement.product_id.id, open_date) #To calc opening stock
                 sql = '''
                 select case when sum(product_qty)!=0 then sum(product_qty) else 0 end as fsh_cons_qty from stock_move where 
@@ -352,7 +352,7 @@ class stock_movement_finished(osv.osv):
                 opening_qty= open_qty + prod_qty - sales_qty - temp_fsh_ferric_qty
                 closing_qty =  opening_qty+line['producedqty']+trans_qty1+trans_qty2 - line['salesqty'] - fsh_cons_qty  
                 
-            elif movement.product_id.default_code=='M0501010009':
+            elif movement.product_id.default_code=='M0501010009':#COAL TAR
                 temp_coal_tar_qty = coal_tar_qty(movement.product_id.id, open_date) #To calc opening stock
                 sql = '''
                  select case when sum(mv.product_qty) > 0 then sum(mv.product_qty) else 0 end as production_qty
