@@ -1269,6 +1269,7 @@ class stock_movement_analysis(osv.osv_memory):
                             '''%(locat_ids[0],product_id,date_from,date_to,date_from,date_to, date_from, date_to, product_id)
                 cr.execute(sql)
                 inventory = cr.dictfetchone()
+                print sql
               # Commented by P.vinothkumar on 31/05/2016
               
 #             if categ and categ =='spares':
@@ -2319,9 +2320,9 @@ class stock_movement_analysis(osv.osv_memory):
                 consum_value = get_consumption_value(stock, line.id)
                 #TPT-BM-ON 07/07/2016 - FOR FREIGHT-CST INCLUSION
                 opening, receipt = get_frt_cst_amt(line.id, stock.date_from, stock.date_to)
-                print open_value, opening
+                #print open_value, opening
                 #open_value += opening
-                print receipt_value, receipt
+                #print receipt_value, receipt
                 #receipt_value += receipt
                 #
                 move_analysis_line.append((0,0,{
