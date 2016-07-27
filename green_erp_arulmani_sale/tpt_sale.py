@@ -413,10 +413,12 @@ class sale_order(osv.osv):
              update sale_order set document_status='cancelled' where id = %s
             '''%(sale.id)
         cr.execute(sql)
-#         sql_stt3 = '''
-#               update tpt_blanket_order set state='draft' where id = %s
-#                '''%(sale.blanket_id.id)
-#         cr.execute(sql_stt3)
+        #TPT-BM Enabled on 27/07/2016
+        sql = '''
+              update tpt_blanket_order set state='approve' where id = %s
+               '''%(sale.blanket_id.id)
+        cr.execute(sql)
+        #TPT-END
         return True
     
     def create(self, cr, uid, vals, context=None):
