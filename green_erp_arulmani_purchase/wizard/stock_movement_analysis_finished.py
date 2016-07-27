@@ -210,8 +210,8 @@ class stock_movement_finished(osv.osv):
                 select case when sum(mv.product_qty) > 0 then sum(mv.product_qty) else 0 end as production_qty
                     from stock_move mv
                     join mrp_production mp on mv.production_id=mp.id
-                    where production_id is not null and mv.state='done' and
-                    mv.location_dest_id=23  and mp.date_planned < %s and mv.product_id=%s
+                    where production_id is not null and mv.state='done' 
+                    and mp.date_planned < '%s' and mv.product_id=%s
                  '''%(date,product_id)
             cr.execute(sql)
             coal_tar_qty = cr.fetchone()[0]     
@@ -353,15 +353,16 @@ class stock_movement_finished(osv.osv):
                 closing_qty =  opening_qty+line['producedqty']+trans_qty1+trans_qty2 - line['salesqty'] - fsh_cons_qty  
                 
             elif movement.product_id.default_code=='M0501010009':
-                temp_coal_tar_qty = fsh_ferric_prd_qty(movement.product_id.id, open_date) #To calc opening stock
+                temp_coal_tar_qty = coal_tar_qty(movement.product_id.id, open_date) #To calc opening stock
                 sql = '''
                  select case when sum(mv.product_qty) > 0 then sum(mv.product_qty) else 0 end as production_qty
                     from stock_move mv
                     join mrp_production mp on mv.production_id=mp.id
-                    where mv.product_id=%s and production_id is not null and mv.state='done' and
-                    mv.location_dest_id=23  and extract(month from mp.date_planned)=%s and  extract(year from mp.date_planned)=%s 
-                 '''%(movement.product_id.id, line['mon'], line['yearperiod'])
+                    where mv.product_id=%s and production_id is not null and mv.state='done' 
+                     and extract(month from mp.date_planned)=%s and  extract(year from mp.date_planned)=%s 
+                 '''%(movement.product_id.id, int(line['mon']), int(line['yearperiod']))
                 cr.execute(sql)
+                #print sql
                 monthly_produced_qty = cr.fetchone()[0]   
                 opening_qty= open_qty + temp_coal_tar_qty - sales_qty   
                 closing_qty =  opening_qty + monthly_produced_qty -line['salesqty']
