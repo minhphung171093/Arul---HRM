@@ -268,39 +268,71 @@ class stock_movement_finished(osv.osv):
          
         cr.execute('delete from stock_movement_analysis_finished')
         movement_line = []
-        sql= '''
-            select  a.product_code, a.transactionYear as Yearperiod, a.transactionmonth as monthperiod, a.mon, sum(a.productionQty) as producedqty, 
-            sum(a.salesqty) as salesQty from  
-            (
-            Select p.default_code as product_code,date_planned as transactiondate, product_qty as productionQty, 0 as salesqty,
-            EXTRACT(YEAR FROM date_planned) as transactionYear,EXTRACT(month FROM date_planned) as mon, 
-            (select to_char((date_planned)::date,'Month')) as TransactionMonth 
-            from mrp_production mrp 
-            Inner join product_product p on (p.id=mrp.product_id and p.id not in (7))  
-            where date_planned >='%(date_from)s' and date_planned <='%(date_to)s'
-            and p.id =(%(product_id)s) and mrp.state='done'
-             
-            union all
-            
-            select p.default_code as product_code, ai.date_invoice as transactiondate, 0 as productionqty, 
-            ail.quantity as salesqty,
-            EXTRACT(YEAR FROM ai.date_invoice) as transactionYear, EXTRACT(month FROM date_invoice) as mon,(select to_char((ai.date_invoice)::date,'Month')) as transactionmonth
-            from account_invoice_line ail
-            inner join account_invoice ai on (ai.id=ail.invoice_id and ai.type='out_invoice') 
-            Inner join product_product p on (p.id=ail.product_id and p.id not in (7))  
-            where ai.date_invoice >='%(date_from)s' and ai.date_invoice <='%(date_to)s' and p.id=(%(product_id)s)
-            and ai.state not in ('draft','cancel')
-            )a 
-            group by a.transactionYear, a.mon,a.transactionmonth,a.product_code
-            order by a.transactionYear,a.mon
-            ''' %{'date_from':movement.date_from,
-                  'date_to':movement.date_to,
-#                   'product_id':movement.product_id.id or False # Modified by P.vinothkumar on 25/07/2016
-                  'product_id': movement.product_id.id or False
-                    }
-        #print sql
-        cr.execute(sql)
-        #print sql
+        # TPT P.vinothkumar on 28/07/2016 for calculate product qty for coal Tar product.
+        if movement.product_id.default_code != 'M0501010009':
+            sql= '''
+                select  a.product_code, a.transactionYear as Yearperiod, a.transactionmonth as monthperiod, a.mon, sum(a.productionQty) as producedqty, 
+                sum(a.salesqty) as salesQty from  
+                (
+                Select p.default_code as product_code,date_planned as transactiondate, product_qty as productionQty, 0 as salesqty,
+                EXTRACT(YEAR FROM date_planned) as transactionYear,EXTRACT(month FROM date_planned) as mon, 
+                (select to_char((date_planned)::date,'Month')) as TransactionMonth 
+                from mrp_production mrp 
+                Inner join product_product p on (p.id=mrp.product_id and p.id not in (7))  
+                where date_planned >='%(date_from)s' and date_planned <='%(date_to)s'
+                and p.id =(%(product_id)s) and mrp.state='done'
+                 
+                union all
+                
+                select p.default_code as product_code, ai.date_invoice as transactiondate, 0 as productionqty, 
+                ail.quantity as salesqty,
+                EXTRACT(YEAR FROM ai.date_invoice) as transactionYear, EXTRACT(month FROM date_invoice) as mon,(select to_char((ai.date_invoice)::date,'Month')) as transactionmonth
+                from account_invoice_line ail
+                inner join account_invoice ai on (ai.id=ail.invoice_id and ai.type='out_invoice') 
+                Inner join product_product p on (p.id=ail.product_id and p.id not in (7))  
+                where ai.date_invoice >='%(date_from)s' and ai.date_invoice <='%(date_to)s' and p.id=(%(product_id)s)
+                and ai.state not in ('draft','cancel')
+                )a 
+                group by a.transactionYear, a.mon,a.transactionmonth,a.product_code
+                order by a.transactionYear,a.mon
+                ''' %{'date_from':movement.date_from,
+                      'date_to':movement.date_to,
+    #                   'product_id':movement.product_id.id or False # Modified by P.vinothkumar on 25/07/2016
+                      'product_id': movement.product_id.id or False
+                        }
+            cr.execute(sql)
+        else:
+              sql= '''
+                select   a.transactionYear as Yearperiod, a.transactionmonth as monthperiod, a.mon, sum(a.productionQty) as producedqty, 
+                sum(a.salesqty) as salesQty from  
+                (
+                Select date_planned as transactiondate, mv.product_qty as productionQty, 0 as salesqty,
+                EXTRACT(YEAR FROM date_planned) as transactionYear,EXTRACT(month FROM date_planned) as mon, 
+                (select to_char((date_planned)::date,'Month')) as TransactionMonth
+                from stock_move mv 
+                inner join mrp_production mp on mv.production_id=mp.id
+                inner join product_product p on p.id=mp.product_id  
+                where date_planned >='%(date_from)s' and date_planned <='%(date_to)s'
+                and mv.product_id =(%(product_id)s) and mv.state='done'
+                 
+                union all
+                 
+                select  ai.date_invoice as transactiondate,0 as productionqty, 
+                ail.quantity as salesqty,
+                EXTRACT(YEAR FROM ai.date_invoice) as transactionYear, EXTRACT(month FROM date_invoice) as mon,(select to_char((ai.date_invoice)::date,'Month')) as transactionmonth
+                from account_invoice_line ail
+                inner join account_invoice ai on (ai.id=ail.invoice_id and ai.type='out_invoice') 
+                Inner join product_product p on (p.id=ail.product_id and p.id not in (7))  
+                where ai.date_invoice >='%(date_from)s' and ai.date_invoice <='%(date_to)s' and p.id=(%(product_id)s)
+                and ai.state not in ('draft','cancel')
+                )a 
+                group by a.transactionYear, a.mon,a.transactionmonth
+                order by a.transactionYear,a.mon
+                ''' %{'date_from':movement.date_from,
+                      'date_to':movement.date_to,
+                       'product_id':movement.product_id.id or False # Modified by P.vinothkumar on 25/07/2016
+                        }
+        cr.execute(sql)     
         #closing_stock_onhand = 0.0
         temp = 0.0
         trans_qty = 0.0
@@ -316,10 +348,10 @@ class stock_movement_finished(osv.osv):
             receive_qty2 = receive_qty1
             trans_qty1 = monthly_received_qty(movement.product_id.id,int(line['mon']),int(line['yearperiod']))
             trans_qty2 = trans_qty1
-            if line['product_code']=='M0501010001':
+            if movement.product_id.default_code =='M0501010001': 
                 trans_qty1 = 0.0
                 receive_qty1=0.0
-            elif line['product_code']=='M0501010008':
+            elif movement.product_id.default_code == 'M0501010008':
                 trans_qty2 = 0.0
                 trans_qty1 = -trans_qty1
                 receive_qty2=0.0
