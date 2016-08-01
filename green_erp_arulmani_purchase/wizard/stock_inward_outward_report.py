@@ -434,6 +434,7 @@ class stock_inward_outward_report(osv.osv_memory):
                  'percentage':'%',
                  }
             cr.execute(sql)
+            print sql
             res1 = cr.dictfetchall()
             sql = '''
             select am.* from account_move am
