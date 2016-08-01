@@ -1269,7 +1269,7 @@ class stock_movement_analysis(osv.osv_memory):
                             '''%(locat_ids[0],product_id,date_from,date_to,date_from,date_to, date_from, date_to, product_id)
                 cr.execute(sql)
                 inventory = cr.dictfetchone()
-                print sql
+                #print sql
               # Commented by P.vinothkumar on 31/05/2016
               
 #             if categ and categ =='spares':
@@ -2111,7 +2111,7 @@ class stock_movement_analysis(osv.osv_memory):
             amt_opening1, amt_receipt1 = 0.0, 0.0
             amt_opening2, amt_receipt2 = 0.0, 0.0
             ##################
-            sql = '''
+            sql = ''' 
                 select 
                 
                 case when sum(ail.tpt_tax_amt)>=0 then sum(ail.tpt_tax_amt) else 0 end as cst_amt 
@@ -2148,7 +2148,31 @@ class stock_movement_analysis(osv.osv_memory):
             cr.execute(sql)
             frt_amt = cr.fetchone()
             if frt_amt:
-                amt_opening += frt_amt[0]    
+                amt_opening += frt_amt[0]   
+            #TPT-BM-01/08/2016 - Opening for supplier invoice with freight value entered
+            sql = '''
+            select 
+                case when 
+                SUM(case when ail.fright_type='2' then ail.fright
+                when ail.fright_type='3' then ail.fright*ail.quantity
+                else 0 end) >=0
+                then    
+                SUM(case when ail.fright_type='2' then ail.fright
+                when ail.fright_type='3' then ail.fright*ail.quantity
+                else 0 end)                
+                else 0 end as frt_amt
+                from account_invoice ai
+                inner join account_invoice_line ail on ai.id=ail.invoice_id
+                where ail.product_id=%s and 
+                ai.state not in ('draft', 'cancel')
+                and ai.doc_type='supplier_invoice' and ail.fright>0 
+                and ai.date_invoice < '%s'
+            '''%(product_id, from_date)
+            cr.execute(sql)
+            si_frt_amt = cr.fetchone()
+            if si_frt_amt:
+                amt_opening += si_frt_amt[0] 
+            #tpt-end
             # --------------- #
             sql = '''
                 select
@@ -2189,7 +2213,30 @@ class stock_movement_analysis(osv.osv_memory):
             frt_amt1 = cr.fetchone()
             if frt_amt1:
                 amt_receipt += frt_amt1[0]    
-            ##########              
+            #TPT-BM-01/08/2016 - Opening for supplier invoice with freight value entered
+            sql = '''
+            select 
+                case when 
+                SUM(case when ail.fright_type='2' then ail.fright
+                when ail.fright_type='3' then ail.fright*ail.quantity
+                else 0 end) >=0
+                then    
+                SUM(case when ail.fright_type='2' then ail.fright
+                when ail.fright_type='3' then ail.fright*ail.quantity
+                else 0 end)                
+                else 0 end as frt_amt
+                from account_invoice ai
+                inner join account_invoice_line ail on ai.id=ail.invoice_id
+                where ail.product_id=%s and 
+                ai.state not in ('draft', 'cancel')
+                and ai.doc_type='supplier_invoice' and ail.fright>0 
+                and ai.date_invoice between '%s' and '%s'
+            '''%(product_id, from_date, to_date)
+            cr.execute(sql)
+            si_frt_amt = cr.fetchone()
+            if si_frt_amt:
+                amt_receipt += si_frt_amt[0] 
+            #tpt-end             
             return amt_opening, amt_receipt   
         #
         
@@ -2318,13 +2365,11 @@ class stock_movement_analysis(osv.osv_memory):
                 receipt_value = get_receipt_value(stock,line.id)
                 consum_qty = get_qty_out(stock,line.id) + get_qty_chuaro(stock,line.id)
                 consum_value = get_consumption_value(stock, line.id)
-                #TPT-BM-ON 07/07/2016 - FOR FREIGHT-CST INCLUSION
-                opening, receipt = get_frt_cst_amt(line.id, stock.date_from, stock.date_to)
-                #print open_value, opening
-                #open_value += opening
-                #print receipt_value, receipt
-                #receipt_value += receipt
-                #
+                #TPT-BM-ON 07/07/2016 - FOR FREIGHT-CST INCLUSION- enabled on 01/08/2016
+                opening, receipt = get_frt_cst_amt(line.id, stock.date_from, stock.date_to) 
+                open_value += opening
+                receipt_value += receipt
+                #TPT-END
                 move_analysis_line.append((0,0,{
                     'item_code': line.default_code,
                     'item_name': line.name,
@@ -2563,10 +2608,11 @@ class stock_movement_analysis(osv.osv_memory):
                 #
                 opening_value = line['opening_stock_value'] or 0
                 receipt_value = line['receipt_value'] or 0
+                #TPT-BM-ON 07/07/2016 - FOR FREIGHT-CST INCLUSION
                 opening, receipt = get_frt_cst_amt(line['product_id'], stock.date_from, stock.date_to)
                 opening_value += opening
                 receipt_value += receipt
-                #
+                #TPT_END
                 move_analysis_line.append((0,0,{
                     'item_code': line['default_code'],
                     'item_name': line['name'],

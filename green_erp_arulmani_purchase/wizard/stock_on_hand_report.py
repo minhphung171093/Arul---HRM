@@ -24,7 +24,8 @@ class tpt_stock_on_hand(osv.osv_memory):
     def print_xls(self, cr, uid, ids, context=None):
         if context is None:
             context = {}
-        datas = {'ids': context.get('active_ids', [])}
+        #datas = {'ids': context.get('active_ids', [])}
+        datas = {'ids': ids}
         datas['model'] = 'tpt.stock.on.hand'
         datas['form'] = self.read(cr, uid, ids)[0]
         datas['form'].update({'active_id':context.get('active_ids',False)})
@@ -33,7 +34,8 @@ class tpt_stock_on_hand(osv.osv_memory):
     def print_pdf(self, cr, uid, ids, context=None):
         if context is None:
             context = {}
-        datas = {'ids': context.get('active_ids', [])}
+        #datas = {'ids': context.get('active_ids', [])}
+        datas = {'ids': ids}
         datas['model'] = 'tpt.stock.on.hand'
         datas['form'] = self.read(cr, uid, ids)[0]
         datas['form'].update({'active_id':context.get('active_ids',False)})
