@@ -846,7 +846,20 @@ class stock_on_hand_report(osv.osv_memory):
                         onhand = line['onhand_qty']
                         store_tio2, store_fsh = 0, 0
                     elif prd.default_code=='M0501010002':#FERROUS
-                        store_fsh = open_qty+prod_qty+receive_qty1+receive_qty2-sales_qty
+                        #TPT-START- BM - ON 03/08/2016 - TO DEDUCE CONSUMMED QTY DURING FERRIC SULPHATE PRODUCTION
+                        sql = '''
+                        select case when sum(product_qty)!=0 then sum(product_qty) else 0 end as fsh_cons_qty from stock_move where 
+                        prodlot_id is not null and
+                        location_id=(select id from stock_location where complete_name='Physical Locations / VVTi Pigments / Production Line / Raw Material')
+                        and location_dest_id=(select id from stock_location where complete_name='Virtual Locations / Production') and
+                        state='done' and product_id=%s and 
+                        date <= '%s'
+                        '''%(prd.id, stock.date)
+                        cr.execute(sql)
+                        fsh_cons_qty = cr.fetchone()[0]
+                        onhand = open_qty + prod_qty + receive_qty1 + receive_qty2 - sales_qty - fsh_cons_qty
+                        store_fsh = onhand
+                        #TPT-END 
                         store_tio2= 0.0
                     else:
                         onhand = 0
