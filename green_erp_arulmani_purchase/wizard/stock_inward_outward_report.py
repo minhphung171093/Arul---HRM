@@ -224,7 +224,153 @@ class stock_inward_outward_report(osv.osv_memory):
             closing = qty_grn + qty_good
             return closing
         
-        
+        ##
+        def get_frt_cst_amt(product_id, from_date, to_date):
+            amt_opening, amt_receipt = 0.0, 0.0
+            amt_opening1, amt_receipt1 = 0.0, 0.0
+            amt_opening2, amt_receipt2 = 0.0, 0.0
+            ##################
+            sql = ''' 
+                select 
+                
+                case when sum(ail.tpt_tax_amt)>=0 then sum(ail.tpt_tax_amt) else 0 end as cst_amt 
+                
+                from account_invoice ai
+                inner join account_invoice_line ail on ai.id=ail.invoice_id
+                inner join account_invoice_line_tax ailt on ail.id=ailt.invoice_line_id
+                inner join account_tax t on ailt.tax_id = t.id
+                where ail.product_id=%s and ai.state not in ('draft', 'cancel') 
+                and ai.doc_type='supplier_invoice' and t.description like '%sCST%s'
+                and ai.date_invoice < '%s' 
+            '''%(product_id, '%', '%', from_date)
+            cr.execute(sql)
+            cst_amt = cr.fetchone()
+            if cst_amt:
+                amt_opening += cst_amt[0]
+            #
+            sql = '''
+                select  case when 
+                SUM(case when ail.fright_fi_type='2' then ail.fright
+                when ail.fright_fi_type='3' then ail.fright*ail.quantity
+                else 0 end) >=0
+                then 
+                SUM(case when ail.fright_fi_type='2' then ail.fright
+                when ail.fright_fi_type='3' then ail.fright*ail.quantity
+                else 0 end)
+                else 0 end as frt_amt
+                from account_invoice ai
+                inner join account_invoice_line ail on ai.id=ail.invoice_id
+                where ail.product_id=%s and ai.state not in ('draft', 'cancel')
+                and ai.doc_type='freight_invoice'
+                and ai.date_invoice < '%s'
+            '''%(product_id, from_date)
+            cr.execute(sql)
+            frt_amt = cr.fetchone()
+            if frt_amt:
+                amt_opening += frt_amt[0]   
+            #TPT-BM-01/08/2016 - Opening for supplier invoice with freight value entered
+            sql = '''
+            select 
+                case when 
+                    SUM(case 
+                    when ail.fright_type='1' then ail.fright*100
+                    when ail.fright_type='2' then ail.fright
+                    when ail.fright_type='3' then ail.fright*ail.quantity
+                    when ail.fright_type is null then ail.fright
+                    else 0 end) >=0
+                    then    
+                    SUM(case 
+                    when ail.fright_type='1' then ail.fright*100
+                    when ail.fright_type='2' then ail.fright
+                    when ail.fright_type='3' then ail.fright*ail.quantity
+                    when ail.fright_type is null then ail.fright
+                    else 0 end)                
+                    else 0 end as frt_amt
+                from account_invoice ai
+                inner join account_invoice_line ail on ai.id=ail.invoice_id
+                where ail.product_id=%s and 
+                ai.state not in ('draft', 'cancel')
+                and ai.doc_type='supplier_invoice' and ail.fright>0 
+                and ai.date_invoice < '%s'
+            '''%(product_id, from_date)
+            cr.execute(sql)
+            si_frt_amt = cr.fetchone()
+            if si_frt_amt:
+                amt_opening += si_frt_amt[0] 
+            #tpt-end
+            # --------------- #
+            sql = '''
+                select
+                case when sum(ail.tpt_tax_amt)>=0 then sum(ail.tpt_tax_amt) else 0 end as cst_amt 
+                from account_invoice ai
+                inner join account_invoice_line ail on ai.id=ail.invoice_id
+                inner join account_invoice_line_tax ailt on ail.id=ailt.invoice_line_id
+                inner join account_tax t on ailt.tax_id = t.id
+                where ail.product_id=%s and ai.state not in ('draft', 'cancel') 
+                and ai.doc_type='supplier_invoice' and t.description like '%sCST%s'
+                and ai.date_invoice between '%s' and '%s'
+            '''%(product_id, '%', '%', from_date, to_date)
+            cr.execute(sql)
+            #print sql
+            cst_amt1 = cr.fetchone()
+            if cst_amt1:
+                amt_receipt += cst_amt1[0]
+            #
+            sql = '''
+                select case when 
+                SUM(case when ail.fright_fi_type='2' then ail.fright
+                when ail.fright_fi_type='3' then ail.fright*ail.quantity
+                else 0 end) >=0
+                then    
+                SUM(case when ail.fright_fi_type='2' then ail.fright
+                when ail.fright_fi_type='3' then ail.fright*ail.quantity
+                else 0 end)                
+                else 0 end as frt_amt
+                
+                from account_invoice ai
+                inner join account_invoice_line ail on ai.id=ail.invoice_id
+                where ail.product_id=%s and ai.state not in ('draft', 'cancel')
+                and ai.doc_type='freight_invoice'
+                and ai.date_invoice between '%s' and '%s'
+            '''%(product_id, from_date, to_date)
+            cr.execute(sql)
+            #print sql
+            frt_amt1 = cr.fetchone()
+            if frt_amt1:
+                amt_receipt += frt_amt1[0]    
+            #TPT-BM-01/08/2016 - Opening for supplier invoice with freight value entered
+            sql = '''
+            select 
+                case when 
+                    SUM(case 
+                    when ail.fright_type='1' then ail.fright*100
+                    when ail.fright_type='2' then ail.fright
+                    when ail.fright_type='3' then ail.fright*ail.quantity
+                    when ail.fright_type is null then ail.fright
+                    else 0 end) >=0
+                    then    
+                    SUM(case 
+                    when ail.fright_type='1' then ail.fright*100
+                    when ail.fright_type='2' then ail.fright
+                    when ail.fright_type='3' then ail.fright*ail.quantity
+                    when ail.fright_type is null then ail.fright
+                    else 0 end)                
+                    else 0 end as frt_amt
+                from account_invoice ai
+                inner join account_invoice_line ail on ai.id=ail.invoice_id
+                where ail.product_id=%s and 
+                ai.state not in ('draft', 'cancel')
+                and ai.doc_type='supplier_invoice' and ail.fright>0 
+                and ai.date_invoice between '%s' and '%s'
+            '''%(product_id, from_date, to_date)
+            cr.execute(sql)
+            si_frt_amt = cr.fetchone()
+            if si_frt_amt:
+                amt_receipt += si_frt_amt[0] 
+            #tpt-end             
+            return amt_opening, amt_receipt   
+        #
+        ##
         def get_opening_stock_value(o):
            date_from = o.date_from
            date_to = o.date_to
@@ -389,6 +535,11 @@ class stock_inward_outward_report(osv.osv_memory):
                    production_value = cr.fetchone()[0]
                    
                opening_stock_value = total_cost-(product_isu_qty)+freight_cost-production_value
+           #end
+           #TPT-BM-ON 02/08/2016
+           #pls call get_frt_cst_amt() method here. and add
+           opening, op = get_frt_cst_amt(product_id.id, date_from, date_to)
+           opening_stock_value += opening
            return opening_stock_value
         
         def get_detail_lines(o):
@@ -424,6 +575,16 @@ class stock_inward_outward_report(osv.osv_memory):
                                             and am.doc_type = 'sup_inv_po' and 
                                             am.date between '%(date_from)s' and '%(date_to)s')
                          )
+                         
+                         or
+                         ( id in (select am.id from account_move am 
+                            inner join account_invoice ai on am.id=ai.move_id
+                            inner join account_invoice_line ail on ai.id=ail.invoice_id
+                            where ail.product_id=%(product_id)s and ai.state not in ('draft', 'cancel') 
+                            and ai.doc_type='supplier_invoice' and ail.fright > 0
+                            and am.date between '%(date_from)s' and '%(date_to)s')
+                         )
+     
 
                          order by date,doc_type = 'grn' desc, doc_type = 'good' desc, doc_type = 'product' desc, id
             '''%{'date_from':date_from,
@@ -434,7 +595,7 @@ class stock_inward_outward_report(osv.osv_memory):
                  'percentage':'%',
                  }
             cr.execute(sql)
-            print sql
+            #print sql
             res1 = cr.dictfetchall()
             sql = '''
             select am.* from account_move am
@@ -776,7 +937,7 @@ class stock_inward_outward_report(osv.osv_memory):
                #TPT-BM-ON 07/07/2016 - TO INCLUDE CST VALUE
                if move_type == 'sup_inv_po':
                    sql = '''
-                       select sum(ail.tpt_tax_amt) as line_net from account_move am 
+                       select case when sum(ail.tpt_tax_amt) !=0 then sum(ail.tpt_tax_amt) else 0  end  as line_net from account_move am 
                         inner join account_invoice ai on am.id=ai.move_id
                         inner join account_invoice_line ail on ai.id=ail.invoice_id
                         inner join account_invoice_line_tax ailt on ail.id=ailt.invoice_line_id
@@ -935,10 +1096,12 @@ class stock_inward_outward_report(osv.osv_memory):
                 return 'Stock Adj - Increase'
             if doc_type == 'stock_adj_dec':
                 return 'Stock Adj - Decrease'
-            if doc_type == 'sup_inv_po':#TPT0-BM-ON-07/07/2016
+            if doc_type == 'sup_inv_po':#TPT-BM-ON-07/07/2016
                 return 'CST Invoice'
         
         def stock_value(o, move_id, doc_type):
+            res_value = 0.0
+            res_value = self.current_transaction_qty*self.current_price_unit or 0.0, "others"
             if doc_type=='freight':
                 self.current_transaction_qty = 1
                 sql = '''
@@ -949,7 +1112,7 @@ class stock_inward_outward_report(osv.osv_memory):
                 cr.execute(sql)
                 for inventory in cr.dictfetchall():
                     avg_cost = inventory['line_net'] or 0
-                    return self.current_transaction_qty*avg_cost or 0.0
+                    res_value = self.current_transaction_qty*avg_cost or 0.0, "others"
             elif doc_type=='sup_inv_po': #TPT-BM-ON 07/07/2015 - cst invoice inclusion
                 self.current_transaction_qty = 1
                 sql = '''
@@ -960,9 +1123,40 @@ class stock_inward_outward_report(osv.osv_memory):
                 cr.execute(sql)
                 for inventory in cr.dictfetchall():
                     avg_cost = inventory['line_net'] or 0
-                    return self.current_transaction_qty*avg_cost or 0.0
-            else:
-                return self.current_transaction_qty*self.current_price_unit or 0.0
+                    if avg_cost>0:
+                        res_value = self.current_transaction_qty*avg_cost or 0.0, "cst_invoice"
+                #TPT-BM-ON 02/08/2016-To include supplier invoice - freight value in report
+                sql = '''
+                    select case when 
+                    SUM(case 
+                    when ail.fright_type='1' then ail.fright*100
+                    when ail.fright_type='2' then ail.fright
+                    when ail.fright_type='3' then ail.fright*ail.quantity
+                    when ail.fright_type is null then ail.fright
+                    else 0 end) >=0
+                    then    
+                    SUM(case 
+                    when ail.fright_type='1' then ail.fright*100
+                    when ail.fright_type='2' then ail.fright
+                    when ail.fright_type='3' then ail.fright*ail.quantity
+                    when ail.fright_type is null then ail.fright
+                    else 0 end)                
+                    else 0 end as frt_amt
+                    from account_invoice ai
+                    inner join account_invoice_line ail on ai.id=ail.invoice_id
+                    where ail.product_id=%s and ai.state not in ('draft', 'cancel')
+                    and ai.doc_type='supplier_invoice' and ail.fright>0 
+                    and ai.move_id=%s 
+                   '''%(o.product_id.id, move_id)
+                cr.execute(sql)
+                #print sql
+                avg_cost = cr.fetchone()[0]
+                if avg_cost>0:                
+                    res_value = avg_cost or 0, "sup_invoice_freight"
+                #
+            #else:
+                #res_value = self.current_transaction_qty*self.current_price_unit or 0.0, "others"
+            return res_value
         
         def qty_physical_inve(o):
             date_from = o.date_from
@@ -1248,7 +1442,7 @@ class stock_inward_outward_report(osv.osv_memory):
                 st_value = cr.dictfetchone()['tong']
             else:
                 price = self.current_price_unit
-                st_value = stock_value(stock, line['id'], line['doc_type'])
+                st_value, doc_flag = stock_value(stock, line['id'], line['doc_type'])
             #TPT-BM-ON 07/07/2016 - To avoid throwing error while st_value is in the type of "None"
             if not isinstance(st_value, (int,float)):
                 st_value = 0.0
@@ -1263,12 +1457,20 @@ class stock_inward_outward_report(osv.osv_memory):
                 closing_qty = trans_qty + self.closing_qty
             self.closing_qty = closing_qty
             self.current = cur
+            #
+            tpt_doc_type = get_doc_type(line['doc_type'])
+            if doc_flag=='cst_invoice':
+                tpt_doc_type = 'CST Invoice'
+            elif doc_flag=='sup_invoice_freight':
+                tpt_doc_type = 'Supplier Invoice - Freight Value'   
+            #
+            
             stock_in_out_line.append((0,0,{
                 'creation_date': get_create_date(line['id'], line['material_issue_id'], line['product_dec'], line['doc_type']),
                 'posting_date': line['date'],
                 'document_no': get_account_move_line(line['id'], line['material_issue_id'], line['product_dec'], line['doc_type']),
                 'gl_document_no': line['name'],
-                'document_type': get_doc_type(line['doc_type']),
+                'document_type': tpt_doc_type,
                 'transaction_quantity': trans_qty, 
                 'closing_quantity': closing_qty,
                 'price_unit': price,

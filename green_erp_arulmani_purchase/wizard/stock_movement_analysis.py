@@ -2153,14 +2153,20 @@ class stock_movement_analysis(osv.osv_memory):
             sql = '''
             select 
                 case when 
-                SUM(case when ail.fright_type='2' then ail.fright
-                when ail.fright_type='3' then ail.fright*ail.quantity
-                else 0 end) >=0
-                then    
-                SUM(case when ail.fright_type='2' then ail.fright
-                when ail.fright_type='3' then ail.fright*ail.quantity
-                else 0 end)                
-                else 0 end as frt_amt
+                    SUM(case 
+                    when ail.fright_type='1' then ail.fright*100
+                    when ail.fright_type='2' then ail.fright
+                    when ail.fright_type='3' then ail.fright*ail.quantity
+                    when ail.fright_type is null then ail.fright
+                    else 0 end) >=0
+                    then    
+                    SUM(case 
+                    when ail.fright_type='1' then ail.fright*100
+                    when ail.fright_type='2' then ail.fright
+                    when ail.fright_type='3' then ail.fright*ail.quantity
+                    when ail.fright_type is null then ail.fright
+                    else 0 end)                
+                    else 0 end as frt_amt
                 from account_invoice ai
                 inner join account_invoice_line ail on ai.id=ail.invoice_id
                 where ail.product_id=%s and 
@@ -2217,14 +2223,20 @@ class stock_movement_analysis(osv.osv_memory):
             sql = '''
             select 
                 case when 
-                SUM(case when ail.fright_type='2' then ail.fright
-                when ail.fright_type='3' then ail.fright*ail.quantity
-                else 0 end) >=0
-                then    
-                SUM(case when ail.fright_type='2' then ail.fright
-                when ail.fright_type='3' then ail.fright*ail.quantity
-                else 0 end)                
-                else 0 end as frt_amt
+                    SUM(case 
+                    when ail.fright_type='1' then ail.fright*100
+                    when ail.fright_type='2' then ail.fright
+                    when ail.fright_type='3' then ail.fright*ail.quantity
+                    when ail.fright_type is null then ail.fright
+                    else 0 end) >=0
+                    then    
+                    SUM(case 
+                    when ail.fright_type='1' then ail.fright*100
+                    when ail.fright_type='2' then ail.fright
+                    when ail.fright_type='3' then ail.fright*ail.quantity
+                    when ail.fright_type is null then ail.fright
+                    else 0 end)                
+                    else 0 end as frt_amt
                 from account_invoice ai
                 inner join account_invoice_line ail on ai.id=ail.invoice_id
                 where ail.product_id=%s and 
@@ -2367,7 +2379,7 @@ class stock_movement_analysis(osv.osv_memory):
                 consum_value = get_consumption_value(stock, line.id)
                 #TPT-BM-ON 07/07/2016 - FOR FREIGHT-CST INCLUSION- enabled on 01/08/2016
                 opening, receipt = get_frt_cst_amt(line.id, stock.date_from, stock.date_to) 
-                open_value += opening
+                open_value += opening 
                 receipt_value += receipt
                 #TPT-END
                 move_analysis_line.append((0,0,{
