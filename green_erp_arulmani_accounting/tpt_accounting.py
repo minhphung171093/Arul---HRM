@@ -563,6 +563,7 @@ class stock_picking(osv.osv):
 #                                         'credit':0,
 #                                          
 #                                        })]
+                temp_flag = False
                 for p in line.move_lines:
                     amount_cer = p.purchase_line_id.price_unit * p.product_qty
                     credit = amount_cer - (amount_cer*p.purchase_line_id.discount)/100
@@ -606,27 +607,30 @@ class stock_picking(osv.osv):
                                 credit += cst_cr_amt
                                 debit += cst_dr_amt
                     #TPT-End
-                    if not p.product_id.product_asset_acc_id:
-                        raise osv.except_osv(_('Warning!'),_('You need to define Product Asset GL Account for this product'))
-                    journal_line.append((0,0,{
-                        'name':line.name + ' - ' + p.product_id.name, 
-                        'account_id': p.product_id.product_asset_acc_id and p.product_id.product_asset_acc_id.id,
-                        'partner_id': line.partner_id and line.partner_id.id or False,
-                        'credit':0,
-                        'debit':debit,
-                        'product_id':p.product_id.id,
-                    }))
-                    
-                    if not p.product_id.purchase_acc_id:
-                        raise osv.except_osv(_('Warning!'),_('You need to define Purchase GL Account for this product'))
-                    journal_line.append((0,0,{
-                        'name':line.name + ' - ' + p.product_id.name, 
-                        'account_id': p.product_id.purchase_acc_id and p.product_id.purchase_acc_id.id,
-                        'partner_id': line.partner_id and line.partner_id.id or False,
-                        'credit':credit,
-                        'debit':0,
-                        'product_id':p.product_id.id,
-                    }))
+                    if p.action_taken!='need':
+                        temp_flag = True
+                        if not p.product_id.product_asset_acc_id:
+                            raise osv.except_osv(_('Warning!'),_('You need to define Product Asset GL Account for this product'))
+                        journal_line.append((0,0,{
+                            'name':line.name + ' - ' + p.product_id.name, 
+                            'account_id': p.product_id.product_asset_acc_id and p.product_id.product_asset_acc_id.id,
+                            'partner_id': line.partner_id and line.partner_id.id or False,
+                            'credit':0,
+                            'debit':debit,
+                            'product_id':p.product_id.id,
+                        }))
+                        
+                        if not p.product_id.purchase_acc_id:
+                            raise osv.except_osv(_('Warning!'),_('You need to define Purchase GL Account for this product'))
+                        journal_line.append((0,0,{
+                            'name':line.name + ' - ' + p.product_id.name, 
+                            'account_id': p.product_id.purchase_acc_id and p.product_id.purchase_acc_id.id,
+                            'partner_id': line.partner_id and line.partner_id.id or False,
+                            'credit':credit,
+                            'debit':0,
+                            'product_id':p.product_id.id,
+                        }))
+                    #
                      
                 value={
                     'journal_id':journal.id,
@@ -638,15 +642,16 @@ class stock_picking(osv.osv):
                     'ref': line.name,
                     'name':name, # added by P.VINOTHKUMAR ON 08/04/2016
                     }
-                new_jour_id = account_move_obj.create(cr,uid,value)
-                auto_ids = self.pool.get('tpt.auto.posting').search(cr, uid, [])
-                if auto_ids:
-                    auto_id = self.pool.get('tpt.auto.posting').browse(cr, uid, auto_ids[0], context=context)
-                    if auto_id.grn:
-                        try:
-                            account_move_obj.button_validate(cr,uid, [new_jour_id], context)
-                        except:
-                            pass
+                if temp_flag is True:
+                    new_jour_id = account_move_obj.create(cr,uid,value)
+                    auto_ids = self.pool.get('tpt.auto.posting').search(cr, uid, [])
+                    if auto_ids:
+                        auto_id = self.pool.get('tpt.auto.posting').browse(cr, uid, auto_ids[0], context=context)
+                        if auto_id.grn:
+                            try:
+                                account_move_obj.button_validate(cr,uid, [new_jour_id], context)
+                            except:
+                                pass
             if 'state' in vals and line.type == 'out' and line.state=='done':
                 debit = 0.0
 #                 so_id = line.sale_id and line.sale_id.id or False

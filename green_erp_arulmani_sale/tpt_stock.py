@@ -428,6 +428,125 @@ class stock_picking(osv.osv):
         res = {}
         inv_type = type
         for picking in self.browse(cr, uid, ids, context=context):
+            #tpt start here
+            if picking.type=='in':
+                journal_line = []
+                date_period = picking.date,
+                #to check period is open or not
+                sql = '''
+                    select id from account_period where special = False and '%s' between date_start and date_stop and special is False
+                 
+                '''%(date_period)
+                cr.execute(sql)
+                period_ids = [r[0] for r in cr.fetchall()]
+                if not period_ids:
+                    raise osv.except_osv(_('Warning!'),_('Period is not null, please configure it in Period master !'))
+                #to get journal id 
+                sql_journal = '''
+                select id from account_journal
+                '''
+                cr.execute(sql_journal)
+                journal_ids = [r[0] for r in cr.fetchall()]
+                journal = self.pool.get('account.journal').browse(cr,uid,journal_ids[0])
+                #for seq generation
+                sql = '''
+                select code from account_fiscalyear where '%s' between date_start and date_stop
+                '''%(time.strftime('%Y-%m-%d'))
+                cr.execute(sql)
+                fiscalyear = cr.dictfetchone()
+                if not fiscalyear:
+                    raise osv.except_osv(_('Warning!'),_('Financial year has not been configured. !'))
+                sequence = self.pool.get('ir.sequence').get(cr, uid, 'grn.posting.account')
+                name = sequence and sequence+'/'+fiscalyear['code'] or '/'
+                temp_flag = False
+                account_move_obj = self.pool.get('account.move')
+                for line in picking.move_lines:
+                    if line.action_taken=='need':
+                        amount_cer = line.purchase_line_id.price_unit * line.product_qty
+                        credit = amount_cer - (amount_cer*line.purchase_line_id.discount)/100
+                        debit = amount_cer - (amount_cer*line.purchase_line_id.discount)/100                    
+                        if line.purchase_line_id and line.purchase_line_id.taxes_id:
+                            description = [r.description for r in line.purchase_line_id.taxes_id]
+                            tax_amounts = [r.amount for r in line.purchase_line_id.taxes_id]
+                            tax_amt = 0
+                            if description:
+                                description = description[0]
+                                if 'CST' in description :
+                                    for tax in tax_amounts:
+                                        tax_amt = tax
+                                    pf_type = line.purchase_line_id.p_f_type
+                                    pf = line.purchase_line_id.p_f
+                                    ed_type = line.purchase_line_id.ed_type
+                                    ed = line.purchase_line_id.ed
+                                    excise_duty = 0.00
+                                    basic = (line.purchase_line_id.product_qty * line.purchase_line_id.price_unit) - ( (line.purchase_line_id.product_qty * line.purchase_line_id.price_unit)*line.purchase_line_id.discount/100)
+                                    if pf_type == '1' :
+                                        p_f = basic * pf/100
+                                    elif pf_type == '2' :
+                                        p_f = pf
+                                    elif pf_type == '3':
+                                        p_f = pf * line.purchase_line_id.product_qty
+                                    else:
+                                        p_f = pf                                
+                                    if ed_type == '1' :
+                                        ed = (basic + p_f) * ed/100
+                                    elif ed_type == '2' :
+                                        ed = ed
+                                    elif ed_type == '3' :
+                                        ed = ed *  line.purchase_line_id.product_qty
+                                    else:
+                                        ed = ed
+                                    excise_duty += ed
+                                    #credit += excise_duty
+                                    cst_cr_amt = (credit + excise_duty + p_f)*tax_amt/100    
+                                    cst_dr_amt = (debit + excise_duty + p_f)*tax_amt/100                                
+                                    credit += cst_cr_amt
+                                    debit += cst_dr_amt
+                        #
+                        if not line.product_id.product_asset_acc_id:
+                            raise osv.except_osv(_('Warning!'),_('You need to define Product Asset GL Account for this product'))
+                        journal_line.append((0,0,{
+                            'name':picking.name + ' - ' + line.product_id.name, 
+                            'account_id': line.product_id.product_asset_acc_id and line.product_id.product_asset_acc_id.id,
+                            'partner_id': picking.partner_id and picking.partner_id.id or False,
+                            'credit':0,
+                            'debit':debit,
+                            'product_id':line.product_id.id,
+                        }))
+                        
+                        if not line.product_id.purchase_acc_id:
+                            raise osv.except_osv(_('Warning!'),_('You need to define Purchase GL Account for this product'))
+                        journal_line.append((0,0,{
+                            'name':picking.name + ' - ' + line.product_id.name, 
+                            'account_id': line.product_id.purchase_acc_id and line.product_id.purchase_acc_id.id,
+                            'partner_id': picking.partner_id and picking.partner_id.id or False,
+                            'credit':credit,
+                            'debit':0,
+                            'product_id':line.product_id.id,
+                        }))
+                        temp_flag = True
+                #
+                if temp_flag is True:
+                    value={
+                        'journal_id':journal.id,
+                        'period_id':period_ids[0] ,
+                        'date': date_period,
+                        'line_id': journal_line,
+                        'doc_type':'grn',
+                        'grn_id':picking.id,
+                        'ref': picking.name,
+                        'name':name, # added by P.VINOTHKUMAR ON 08/04/2016
+                        }
+                    new_jour_id = account_move_obj.create(cr,uid,value)
+                    auto_ids = self.pool.get('tpt.auto.posting').search(cr, uid, [])
+                    if auto_ids:
+                        auto_id = self.pool.get('tpt.auto.posting').browse(cr, uid, auto_ids[0], context=context)
+                        if auto_id.grn:
+                            try:
+                                account_move_obj.button_validate(cr,uid, [new_jour_id], context)
+                            except:
+                                pass
+            #tpt-end here
             if picking.invoice_state != '2binvoiced':
                 continue
             partner = self._get_partner_to_invoice(cr, uid, picking, context=context)
