@@ -3689,11 +3689,51 @@ class tpt_update_stock_move_report(osv.osv):
         return self.write(cr, uid, ids, {'result':'update date grn negative stock file done'})
     
     def goods_auto_posting(self, cr, uid, ids, context=None):
-        move_obj = self.pool.get('account.move')
-        move_ids = move_obj.search(cr, uid, [('state','=','draft'),('doc_type','=','good')])
-        for move_id in move_ids:           
-            move_obj.button_validate(cr,uid, [move_id], context)
-        return self.write(cr, uid, ids, {'result':'Goods Issue Auto Posting Done'})  
+        #=======================================================================
+        # move_obj = self.pool.get('account.move')
+        # move_ids = move_obj.search(cr, uid, [('state','=','draft'),('doc_type','=','good')])
+        # for move_id in move_ids:           
+        #     move_obj.button_validate(cr,uid, [move_id], context)
+        # return self.write(cr, uid, ids, {'result':'Goods Issue Auto Posting Done'})  
+        #=======================================================================
+        print "test"
+        sql = '''
+            select name, prd_id, actual_val, qty_up  from vw_ins
+        '''
+        cr.execute(sql)
+        #seq = 1
+        for line in  cr.dictfetchall():
+            #print seq, line['name'], line['actual_val'],line['qty_up']
+            sql = '''
+            select count(aml.id) from account_move_line aml
+            inner join account_move am on aml.move_id=am.id
+            where aml.ref='%s'
+            and aml.product_id=%s and am.doc_type='grn' and aml.credit>0
+            '''%(line['name'], line['prd_id'])
+            cr.execute(sql)
+            temp = cr.fetchone()[0]
+            if temp>1:
+                print "asdf: ",line['name']
+            else:
+                sql = '''
+                update account_move_line set credit=%s where id=(select aml.id from account_move_line aml
+                inner join account_move am on aml.move_id=am.id
+                where aml.ref='%s'
+                and aml.product_id=%s and am.doc_type='grn' and aml.credit>0)
+                '''%(line['actual_val'], line['name'], line['prd_id'])
+                cr.execute(sql)
+                
+                sql = '''
+                update account_move_line set debit=%s where id=(select aml.id from account_move_line aml
+                inner join account_move am on aml.move_id=am.id
+                where aml.ref='%s'
+                and aml.product_id=%s and am.doc_type='grn' and aml.debit>0)
+                '''%(line['actual_val'], line['name'], line['prd_id'])
+                cr.execute(sql)
+
+                #print seq, line['name'], line['actual_val']    
+            #seq += 1
+        return self.write(cr, uid, ids, {'result':'GRN Done'})  
     def prd_auto_posting(self, cr, uid, ids, context=None):
         #=======================================================================
         # move_obj = self.pool.get('account.move')
