@@ -1356,6 +1356,7 @@ class stock_inward_outward_report(osv.osv_memory):
         qty_chuaro = 0
         price = 0
         st_value = 0.0
+        doc_flag = '' 
         for seq,line in enumerate(get_detail_lines(stock)):
 #             sl_chuaro = get_line_qty_chuaro(stock,line['date'])
             if line['name']=='SUPO/01360/2016':
