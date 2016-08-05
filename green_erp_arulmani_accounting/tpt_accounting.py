@@ -1753,7 +1753,8 @@ class account_invoice(osv.osv):
                         if flag is True:
                             iml += invoice_line_obj.move_line_amount_tax_sbc_14(cr, uid, inv.id)
                             iml += invoice_line_obj.move_line_amount_tax_swachh_bharat_cess_5(cr, uid, inv.id)
-                        elif line.tax_id.description in ['STax 15%']:
+                        # Added by P.vinothkumar on 04/08/2016 for adding krishikalyan-legal,labour    
+                        elif line.tax_id.description in ['STax 15%'] or ['STax 15% for labour (Dr)'] or ['STax 14.5% for Legal (Dr)']:
                             iml += invoice_line_obj.move_line_amount_tax_sbc_14(cr, uid, inv.id)
                             iml += invoice_line_obj.move_line_amount_tax_swachh_bharat_cess_5(cr, uid, inv.id)
                             iml += invoice_line_obj.move_line_amount_tax_krishi_kalyan_cess_5(cr, uid, inv.id)
