@@ -1815,8 +1815,9 @@ class account_invoice(osv.osv):
                     flag = False 
                     flag1 = False
                     inv_id = self.pool.get('account.invoice').browse(cr, uid, inv.id)
-                    for line in inv_id.invoice_line:                            
-                        if line.tax_id and line.tax_id.description=='STax 14.5%':
+                    for line in inv_id.invoice_line:   
+                        # Added by P.vinothkumar on 06/08/2016 condition-STax 14.5% for Legal (Dr):                         
+                        if line.tax_id and line.tax_id.description in ['STax 14.5%', 'STax 14.5% for Legal (Dr)']: 
                             flag=True
 #                         if line.tax_id and line.tax_id.description=='STax 30% of Freight 14.5% (Dr)':
 #                             flag=True                                
@@ -1829,7 +1830,12 @@ class account_invoice(osv.osv):
                     if flag is True:
                         iml += invoice_line_obj.tpt_move_line_amount_tax_14(cr, uid, inv.id)
                         iml += invoice_line_obj.tpt_move_line_amount_tax_5(cr, uid, inv.id)
-                    elif line.tax_id.description in ['STax 15%']:
+                        # Added by P.vinothkumar on 06/08/2016 for legal(14.5%)
+                        if line.tax_id.description == 'STax 14.5% for Legal (Dr)': 
+                            iml += invoice_line_obj.move_line_amount_tax_swachh_bharat_cess_5(cr, uid, inv.id)
+                            #TPT end
+                    # Added by P.vinothkumar on 06/08/2016 for adding krishikalyan legal(14.5%)        
+                    elif line.tax_id.description in ['STax 15%', 'STax 15% for Legal (Dr)']:
                         iml += invoice_line_obj.move_line_amount_tax_sbc_14(cr, uid, inv.id)
                         iml += invoice_line_obj.move_line_amount_tax_swachh_bharat_cess_5(cr, uid, inv.id)
                         iml += invoice_line_obj.move_line_amount_tax_krishi_kalyan_cess_5(cr, uid, inv.id)
@@ -4010,6 +4016,9 @@ class account_invoice_line(osv.osv):
 #                 if line.tax_id and line.tax_id.description=='STax 30% of Freight 14.5% (Cr)':
 #                     tax_value += 14.00/100
 #                     tax_value += tax_value*30/100
+                # Added by P.vinothkumar on 06/08/2016 for adding legal(14.5%)     
+                if line.tax_id and line.tax_id.description=='STax 14.5% for Legal (Dr)':
+                    tax_value += 14.00/100 
 
                     
                 if line.aed_id_1:
