@@ -1365,10 +1365,10 @@ class tpt_material_issue(osv.osv):
                       'location_dest_id':dest_id,
                       'issue_id':line.id,
                       'date':line.date_expec or False,
-                      'price_unit': opening_stock_value or 0,
+                      'price_unit': opening_stock_value or 0,#Average Cost as Unit Price
                       }
                  
-                move_id = move_obj.create(cr,uid,rs)
+                move_id = move_obj.create(cr,uid,rs) #Creating Stock Move Entry
                 # boi vi field price unit tu dong lam tron 2 so thap phan nen phai dung sql de update lai
                 sql = '''
                         update stock_move set price_unit = %s where id = %s

@@ -1258,17 +1258,20 @@ class stock_movement_analysis(osv.osv_memory):
                                               (select id from stock_inventory where to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') between '%s' and '%s' and state = 'done'))))
                                     )foo
                                     
-                            union
-                            
+                            -- TPT-BM-ON 08/08/2016 - UNION REMOVED FROM HERE - PLS REF "get_frt_cst_amt" METHOD
+                
+                    )a
+                            '''%(locat_ids[0],product_id,date_from,date_to,date_from,date_to)
+                            #%(locat_ids[0],product_id,date_from,date_to,date_from,date_to, date_from, date_to, product_id) #old
+                cr.execute(sql)
+                inventory = cr.dictfetchone()
+                '''
+                union                            
                             select 0 as ton_sl, case when sum(ail.line_net)!=0 then sum(ail.line_net) else 0 end as total_cost from account_invoice ai
                 inner join account_invoice_line ail on ai.id=ail.invoice_id
                 where ai.doc_type='freight_invoice' and  ai.date_invoice between '%s' and '%s' 
                 and ail.product_id=%s
-                
-                    )a
-                            '''%(locat_ids[0],product_id,date_from,date_to,date_from,date_to, date_from, date_to, product_id)
-                cr.execute(sql)
-                inventory = cr.dictfetchone()
+                '''
                 #print sql
               # Commented by P.vinothkumar on 31/05/2016
               
@@ -2196,7 +2199,7 @@ class stock_movement_analysis(osv.osv_memory):
             cst_amt1 = cr.fetchone()
             if cst_amt1:
                 amt_receipt += cst_amt1[0]
-            #
+            #click here
             sql = '''
                 select case when 
                 SUM(case when ail.fright_fi_type='2' then ail.fright
@@ -2374,7 +2377,7 @@ class stock_movement_analysis(osv.osv_memory):
                 open_stock = get_opening_stock(stock,line.id)-get_qty_opening_chuaro(stock, line.id)
                 open_value = get_opening_stock_value(stock,line.id)
                 receipt_qty = get_qty(stock,line.id)
-                receipt_value = get_receipt_value(stock,line.id)
+                receipt_value = get_receipt_value(stock,line.id) 
                 consum_qty = get_qty_out(stock,line.id) + get_qty_chuaro(stock,line.id)
                 consum_value = get_consumption_value(stock, line.id)
                 #TPT-BM-ON 07/07/2016 - FOR FREIGHT-CST INCLUSION- enabled on 01/08/2016
