@@ -2385,21 +2385,7 @@ class stock_movement_analysis(osv.osv_memory):
                 open_value += opening 
                 receipt_value += receipt
                 #TPT-END
-                move_analysis_line.append((0,0,{
-                    'item_code': line.default_code,
-                    'item_name': line.name,
-                    'uom':line.uom_id and line.uom_id.name or 0,
-                    'open_stock': open_stock,
-                    'open_value': open_value,
-                    'receipt_qty':receipt_qty,
-                    'receipt_value':receipt_value,
-                    'consum_qty':consum_qty,
-                    'consum_value': consum_value,    
-                    'close_stock':receipt_qty - (consum_qty) + (open_stock) ,
-                    'close_value': open_value + receipt_value - consum_value,  
-                    'product_id': line.id or False,     
-                
-                }))
+                move_analysis_line.append(                 )
         # TPT - ON 07/09/2015 BY BalamuruganPurushothaman - TO FIX PERFORMANCE ISSUE - FOR SPARE MATERIALS
         if stock.categ_id.cate_name=='spares':
             if stock.product_ids:

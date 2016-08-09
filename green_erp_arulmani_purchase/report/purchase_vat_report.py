@@ -158,7 +158,7 @@ class Parser(report_sxw.rml_parse):
         #print sql
         sql = '''
             select av.number as inv_doc, av.date date_invoice, av.reference bill_number, null bill_date, null tax_name,
-                    rs.name supplier, rs.tin tinno,
+                    rs.name supplier, rs.tin tinno,0 as basic_value,
                     null productname, 0 vatbased_qty,0 as vatbased_amt,
                     avl.amount as vat_paid, 0 as paid_amt,
                     null uom, null as grn, null as number,null as rate, null as name, 
@@ -193,7 +193,7 @@ class Parser(report_sxw.rml_parse):
                 'invoicedate': line['invoicedate'] or '',  
                 'rate': line['rate'] or '', 
                 'purchase_value': line['purchase_value'] or 0.00,
-                'basic_value': line['basic_value'] or 0.00, 
+                'basic_value': line['basic_value'] or 0.00, # Add basicvalue on 20/07/2016 by P.Vinothkumar 
                 #'vat_paid': line['vat_paid'] or 0.00,
                 'vat_paid': -line['vat_paid'] if line['type'] == 'cr' else line['vat_paid'] or 0.00,
                 'category': line['category'] or '', 
