@@ -8946,7 +8946,11 @@ class account_move(osv.osv):
         'ed_invoice_id': fields.many2one('tpt.ed.invoice.positing','ED Invoice Posting',ondelete='restrict'),  
         'grn_id': fields.many2one('stock.picking','GRN',ondelete='restrict'),
         'do_id': fields.many2one('stock.picking','DO',ondelete='restrict'), #TPT-BalamuruganPurushothaman
-        'product_dec': fields.many2one('mrp.production','Production',ondelete='restrict'),  
+        'product_dec': fields.many2one('mrp.production','Production',ondelete='restrict'), 
+        'state': fields.selection([('draft','Draft'),('posted','Posted'),
+                                    ('cancel','Cancelled')
+                                   ],
+                                  'Status' ),
                 }
     
     def onchange_tpt_date(self, cr, uid, ids, date=False, context=None):
