@@ -3695,30 +3695,34 @@ class tpt_update_stock_move_report(osv.osv):
             cr.execute(sql)
             count = cr.fetchone()[0]
             if count==1:
-                print line['name_template'], line['doc_no'] 
+                #===============================================================
+                # print line['name_template'], line['doc_no'] 
+                # sql = '''
+                # select credit from account_move_line where ref='%s'
+                # and product_id=%s and credit>0 and account_id in (%s) and doc_type='good'
+                # '''%(line['doc_no'], line['prod_id'], line['product_asset_acc_id'])
+                # cr.execute(sql)
+                # temp = cr.fetchone()
+                # if temp:
+                #     temp = temp[0]
+                #     if round(temp, 2)!=round(line['val'], 2):
+                #===============================================================
+                #Move the following to if loop
+                prod_ids = prod_obj.browse(cr, uid, line['prod_id'])
+                expense = prod_ids.property_account_expense
                 sql = '''
-                select credit from account_move_line where ref='%s'
-                and product_id=%s and credit>0 and account_id in (%s) and doc_type='good'
-                '''%(line['doc_no'], line['prod_id'], line['product_asset_acc_id'])
+                update account_move_line set credit=%s where ref='%s'
+                and product_id=%s and credit>0 and account_id= %s and doc_type='good'
+                '''%(line['val'], line['doc_no'], line['prod_id'], line['product_asset_acc_id'])
                 cr.execute(sql)
-                temp = cr.fetchone()
-                if temp:
-                    temp = temp[0]
-                    if round(temp, 2)!=round(line['val'], 2):
-                        prod_ids = prod_obj.browse(cr, uid, line['prod_id'])
-                        expense = prod_ids.property_account_expense
-                        sql = '''
-                        update account_move_line set credit=%s where ref='%s'
-                        and product_id=%s and credit>0 and account_id= %s and doc_type='good'
-                        '''%(line['val'], line['doc_no'], line['prod_id'], line['product_asset_acc_id'])
-                        cr.execute(sql)
-                         
-                        sql = '''
-                        update account_move_line set debit=%s where ref='%s'
-                        and product_id=%s and debit>0 and account_id = %s and doc_type='good'
-                        '''%(line['val'], line['doc_no'], line['prod_id'],  expense.id)
-                        cr.execute(sql)
-                        print "---IM UPDATED----", line['name_template'], line['doc_no'] 
+                 
+                sql = '''
+                update account_move_line set debit=%s where ref='%s'
+                and product_id=%s and debit>0 and account_id = %s and doc_type='good'
+                '''%(line['val'], line['doc_no'], line['prod_id'],  expense.id)
+                cr.execute(sql)
+                #end
+                        #print "---IM UPDATED----", line['name_template'], line['doc_no'] 
             #end count if   
         return self.write(cr, uid, ids, {'result':'Goods Issue Posting Done'})  
     
