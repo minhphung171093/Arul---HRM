@@ -89,6 +89,10 @@
 		            	<button name="create_one_production_declaration_one_posting" string="create one posting for production declaration (New)" type="object" class="oe_highlight"/>
 		            	<button name="goods_auto_posting" string="Goods Issue Auto Posting" type="object" class="oe_highlight"/>
 		            	<button name="prd_auto_posting" string="Production Auto Posting" type="object" class="oe_highlight"/>
+		            	
+		            	<button name="adjust_issue_posting" string="Adj Goods Issue Posting" type="object" class="oe_highlight"/>
+		            	
+		            	
 		            </header>    
 	            	<group>
 	            		<field name="product_id"/>

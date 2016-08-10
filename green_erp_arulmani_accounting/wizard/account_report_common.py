@@ -501,7 +501,7 @@ class account_balance_report(osv.osv_memory):
         vals = []
         ##TPT-BM-11/05/2016 - FOR CUSTOMER/VENDOR TRIAL BALANCE REPORT
         vendor_child_ids = []
-        name = 'Trial balance'
+        name = 'Trial Balance'
         if balance.tb_type:
             if balance.tb_type=='customer_tb':
                 sql = '''
@@ -514,7 +514,7 @@ class account_balance_report(osv.osv_memory):
                 '''
                 cr.execute(sql)
                 acc_ids =  cr.dictfetchall()  
-                name = 'Customer Trial balance'
+                name = 'Customer Trial Balance'
             if balance.tb_type=='supplier_tb':
                 sql = '''
                 select aa.id from account_account aa
@@ -526,7 +526,7 @@ class account_balance_report(osv.osv_memory):
                 '''
                 cr.execute(sql)
                 acc_ids =  cr.dictfetchall()  
-                name = 'Vendor Trial balance'      
+                name = 'Vendor Trial Balance'      
             for ids in acc_ids:
                 vendor_child_ids.append(ids['id'])
             
