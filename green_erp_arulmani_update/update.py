@@ -3798,7 +3798,7 @@ class tpt_update_stock_move_report(osv.osv):
                 '''%(line.id, line.tax_id and line.tax_id.id)
                 cr.execute(sql)
         return True
-    def adjust_issue_posting(self, cr, uid, ids, context=None):
+    def adjust_issue_posting_raw(self, cr, uid, ids, context=None):
         prod_obj = self.pool.get('product.product')
         sql = '''
         select pp.id as prod_id, pp.name_template, mi.doc_no, sm.product_qty, sm.price_unit, round(sm.product_qty*sm.price_unit,2) as val, 
@@ -3808,7 +3808,7 @@ class tpt_update_stock_move_report(osv.osv):
         inner join product_product pp on sm.product_id=pp.id
         where --sm.product_id=10759 and 
         pp.cate_name='raw' and sm.location_id=15 and sm.state='done' and 
-        sm.date between '2015-04-01' and '2016-08-10' order by mi.doc_no
+        sm.date >= '2015-04-01' order by mi.doc_no
         '''
         cr.execute(sql)
         for line in cr.dictfetchall():
@@ -3850,7 +3850,109 @@ class tpt_update_stock_move_report(osv.osv):
                         #print "---IM UPDATED----", line['name_template'], line['doc_no'] 
             #end count if   
         return self.write(cr, uid, ids, {'result':'Goods Issue Posting Done'})  
-    
+    def adjust_issue_posting_spares_2015(self, cr, uid, ids, context=None):
+        prod_obj = self.pool.get('product.product')
+        sql = '''
+        select pp.id as prod_id, pp.name_template, mi.doc_no, sm.product_qty, sm.price_unit, round(sm.product_qty*sm.price_unit,2) as val, 
+        pp.product_asset_acc_id
+        from stock_move sm
+        inner join tpt_material_issue mi on sm.issue_id=mi.id
+        inner join product_product pp on sm.product_id=pp.id
+        where --sm.product_id=10759 and 
+        pp.cate_name='spares' and sm.location_id=14 and sm.state='done' and 
+        sm.date between '2015-04-01' and '2015-12-31' order by mi.doc_no
+        '''
+        cr.execute(sql)
+        for line in cr.dictfetchall():
+            #print line['prod_id'], line['doc_no']
+            sql = '''
+            select count(*) from account_move_line where ref='%s'
+            and product_id=%s and credit>0 and account_id in (%s) and doc_type='good'
+            '''%(line['doc_no'], line['prod_id'], line['product_asset_acc_id'])
+            cr.execute(sql)
+            count = cr.fetchone()[0]
+            if count==1:
+                #===============================================================
+                # print line['name_template'], line['doc_no'] 
+                # sql = '''
+                # select credit from account_move_line where ref='%s'
+                # and product_id=%s and credit>0 and account_id in (%s) and doc_type='good'
+                # '''%(line['doc_no'], line['prod_id'], line['product_asset_acc_id'])
+                # cr.execute(sql)
+                # temp = cr.fetchone()
+                # if temp:
+                #     temp = temp[0]
+                #     if round(temp, 2)!=round(line['val'], 2):
+                #===============================================================
+                #Move the following to if loop
+                prod_ids = prod_obj.browse(cr, uid, line['prod_id'])
+                expense = prod_ids.property_account_expense
+                sql = '''
+                update account_move_line set credit=%s where ref='%s'
+                and product_id=%s and credit>0 and account_id= %s and doc_type='good'
+                '''%(line['val'], line['doc_no'], line['prod_id'], line['product_asset_acc_id'])
+                cr.execute(sql)
+                 
+                sql = '''
+                update account_move_line set debit=%s where ref='%s'
+                and product_id=%s and debit>0 and account_id = %s and doc_type='good'
+                '''%(line['val'], line['doc_no'], line['prod_id'],  expense.id)
+                cr.execute(sql)
+                #end
+                print "---IM UPDATED----", line['name_template'], line['doc_no'], line['val'] 
+            #end count if   
+        return self.write(cr, uid, ids, {'result':'Goods Issue Posting Done'})  
+    def adjust_issue_posting_spares_2016(self, cr, uid, ids, context=None):
+        prod_obj = self.pool.get('product.product')
+        sql = '''
+        select pp.id as prod_id, pp.name_template, mi.doc_no, sm.product_qty, sm.price_unit, round(sm.product_qty*sm.price_unit,2) as val, 
+        pp.product_asset_acc_id
+        from stock_move sm
+        inner join tpt_material_issue mi on sm.issue_id=mi.id
+        inner join product_product pp on sm.product_id=pp.id
+        where --sm.product_id=10759 and 
+        pp.cate_name='spares' and sm.location_id=14 and sm.state='done' and 
+        sm.date >= '2016-01-01' order by mi.doc_no
+        '''
+        cr.execute(sql)
+        for line in cr.dictfetchall():
+            #print line['prod_id'], line['doc_no']
+            sql = '''
+            select count(*) from account_move_line where ref='%s'
+            and product_id=%s and credit>0 and account_id in (%s) and doc_type='good'
+            '''%(line['doc_no'], line['prod_id'], line['product_asset_acc_id'])
+            cr.execute(sql)
+            count = cr.fetchone()[0]
+            if count==1:
+                #print line['name_template'], line['doc_no'] 
+                sql = '''
+                select credit from account_move_line where ref='%s'
+                and product_id=%s and credit>0 and account_id in (%s) and doc_type='good'
+                '''%(line['doc_no'], line['prod_id'], line['product_asset_acc_id'])
+                cr.execute(sql)
+                temp = cr.fetchone()
+                if temp:
+                    temp = temp[0]
+                    if line['val']>0 and round(temp, 2)!=round(line['val'], 2):
+                        print "---IM UPDATED----", line['name_template'], line['doc_no'], line['val']
+                #Move the following to if loop
+                        prod_ids = prod_obj.browse(cr, uid, line['prod_id'])
+                        expense = prod_ids.property_account_expense
+                        sql = '''
+                        update account_move_line set credit=%s where ref='%s'
+                        and product_id=%s and credit>0 and account_id= %s and doc_type='good'
+                        '''%(line['val'], line['doc_no'], line['prod_id'], line['product_asset_acc_id'])
+                        cr.execute(sql)
+                          
+                        sql = '''
+                        update account_move_line set debit=%s where ref='%s'
+                        and product_id=%s and debit>0 and account_id = %s and doc_type='good'
+                        '''%(line['val'], line['doc_no'], line['prod_id'],  expense.id)
+                        cr.execute(sql)
+                #end
+                #
+            #end count if   
+        return self.write(cr, uid, ids, {'result':'Goods Issue Posting Done'})  
     def config_GRN_3451_3883(self, cr, uid, ids, context=None):
          
         aa_obj = self.pool.get('account.account')   
