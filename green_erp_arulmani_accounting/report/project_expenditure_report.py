@@ -76,7 +76,7 @@ class Parser(report_sxw.rml_parse):
         date_to=wizard_data['date_to'] 
         project_id=wizard_data['project_id']
         proj_obj=self.pool.get('tpt.project')
-        # Script modified by P.vinothkumar on 10/08/2016 for issue_amount issue   
+        # Script modified by P.vinothkumar on 10/08/2016 for issue_amount issue-  "and product_id=mil.product_id " is added
         sql = '''
         select a.default_code as m_code, a.project,a.section, a.name_template as material_name, sum(a.product_isu_qty) as IssueQty,
         a.UOM, sum(a.amount) as IssueAmt
