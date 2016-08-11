@@ -61,6 +61,7 @@ class tpt_account_balance_report(osv.osv_memory):
         'tb_type': fields.selection([('tb', 'Trial Balance'),
                                      ('customer_tb', 'Customer Trial Balance'),
                                      ('supplier_tb', 'Supplier Trial Balance'),
+                                     ('summary_tb', 'Summary Trial Balance'),# Added by P.vinothkumar on 10/08/2016
                                         ], 'Type'),
     }
     
@@ -112,6 +113,7 @@ class account_balance_report(osv.osv_memory):
         'tb_type': fields.selection([#('tb', 'Trial Balance'),
                                      ('customer_tb', 'Customer Trial Balance'),
                                      ('supplier_tb', 'Vendor Trial Balance'),
+                                     ('summary_tb', 'Summary Trial Balance')  # added by P.vinothkumar on 10/08/2016
                                         ], 'Type'), 
         'target_move': fields.selection([('posted', 'All Posted Entries'),
                                         ], 'Target Moves', required=True),
@@ -526,27 +528,126 @@ class account_balance_report(osv.osv_memory):
                 '''
                 cr.execute(sql)
                 acc_ids =  cr.dictfetchall()  
-                name = 'Vendor Trial Balance'      
-            for ids in acc_ids:
-                vendor_child_ids.append(ids['id'])
-            
-        ##
-        values = lines(balance,get_account(balance), vendor_child_ids,context) #TPT-BM-11/05/2016- vendor_child_ids AS NEW PARAM
-        values = sorted(values, key=getKey)
-               
-        for line in values:
-            #if  line['id']  not in  vendor_child_ids:
-            balance_line.append((0,0,{
-                'code': line['code'],
-                'account': line['name'],
-                'open_debit': line['open_debit'],
-                'open_credit': line['open_credit'],
-                'debit': line['debit'],
-                'credit': line['credit'],
-                'close_bal': line['balance'],
-                'close_debit': line['balance_debit'], #TPT-Y Commented on 05Nov2015 # TPT-BM-Enabled ON 06/05/2016
-                'close_credit': line['balance_credit'], #TPT-Y Commented on 05Nov2015 # TPT-BM-Enabled ON 06/05/2016                
-            }))
+                name = 'Vendor Trial Balance'  
+            # Added by P.vinothkumar on 10/08/2016 for adding summary trial balance type     
+            if balance.tb_type=='summary_tb':
+                sql = '''
+                select aa.code, aa.name,
+                (select case when sum(debit) is null then 0.00 else sum(debit) end as debit 
+                from account_move_line aml join account_move am on am.id=aml.move_id where account_id in 
+                (select id from account_account where parent_id=aa.id) and am.date between '%(date_from)s' and '%(date_to)s') as debit,
+                (select case when sum(credit) is null then 0.00 else sum(credit) end as credit
+                from account_move_line aml join account_move am on am.id=aml.move_id where account_id in 
+                (select id from account_account where parent_id=aa.id) and am.date between '%(date_from)s' and '%(date_to)s') as credit,
+                (select case when sum(debit) is null then 0.00 else sum(debit) end as open_debit from account_move_line aml join account_move am on am.id=aml.move_id where account_id in 
+                (select id from account_account where parent_id=aa.id) and am.date < '%(date_from)s') as open_debit,
+                (select case when sum(credit) is null then 0.00 else sum(credit) end as open_credit from account_move_line aml join account_move am on am.id=aml.move_id where account_id in 
+                (select id from account_account where parent_id=aa.id) and am.date < '%(date_from)s') as open_credit
+                from account_account aa where aa.id in (select parent_id from account_account group by parent_id) order by aa.id;
+                ''' %{'date_from':balance.date_from,
+                      'date_to':balance.date_to,
+                        }
+                cr.execute(sql)
+                account_ids =  cr.dictfetchall()
+                #account_ids = sorted(account_ids)
+                #print sql
+                #name = 'Summary Trial balance'
+                for line in account_ids:
+                    
+                    debit = line['debit']
+                    credit = line['credit']
+                    sql = '''
+                    select count(*) from account_account  where 
+                    parent_id=(select id from account_account where code='%s') and type='view'
+                    '''%line['code']
+                    cr.execute(sql)
+                    temp = cr.fetchone()[0] 
+                    if temp > 0:
+                        sql = '''
+                        select sum(foo.debit) as debit,sum(foo.credit) as credit from
+                        (
+                        select 
+                         (select case when sum(debit) is null then 0.00 else sum(debit) end as debit
+                         from account_move_line aml join account_move am on am.id=aml.move_id where account_id in 
+                         (select id from account_account where parent_id=aa.id) and am.date between '%(date_from)s' and '%(date_to)s') as debit,
+                        (select case when sum(credit) is null then 0.00 else sum(credit) end as credit
+                         from account_move_line aml join account_move am on am.id=aml.move_id where account_id in 
+                         (select id from account_account where parent_id=aa.id) and am.date between '%(date_from)s' and '%(date_to)s') as credit
+                         from account_account aa where aa.parent_id=(select id from account_account where code='%(code)s'))foo
+                        '''%{'date_from':balance.date_from,
+                             'date_to':balance.date_to,
+                             'code': line['code']
+                        }
+                        cr.execute(sql)
+                        for account in cr.dictfetchall():
+                            temp_dr = account['debit']
+                            temp_cr = account['credit']
+                        debit = temp_dr
+                        credit = temp_cr
+                        close_debit = (line['open_debit'] + debit)
+                        close_credit = (line['open_credit'] + credit)
+                        total_balance = (line['open_debit'] + debit)-(line['open_credit'] + credit)
+                        
+                    else:
+                        debit = line['debit']
+                        credit = line['credit']
+                        close_debit = (line['open_debit'] + line['debit']) 
+                        close_credit = (line['open_credit'] + line['credit'])
+                        total_balance =  (line['open_debit'] + line['debit'])-(line['open_credit'] + line['credit'])
+                 
+                    code = line['code']
+                    name = line['name']   
+                    if len(line['code'])==2:
+                        code = '  '+line['code']
+                        name = '  '+line['name']
+                    if len(line['code'])==3:
+                        code = '    '+line['code']
+                        name = '    '+line['name']
+                    if len(line['code'])==4:
+                        code = '      '+line['code']
+                        name = '      '+line['name']
+                    if len(line['code'])==5:
+                        code = '        '+line['code']
+                        name = '        '+line['name']
+                    if len(line['code'])==10:
+                        code = '          '+line['code']
+                        name = '          '+line['name']
+                    
+                    balance_line.append((0,0,{
+                    'code': code,
+                    'account': name,
+                    'open_debit': line['open_debit'],
+                    'open_credit': line['open_credit'],
+                    'debit': debit,
+                    'credit': credit,
+                    'close_bal': total_balance,
+                    'close_debit': close_debit,
+                    'close_credit': close_credit
+                     }))
+                name = 'Summary Trial balance'    
+                
+                if balance.tb_type != 'summary_tb':    
+                    for ids in acc_ids:
+                        vendor_child_ids.append(ids['id'])
+                        
+        if balance.tb_type != 'summary_tb' or not balance.tb_type:
+            values = lines(balance,get_account(balance), vendor_child_ids,context) #TPT-BM-11/05/2016- vendor_child_ids AS NEW PARAM
+            values = sorted(values, key=getKey)
+        
+                   
+            for line in values:
+                #if  line['id']  not in  vendor_child_ids:
+                balance_line.append((0,0,{
+                    'code': line['code'],
+                    'account': line['name'],
+                    'open_debit': line['open_debit'],
+                    'open_credit': line['open_credit'],
+                    'debit': line['debit'],
+                    'credit': line['credit'],
+                    'close_bal': line['balance'],
+                    'close_debit': line['balance_debit'], #TPT-Y Commented on 05Nov2015 # TPT-BM-Enabled ON 06/05/2016
+                    'close_credit': line['balance_credit'], #TPT-Y Commented on 05Nov2015 # TPT-BM-Enabled ON 06/05/2016                
+                }))
 #             balance_line.append((0,0,{
 #                 'open_debit': get_total(lines(balance,get_account(balance),context),'open_debit'),
 #                 'open_credit': get_total(lines(balance,get_account(balance),context),'open_credit'),

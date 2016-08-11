@@ -76,12 +76,12 @@ class Parser(report_sxw.rml_parse):
         date_to=wizard_data['date_to'] 
         project_id=wizard_data['project_id']
         proj_obj=self.pool.get('tpt.project')
-          
+        # Script modified by P.vinothkumar on 10/08/2016 for issue_amount issue   
         sql = '''
         select a.default_code as m_code, a.project,a.section, a.name_template as material_name, sum(a.product_isu_qty) as IssueQty,
         a.UOM, sum(a.amount) as IssueAmt
         from (select p.default_code,p.name_template,mil.product_isu_qty, uom.name as UOM,
-        (select sum(credit) from account_move_line where move_id=am.id and credit>0) as Amount,
+        (select sum(credit) from account_move_line where move_id=am.id and product_id=mil.product_id and credit>0) as Amount,
         mi.doc_no, hs.name as section, tp.name as Project
         from tpt_material_issue_line mil
         inner join tpt_material_issue mi on (mil.material_issue_id=mi.id)

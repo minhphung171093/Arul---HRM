@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+	   	 <record id="tpt_view_asset_master_form" model="ir.ui.view">
+            <field name="name">tpt.account.asset.form</field>
+            <field name="model">account.asset.asset</field>
+            <field name="inherit_id" ref="account_asset.view_account_asset_asset_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='partner_id']" position="before" >
+                		<field name="blanket_id" on_change="onchange_blanket_id(blanket_id)" 
+                		domain="[('blank_order_line','!=',False), ('state','=','approve')]" 
+                		options="{'create': false, 'create_edit': false}" 
+                		attrs="{'invisible': [('document_type','=','return')], 'required':[('document_type','=','saleorder')]}"
+                		/>
+                		<field name="blanket_line_id" domain="[('blanket_order_id','=',blanket_id)]" 
+                		options="{'create': false, 'create_edit': false}" 
+                		on_change="onchange_blanketorderline_id(blanket_line_id)" 
+                		context="{'search_blanket_line':1,'blanket_id':blanket_id}"
+                		attrs="{'invisible': [('document_type','=','return')], 'required':[('document_type','=','saleorder')]}"
+                		/>
+                		</xpath>
+                		<xpath expr="//field[@name='partner_id']" position="after" >
+                		<field name="invoice_address" readonly='1' placeholder="Street..."/>
+                		<field name="street2" readonly='1'/>
+                		<field name="street3" readonly='1'/>
+                		<field name="city" readonly='1' placeholder="City"/>
+                		<field name="country_id" readonly='1' placeholder="Country" options="{'create': false, 'create_edit': false}"/>
+                		<field name="state_id" readonly='1' placeholder="State" options="{'create': false, 'create_edit': false}"/>
+                		<field name="zip" readonly='1' placeholder="ZIP"/> 
+                		<field name="document_type" /> 
+                		<field name="payment_term_id" readonly='1' options="{'create': false, 'create_edit': false}"
+                		attrs="{'invisible': [('document_type','=','return')], 'required':[('document_type','=','saleorder')]}"/>
+                		<field name="incoterms_id" readonly='1' options="{'create': false, 'create_edit': false}" 
+                		attrs="{'invisible': [('document_type','=','return')]}"/>
+	        			<field name="create_uid" />
+						<field name="create_date" />
+	        	</xpath>
+				
+				
+	       	</field>
+        </record>
+
+    </data>
+</openerp>
