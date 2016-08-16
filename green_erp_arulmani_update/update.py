@@ -3899,7 +3899,7 @@ class tpt_update_stock_move_report(osv.osv):
                 '''%(line['val'], line['doc_no'], line['prod_id'],  expense.id)
                 cr.execute(sql)
                 #end
-                print "---IM UPDATED----", line['name_template'], line['doc_no'], line['val'] 
+                #print "---IM UPDATED----", line['name_template'], line['doc_no'], line['val'] 
             #end count if   
         return self.write(cr, uid, ids, {'result':'Goods Issue Posting Done'})  
     def adjust_issue_posting_spares_2016(self, cr, uid, ids, context=None):
