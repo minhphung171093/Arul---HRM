@@ -94,7 +94,7 @@ class lwf_deduction_wizard(osv.osv_memory):
             screen_line.append((0,0,{
                 'sequence': seq+1,
                 'emp_code': line['code'],
-                'emp_name': line['name']+' '+line['last_name'],
+                'emp_name': (line['name'] or '')+' '+(line['last_name'] or ''),
                 'employee_share': employee_share,
                 'employer_share': employer_share,
             }))
