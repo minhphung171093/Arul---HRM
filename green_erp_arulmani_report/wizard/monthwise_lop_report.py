@@ -56,10 +56,9 @@ class monthwise_lop_wizard(osv.osv_memory):
             if data_dict.get(line['employee_id'], False):
                 if data_dict[line['employee_id']].get(line['month'], False):
                     data_dict[line['employee_id']][line['month']] += line['days']
-                    data_dict[line['employee_id']]['total'] += line['days']
                 else:
                     data_dict[line['employee_id']][line['month']] = line['days']
-                    data_dict[line['employee_id']]['total'] = line['days']
+                data_dict[line['employee_id']]['total'] += line['days']
             else:
                 data = line
                 data.update({line['month']: line['days'], 'total': line['days']})
