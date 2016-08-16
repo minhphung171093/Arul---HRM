@@ -52,8 +52,8 @@ class lwf_deduction_wizard(osv.osv_memory):
             group by emp.id, emp.employee_id, rr.name, emp.last_name
         '''
         cr.execute(sql)
-#         for seq,line in enumerate(cr.dictfetchall()):
-        for seq,line in enumerate([{'id': 1, 'code': '1234', 'name': 'Admin', 'last_name': 'T'}]):
+        for seq,line in enumerate(cr.dictfetchall()):
+#         for seq,line in enumerate([{'id': 1, 'code': '1234', 'name': 'Admin', 'last_name': 'T'}]):
             emp = emp_obj.browse(cr, uid, line['id'])
             employee_share = 0
             employer_share = 0
