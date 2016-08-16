@@ -3708,23 +3708,23 @@ class tpt_update_stock_move_report(osv.osv):
                 #     if round(temp, 2)!=round(line['val'], 2):
                 #===============================================================
                 #Move the following to if loop
-#                 prod_ids = prod_obj.browse(cr, uid, line['prod_id'])
-#                 expense = prod_ids.property_account_expense
-#                 sql = '''
-#                 update account_move_line set credit=%s where ref='%s'
-#                 and product_id=%s and credit>0 and account_id= %s and doc_type='good'
-#                 '''%(line['val'], line['doc_no'], line['prod_id'], line['product_asset_acc_id'])
-#                 cr.execute(sql)
-#                  
-#                 sql = '''
-#                 update account_move_line set debit=%s where ref='%s'
-#                 and product_id=%s and debit>0 and account_id = %s and doc_type='good'
-#                 '''%(line['val'], line['doc_no'], line['prod_id'],  expense.id)
-#                 cr.execute(sql)
+                prod_ids = prod_obj.browse(cr, uid, line['prod_id'])
+                expense = prod_ids.property_account_expense
+                sql = '''
+                update account_move_line set credit=%s where ref='%s'
+                and product_id=%s and credit>0 and account_id= %s and doc_type='good'
+                '''%(line['val'], line['doc_no'], line['prod_id'], line['product_asset_acc_id'])
+                cr.execute(sql)
+                  
+                sql = '''
+                update account_move_line set debit=%s where ref='%s'
+                and product_id=%s and debit>0 and account_id = %s and doc_type='good'
+                '''%(line['val'], line['doc_no'], line['prod_id'],  expense.id)
+                cr.execute(sql)
                 #end
-                  print "---IM UPDATED----", line['name_template'], line['doc_no'] 
+                print "---IM UPDATED----", line['name_template'], line['doc_no'] 
             #end count if   
-        return self.write(cr, uid, ids, {'result':'Goods Issue Posting Done'})  
+        return self.write(cr, uid, ids, {'result':'adjust_issue_posting_raw'})  
     def adjust_issue_posting_spares_2015(self, cr, uid, ids, context=None):
         prod_obj = self.pool.get('product.product')
         sql = '''
@@ -3975,7 +3975,7 @@ class tpt_update_stock_move_report(osv.osv):
         inspec_obj = self.pool.get('tpt.quanlity.inspection')
         picking_obj = self.pool.get('stock.picking')
         move_obj = self.pool.get('account.move')
-        for grn in ['VVTI/GRN/012944/2016']:#['VVTi/GRN/010906/2016']:#['VVTi/GRN/00010161']:#['VVTi/GRN/00010472']:# ['VVTi/GRN/00007438']:#['VVTi/GRN/00004321']:  #['VVTi/GRN/00003451','VVTi/GRN/00003883']
+        for grn in ['VVTI/GRN/013809/2016']:#['VVTI/GRN/012944/2016']:#['VVTi/GRN/010906/2016']:#['VVTi/GRN/00010161']:#['VVTi/GRN/00010472']:# ['VVTi/GRN/00007438']:#['VVTi/GRN/00004321']:  #['VVTi/GRN/00003451','VVTi/GRN/00003883']
             sql = '''
                 select id from stock_picking where name = '%s'
             '''%(grn)

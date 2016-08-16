@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+    <!--Asset Master  -->
+	   	 <record id="tpt_view_asset_master_form" model="ir.ui.view">
+            <field name="name">tpt.asset.asset.form</field>
+            <field name="model">asset.asset</field>
+            <field name="inherit_id" ref="asset.assets_form_view"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='user_id']" position="after" >
+                	<field name="category_id"  required='1'
+                		options="{'create': false, 'create_edit': false}" />  
+                		
+                	<field name="product_id"  required='1'
+                		domain="[('cate_name','=', 'assets')]" 
+                		options="{'create': false, 'create_edit': false}" />  		
+	        	</xpath>
+	        	<xpath expr="//field[@name='asset_number']" position="attributes">
+					<attribute name='readonly'>1</attribute>
+				</xpath>
+				
+				
+	       	</field>
+        </record>
+        <!-- Category screen -->
+        <record id="tpt_view_asset_category_form" model="ir.ui.view">
+            <field name="name">tpt.account.asset.category.form</field>
+            <field name="model">account.asset.category</field>
+            <field name="inherit_id" ref="account_asset.view_account_asset_category_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='name']" position="before" >
+                        <field name="code"  required='1' readonly='1'/>
+                </xpath>
+				</field>
+        </record>
+        
+        
+
+	<menuitem name="Asset"
+            id="base.menu_mro_root"
+            sequence="80"/>
+   
+    
+    <!-- Start Depreciation Posting  -->
+    <record id="tpt_asset_depreciation_tree" model="ir.ui.view">
+            <field name="name">tpt.asset.depreciation.tree</field>
+            <field name="model">tpt.asset.depreciation</field>
+            <field name="arch" type="xml">
+                <tree string="Asset Depreciation Posting">
+                	<field name="name"/>
+                    <field name="date_from"/>
+                    <field name="date_to"/>
+                    <!--<field name="state"/>-->
+                </tree>
+            </field>
+        </record>
+        
+        <record id="tpt_asset_depreciation_form" model="ir.ui.view">
+            <field name="name">tpt.asset.depreciation.form</field>
+            <field name="model">tpt.asset.depreciation</field>
+            <field name="arch" type="xml">
+                <form string="Asset Depreciation Posting" version="7.0">
+                  <header>
+                  	  <button name="bt_load" string="Load" type='object' class="oe_highlight"/>
+                      <button name="bt_confirm" string="Post All" type='object' class="oe_highlight"/>
+                      
+                      <!--<field name="state" widget="statusbar" statusbar_visible="draft,done"/>-->
+                  </header>
+                  <sheet>
+                  <div class="oe_text_center oe_bold">
+        				<h2>Asset Depreciation Posting</h2>
+        		</div>
+                    <group col="4" colspan="4">      
+                    	          
+                    	<field name="date_from"/>
+                    	<field name="date_to"/>
+                    </group>
+                    <notebook colspan="4">
+                        <page>
+                        	<div col='4' colspan='4'>
+	                            <field name="depreciation_line" string="Depreciation Board">
+	                                <tree string="Depreciation Board" create='false' delete='false' editable="bottom">
+	                                	<field name="asset_id" readonly='1'/>
+	                                	<field name="category_id" readonly='1'/>
+	                                	<field name="gross_value" readonly='1'/>
+	                                	<field name="caps_date" readonly='1'/>
+	                                	<field name="depreciation_date" readonly='1'/>
+	                                	<field name="amount" readonly='1'/>
+	                                	<field name="move_check" readonly='1'/>
+	                                    <button name="create_move" attrs="{'invisible':[('move_check','!=',False)]}" icon="gtk-execute" string="Create Move" type="object"/>
+	                                </tree>
+	                            </field>
+                            </div>
+                        </page>
+                    </notebook>
+                  </sheet>
+                </form>
+            </field>
+        </record>
+          
+       <record id="action_tpt_bank_reconciliation" model="ir.actions.act_window">
+            <field name="name">Asset Depreciation Posting</field>
+            <field name="res_model">tpt.asset.depreciation</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form,graph</field>
+            <field name="view_id" eval="tpt_asset_depreciation_tree"/>
+        </record>
+        
+        
+            
+            <menuitem name="Assets Depreciation"
+            id="tpt_menu_maintenance_assets"
+            parent="base.menu_mro_root"
+            sequence="10"/>
+            
+             <menuitem name="Assets Depreciation Posting"
+            action="action_tpt_bank_reconciliation"
+            id="tpt_menu_maintenance_assets_assets"
+            parent="tpt_menu_maintenance_assets"
+            sequence="100"/>
+            
+            <!-- 
+            
+            <menuitem action="action_tpt_bank_reconciliation"
+            id="menu_action_tpt_bank_reconciliation"
+            parent="base.menu_mro_root" sequence="25"/>
+            
+            
+            <menuitem name="Assets"
+            id="menu_maintenance_assets"
+            parent="base.menu_mro_root"
+            sequence="9"/>
+            
+             <menuitem name="Assets"
+            action="action_assets"
+            id="menu_maintenance_assets_assets"
+            parent="menu_maintenance_assets"
+            sequence="100"/>
+            
+             -->
+            
+            
+    <!-- End -->
+     </data>
+</openerp>

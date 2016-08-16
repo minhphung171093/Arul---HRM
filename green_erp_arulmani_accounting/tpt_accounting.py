@@ -397,7 +397,8 @@ class account_move_line(osv.osv):
                                   ('worker_payroll', 'Workers Payroll'),
                                   ('stock_adj_inc', 'Stock Adjustment Increase'),
                                   ('stock_adj_dec', 'Stock Adjustment Decrease'),
-                                  ('return_do', 'Return DO')
+                                  ('return_do', 'Return DO'),
+                                  ('asset_dp', 'Asset Depreciation'),#TPT-BM- ON13/08/2016
                                   ], string="Document Type", readonly=True, select=True),
     }
     
@@ -8941,6 +8942,7 @@ class account_move(osv.osv):
                                   ('stock_adj_inc', 'Stock Adjustment Increase'),
                                   ('stock_adj_dec', 'Stock Adjustment Decrease'),
                                   ('return_do', 'Return DO'), #TPT-BM-01/07/2016
+                                  ('asset_dp', 'Asset Depreciation'),#TPT-BM- ON13/08/2016
                                   ],
                                         'Document Type'),  
         'material_issue_id': fields.many2one('tpt.material.issue','Material Issue',ondelete='restrict'), 

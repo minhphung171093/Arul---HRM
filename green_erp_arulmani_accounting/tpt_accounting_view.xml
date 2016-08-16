@@ -2557,27 +2557,28 @@
 	            <data>
                     <xpath expr="//field[@name='period_id']" position="after">
                     	<separator/>
-                    	<filter icon="terp-gtk-jump-to-ltr" string="Customer Invoice" domain="[('doc_type','=','cus_inv')]"/>
-                    	<filter icon="terp-gtk-jump-to-ltr" string="Customer Payment" domain="[('doc_type','=','cus_pay')]"/>
-                    	<filter icon="terp-gtk-jump-to-ltr" string="Supplier Invoice(With PO)" domain="[('doc_type','=','sup_inv_po')]"/>
-                    	<filter icon="terp-gtk-jump-to-ltr" string="Supplier Invoice(Without PO)" domain="[('doc_type','=','sup_inv')]"/>
-                    	<filter icon="terp-gtk-jump-to-ltr" string="Supplier Payment" domain="[('doc_type','=','sup_pay')]"/>
-                    	<filter icon="terp-gtk-jump-to-ltr" string="Payroll for Executives" domain="[('doc_type','=','payroll')]"/>
-                    	<filter icon="terp-gtk-jump-to-ltr" string="Payroll for Staff" domain="[('doc_type','=','staff_payroll')]"/>
-                    	<filter icon="terp-gtk-jump-to-ltr" string="Payroll for Workers" domain="[('doc_type','=','worker_payroll')]"/>
-                    	<filter icon="terp-gtk-jump-to-ltr" string="GRN" domain="[('doc_type','=','grn')]"/>
-                    	<filter icon="terp-gtk-jump-to-ltr" string="Good Issue" domain="[('doc_type','=','good')]"/>
-                    	<filter icon="terp-gtk-jump-to-ltr" string="DO" domain="[('doc_type','=','do')]"/>
-                    	<filter icon="terp-gtk-jump-to-ltr" string="Inventory Transfer" domain="[('doc_type','=','inventory')]"/>
-                    	<filter icon="terp-gtk-jump-to-ltr" string="Manual Journal" domain="[('doc_type','=','manual')]"/>
-                    	<filter icon="terp-gtk-jump-to-ltr" string="Cash Payment" domain="[('doc_type','=','cash_pay')]"/>
-                    	<filter icon="terp-gtk-jump-to-ltr" string="Cash Receipt" domain="[('doc_type','=','cash_rec')]"/>
+                    	<filter icon="terp-gtk-jump-to-ltr" string="Asset Depreciation" domain="[('doc_type','=','asset_dp')]"/>
                     	<filter icon="terp-gtk-jump-to-ltr" string="Bank Payment" domain="[('doc_type','=','bank_pay')]"/>
                     	<filter icon="terp-gtk-jump-to-ltr" string="Bank Receipt" domain="[('doc_type','=','bank_rec')]"/>
+                    	<filter icon="terp-gtk-jump-to-ltr" string="Customer Invoice" domain="[('doc_type','=','cus_inv')]"/>
+                    	<filter icon="terp-gtk-jump-to-ltr" string="Customer Payment" domain="[('doc_type','=','cus_pay')]"/>
+                    	<filter icon="terp-gtk-jump-to-ltr" string="Cash Payment" domain="[('doc_type','=','cash_pay')]"/>
+                    	<filter icon="terp-gtk-jump-to-ltr" string="Cash Receipt" domain="[('doc_type','=','cash_rec')]"/>
+                    	<filter icon="terp-gtk-jump-to-ltr" string="Delivery Order" domain="[('doc_type','=','do')]"/>
                     	<filter icon="terp-gtk-jump-to-ltr" string="Freight Invoice" domain="[('doc_type','=','freight')]"/>
+                    	<filter icon="terp-gtk-jump-to-ltr" string="GRN" domain="[('doc_type','=','grn')]"/>
+                    	<filter icon="terp-gtk-jump-to-ltr" string="Good Issue" domain="[('doc_type','=','good')]"/>
+                    	<filter icon="terp-gtk-jump-to-ltr" string="Inventory Transfer" domain="[('doc_type','=','inventory')]"/>
+                    	<filter icon="terp-gtk-jump-to-ltr" string="Manual Journal" domain="[('doc_type','=','manual')]"/>
+                    	<filter icon="terp-gtk-jump-to-ltr" string="Payroll for Executives" domain="[('doc_type','=','payroll')]"/>
+                    	<filter icon="terp-gtk-jump-to-ltr" string="Payroll for Staff" domain="[('doc_type','=','staff_payroll')]"/>
+                    	<filter icon="terp-gtk-jump-to-ltr" string="Payroll for Workers" domain="[('doc_type','=','worker_payroll')]"/>                    	
                     	<filter icon="terp-gtk-jump-to-ltr" string="Production" domain="[('doc_type','=','product')]"/>
-                    	<filter icon="terp-gtk-jump-to-ltr" string="Stock Adjustment - Increase" domain="[('doc_type','=','stock_adj_inc')]"/>
-                    	<filter icon="terp-gtk-jump-to-ltr" string="Stock Adjustment - Decrease" domain="[('doc_type','=','stock_adj_dec')]"/>
+                    	<filter icon="terp-gtk-jump-to-ltr" string="Supplier Invoice(With PO)" domain="[('doc_type','=','sup_inv_po')]"/>
+                    	<filter icon="terp-gtk-jump-to-ltr" string="Supplier Invoice(Without PO)" domain="[('doc_type','=','sup_inv')]"/>
+                    	<filter icon="terp-gtk-jump-to-ltr" string="Supplier Payment" domain="[('doc_type','=','sup_pay')]"/>         	
+                    	<filter icon="terp-gtk-jump-to-ltr" string="Stock Adjustment-Increase" domain="[('doc_type','=','stock_adj_inc')]"/>
+                    	<filter icon="terp-gtk-jump-to-ltr" string="Stock Adjustment-Decrease" domain="[('doc_type','=','stock_adj_dec')]"/>
                     </xpath>
                     <xpath expr="//filter[@string='Period']" position="after">
                     	<filter string="Document Type" icon="terp-go-month" domain="[]" context="{'group_by':'doc_type'}"/>
