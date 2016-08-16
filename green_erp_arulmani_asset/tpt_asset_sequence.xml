@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data noupdate='1'>
+<!-- Asset Category -->
+        <record id="tpt_sequence_asset_category" model="ir.sequence.type">
+            <field name="name">Asset Category</field>
+            <field name="code">tpt.asset.category.sequence</field>
+        </record>
+        
+        <record id="tpt_sequence_asset_category_item" model="ir.sequence">
+            <field name="name">Asset Category</field>
+            <field name="code">tpt.asset.category.sequence</field>
+            <field name="prefix"></field>
+            <field name="padding">4</field>
+            <field name="number_next_actual">1000</field>
+            <field name="implementation">no_gap</field>
+        </record>
+ <!-- TPT END -->  
+ <!-- Asset Master -->
+        <record id="tpt_sequence_asset_master" model="ir.sequence.type">
+            <field name="name">Asset Master</field>
+            <field name="code">tpt.asset.master.sequence</field>
+        </record>
+        
+        <record id="tpt_sequence_asset_master_item" model="ir.sequence">
+            <field name="name">Asset Master</field>
+            <field name="code">tpt.asset.master.sequence</field>
+            <field name="prefix"></field>
+            <field name="padding">2</field>
+            <field name="number_next_actual">01</field>
+            <field name="implementation">no_gap</field>
+        </record>
+                                                               
+     <!-- TPT END --> 
+         
+	</data>
+</openerp>
