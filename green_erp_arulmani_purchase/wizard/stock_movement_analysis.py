@@ -1331,14 +1331,26 @@ class stock_movement_analysis(osv.osv_memory):
             cr.execute(sql)
             for line in cr.dictfetchall():
                if line['action_taken'] == 'need':
+                   #TPT-BM-ON 18/08/2016-To skip quality inspection record for which invoices yet to be created, since grn posting will be
+                   #created once invoice is created
                    sql = '''
-                       select qty_approve from tpt_quanlity_inspection where need_inspec_id = %s and state in ('done','remaining')
-                   '''%(line['id'])
+                   select count(*) from account_move_line aml
+                    inner join stock_picking sp on aml.ref=sp.name
+                    where sp.id=%s
+                   '''%line['picking_id']
                    cr.execute(sql)
-                   inspec = cr.dictfetchone()
-                   if inspec:
-                       hand_quantity += inspec['qty_approve'] or 0
-                       total_cost += line['price_unit'] * (inspec['qty_approve'] or 0)
+                   count_grn_post = cr.fetchone()[0]
+                   if count_grn_post>1:
+                       #
+                       sql = '''
+                           select qty_approve from tpt_quanlity_inspection where need_inspec_id = %s and state in ('done','remaining')
+                       '''%(line['id'])
+                       cr.execute(sql)
+                       inspec = cr.dictfetchone()
+                       if inspec:
+                           hand_quantity += inspec['qty_approve'] or 0
+                           total_cost += line['price_unit'] * (inspec['qty_approve'] or 0)
+                       #
             return total_cost  
             
         def get_qty_out(o, line):
@@ -2222,7 +2234,7 @@ class stock_movement_analysis(osv.osv_memory):
             frt_amt1 = cr.fetchone()
             if frt_amt1:
                 amt_receipt += frt_amt1[0]    
-            #TPT-BM-01/08/2016 - Opening for supplier invoice with freight value entered
+            #TPT-BM-01/08/2016 - Opening for supplier invoice with freight value entered 
             sql = '''
             select 
                 case when 
@@ -2281,7 +2293,7 @@ class stock_movement_analysis(osv.osv_memory):
                     )
                 '''%(product_id, date_from, date_to, product_id, locat_ids[0])
                 cr.execute(sql)
-                print sql
+                #print sql
                 consum_value = cr.dictfetchone()['tong']
                 
                 if product.default_code == 'M0501060001':
