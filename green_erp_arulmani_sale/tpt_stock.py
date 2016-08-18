@@ -524,8 +524,18 @@ class stock_picking(osv.osv):
                             'debit':0,
                             'product_id':line.product_id.id,
                         }))
-                        temp_flag = True
-                #
+                        temp_flag = True #TPT-BM-Commented on 18/08/2016 - to create grn posting when invoice is created from GRN screen for those are in need of inspection
+                #TPT-BM-18/08/2016 - coded temporarily to block grn posting for those already created when Qty approved from Quality Inspection 
+                sql = '''
+                select count(*) from account_move_line aml
+                 inner join stock_picking sp on aml.ref=sp.name
+                 where sp.id=%s
+                '''%picking.id
+                cr.execute(sql)
+                count_grn_post = cr.fetchone()[0]
+                if count_grn_post>1:
+                    temp_flag = False
+                #tpt-end
                 if temp_flag is True:
                     value={
                         'journal_id':journal.id,

@@ -1332,25 +1332,25 @@ class stock_movement_analysis(osv.osv_memory):
             for line in cr.dictfetchall():
                if line['action_taken'] == 'need':
                    #TPT-BM-ON 18/08/2016-To skip quality inspection record for which invoices yet to be created, since grn posting will be
-                   #created once invoice is created
+                   #created once invoice is created - Rollback
+#                    sql = '''
+#                    select count(*) from account_move_line aml
+#                     inner join stock_picking sp on aml.ref=sp.name
+#                     where sp.id=%s
+#                    '''%line['picking_id']
+#                    cr.execute(sql)
+#                    count_grn_post = cr.fetchone()[0]
+#                    if count_grn_post>1:
+                   #
                    sql = '''
-                   select count(*) from account_move_line aml
-                    inner join stock_picking sp on aml.ref=sp.name
-                    where sp.id=%s
-                   '''%line['picking_id']
+                       select qty_approve from tpt_quanlity_inspection where need_inspec_id = %s and state in ('done','remaining')
+                   '''%(line['id'])
                    cr.execute(sql)
-                   count_grn_post = cr.fetchone()[0]
-                   if count_grn_post>1:
-                       #
-                       sql = '''
-                           select qty_approve from tpt_quanlity_inspection where need_inspec_id = %s and state in ('done','remaining')
-                       '''%(line['id'])
-                       cr.execute(sql)
-                       inspec = cr.dictfetchone()
-                       if inspec:
-                           hand_quantity += inspec['qty_approve'] or 0
-                           total_cost += line['price_unit'] * (inspec['qty_approve'] or 0)
-                       #
+                   inspec = cr.dictfetchone()
+                   if inspec:
+                       hand_quantity += inspec['qty_approve'] or 0
+                       total_cost += line['price_unit'] * (inspec['qty_approve'] or 0)
+                   #
             return total_cost  
             
         def get_qty_out(o, line):
