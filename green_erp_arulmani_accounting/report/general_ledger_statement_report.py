@@ -148,7 +148,7 @@ class Parser(report_sxw.rml_parse):
     def get_voucher(self,move_id,doc_type):
         if doc_type == 'sup_inv' or doc_type == 'sup_pay' or doc_type == 'ser_inv' :
           sql='''select cost_center_id from account_invoice where move_id =%s'''%(move_id.id)
-        if doc_type in ['good']: # TPT-BM-23/05/2016 - TO DISPLAY COST CENTER FOR MATERIAL ISSUE TRANSACTION
+        elif doc_type in ['good']: # TPT-BM-23/05/2016 - TO DISPLAY COST CENTER FOR MATERIAL ISSUE TRANSACTION
                 sql='''select cc.id from account_move am
                 inner join tpt_material_issue mi on am.ref=mi.doc_no
                 left join tpt_cost_center cc on mi.cost_center_id=cc.id 
