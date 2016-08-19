@@ -406,7 +406,7 @@ class general_ledger_statement(osv.osv_memory):
         def get_voucher(cb,move_id,doc_type):
             if doc_type in ['sup_inv', 'sup_pay','ser_inv', 'sup_inv_po']:
                 sql='''select cost_center_id from account_invoice where move_id =%s'''%(move_id)
-            if doc_type in ['good']: # TPT-BM-23/05/2016 - TO DISPLAY COST CENTER FOR MATERIAL ISSUE TRANSACTION
+            elif doc_type in ['good']: # TPT-BM-23/05/2016 - TO DISPLAY COST CENTER FOR MATERIAL ISSUE TRANSACTION
                 sql='''select cc.id from account_move am
                 inner join tpt_material_issue mi on am.ref=mi.doc_no
                 left join tpt_cost_center cc on mi.cost_center_id=cc.id 
