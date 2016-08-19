@@ -1087,7 +1087,8 @@ class stock_picking(osv.osv):
                         cr.execute(sql)
                         onhand_qty = cr.dictfetchone()['onhand_qty']
                         if onhand_qty < line.product_qty:
-                            raise osv.except_osv(_('Warning!'),_('Do not have enough quantity for this product on stock!'))
+                            if not line.product_id.default_code=='M0501010002':
+                                raise osv.except_osv(_('Warning!'),_('Do not have enough quantity for this product on stock!'))
                     else:
                         if not line.prodlot_id:
                             raise osv.except_osv(_('Warning!'),_('Need to select batch number for batch applicable product!'))
