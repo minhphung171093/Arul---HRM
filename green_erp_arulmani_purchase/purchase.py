@@ -3976,7 +3976,6 @@ class tpt_quanlity_inspection(osv.osv):
                   'product_uom':line.product_id.uom_po_id and line.product_id.uom_po_id.id or False,
                   'location_id':location_id,
                   'location_dest_id':location_dest_id,
-                  
                   }
             move_id = move_obj.create(cr,uid,rs)
             move_obj.action_done(cr, uid, [move_id])
