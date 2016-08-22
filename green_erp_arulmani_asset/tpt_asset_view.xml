@@ -62,8 +62,9 @@
                 <form string="Asset Depreciation Posting" version="7.0">
                   <header>
                   	  <button name="bt_load" string="Load" type='object' class="oe_highlight"/>
+                      <!-- 
                       <button name="bt_post_all" string="Post All" type='object' class="oe_highlight"/>
-                      
+                       -->
                       <!--<field name="state" widget="statusbar" statusbar_visible="draft,done"/>-->
                   </header>
                   <sheet>
