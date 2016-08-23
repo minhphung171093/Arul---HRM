@@ -3674,6 +3674,36 @@ class tpt_update_stock_move_report(osv.osv):
                 cr.execute(sql)
         return True
     def adjust_issue_posting_raw(self, cr, uid, ids, context=None):  
+        sql = '''
+        select sp.name, tqi.qty_approve, sm.price_unit, coalesce(tqi.qty_approve*sm.price_unit, 0.0) as amt
+        from stock_move sm
+        inner join tpt_quanlity_inspection tqi on sm.id=tqi.need_inspec_id
+        inner join stock_picking sp on tqi.name=sp.id
+        where sm.product_id=10721 and sm.date between '2015-04-01' and '2016-08-30'
+        order by sp.name
+        '''
+        cr.execute(sql)
+        str1 = ''
+        for line in cr.dictfetchall():
+            sql = '''
+            select case when sum(aml.debit) is null then 0 else sum(aml.debit) end as debit from account_move_line aml
+            inner join account_move am on aml.move_id=am.id
+            where aml.account_id=(select id from account_account where code='0000119488')
+            and am.state='posted' and am.date between '2015-04-01' and '2016-08-30' and aml.debit>0
+            and aml.ref='%s'
+
+
+            '''%(line['name'])
+            cr.execute(sql)
+            #print sql
+            debit = 0.0
+            debit = cr.fetchone()
+            if debit:
+                debit = debit[0]
+            if round(debit, 2) != round(line['amt'], 2):
+                str1 += str(line['name'])+' - '+ str(line['amt']) +' - '+ str(debit) + '\n'
+        return self.write(cr, uid, ids, {'result':str1}) 
+    def adjust_issue_posting_raw1(self, cr, uid, ids, context=None):  
         prod_obj = self.pool.get('product.product')
         sql = '''
         select pp.id as prod_id, pp.name_template, mi.doc_no, sm.product_qty, sm.price_unit, round(sm.product_qty*sm.price_unit,2) as val, 
