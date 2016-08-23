@@ -17,6 +17,7 @@
             <field name="arch" type="xml">
 	            <form string="Mapping Old Data" version="7.0">
 		            <header>
+		            <!-- 
 	            		<button name="map_issue" string="Map Issue" type="object" class="oe_highlight"/>
 	            		<button name="map_inspec" string="Map Inspection" type="object" class="oe_highlight"/>
 	            		<button name="update_unit_price" string="Update Unit Price" type="object" class="oe_highlight"/>
@@ -74,16 +75,20 @@
 						<button name="update_all_grn_posting" string="update all GRN posting" type="object" class="oe_highlight"/>
 		            	<button name="create_all_grn_posting" string="Create all GRN posting" type="object" class="oe_highlight"/>
 		            	<button name="update_gate_out_pass_grn" string="Update Gate out pass GRN" type="object" class="oe_highlight"/>
+		            	 -->
 		            	<!-- 
 		            	<button name="update_all_do_posting" string="TPT-update all DO posting" type="object" class="oe_highlight"/>
 		            	<button name="create_all_do_posting" string="TPT-Create all DO posting" type="object" class="oe_highlight"/>
 		            	 -->
+		            	 <!-- 
 		            	<button name="update_internal_move_1795" string="Update internal move 1795" type="object" class="oe_highlight"/>
 		            	<button name="delete_dup_issue" string="delete duplicate issue" type="object" class="oe_highlight"/>
 		            	<button name="update_issue_date_and_03092015" string="update date issue 03092015" type="object" class="oe_highlight"/>
 		            	<button name="delete_material_request_6000167" string="delete MRS 6000167/2015" type="object" class="oe_highlight"/>
 		            	<button name="update_date_mrs_issue" string="update date MRS and Issue Negative stock details file" type="object" class="oe_highlight"/>
 		            	<button name="update_date_grn_negative_stock_file" string="update date grn negative stock file" type="object" class="oe_highlight"/>
+		            	
+		            	 -->
 		            	<button name="config_GRN_3451_3883" string="update GRN 3451 3883" type="object" class="oe_highlight"/>
 		            	<button name="config_GRN_7438" string="update GRN 7438" type="object" class="oe_highlight"/>
 		            	<button name="update_price_unit_for_production_declaration" string="update price unit for production declaration" type="object" class="oe_highlight"/>
