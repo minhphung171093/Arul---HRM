@@ -3800,11 +3800,15 @@ class tpt_update_stock_move_report(osv.osv):
         return True
     def adjust_issue_posting_raw(self, cr, uid, ids, context=None):  
         sql = '''
-        select sp.name, tqi.qty_approve, sm.price_unit, coalesce(tqi.qty_approve*sm.price_unit, 0.0) as amt
+        select sp.name, tqi.qty_approve, sm.price_unit, coalesce(tqi.qty_approve*sm.price_unit, 0.0) as amt,
+        pp.default_code, pp.name_template
         from stock_move sm
         inner join tpt_quanlity_inspection tqi on sm.id=tqi.need_inspec_id
         inner join stock_picking sp on tqi.name=sp.id
-        where sm.product_id=10721 and sm.date between '2015-04-01' and '2016-08-30'
+        inner join product_product pp on sm.product_id=pp.id
+        where --sm.product_id=10721 
+        pp.cate_name='raw'
+        and sm.date between '2015-04-01' and '2016-08-30'
         order by sp.name
         '''
         cr.execute(sql)
@@ -3826,7 +3830,7 @@ class tpt_update_stock_move_report(osv.osv):
             if debit:
                 debit = debit[0]
             if round(debit, 2) != round(line['amt'], 2):
-                str1 += str(line['name'])+' , grn:  '+ str(line['amt']) +', gl: '+ str(debit) + '\n'
+                str1 += str(line['name_template']) +', '+ str(line['name'])+' , grn:  '+ str(line['amt']) +', gl: '+ str(debit) + '\n'
         return self.write(cr, uid, ids, {'result':str1}) 
     def adjust_issue_posting_raw1(self, cr, uid, ids, context=None):  
         prod_obj = self.pool.get('product.product')
