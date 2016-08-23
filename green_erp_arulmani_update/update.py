@@ -3692,7 +3692,7 @@ class tpt_update_stock_move_report(osv.osv):
             sql = '''
             select case when sum(aml.debit) is null then 0 else sum(aml.debit) end as debit from account_move_line aml
             inner join account_move am on aml.move_id=am.id
-            where am.state='posted' and am.date between '2015-04-01' and '2016-08-30' and aml.debit>0
+            where am.doc_type='grn' and am.state='posted' and am.date between '2015-04-01' and '2016-08-30' and aml.debit>0
             and aml.ref='%s' and aml.account_id=(select product_asset_acc_id from product_product where id=%s)
 
 
