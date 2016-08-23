@@ -3684,7 +3684,7 @@ class tpt_update_stock_move_report(osv.osv):
         where --sm.product_id=10721 
         pp.cate_name='raw'
         and sm.date between '2015-04-01' and '2016-08-30'
-        order by sp.name
+        order by pp.name_template
         '''
         cr.execute(sql)
         str1 = ''
