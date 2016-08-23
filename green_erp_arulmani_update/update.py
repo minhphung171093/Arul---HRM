@@ -3800,8 +3800,8 @@ class tpt_update_stock_move_report(osv.osv):
         return True
     def adjust_issue_posting_raw(self, cr, uid, ids, context=None):  
         sql = '''
-        select sp.name, tqi.qty_approve, sm.price_unit, coalesce(tqi.qty_approve*sm.price_unit, 0.0) as amt,
-        pp.default_code, pp.name_template
+        select sp.name, to_char(sm.date, 'DD-MM-YYYY') as date, tqi.qty_approve, sm.price_unit, coalesce(tqi.qty_approve*sm.price_unit, 0.0) as amt,
+        pp.id as product_id, pp.default_code, pp.name_template
         from stock_move sm
         inner join tpt_quanlity_inspection tqi on sm.id=tqi.need_inspec_id
         inner join stock_picking sp on tqi.name=sp.id
@@ -3809,7 +3809,7 @@ class tpt_update_stock_move_report(osv.osv):
         where --sm.product_id=10721 
         pp.cate_name='raw'
         and sm.date between '2015-04-01' and '2016-08-30'
-        order by pp.name_template
+        order by pp.name_template, sm.date
         '''
         cr.execute(sql)
         str1 = ''
@@ -3817,12 +3817,11 @@ class tpt_update_stock_move_report(osv.osv):
             sql = '''
             select case when sum(aml.debit) is null then 0 else sum(aml.debit) end as debit from account_move_line aml
             inner join account_move am on aml.move_id=am.id
-            where aml.account_id=(select id from account_account where code='0000119488')
-            and am.state='posted' and am.date between '2015-04-01' and '2016-08-30' and aml.debit>0
-            and aml.ref='%s'
+            where am.state='posted' and am.date between '2015-04-01' and '2016-08-30' and aml.debit>0
+            and aml.ref='%s' and aml.account_id=(select product_asset_acc_id from product_product where id=%s)
 
 
-            '''%(line['name'])
+            '''%(line['name'], line['product_id'])
             cr.execute(sql)
             #print sql
             debit = 0.0
@@ -3830,7 +3829,7 @@ class tpt_update_stock_move_report(osv.osv):
             if debit:
                 debit = debit[0]
             if round(debit, 2) != round(line['amt'], 2):
-                str1 += str(line['name_template']) +', '+ str(line['name'])+' , grn:  '+ str(line['amt']) +', gl: '+ str(debit) + '\n'
+                str1 += str(line['name_template']) +', '+ str(line['date']) +', '+str(line['name'])+' , grn:  '+ str(line['amt']) +', gl: '+ str(debit) + '\n'
         return self.write(cr, uid, ids, {'result':str1}) 
     def adjust_issue_posting_raw1(self, cr, uid, ids, context=None):  
         prod_obj = self.pool.get('product.product')
