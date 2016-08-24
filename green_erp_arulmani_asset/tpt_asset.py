@@ -244,6 +244,102 @@ class tpt_asset_depreciation(osv.osv):
             vals = {'depreciation_line':depreciation_line}
         return self.write(cr, uid, ids,vals)
     
+    def bt_post_all(self, cr, uid, ids, context=None):
+        can_close = False
+        if context is None:
+            context = {}
+        asset_obj = self.pool.get('account.asset.asset')
+        period_obj = self.pool.get('account.period')
+        move_obj = self.pool.get('account.move')
+        move_line_obj = self.pool.get('account.move.line')
+        currency_obj = self.pool.get('res.currency')
+        created_move_ids = []
+        asset_ids = []
+        #currency_obj = self.pool.get('res.currency')
+        for header in self.browse(cr, uid, ids, context=context):
+            for line in header.depreciation_line:#self.browse(cr, uid, ids, context=context):
+                depreciation_date = context.get('depreciation_date') or time.strftime('%Y-%m-%d')
+                #
+                dp_date = line.depreciation_date
+                current_date =  time.strftime('%Y-%m-%d')
+                if dp_date > current_date:
+                    raise osv.except_osv(_('Warning!'),_('Asset Depreciation Posting not allowed for Future Date!'))
+                #
+                ctx = dict(context, account_period_prefer_normal=True)
+                period_ids = period_obj.find(cr, uid, depreciation_date, context=ctx)
+                company_currency = line.asset_id.company_id.currency_id.id
+                current_currency = line.asset_id.currency_id.id
+                context.update({'date': depreciation_date})
+                amount = currency_obj.compute(cr, uid, current_currency, company_currency, line.amount, context=context)
+                sign = (line.asset_id.category_id.journal_id.type == 'purchase' and 1) or -1
+                asset_name = line.asset_id.name
+                reference = asset_name #line.name
+                #print line.aaset_depreciation_id.id
+                move_vals = {
+                    'name': asset_name,
+                    'date': depreciation_date,
+                    'ref': reference,
+                    'period_id': period_ids and period_ids[0] or False,
+                    'journal_id': line.asset_id.category_id.journal_id.id,
+                    'doc_type': 'asset_dp'
+                    }
+                move_id = move_obj.create(cr, uid, move_vals, context=context)
+                journal_id = line.asset_id.category_id.journal_id.id
+                partner_id = line.asset_id.partner_id.id
+                move_line_obj.create(cr, uid, {
+                    'name': asset_name,
+                    'ref': reference,
+                    'move_id': move_id,
+                    'account_id': line.asset_id.category_id.account_depreciation_id.id,
+                    'debit': 0.0,
+                    'credit': amount,
+                    'period_id': period_ids and period_ids[0] or False,
+                    'journal_id': journal_id,
+                    'partner_id': partner_id,
+                    'currency_id': company_currency != current_currency and  current_currency or False,
+                    'amount_currency': company_currency != current_currency and - sign * line.amount or 0.0,
+                    'date': depreciation_date,
+                })
+                move_line_obj.create(cr, uid, {
+                    'name': asset_name,
+                    'ref': reference,
+                    'move_id': move_id,
+                    'account_id': line.asset_id.category_id.account_expense_depreciation_id.id,
+                    'credit': 0.0,
+                    'debit': amount,
+                    'period_id': period_ids and period_ids[0] or False,
+                    'journal_id': journal_id,
+                    'partner_id': partner_id,
+                    'currency_id': company_currency != current_currency and  current_currency or False,
+                    'amount_currency': company_currency != current_currency and sign * line.amount or 0.0,
+                    'analytic_account_id': line.asset_id.category_id.account_analytic_id.id,
+                    'date': depreciation_date,
+                    'asset_id': line.asset_id.id
+                })
+                #self.write(cr, uid, line.id, {'move_id': move_id}, context=context)
+                # Auto posting for Depreciation by P.vinothkumar on 24/08/2016
+                auto_ids = self.pool.get('tpt.auto.posting').search(cr, uid, [])
+                if auto_ids:
+                    auto_id = self.pool.get('tpt.auto.posting').browse(cr, uid, auto_ids[0], context=context)
+                    if auto_id:
+                        move_obj.button_validate(cr,uid, [move_id], context)
+                #self.write(cr, uid, line.id, {'move_check': True}, context=context)
+                
+                
+                #
+                sql = '''
+                update account_asset_depreciation_line set move_check='t', move_id=%s where id=%s
+                '''%(move_id, line.aaset_depreciation_id.id)
+                cr.execute(sql)
+                #
+                created_move_ids.append(move_id)
+                asset_ids.append(line.asset_id.id)
+            # we re-evaluate the assets to determine whether we can close them
+        for asset in asset_obj.browse(cr, uid, list(set(asset_ids)), context=context):
+            if currency_obj.is_zero(cr, uid, asset.currency_id, asset.value_residual):
+                asset.write({'state': 'close'})
+        return created_move_ids
+    
 tpt_asset_depreciation()   
 
 class tpt_asset_depreciation_line(osv.osv):
@@ -261,85 +357,7 @@ class tpt_asset_depreciation_line(osv.osv):
              
     }
     
-    def bt_post_all(self, cr, uid, ids, context=None):
-        can_close = False
-        if context is None:
-            context = {}
-        asset_obj = self.pool.get('account.asset.asset')
-        period_obj = self.pool.get('account.period')
-        move_obj = self.pool.get('account.move')
-        move_line_obj = self.pool.get('account.move.line')
-        currency_obj = self.pool.get('res.currency')
-        created_move_ids = []
-        asset_ids = []
-        for line in self.browse(cr, uid, ids, context=context):
-            depreciation_date = context.get('depreciation_date') or time.strftime('%Y-%m-%d')
-            ctx = dict(context, account_period_prefer_normal=True)
-            period_ids = period_obj.find(cr, uid, depreciation_date, context=ctx)
-            company_currency = line.asset_id.company_id.currency_id.id
-            current_currency = line.asset_id.currency_id.id
-            context.update({'date': depreciation_date})
-            amount = currency_obj.compute(cr, uid, current_currency, company_currency, line.amount, context=context)
-            sign = (line.asset_id.category_id.journal_id.type == 'purchase' and 1) or -1
-            asset_name = line.asset_id.name
-            reference = asset_name #line.name
-            #print line.aaset_depreciation_id.id
-            move_vals = {
-                'name': asset_name,
-                'date': depreciation_date,
-                'ref': reference,
-                'period_id': period_ids and period_ids[0] or False,
-                'journal_id': line.asset_id.category_id.journal_id.id,
-                'doc_type': 'asset_dp'
-                }
-            move_id = move_obj.create(cr, uid, move_vals, context=context)
-            journal_id = line.asset_id.category_id.journal_id.id
-            partner_id = line.asset_id.partner_id.id
-            move_line_obj.create(cr, uid, {
-                'name': asset_name,
-                'ref': reference,
-                'move_id': move_id,
-                'account_id': line.asset_id.category_id.account_depreciation_id.id,
-                'debit': 0.0,
-                'credit': amount,
-                'period_id': period_ids and period_ids[0] or False,
-                'journal_id': journal_id,
-                'partner_id': partner_id,
-                'currency_id': company_currency != current_currency and  current_currency or False,
-                'amount_currency': company_currency != current_currency and - sign * line.amount or 0.0,
-                'date': depreciation_date,
-            })
-            move_line_obj.create(cr, uid, {
-                'name': asset_name,
-                'ref': reference,
-                'move_id': move_id,
-                'account_id': line.asset_id.category_id.account_expense_depreciation_id.id,
-                'credit': 0.0,
-                'debit': amount,
-                'period_id': period_ids and period_ids[0] or False,
-                'journal_id': journal_id,
-                'partner_id': partner_id,
-                'currency_id': company_currency != current_currency and  current_currency or False,
-                'amount_currency': company_currency != current_currency and sign * line.amount or 0.0,
-                'analytic_account_id': line.asset_id.category_id.account_analytic_id.id,
-                'date': depreciation_date,
-                'asset_id': line.asset_id.id
-            })
-            #self.write(cr, uid, line.id, {'move_id': move_id}, context=context)
-            self.write(cr, uid, line.id, {'move_check': True}, context=context)
-            #
-            sql = '''
-            update account_asset_depreciation_line set move_check='t', move_id=%s where id=%s
-            '''%(move_id, line.aaset_depreciation_id.id)
-            cr.execute(sql)
-            #
-            created_move_ids.append(move_id)
-            asset_ids.append(line.asset_id.id)
-        # we re-evaluate the assets to determine whether we can close them
-        for asset in asset_obj.browse(cr, uid, list(set(asset_ids)), context=context):
-            if currency_obj.is_zero(cr, uid, asset.currency_id, asset.value_residual):
-                asset.write({'state': 'close'})
-        return created_move_ids
+    
     
     def create_move(self, cr, uid, ids, context=None):
         can_close = False
@@ -412,6 +430,12 @@ class tpt_asset_depreciation_line(osv.osv):
                 'asset_id': line.asset_id.id
             })
             #self.write(cr, uid, line.id, {'move_id': move_id}, context=context)
+            # Auto posting for Depreciation by P.vinothkumar on 24/08/2016
+            auto_ids = self.pool.get('tpt.auto.posting').search(cr, uid, [])
+            if auto_ids:
+                auto_id = self.pool.get('tpt.auto.posting').browse(cr, uid, auto_ids[0], context=context)
+                if auto_id:
+                    move_obj.button_validate(cr,uid, [move_id], context)
             self.write(cr, uid, line.id, {'move_check': True}, context=context)
             #
             sql = '''
