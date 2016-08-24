@@ -4141,7 +4141,7 @@ class tpt_update_stock_move_report(osv.osv):
         inspec_obj = self.pool.get('tpt.quanlity.inspection')
         picking_obj = self.pool.get('stock.picking')
         move_obj = self.pool.get('account.move')
-        for grn in ['VVTI/GRN/014321/2016']:#['VVTI/GRN/012944/2016']:#['VVTi/GRN/010906/2016']:#['VVTi/GRN/00010161']:#['VVTi/GRN/00010472']:# ['VVTi/GRN/00007438']:#['VVTi/GRN/00004321']:  #['VVTi/GRN/00003451','VVTi/GRN/00003883']
+        for grn in ['VVTI/GRN/014480/2016']:#['VVTI/GRN/012944/2016']:#['VVTi/GRN/010906/2016']:#['VVTi/GRN/00010161']:#['VVTi/GRN/00010472']:# ['VVTi/GRN/00007438']:#['VVTi/GRN/00004321']:  #['VVTi/GRN/00003451','VVTi/GRN/00003883']
             sql = '''
                 select id from stock_picking where name = '%s'
             '''%(grn)
