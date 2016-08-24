@@ -45,18 +45,18 @@
             <xpath expr="//field[@name='purchase_date']" position="attributes">
                     <attribute name="string">GRN Date</attribute>        
                 </xpath>
-              <group>   
-                 <group>
+           <xpath expr="//field[@name='name']" position="after">          
+                 <field name="category_id" required='1' options="{'create': false, 'create_edit': false}"/> 
+               </xpath>
+           <xpath expr="//field[@name='purchase_date']" position="after">          
                  <field name="category_id" required='1' options="{'create': false, 'create_edit': false}"/> 
                  <field name="code"/>
                  <field name="desc"/>
-                 </group>
-                 <group>
+                 
                  <field name="grn_id"/>
                  <field name="currency_id" required='1' options="{'create': false, 'create_edit': false}"/>
-                 <field name="caps_date"/>
-                 </group>
-              </group>  
+                 <field name="caps_date"/>        
+               </xpath>
             <xpath expr="//field[@name='parent_id']" position="attributes">
                      <attribute name="invisible">True</attribute>       
                  </xpath>

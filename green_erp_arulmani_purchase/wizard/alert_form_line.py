@@ -196,8 +196,8 @@ class approve_reject_quanlity_inspection(osv.osv_memory):
                                 excise_duty += ed
                                 cst_cr_amt = (credit + excise_duty + p_f)*tax_amt/100    
                                 cst_dr_amt = (debit + excise_duty + p_f)*tax_amt/100                                
-                                credit += cst_cr_amt
-                                debit += cst_dr_amt
+                                #credit += cst_cr_amt# TPT-BM-Rollback-CST value will be added into Product Asset Account During Supplier Invoice Posting- ON 24/08/2016
+                                #debit += cst_dr_amt# TPT-BM-Rollback "" - ON 24/08/2016
                     #
                     if not grn_line.product_id.product_asset_acc_id:
                         raise osv.except_osv(_('Warning!'),_('You need to define Product Asset GL Account for this product'))

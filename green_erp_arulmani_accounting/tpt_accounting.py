@@ -605,8 +605,8 @@ class stock_picking(osv.osv):
                                 #credit += excise_duty
                                 cst_cr_amt = (credit + excise_duty + p_f)*tax_amt/100    
                                 cst_dr_amt = (debit + excise_duty + p_f)*tax_amt/100                                
-                                credit += cst_cr_amt
-                                debit += cst_dr_amt
+                                #credit += cst_cr_amt# TPT-BM-Rollback-CST value will be added into Product Asset Account During Supplier Invoice Posting- ON 24/08/2016
+                                #debit += cst_dr_amt# TPT-BM-Rollback "" - ON 24/08/2016
                     #TPT-End
                     if p.action_taken!='need':
                         temp_flag = True
@@ -1710,10 +1710,11 @@ class account_invoice(osv.osv):
                 name = inv['name'] or inv['supplier_invoice_number'] or '/'
                 if inv.purchase_id:
                     if inv.purchase_id.po_document_type not in ('service','service_qty','service_amt'):
-                        # sup inv
+                        # SUPPLIER INVOICE
                         iml += invoice_line_obj.move_line_fright_change_si(cr, uid, inv.id)
                         #iml += invoice_line_obj.move_line_amount_untaxed(cr, uid, inv.id) #TPT-COMMENTED BY BM - ON 26/12/2015
                         #iml += invoice_line_obj.move_line_amount_tax(cr, uid, inv.id) #TPT-COMMENTED BY BM - ON 26/12/2015
+                        
                         inv_id = self.pool.get('account.invoice').browse(cr, uid, inv.id)   
                         cst_flag = False                    
                         for line in inv_id.invoice_line:    
@@ -1723,6 +1724,8 @@ class account_invoice(osv.osv):
                                 cst_flag = True   
                         if cst_flag is True:
                             iml += invoice_line_obj.move_line_amount_untaxed_cst(cr, uid, inv.id, tax_amounts[0]) 
+                            #TPT-BM-ON 24/08/2016
+                            iml += invoice_line_obj.move_line_amount_cst_to_asset_acc(cr, uid, inv.id, tax_amounts[0])
                             #TPT-START: By BalamuruganPurushothaman - ON 08/06/2016 - CST Inclusion - TO UPDATE CST AMOUNT INTO PRODUCT MASTER TOTAL COST VALUE
                             if line.product_id and line.product_id.default_code!='CONSUMABLE': #TPT BM - ON 11/08/2016 - TO BLOCK CST POSTING FOR CONSUMABLE PPRODUCTS
                                 self.cst_prod_avg_cost_update(cr, uid, inv.id, tax_amounts[0], context) 
@@ -2734,6 +2737,64 @@ class account_invoice_line(osv.osv):
                     'account_analytic_id': t['account_analytic_id'],
                     })
         return res
+    def move_line_amount_cst_to_asset_acc(self, cr, uid, invoice_id, tax_amounts):
+        res = []
+        cr.execute('SELECT * FROM account_invoice_line WHERE invoice_id=%s', (invoice_id,))
+        inv_id = self.pool.get('account.invoice').browse(cr, uid, invoice_id)
+        #for t in cr.dictfetchall():
+        for line in inv_id.invoice_line:
+            basic = (line.quantity * line.price_unit) - ( (line.quantity * line.price_unit)*line.disc/100)
+            ###
+            ed = 0.00
+            aed = 0.00
+            p_f = 0.0
+            cst_vals = 0.0
+            if line.ed_type == '1' :
+                ed = (basic) * line.ed/100
+                ed = round(ed,2)
+            elif line.ed_type == '2' :
+                ed = line.ed
+                ed = round(ed,2)
+            elif line.ed_type == '3' :
+                ed = line.ed * line.quantity
+                ed = round(ed,2)
+            else:
+                ed = line.ed
+                ed = round(ed,2) 
+            aed = line.aed_id_1 or 0.00
+            ##
+            if (line.p_f_type == '1'):
+                 p_f = basic * line.p_f/100
+            elif (line.p_f_type == '2'):
+                 p_f =  line.p_f
+            elif (line.p_f_type == '3'):
+                 p_f =  line.p_f * line.quantity
+            else:
+                 p_f = line.p_f
+            ##
+            ###
+            cst_basic = basic+ed+aed+p_f
+            #basic += cst_basic * tax_amounts/100
+            cst_vals += cst_basic * tax_amounts/100
+            basic = round(cst_vals,2)
+            sql = '''
+                SELECT purchase_acc_id FROM product_product WHERE id=%s and purchase_acc_id is not null
+            '''%(line.product_id.id)
+            cr.execute(sql)
+            purchase_acc_id = cr.dictfetchone()
+            if not purchase_acc_id:
+                raise osv.except_osv(_('Warning!'),_('Account is not null, please configure it in Material master !'))
+            if basic:
+                res.append({
+                    'type':'tax',
+                    'name':line.name,
+                    'price_unit': line.price_unit,
+                    'quantity': 1,
+                    'price': basic,
+                    'account_id': line.product_id.product_asset_acc_id.id or False,
+                    #'account_analytic_id': line.account_analytic_id,
+                    })
+        return res
     def move_line_amount_untaxed_cst(self, cr, uid, invoice_id, tax_amounts):
         res = []
         cr.execute('SELECT * FROM account_invoice_line WHERE invoice_id=%s', (invoice_id,))
@@ -2768,7 +2829,7 @@ class account_invoice_line(osv.osv):
             ##
             ###
             cst_basic = basic+ed+aed+p_f
-            basic += cst_basic * tax_amounts/100
+            #basic += cst_basic * tax_amounts/100 #TPT-BM-ON 24/08/2016 - adding cst value in GRIR ac is blocked
             basic = round(basic,2)
             sql = '''
                 SELECT purchase_acc_id FROM product_product WHERE id=%s and purchase_acc_id is not null
