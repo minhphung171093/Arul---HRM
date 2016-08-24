@@ -34,7 +34,46 @@
 				</field>
         </record>
         
+       
+       <!-- Asset Register screen(Added by P.vinothkumar on 24/08/2016)-->
         
+       <record id="assets_register_form_view" model="ir.ui.view">
+            <field name="name">tpt.account.asset.asset.form</field>
+            <field name="model">account.asset.asset</field>
+            <field name="inherit_id" ref="account_asset.view_account_asset_asset_form"/>
+            <field name="arch" type="xml">
+            <xpath expr="//field[@name='purchase_date']" position="attributes">
+                    <attribute name="string">GRN Date</attribute>        
+                </xpath>
+              <group>   
+                 <group>
+                 <field name="category_id" required='1' options="{'create': false, 'create_edit': false}"/> 
+                 <field name="code"/>
+                 <field name="desc"/>
+                 </group>
+                 <group>
+                 <field name="grn_id"/>
+                 <field name="currency_id" required='1' options="{'create': false, 'create_edit': false}"/>
+                 <field name="caps_date"/>
+                 </group>
+              </group>  
+            <xpath expr="//field[@name='parent_id']" position="attributes">
+                     <attribute name="invisible">True</attribute>       
+                 </xpath>
+                 <xpath expr="//field[@name='code']" position="attributes">
+                     <attribute name="invisible">True</attribute>       
+                 </xpath>
+                 <xpath expr="//field[@name='category_id']" position="attributes">
+                     <attribute name="invisible">True</attribute>       
+                 </xpath>  
+                  <xpath expr="//field[@name='currency_id']" position="attributes">
+                     <attribute name="invisible">True</attribute>       
+                 </xpath>
+                   
+                
+         </field>
+					
+      </record>
 
 	<menuitem name="Asset"
             id="base.menu_mro_root"

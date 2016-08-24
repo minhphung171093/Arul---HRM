@@ -76,11 +76,17 @@ class account_asset_asset(osv.osv):
     _inherit = 'account.asset.asset'
     _columns = {
               
+#                 'product_id':fields.many2one('product.product', 'Product'),    
+#                 'grn_id':fields.many2one('stock.picking', 'GRN'),       
+#                 'caps_date':fields.date('Capitalization Date',),  
+#                 'desc':fields.text('Description'), 
                 'product_id':fields.many2one('product.product', 'Product'),    
-                'grn_id':fields.many2one('stock.picking', 'GRN'),       
-                'caps_date':fields.date('Capitalization Date',),  
-                'desc':fields.text('Description'),   
-    }
+                'grn_id':fields.many2one('stock.picking', 'GRN No'),
+                'category_id':fields.many2one('account.asset.category', 'Category'),
+                'grn_date' : fields.date('GRN Date'),      
+                'caps_date':fields.date('Capitalization Date'),  
+                'desc':fields.text('Description'),  
+   }
     
 account_asset_asset()
 
@@ -159,6 +165,7 @@ class stock_picking(osv.osv):
                                'product_id': grn_line.product_id and grn_line.product_id.id or False,
                                'partner_id': grn.partner_id.id or False,
                                'purchase_date': grn.date or False, 
+                               'grn_id': grn.id or False, # Added by P.vinothkumar on 23/08/2016
                                'state': 'draft',
                                'purchase_value': 1 * grn_line.price_unit or 0,
                                'asset_id': asset_id.id or False,
