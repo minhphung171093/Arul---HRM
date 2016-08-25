@@ -3711,8 +3711,10 @@ class tpt_update_stock_move_report(osv.osv):
             if debit:
                 debit = debit[0]
             if round(debit, 2) != round(line['amt'], 2):
+                temp = round(round(debit, 2)-round(line['amt'], 2))
                 if round(debit, 2)>0:
-                    str1 += str(line['name_template']) +', '+ str(line['date']) +', '+str(line['name'])+' , grn:  '+ str(line['amt']) +', gl: '+ str(debit) + ', '+ line['country'] + ', '+ line['state'] +'\n'
+                    str1 += str(line['name_template']) +', '+ str(line['date']) +', '+str(line['name']) \
+                    +' , grn:  '+ str(line['amt']) +', gl: '+ str(debit) + ', '+ line['country'] + ', '+ line['state'] +', diff:'+str(temp)+'\n'
         return self.write(cr, uid, ids, {'result':str1}) 
     def adjust_issue_posting_raw1(self, cr, uid, ids, context=None):  
         prod_obj = self.pool.get('product.product')
