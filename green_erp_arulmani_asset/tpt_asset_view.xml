@@ -39,38 +39,79 @@
         
        <!-- Asset Register screen -->
         
-        <record id="assets_register_form_view" model="ir.ui.view">
+        
+        
+        <record id="assets_register_tree_view" model="ir.ui.view">
+            <field name="name">tpt.account.asset.asset.tree</field>
+            <field name="model">account.asset.asset</field>
+            <field name="inherit_id" ref="account_asset.view_account_asset_asset_tree"/>
+            <field name="arch" type="xml">
+            	<xpath expr="//field[@name='purchase_date']" position="attributes">
+                    <attribute name="string">GRN Date</attribute>        
+                </xpath>
+            </field>
+					
+      </record>
+            
+    <record id="assets_register_form_view" model="ir.ui.view">
             <field name="name">tpt.account.asset.asset.form</field>
             <field name="model">account.asset.asset</field>
             <field name="inherit_id" ref="account_asset.view_account_asset_asset_form"/>
             <field name="arch" type="xml">
-            <xpath expr="//field[@name='purchase_date']" position="attributes">
-                    <attribute name="string">GRN Date</attribute>        
-                </xpath>
-              <group>   
-                 <group>
-                 <field name="category_id" required='1' options="{'create': false, 'create_edit': false}"/> 
-                 <field name="code"/>
-                 <field name="desc"/>
-                 </group>
-                 <group>
-                 <field name="grn_id"/>
-                 <field name="currency_id" required='1' options="{'create': false, 'create_edit': false}"/>
-                 <field name="caps_date"/>
-                 </group>
-              </group>  
-            <xpath expr="//field[@name='parent_id']" position="attributes">
+	            
+	            <xpath expr="//field[@name='asset_id']" position="attributes">
+	                    <attribute name="readonly">1</attribute>        
+	            </xpath>
+	            
+	            <xpath expr="//field[@name='category_id']" position="before">
+	                    <field name="register_code"/> <!--Added field on 27/08/2016  --> 
+	            </xpath>
+	            
+	            
+	             
+	            <xpath expr="//field[@name='category_id']" position="attributes">
+	                    <attribute name="readonly">1</attribute>        
+	            </xpath>
+	            <xpath expr="//field[@name='currency_id']" position="attributes">
+	                    <attribute name="readonly">1</attribute>        
+	            </xpath>
+	            <xpath expr="//field[@name='partner_id']" position="attributes">
+	                    <attribute name="readonly">1</attribute>        
+	            </xpath>
+	            <xpath expr="//field[@name='purchase_date']" position="attributes">
+	                    <attribute name="string">GRN Date</attribute>   
+	                    <attribute name="readonly">1</attribute>     
+	            </xpath>
+	              <group>   
+	                 <group>
+	                 <!-- 
+	                 <field name="category_id" required='1' options="{'create': false, 'create_edit': false}"/> 
+	                  -->
+	                 <field name="code"/>
+	                 <field name="desc"/>
+	                 </group>
+	                 <group>
+	                 <field name="grn_id" required='1' readonly='1'/>
+	                 <!-- 
+	                 <field name="currency_id" required='1' options="{'create': false, 'create_edit': false}"/>
+	                  -->
+	                 <field name="caps_date"/>
+	                 </group>
+	              </group>  
+            	<xpath expr="//field[@name='parent_id']" position="attributes">
                      <attribute name="invisible">True</attribute>       
                  </xpath>
                  <xpath expr="//field[@name='code']" position="attributes">
                      <attribute name="invisible">True</attribute>       
                  </xpath>
-                 <xpath expr="//field[@name='category_id']" position="attributes">
+                 <!-- <xpath expr="//field[@name='category_id']" position="attributes">
                      <attribute name="invisible">True</attribute>       
-                 </xpath>   
+                 </xpath>    
+                  
                  <xpath expr="//field[@name='currency_id']" position="attributes">
                      <attribute name="invisible">True</attribute>       
                  </xpath> 
+                 -->
                 
          </field>
 					
@@ -79,6 +120,9 @@
 	<menuitem name="Asset"
             id="base.menu_mro_root"
             sequence="80"/>
+            
+    <!--Modify menu as Asset Register on 27/08/2016  -->                       
+<menuitem id="account_asset.menu_finance_assets" name="Asset Register" parent="account.menu_finance" sequence="9"/>        
    
     
     <!-- Start Depreciation Posting  -->
@@ -103,7 +147,10 @@
                   <header>
                   	  <button name="bt_load" string="Load" type='object' class="oe_highlight"/>
                        
-                      <button name="bt_post_all" string="Post All" type='object' class="oe_highlight"/>
+                      <button name="bt_confirm" string="Post All" type='object' class="oe_highlight"/>
+                      
+                      <!-- Added this line by P.vinothkumar on 27/08/2016 for select all lines  -->
+                      <button name="bt_select" string="Select All" type='object' class="oe_highlight"/>
                       
                       <!--<field name="state" widget="statusbar" statusbar_visible="draft,done"/>-->
                   </header>
@@ -121,6 +168,8 @@
                         	<div col='4' colspan='4'>
 	                            <field name="depreciation_line" string="Depreciation Board">
 	                                <tree string="Depreciation Board" create='false' delete='false' editable="bottom">
+	                                    <!-- Added this field by P.vinothkumar on 26/08/2016 for adding flag field  -->
+	                                    <field name="flag"/>
 	                                	<field name="asset_id" readonly='1'/>
 	                                	<field name="category_id" readonly='1'/>
 	                                	<field name="gross_value" readonly='1'/>

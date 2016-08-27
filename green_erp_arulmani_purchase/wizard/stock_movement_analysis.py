@@ -2293,7 +2293,7 @@ class stock_movement_analysis(osv.osv_memory):
                     )
                 '''%(product_id, date_from, date_to, product_id, locat_ids[0])
                 cr.execute(sql)
-                #print sql
+                print sql
                 consum_value = cr.dictfetchone()['tong']
                 
                 if product.default_code == 'M0501060001':
