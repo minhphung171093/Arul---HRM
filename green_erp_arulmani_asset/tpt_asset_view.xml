@@ -64,7 +64,7 @@
 	            </xpath>
 	            
 	            <xpath expr="//field[@name='category_id']" position="before">
-	                    <field name="register_code"/> <!--Added field on 27/08/2016  --> 
+	                    <field name="register_code" readonly='1'/> <!--Added field on 27/08/2016  --> 
 	            </xpath>
 	            
 	            
