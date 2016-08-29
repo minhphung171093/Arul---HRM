@@ -82,6 +82,9 @@
 	                    <attribute name="string">GRN Date</attribute>   
 	                    <attribute name="readonly">1</attribute>     
 	            </xpath>
+	            <xpath expr="//field[@name='asset_id']" position="attributes">
+                    <attribute name="string">Asset No.</attribute>        
+            </xpath>
 	              <group>   
 	                 <group>
 	                 <!-- 
@@ -121,6 +124,12 @@
             id="base.menu_mro_root"
             sequence="80"/>
             
+   <!-- Modify Menu name as asset Master on 29/08/2016 -->
+    <menuitem name="Asset Master"
+            id="asset.menu_maintenance_assets"
+            parent="base.menu_mro_root"
+            sequence="9"/>          
+            
     <!--Modify menu as Asset Register on 27/08/2016  -->                       
 <menuitem id="account_asset.menu_finance_assets" name="Asset Register" parent="account.menu_finance" sequence="9"/>        
    
@@ -147,7 +156,7 @@
                   <header>
                   	  <button name="bt_load" string="Load" type='object' class="oe_highlight"/>
                        
-                      <button name="bt_confirm" string="Post All" type='object' class="oe_highlight"/>
+                      <button name="bt_confirm" string="Post Depreciation" type='object' class="oe_highlight"/>
                       
                       <!-- Added this line by P.vinothkumar on 27/08/2016 for select all lines  -->
                       <button name="bt_select" string="Select All" type='object' class="oe_highlight"/>
@@ -168,8 +177,10 @@
                         	<div col='4' colspan='4'>
 	                            <field name="depreciation_line" string="Depreciation Board">
 	                                <tree string="Depreciation Board" create='false' delete='false' editable="bottom">
-	                                    <!-- Added this field by P.vinothkumar on 26/08/2016 for adding flag field  -->
+	                                    <!-- adding register_code field on 26/08/2016   -->
 	                                    <field name="flag"/>
+	                                    <!--adding register_code field on 29/08/2016 -->
+	                                    <field name="register_code"/>
 	                                	<field name="asset_id" readonly='1'/>
 	                                	<field name="category_id" readonly='1'/>
 	                                	<field name="gross_value" readonly='1'/>

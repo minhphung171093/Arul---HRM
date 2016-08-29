@@ -285,7 +285,7 @@ class tpt_asset_depreciation(osv.osv):
         depreciation_line = []
         for asset in self.browse(cr, uid, ids):
             sql = '''
-            select dp.id as aaset_depreciation_id, ar.id as asset_reg_id, am.category_id as category_id, ar.purchase_value, ar.caps_date, dp.depreciation_date, dp.amount from account_asset_depreciation_line dp
+            select dp.id as aaset_depreciation_id, ar.id as asset_reg_id,ar.register_code,am.category_id as category_id, ar.purchase_value, ar.caps_date, dp.depreciation_date, dp.amount from account_asset_depreciation_line dp
             inner join account_asset_asset ar on dp.asset_id=ar.id
             inner join asset_asset am on ar.asset_id=am.id
             where ar.state='open' and dp.move_check='f' 
@@ -306,7 +306,8 @@ class tpt_asset_depreciation(osv.osv):
                     'depreciation_date': line['depreciation_date'] or False,
                     'caps_date': line['caps_date'] or False,
                     'gross_value': line['purchase_value'] or 0.0,
-                    'amount': line['amount'] or 0.0
+                    'amount': line['amount'] or 0.0,
+                    'register_code': line['register_code'] or 0.0 # added this line on 29/08/2016
                     
                 }))
         
@@ -397,9 +398,18 @@ class tpt_asset_depreciation(osv.osv):
                         auto_id = self.pool.get('tpt.auto.posting').browse(cr, uid, auto_ids[0], context=context)
                         if auto_id:
                             move_obj.button_validate(cr,uid, [move_id], context)
-                    #self.write(cr, uid, line.id, {'move_check': True}, context=context)
-                    
-                    
+                    #self.write(cr, uid, line.id, {'move_check': True}, context=context)                
+                   # Added by vinothkumar on 25/08/2016 for update moved assets as 'true'
+                    sql = '''
+                    update tpt_asset_depreciation_line set move_check='t' where id=%s
+                    '''%(line.id)
+                    cr.execute(sql)
+                    # Added by vinothkumar on 25/08/2016 for remove posted assets in line 
+                    sql = '''
+                    delete from tpt_asset_depreciation_line where move_check='t'
+                    '''
+                    cr.execute(sql)
+                    #TPT end 
                     #
                     sql = '''
                     update account_asset_depreciation_line set move_check='t', move_id=%s where id=%s
@@ -429,7 +439,7 @@ class tpt_asset_depreciation_line(osv.osv):
     _name = 'tpt.asset.depreciation.line'
     _columns = {
         'aaset_depreciation_id': fields.many2one('account.asset.depreciation.line', 'Asset Depreciation'),
-        'asset_id': fields.many2one('account.asset.asset', 'Asset'),
+        'asset_id': fields.many2one('account.asset.asset', 'Asset Name'),# Modified field name on 29/08/2016
         'category_id': fields.many2one('account.asset.category', 'Asset Category'),
         'gross_value': fields.float('Gross Value', ),
         'caps_date': fields.date('Capitalization Date'),
@@ -438,7 +448,7 @@ class tpt_asset_depreciation_line(osv.osv):
         'move_check': fields.boolean('Posted'),  
         'depreciation_id': fields.many2one('tpt.asset.depreciation', 'Asset Depreciation', ondelete='cascade'),
         'flag':fields.boolean('Select'),  # added field on 27/08/2016 
-             
+        'register_code' :fields.char('Asset Reg.No'),  # added field on 29/08/2016      
     }
     
     
