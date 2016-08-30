@@ -6608,7 +6608,7 @@ class arul_hr_punch_in_out(osv.osv):
                                                       'in_time':in_time,'out_time':out_time,
                                                       'ref_in_time':in_time,'ref_out_time':out_time,
                                                       
-                                                      'a_shift_count1':a_shift,
+                                                      'a_shift_count1':a_shift, #Here issue raised on 29/08/2016 - due to mismatch time b/w Work Shift & Work Shift Master screen
                                                       'g1_shift_count1':g1_shift,
                                                       'g2_shift_count1':g2_shift,
                                                       'b_shift_count1':b_shift,
