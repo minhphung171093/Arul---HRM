@@ -517,6 +517,7 @@ class account_balance_report(osv.osv_memory):
                 cr.execute(sql)
                 acc_ids =  cr.dictfetchall()  
                 name = 'Customer Trial Balance'
+                
             if balance.tb_type=='supplier_tb':
                 sql = '''
                 select aa.id from account_account aa
@@ -529,72 +530,63 @@ class account_balance_report(osv.osv_memory):
                 cr.execute(sql)
                 acc_ids =  cr.dictfetchall()  
                 name = 'Vendor Trial Balance'  
-            # Added by P.vinothkumar on 10/08/2016 for adding summary trial balance type     
+            # Added by P.vinothkumar on 30/08/2016 for adding summary trial balance type        
             if balance.tb_type=='summary_tb':
                 sql = '''
-                select aa.code, aa.name,
-                (select case when sum(debit) is null then 0.00 else sum(debit) end as debit 
-                from account_move_line aml join account_move am on am.id=aml.move_id where account_id in 
-                (select id from account_account where parent_id=aa.id) and am.date between '%(date_from)s' and '%(date_to)s') as debit,
-                (select case when sum(credit) is null then 0.00 else sum(credit) end as credit
-                from account_move_line aml join account_move am on am.id=aml.move_id where account_id in 
-                (select id from account_account where parent_id=aa.id) and am.date between '%(date_from)s' and '%(date_to)s') as credit,
-                (select case when sum(debit) is null then 0.00 else sum(debit) end as open_debit from account_move_line aml join account_move am on am.id=aml.move_id where account_id in 
-                (select id from account_account where parent_id=aa.id) and am.date < '%(date_from)s') as open_debit,
-                (select case when sum(credit) is null then 0.00 else sum(credit) end as open_credit from account_move_line aml join account_move am on am.id=aml.move_id where account_id in 
-                (select id from account_account where parent_id=aa.id) and am.date < '%(date_from)s') as open_credit
+                select aa.id,aa.code,aa.name
                 from account_account aa where aa.id in (select parent_id from account_account group by parent_id) order by aa.id;
-                ''' %{'date_from':balance.date_from,
-                      'date_to':balance.date_to,
-                        }
+                ''' 
                 cr.execute(sql)
                 account_ids =  cr.dictfetchall()
-                #account_ids = sorted(account_ids)
-                #print sql
-                #name = 'Summary Trial balance'
                 for line in account_ids:
+                    account_id = line['id']
+                # Added by BP and P.vinothkumar on 30/08/2016
+                    acc_obj = self.pool.get('account.account')
+                    children_and_consolidated = acc_obj._get_children_and_consol(cr, uid, account_id, context=context)
                     
-                    debit = line['debit']
-                    credit = line['credit']
-                    sql = '''
-                    select count(*) from account_account  where 
-                    parent_id=(select id from account_account where code='%s') and type='view'
-                    '''%line['code']
+                    child_records = tuple(children_and_consolidated)
+                    
+                    sql = ''' 
+                             select case when sum(aml.debit)!=0 then sum(aml.debit) else 0 end sumdebit
+                            from account_move_line aml
+                            join account_move am on (am.id=aml.move_id)
+                            where aml.account_id in %s and am.date between '%s' and '%s' and am.state='posted'
+                        '''%(child_records,balance.date_from,balance.date_to)
                     cr.execute(sql)
-                    temp = cr.fetchone()[0] 
-                    if temp > 0:
-                        sql = '''
-                        select sum(foo.debit) as debit,sum(foo.credit) as credit from
-                        (
-                        select 
-                         (select case when sum(debit) is null then 0.00 else sum(debit) end as debit
-                         from account_move_line aml join account_move am on am.id=aml.move_id where account_id in 
-                         (select id from account_account where parent_id=aa.id) and am.date between '%(date_from)s' and '%(date_to)s') as debit,
-                        (select case when sum(credit) is null then 0.00 else sum(credit) end as credit
-                         from account_move_line aml join account_move am on am.id=aml.move_id where account_id in 
-                         (select id from account_account where parent_id=aa.id) and am.date between '%(date_from)s' and '%(date_to)s') as credit
-                         from account_account aa where aa.parent_id=(select id from account_account where code='%(code)s'))foo
-                        '''%{'date_from':balance.date_from,
-                             'date_to':balance.date_to,
-                             'code': line['code']
-                        }
-                        cr.execute(sql)
-                        for account in cr.dictfetchall():
-                            temp_dr = account['debit']
-                            temp_cr = account['credit']
-                        debit = temp_dr
-                        credit = temp_cr
-                        close_debit = (line['open_debit'] + debit)
-                        close_credit = (line['open_credit'] + credit)
-                        total_balance = (line['open_debit'] + debit)-(line['open_credit'] + credit)
+                    debit = cr.fetchone()[0]
                         
-                    else:
-                        debit = line['debit']
-                        credit = line['credit']
-                        close_debit = (line['open_debit'] + line['debit']) 
-                        close_credit = (line['open_credit'] + line['credit'])
-                        total_balance =  (line['open_debit'] + line['debit'])-(line['open_credit'] + line['credit'])
-                 
+                    sql = ''' 
+                         select case when sum(aml.credit)!=0 then sum(aml.credit) else 0 end sumcredit
+                        from account_move_line aml
+                        join account_move am on (am.id=aml.move_id)
+                        where aml.account_id in %s and am.date between '%s' and '%s' and am.state='posted'
+                    '''%(child_records,balance.date_from,balance.date_to)
+                    cr.execute(sql)
+                    credit = cr.fetchone()[0]
+                   
+                    
+                    sql = ''' 
+                         select case when sum(aml.credit)!=0 then sum(aml.credit) else 0 end opencredit
+                        from account_move_line aml
+                        join account_move am on (am.id=aml.move_id)
+                        where aml.account_id in %s and am.date < '%s' and am.state='posted'
+                    '''%(child_records,balance.date_from)
+                    cr.execute(sql)
+                    open_cr = cr.fetchone()[0]
+                    
+                    sql = ''' 
+                         select case when sum(aml.debit)!=0 then sum(aml.debit) else 0 end opendebit
+                        from account_move_line aml
+                        join account_move am on (am.id=aml.move_id)
+                        where aml.account_id in %s and am.date < '%s' and am.state='posted'
+                    '''%(child_records,balance.date_from)
+                    cr.execute(sql)
+                    #print sql
+                    open_dr = cr.fetchone()[0]
+                    close_debit = (open_dr + debit)
+                    close_credit = (open_cr + credit)
+                    total_balance = (close_debit)-(close_credit)
+                    
                     code = line['code']
                     name = line['name']   
                     if len(line['code'])==2:
@@ -616,8 +608,8 @@ class account_balance_report(osv.osv_memory):
                     balance_line.append((0,0,{
                     'code': code,
                     'account': name,
-                    'open_debit': line['open_debit'],
-                    'open_credit': line['open_credit'],
+                    'open_debit': open_dr,
+                    'open_credit':open_cr,
                     'debit': debit,
                     'credit': credit,
                     'close_bal': total_balance,
@@ -625,7 +617,7 @@ class account_balance_report(osv.osv_memory):
                     'close_credit': close_credit
                      }))
                 name = 'Summary Trial balance'    
-                
+              # Ended by P.vinothkumar on 30/08/2016 for adding summary trial balance type  
                 if balance.tb_type != 'summary_tb':    
                     for ids in acc_ids:
                         vendor_child_ids.append(ids['id'])

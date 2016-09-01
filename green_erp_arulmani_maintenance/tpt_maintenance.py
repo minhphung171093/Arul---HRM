@@ -1413,9 +1413,19 @@ class tpt_material_issue(osv.osv):
                     unit=1
                 price += unit * mater.product_isu_qty
                 product_price = unit * mater.product_isu_qty
+                #===============================================================
+                # ##TPT-By Balamurugan Purushothaman - ON 31/08/2016 - TO TAKE AVG COST AS UNIT PRICE FOR STOCK_MOVE ENTRIES
+                # avg_cost_ids = avg_cost_obj.search(cr, uid, [('product_id','=',mater.product_id.id),('warehouse_id','=',line.warehouse.id)])
+                # unit = 1
+                # if avg_cost_ids:
+                #     avg_cost_id = avg_cost_obj.browse(cr, uid, avg_cost_ids[0])
+                #     unit = avg_cost_id.avg_cost or 0
+                # product_price = unit * p.product_isu_qty
+                #===============================================================
+                    ##TPT-END
                 ### update request
 #                 cr.execute(''' update tpt_material_request_line set issue_qty = %s, price_unit = %s, total_value = %s where id = %s ''',(mater.product_isu_qty,unit,product_price,mater.request_line_id.id,))
-                cr.execute(''' update tpt_material_request_line set issue_qty = %s, price_unit = %s where id = %s ''',(mater.product_isu_qty,unit,mater.request_line_id.id,))
+                cr.execute(''' update tpt_material_request_line set issue_qty = %s, price_unit = %s where id = %s ''',(mater.product_isu_qty,unit,mater.id,))
                 ###
                 journal_line.append((0,0,{
                                         'name':line.doc_no + ' - ' + mater.product_id.name, 

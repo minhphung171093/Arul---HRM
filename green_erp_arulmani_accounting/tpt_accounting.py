@@ -7535,10 +7535,20 @@ class tpt_material_issue(osv.osv):
                     for issue in cr.dictfetchall():
                         hand_quantity_issue = issue['ton_sl'] or 0
                         total_cost_issue = issue['total_cost'] or 0
-                    #TPT By BalamuruganPurushothaman on 14/10/2015 - To avoid throwing Warning - Physical Inventories to Material Issue
+                    #TPT By Balamurugan Purushothaman on 14/10/2015 - To avoid throwing Warning - Physical Inventories to Material Issue
                     opening_stock_value = 0
                     if (hand_quantity-hand_quantity_issue)!=0:
                         opening_stock_value = (total_cost-total_cost_issue)/(hand_quantity-hand_quantity_issue)
+                    #===========================================================
+                    # ##TPT-By Balamurugan Purushothaman - ON 31/08/2016 - TO TAKE AVG COST AS UNIT PRICE FOR STOCK_MOVE ENTRIES
+                    # avg_cost_ids = avg_cost_obj.search(cr, uid, [('product_id','=',p.product_id.id),('warehouse_id','=',line.warehouse.id)])
+                    # unit = 1
+                    # if avg_cost_ids:
+                    #     avg_cost_id = avg_cost_obj.browse(cr, uid, avg_cost_ids[0])
+                    #     unit = avg_cost_id.avg_cost or 0
+                    # opening_stock_value = unit * p.product_isu_qty
+                    # ##TPT-END
+                    #===========================================================
                     
                 rs = {
                       'name': '/',
@@ -7599,12 +7609,11 @@ class tpt_material_issue(osv.osv):
                 product_price = unit * mater.product_isu_qty
                 
                 journal_line.append((0,0,{
-                                        'name':line.doc_no + ' - ' + mater.product_id.name, 
-                                        'account_id': acc_asset,
-                                        'debit':0,
-                                        'credit':product_price,
-                                        'product_id':mater.product_id.id,
-                                         
+                            'name':line.doc_no + ' - ' + mater.product_id.name, 
+                            'account_id': acc_asset,
+                            'debit':0,
+                            'credit':product_price,
+                            'product_id':mater.product_id.id,
                                        }))
                 journal_line.append((0,0,{
                             'name':line.doc_no + ' - ' + mater.product_id.name, 

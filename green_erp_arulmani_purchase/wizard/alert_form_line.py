@@ -226,7 +226,7 @@ class approve_reject_quanlity_inspection(osv.osv_memory):
                     'date': date_period,
                     'line_id': journal_line,
                     'doc_type':'grn',
-                    'grn_id':line.id,
+                    'grn_id':line.name.id,
                     'ref': line.name.name,
                     'name':name, 
                     }
