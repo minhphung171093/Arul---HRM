@@ -134,6 +134,34 @@
 <menuitem id="account_asset.menu_finance_assets" name="Asset Register" parent="account.menu_finance" sequence="9"/>        
    
     
+    
+    
+    <!-- 
+    
+     <record model="ir.actions.act_window" id="action_assets_register_form_view">
+	        <field name="name">Stock Movement Analysis Report</field>
+	        <field name="res_model">account.asset.asset</field>
+	        <field name="view_type">form</field>
+	        <field name="view_mode">form</field>
+	        <field name="view_id" ref="assets_register_form_view" />
+	        <field name="target">new</field>
+	    </record>
+	    
+	     
+       <menuitem action="action_assets_register_form_view" 
+       id="menu_action_assets_register_form_view" parent="base.menu_mro_root" sequence="51"/>
+        -->
+ <!--
+	  <menuitem action="action_stock_movement_analysis_view"
+            id="menu_action_stock_movement_analysis_view"
+            parent="base.next_id_73" 
+            sequence="3"/>
+	   --> 
+	   
+	   
+	   
+    
+    
     <!-- Start Depreciation Posting  -->
     <record id="tpt_asset_depreciation_tree" model="ir.ui.view">
             <field name="name">tpt.asset.depreciation.tree</field>
@@ -242,6 +270,11 @@
             
             
     <!-- End -->
+    
+    
+	   
+	   
+	   
      </data>
 </openerp>
 

@@ -463,6 +463,7 @@
 							<field name="end_time" widget="float_time"/>
 							<field name="duty_location" attrs="{'invisible':['|',('non_availability_type_id','!=','on_duty'),('parent_id','!=',False)]}"/>
 							<field name="time_total" widget="float_time"/>
+							<field name="is_third_permission" readonly='1' attrs="{'invisible':[('non_availability_type_id','!=','permission'),('parent_id','=',False)]}"/>
 							<field name="approval"/>
 							<field name="create_date"/>
 							<field name="create_uid"/>
