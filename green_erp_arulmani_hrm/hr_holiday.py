@@ -12647,7 +12647,7 @@ class tpt_shd_woff_addcl(osv.osv):
     
     _columns = {
         'employee_id' : fields.many2one('hr.employee', 'Employee', ),
-        'work_date': fields.date('Date', size=1024),
+        'work_date': fields.date('Date', ),
         'cl_count_added': fields.float('CL Added', ),       
     }
     
