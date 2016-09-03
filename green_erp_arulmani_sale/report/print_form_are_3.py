@@ -34,6 +34,8 @@ class Parser(report_sxw.rml_parse):
             'get_iamt':self.get_iamt,
             'get_edamt':self.get_edamt,
             'get_dec':self.get_dec,
+            # Added by P.vinothkumar on 03/09/2016
+            'get_app':self.get_app,
         })
     def get_dec(self,number=False):
         dec_no = round(number - int(number), 2)
@@ -101,6 +103,24 @@ class Parser(report_sxw.rml_parse):
             value = 0.0
         value=str(value)
         return value.split('.')
+    # Added by P.vinothkumar on 03/09/2016 for display product grades
+    def get_app(self, obj):       
+        if obj:
+            app = ''
+            sql = '''
+            SELECT id FROM crm_application WHERE code='OPATI TM R001'
+            '''
+            self.cr.execute(sql)            
+            pl_date=self.cr.fetchone()
+            a = pl_date[0]
+            
+            if a:
+                #raise osv.except_osv(_('Warning!%s'),_(a))
+                if a==obj.id:                                                               
+                    return  '       Opati' + u"\u2122" +' R001'
+        
+        
+         # End
         
         
         

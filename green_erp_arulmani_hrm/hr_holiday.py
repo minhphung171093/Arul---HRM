@@ -5626,7 +5626,7 @@ class arul_hr_permission_onduty(osv.osv):
                     #%(permission.employee_id.id,permission.id,year,month)
                 cr.execute(sql)
                 p = cr.dictfetchone()        
-                if p and p['num_of_permission']>=2: 
+                if p and p['num_of_permission']>=2 and permission.employee_id.employee_category_id.code!='S1': 
                     #raise osv.except_osv(_('Warning!'),_('Employee %s have 2 permission for this month!')%(permission.employee_id.name+' '+(permission.employee_id.last_name or '')))
                     res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
                                             'green_erp_arulmani_hrm', 'alert_third_permission_form_view')
@@ -5644,11 +5644,11 @@ class arul_hr_permission_onduty(osv.osv):
                 #TPT START
                 sql = '''
                     select count(id) as num_of_permission from arul_hr_permission_onduty where non_availability_type_id='permission' and employee_id=%s
-                        and id!=%s and EXTRACT(year from date)='%s'
-                '''%(permission.employee_id.id,permission.id,year)
+                        and EXTRACT(year from date)='%s' and state = 'done' and is_third_permission = False
+                '''%(permission.employee_id.id, year)
                 cr.execute(sql)
                 p = cr.dictfetchone()        
-                if p and p['num_of_permission']>=11:
+                if p and p['num_of_permission']>=11  and permission.employee_id.employee_category_id.code!='S1':
                     #raise osv.except_osv(_('Warning!'),_('NO MORE PERMISSION PERMITTED.\n Employee %s have already taken 10 permission for this year!')%(permission.employee_id.name+' '+(permission.employee_id.last_name or '')))
                     res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
                                             'green_erp_arulmani_hrm', 'alert_third_permission_form_view')
@@ -12641,3 +12641,14 @@ update_monthly_schedule_line()
 
  #TPT START - BY RAKESHKUMAR - ON 22/02/2016 - FOR NEW SCREEN MONTHLY WORK SCHEDULE FOR MID MONTH JOINING EMPLOYEES
  
+ 
+class tpt_shd_woff_addcl(osv.osv):
+    _name = "tpt.shd.woff.addcl"
+    
+    _columns = {
+        'employee_id' : fields.many2one('hr.employee', 'Employee', ),
+        'work_date': fields.date('Date', size=1024),
+        'cl_count_added': fields.float('CL Added', ),       
+    }
+    
+tpt_shd_woff_addcl()    
