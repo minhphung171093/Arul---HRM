@@ -184,7 +184,7 @@ class alert_form(osv.osv_memory):
         #=======================================================================
         ###
         
-        sql = ''' update arul_hr_permission_onduty set approval='t',permission_onduty_id=%s where id=%s  
+        sql = ''' update arul_hr_permission_onduty set approval='t',permission_onduty_id=%s, is_third_permission=True where id=%s  
         '''%(emp_attendence_ids[0], perm_obj.id) 
         cr.execute(sql)
         

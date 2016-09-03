@@ -5509,9 +5509,13 @@ class arul_hr_permission_onduty(osv.osv):
         'total_shift_worked': fields.function(_shift_total,store=True, type='float', string='No.Of Shift Worked', multi='shift_total', help="The total amount."),
         
         'state':fields.selection([('draft', 'Draft'),('cancel', 'Rejected'),('done', 'Approved'),('time_leave_confirmed','Time Leave Evaluation Confirmed')],'Status', readonly=True),
+              
+        'is_third_permission': fields.boolean('Is Third Permission'),#TPT-BM-ON 02/09/2016 - TO HANDLE 3RD PERMISSION
+              
               }
     _defaults = {
            'state': 'draft',  
+           'is_third_permission': False,  
                  }
     
     def approve_permission_onduty(self, cr, uid, ids, context=None):
@@ -5617,8 +5621,9 @@ class arul_hr_permission_onduty(osv.osv):
             #
                 sql = '''
                     select count(id) as num_of_permission from arul_hr_permission_onduty where non_availability_type_id='permission' and employee_id=%s
-                        and id!=%s and EXTRACT(year from date)='%s' and EXTRACT(month from date)='%s'
-                '''%(permission.employee_id.id,permission.id,year,month)
+                        and EXTRACT(year from date)='%s' and EXTRACT(month from date)='%s' and state = 'done' and is_third_permission = False
+                '''%(permission.employee_id.id, year, month)
+                    #%(permission.employee_id.id,permission.id,year,month)
                 cr.execute(sql)
                 p = cr.dictfetchone()        
                 if p and p['num_of_permission']>=2: 
