@@ -1309,7 +1309,7 @@ class product_product(osv.osv):
             return res
         reads = self.read(cr, uid, ids, ['name','default_code'], context=context)
         for record in reads:
-            name = record['default_code']+ ' '+'-'+' ' + (record['name'] or'')
+            name = str(record['default_code'])+ ' '+'-'+' ' + (str(record['name']) or'') #TPT-BM-07/09/2016
             res.append((record['id'], name))   
         return res
     _columns = { 
