@@ -1857,7 +1857,7 @@ class tpt_blank_order_line(osv.osv):
         'sub_total': fields.function(subtotal_blanket_orderline, multi='deltas' ,string='SubTotal'),
         'freight': fields.float('Frt/Qty'),
         #Effective Consignee
-        'tpt_name_consignee_id': fields.many2one('tpt.cus.consignee', 'Consignee', required = False),
+        'tpt_name_consignee_id': fields.many2one('tpt.cus.consignee', 'Consignee' ),
         
         'name_consignee_id': fields.many2one('res.partner', 'Consignee', required = False),
         'location': fields.char('Location', size = 1024,readonly = True),
@@ -2866,22 +2866,24 @@ class tpt_cus_consignee(osv.osv):
                     }
         return {'value': vals} 
     
-    def name_get(self, cr, uid, ids, context=None):
-        res = []
-        if isinstance(ids, (int, long)):
-            ids = [ids]
-        if not ids:
-            return res
-        reads = self.read(cr, uid, ids, ['tpt_consignee_id','tpt_consignee_code'], context)
-        for record in reads:
-            name = ''
-            if record['tpt_consignee_code']:
-                name += record['tpt_consignee_code'][0:6]+'_'
-            if record['tpt_consignee_id']:
-                name += record['tpt_consignee_id'][1]
-            
-            res.append((record['id'], name))
-        return res
+    #===========================================================================
+    # def name_get(self, cr, uid, ids, context=None):
+    #     res = []
+    #     if isinstance(ids, (int, long)):
+    #         ids = [ids]
+    #     if not ids:
+    #         return res
+    #     reads = self.read(cr, uid, ids, ['tpt_consignee_id','tpt_consignee_code'], context)
+    #     for record in reads:
+    #         name = ''
+    #         if record['tpt_consignee_code']:
+    #             name += record['tpt_consignee_code'][0:6]+'_'
+    #         if record['tpt_consignee_id']:
+    #             name += record['tpt_consignee_id'][1]
+    #         
+    #         res.append((record['id'], name))
+    #     return res
+    #===========================================================================
     ###
     def create(self, cr, uid, vals, context=None):
         if 'tpt_consignee_id' in vals:

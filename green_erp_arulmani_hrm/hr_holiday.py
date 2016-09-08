@@ -5069,7 +5069,7 @@ class arul_hr_employee_leave_details(osv.osv):
                 args += [('id','in',leave_details_ids)]
         return super(arul_hr_employee_leave_details, self).search(cr, uid, args, offset, limit, order, context, count)
 
-    def increment_cl_shd_woff(self, cr, uid, context=None):   
+    def increment_cl_shd_woff(self, cr, uid, context=None):    
         monthly_shift_schedule_obj = self.pool.get('arul.hr.monthly.shift.schedule')        
         attend_obj = self.pool.get('arul.hr.punch.in.out.time') 
         leave_obj = self.pool.get('arul.hr.employee.leave.details') 
@@ -12647,7 +12647,7 @@ class tpt_shd_woff_addcl(osv.osv):
     
     _columns = {
         'employee_id' : fields.many2one('hr.employee', 'Employee', ),
-        'work_date': fields.date('Date', size=1024),
+        'work_date': fields.date('Date', ),
         'cl_count_added': fields.float('CL Added', ),       
     }
     
