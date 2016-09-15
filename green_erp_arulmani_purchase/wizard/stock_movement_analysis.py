@@ -2530,9 +2530,7 @@ class stock_movement_analysis(osv.osv_memory):
                             from stock_move where product_id = pp.id and state = 'done' and issue_id is null 
                             and picking_id is null and inspec_id is null and location_id = %(location_spare_id)s 
                             and date between '%(date_from)s' and '%(date_to)s' and location_id != location_dest_id)
-                +
-                (select case when sum(adj_qty)!=0 then sum(adj_qty) else 0 end adj_qty from stock_adjustment where product_id=pp.id and posting_date between '%(date_from)s' and '%(date_to)s' and state='done' 
-                         and adj_type='decrease')                
+                              
                              consum_qty,
                  
                 
