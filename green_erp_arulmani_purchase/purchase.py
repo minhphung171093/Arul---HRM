@@ -6240,15 +6240,15 @@ class stock_adjustment(osv.osv):
                          } )
         return {'value': vals} 
     #END
-     #TPT START - By TPT P.VINOTHKUMAR - ON 19/03/2015 for effect of change batch number
+    #TPT START - By TPT P.VINOTHKUMAR - ON 19/03/2015 for effect of change batch number
     def onchange_batch_no(self, cr, uid, ids,lot_id=False,batch_qty=False,context=None):
         vals = {}
         if lot_id:
             batch = self.pool.get('stock.production.lot').browse(cr, uid, lot_id)
             vals['batch_qty']= batch.stock_available or 0#batch.stock_available
         return {'value': vals}         
-      #END     
-     #TPT START - By TPT P.VINOTHKUMAR - ON 17/03/2015 for insert records in stock move
+    #END     
+    #TPT START - By TPT P.VINOTHKUMAR - ON 17/03/2015 for insert records in stock move
     def stock_adjustment(self, cr, uid, ids, context=None):
         stock_obj = self.pool.get('stock.move')
         doc_no = ''
@@ -6257,33 +6257,37 @@ class stock_adjustment(osv.osv):
             if line.adj_type=='increase': 
                  location_id=5
                  location_dest_id=line.location_id.id
-                 name = 'stock adj inc'
+                 #name = 'stock adj inc'
             if line.adj_type=='decrease':
                  location_id=line.location_id.id
                  location_dest_id=4   
-                 name = 'stock adj dec'  
-                     
-            stock_obj.create(cr, uid, {
-                               'product_id': line.product_id.id,
-                               'product_uom': line.product_id.uom_id.id,
-                               'price_unit': 0.00,
-                               'location_id': location_id or False,
-                               'location_dest_id': location_dest_id or False,
-                               'name':name or '', #'stock adj', #TPT-BM-22/06/2016
-                               'company_id':1,
-                               'product_name':line.product_id.name_template or '',
-                               'origin':'Stock Adjustment',
-                               'product_qty':line.adj_qty or 0.00,
-                               'state':'done',
-                               'prodlot_id':line.lot_id.id or False
-                               })
+                 #name = 'stock adj dec'  
             if line.adj_type=='increase':
                 doc_no = self.pool.get('ir.sequence').get(cr, uid, 'tpt.stock.adj.inc.import') or '/'
             else:
                 doc_no = self.pool.get('ir.sequence').get(cr, uid, 'tpt.stock.adj.dec.import') or '/'
             vals = {'state':'done',
                     'name': doc_no 
-                    }
+                    }         
+            stock_obj.create(cr, uid, {
+                   'product_id': line.product_id.id,
+                   'product_uom': line.product_id.uom_id.id,
+                   'price_unit': 0.00,
+                   'location_id': location_id or False,
+                   'location_dest_id': location_dest_id or False,
+                   'name': doc_no or '', #'stock adj', #TPT-BM-22/06/2016
+                   'company_id':1,
+                   'product_name':line.product_id.name_template or '',
+                   'origin':'Stock Adjustment' or '',
+                   'product_qty':line.adj_qty or 0.00,
+                   'product_uos_qty': line.adj_qty or 0.00,
+                   'state':'done',
+                   'prodlot_id':line.lot_id.id or False,
+                   'stock_adj_id': line.id or False, #TPT-BM-15/09/2016
+                   'date': line.posting_date or False, #TPT-BM-15/09/2016
+                   'date_expected': line.posting_date or False
+                   })
+            
             
             ### posting entries
             account_move_obj = self.pool.get('account.move')

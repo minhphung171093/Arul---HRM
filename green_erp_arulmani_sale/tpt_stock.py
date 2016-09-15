@@ -292,6 +292,15 @@ class stock_picking(osv.osv):
             'delivery_order_id': picking.id,
             'sale_tax_id': picking.sale_id.sale_tax_id and picking.sale_id.sale_tax_id.id or False,
             'invoice_type': picking.sale_id and picking.sale_id.order_type or False,
+            # Added by P.vinothkumar on 09/09/2016 for adding address in customer invoice
+             'invoice_address': picking.partner_id.street or False,
+             'street2': picking.partner_id.street2 or False,
+             'street3': picking.partner_id.street3 or False,
+             'city': picking.partner_id.city or False,
+             'country_id': picking.partner_id.country_id.id or False,
+             'state_id': picking.partner_id.state_id.id or False,
+             'zip': picking.partner_id.zip or False,
+            # TPT end
         })
         if picking.type=='in':
             invoice_vals.update({ 'currency_id': picking.purchase_id.currency_id and picking.purchase_id.currency_id.id or False, })

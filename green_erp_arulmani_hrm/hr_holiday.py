@@ -5747,14 +5747,32 @@ class arul_hr_permission_onduty(osv.osv):
                 raise osv.except_osv(_('Warning!'),_('Input Wrong Time'))
                 return False
             #TPT - BalamuruganPurushothaman on 10/03/2014 - To throw warning when onduty entered for same time for same date
+            # Commented on 09/09/2016 by P.vinothkumar for block duplicate OD records.
+            #if time.non_availability_type_id=='on_duty':                
+#                 sql = '''
+#                     SELECT COUNT(*) FROM arul_hr_permission_onduty WHERE 
+#                     start_time <='%s' AND end_time >= '%s' and employee_id=%s 
+#                     AND to_char(from_date,'YYYY-MM-DD')=('%s') AND to_char(to_date,'YYYY-MM-DD')=('%s')        
+#                     ''' %(time.start_time,time.end_time,time.employee_id.id,time.from_date,time.to_date)
+#                 cr.execute(sql)
+#                 p = cr.fetchone()
+            # Modify sql scripts on 09/09/2016 by P.vinothkumar for block duplicate OD records. 
             if time.non_availability_type_id=='on_duty':                
                 sql = '''
-                    SELECT COUNT(*) FROM arul_hr_permission_onduty WHERE 
-                    start_time <='%s' AND end_time >= '%s' and employee_id=%s 
-                    AND to_char(from_date,'YYYY-MM-DD')=('%s') AND to_char(to_date,'YYYY-MM-DD')=('%s')        
-                    ''' %(time.start_time,time.end_time,time.employee_id.id,time.from_date,time.to_date)
+                    SELECT count(*)
+                    FROM arul_hr_permission_onduty WHERE 
+                    ('%(start_time)s' between start_time and end_time or '%(end_time)s' between start_time and end_time)
+                    and employee_id=%(emp_id)s and non_availability_type_id='on_duty' and 
+                    to_char(date,'YYYY-MM-DD') between '%(date)s' and '%(date)s'        
+                   '''%{'start_time':time.start_time,
+                         'end_time': time.end_time,
+                         'emp_id': time.employee_id.id,
+                         #'from_date': time.from_date,
+                         #'to_date':time.to_date,
+                         'date':time.date
+                         }
                 cr.execute(sql)
-                p = cr.fetchone()   
+                p = cr.fetchone()    
                 #raise osv.except_osv(_('Warning!%s'),_(p[0]))           
                 if p[0]-1>0:
                     raise osv.except_osv(_('Warning!'),_('OnDuty Already Entered for this Time Period'))  

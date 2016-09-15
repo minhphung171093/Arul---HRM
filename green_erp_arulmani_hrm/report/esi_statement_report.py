@@ -101,13 +101,35 @@ class Parser(report_sxw.rml_parse):
         lop_esi =  self.cr.fetchone()
         tpt_lop_esi = lop_esi[0]
         total_no_of_leave = tpt_lop_esi
-        no_of_day_work = calendar_days - total_no_of_leave
-        
+        # Added by P.vinothkumar on 09/09/2016 to calculate No.of workdays for mid-join employee
+        calculate_days = 0
+        sql='''
+            select extract(month from date_of_joining) as month,extract(year from date_of_joining) as year
+            from hr_employee where id='%s'
+        '''%(employee.id)
+        self.cr.execute(sql)
+        for doj in self.cr.fetchall():
+            emp_month = doj[0]
+            emp_year  = doj[1]
+        if emp_month ==  int(month) and emp_year == int(year):
+            sql='''
+                select extract(day from date_of_joining) doj from hr_employee where extract(year from date_of_joining)='%s'
+                 and extract(month from date_of_joining)= '%s' and id='%s'
+            '''%(emp_year,emp_month,employee.id)
+            self.cr.execute(sql)
+            calculate_days = self.cr.fetchone()
+            remaining_days=calculate_days[0]
+            if employee.employee_category_id.code == 'S3':
+                no_of_day_work = (26 - total_no_of_leave - remaining_days)+1
+            else:    
+                no_of_day_work = (calendar_days - total_no_of_leave - remaining_days)+1
+        else:    
+            no_of_day_work = calendar_days - total_no_of_leave
         #added on 03/07/2015
         #no_of_day_work = calendar_days 
-        if employee.employee_category_id.code == 'S3':
-            no_of_day_work = 26 - total_no_of_leave
-        
+            if employee.employee_category_id.code == 'S3':
+                no_of_day_work = 26 - total_no_of_leave
+         # TPT end
         return no_of_day_work
     
     def get_no_of_shift_work(self, employee):
