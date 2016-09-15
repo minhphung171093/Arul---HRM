@@ -1322,6 +1322,7 @@ class stock_movement_analysis(osv.osv_memory):
                
                     )a '''%(locat_ids[0],product_id,date_from,date_to,date_from,date_to, date_from, date_to, product_id)
              #TPT END
+             #print sql
             if inventory:
                 hand_quantity = inventory['ton_sl'] or 0
                 total_cost = inventory['total_cost'] or 0
@@ -1351,6 +1352,20 @@ class stock_movement_analysis(osv.osv_memory):
                        hand_quantity += inspec['qty_approve'] or 0
                        total_cost += line['price_unit'] * (inspec['qty_approve'] or 0)
                    #
+            #TPT-BM-ON 15/09/2016 - TO ADD STOCK ADJ VALUE
+            adj_value = 0
+            sql = '''
+            select case when sum(product_qty*price_unit) >0 then sum(product_qty*price_unit) else 0 end as value from stock_move sm
+            inner join stock_adjustment sa on sm.stock_adj_id=sa.id
+            where sa.adj_type='increase' and sm.product_id=%s and sm.date between '%s' and '%s'
+            '''%(product_id, date_from, date_to)
+            cr.execute(sql)
+            temp = cr.fetchone()
+            if temp:
+                adj_value = temp[0]
+            total_cost = total_cost + adj_value
+                
+            #
             return total_cost  
             
         def get_qty_out(o, line):
@@ -1529,6 +1544,19 @@ class stock_movement_analysis(osv.osv_memory):
                 cr.execute(sql)
                 product_isu_qty = cr.dictfetchone()['product_isu_qty']
                 consum_value = product_isu_qty
+                #TPT-BM-ON 15/09/2016 - TO INCLUDE STOCK ADJ VALUE INTO SM ANALYSIS REPORT
+                adj_value = 0
+                sql = '''
+                select case when sum(product_qty*price_unit) >0 then sum(product_qty*price_unit) else 0 end as value from stock_move sm
+                inner join stock_adjustment sa on sm.stock_adj_id=sa.id
+                where sa.adj_type='decrease' and sm.product_id=%s and sm.date between '%s' and '%s'
+                '''%(product_id, date_from, date_to)
+                cr.execute(sql)
+                temp = cr.fetchone()
+                if temp:
+                    adj_value = temp[0]
+                consum_value = consum_value + adj_value
+                #
             return consum_value        
         
         def get_opening_stock(o,product_id):
@@ -2293,7 +2321,7 @@ class stock_movement_analysis(osv.osv_memory):
                     )
                 '''%(product_id, date_from, date_to, product_id, locat_ids[0])
                 cr.execute(sql)
-                print sql
+                #print sql
                 consum_value = cr.dictfetchone()['tong']
                 
                 if product.default_code == 'M0501060001':
@@ -2485,7 +2513,14 @@ class stock_movement_analysis(osv.osv_memory):
                                              receipt_qty,
                 
                 (select case when sum(product_qty*price_unit)>0 then sum(product_qty*price_unit) else 0 end from stock_move where product_id=pp.id and location_dest_id=%(location_spare_id)s 
-                and date between '%(date_from)s' and '%(date_to)s' and state = 'done') receipt_value,
+                and date between '%(date_from)s' and '%(date_to)s' and state = 'done') 
+                +
+                (
+                select case when sum(sm.product_qty*sm.price_unit) >0 then sum(sm.product_qty*sm.price_unit) else 0 end as value from stock_move sm
+                inner join stock_adjustment sa on sm.stock_adj_id=sa.id
+                where sa.adj_type='increase' and sm.product_id=pp.id and sm.date between '%(date_from)s' and '%(date_to)s'
+                )
+                receipt_value,
                 
                 
                 (select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_isu_qty from stock_move where product_id=pp.id and issue_id is not null and 
@@ -2502,10 +2537,15 @@ class stock_movement_analysis(osv.osv_memory):
                  
                 
                 (select case when sum(price_unit*product_qty)>0 then sum(price_unit*product_qty) else 0 end from stock_move 
-                where issue_id is not null and product_id=pp.id
-                and date between '%(date_from)s' and '%(date_to)s'
-                and state = 'done'
-                ) consum_value
+                where issue_id is not null and product_id=pp.id and date between '%(date_from)s' and '%(date_to)s' and state = 'done'
+                ) +
+                (
+                select case when sum(sm.product_qty*sm.price_unit) >0 then sum(sm.product_qty*sm.price_unit) else 0 end as value from stock_move sm
+                inner join stock_adjustment sa on sm.stock_adj_id=sa.id
+                where sa.adj_type='decrease' and sm.product_id=pp.id and sm.date between '%(date_from)s' and '%(date_to)s'
+                )
+                as
+                consum_value
                                             
                 from product_product pp
                 inner join product_template pt on  pp.product_tmpl_id=pt.id

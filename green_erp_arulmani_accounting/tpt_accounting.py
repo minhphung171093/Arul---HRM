@@ -9416,7 +9416,9 @@ class stock_move(osv.osv):
             wf_service.trg_write(uid, 'stock.picking', pick_id, cr)
 
         return True
-    
+    _columns = {
+        'stock_adj_id': fields.many2one('stock.adjustment', 'Stock Adjustment', ondelete='restrict'),
+                }
 stock_move()
 
 class purchase_order(osv.osv):
