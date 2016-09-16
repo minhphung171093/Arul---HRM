@@ -2526,11 +2526,11 @@ class stock_movement_analysis(osv.osv_memory):
                 (select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_isu_qty from stock_move where product_id=pp.id and issue_id is not null and 
                 date between '%(date_from)s' and '%(date_to)s' and state='done') 
                 +
-                (select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty 
-                            from stock_move where product_id = pp.id and state = 'done' and issue_id is null 
-                            and picking_id is null and inspec_id is null and location_id = %(location_spare_id)s 
-                            and date between '%(date_from)s' and '%(date_to)s' and location_id != location_dest_id)
-                              
+
+                (select case when sum(sm.product_qty)!=0 then sum(sm.product_qty) else 0 end product_qty  from stock_adjustment sa
+                inner join stock_move sm on sa.id=sm.stock_adj_id
+                where sm.state='done' and sm.product_id=pp.id and sm.date between '%(date_from)s' and '%(date_to)s'
+                )              
                              consum_qty,
                  
                 
@@ -2568,6 +2568,11 @@ class stock_movement_analysis(osv.osv_memory):
                 select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_isu_qty from stock_move where product_id=pp.id and issue_id is not null and 
                 date between '%(date_from)s' and '%(date_to)s' and state='done'
                 
+                --- tpt-bm-on 16/09/2016 removed the following from consumption qty script
+                (select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty 
+                            from stock_move where product_id = pp.id and state = 'done' and issue_id is null 
+                            and picking_id is null and inspec_id is null and location_id = %(location_spare_id)s 
+                            and date between '%(date_from)s' and '%(date_to)s' and location_id != location_dest_id)
                 ''' 
                 #TPT-END
             else:
