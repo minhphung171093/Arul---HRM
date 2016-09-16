@@ -2431,13 +2431,13 @@ class stock_movement_analysis(osv.osv_memory):
                     'item_name': line.name,
                     'uom':line.uom_id and line.uom_id.name or 0,
                     'open_stock': open_stock,
-                    'open_value': open_value,
+                    'open_value': round(open_value, 3), 
                     'receipt_qty':receipt_qty,
-                    'receipt_value':receipt_value,
+                    'receipt_value':round(receipt_value, 3),
                     'consum_qty':consum_qty,
-                    'consum_value': consum_value,    
+                    'consum_value': round(consum_value, 3),    
                     'close_stock':receipt_qty - (consum_qty) + (open_stock) ,
-                    'close_value': open_value + receipt_value - consum_value,  
+                    'close_value': round(open_value, 3) + round(receipt_value, 3) - round(consum_value, 3),  
                     'product_id': line.id or False,     
                 
                 }))
@@ -2684,18 +2684,19 @@ class stock_movement_analysis(osv.osv_memory):
                 opening_value += opening
                 receipt_value += receipt
                 #TPT_END
+                
                 move_analysis_line.append((0,0,{
                     'item_code': line['default_code'],
                     'item_name': line['name'],
                     'uom':line['uom'] or 0,
                     'open_stock': line['opening_stock'] or 0,
-                    'open_value': opening_value or 0,
+                    'open_value': round(opening_value,3) or 0,
                     'receipt_qty':line['receipt_qty'] or 0,
-                    'receipt_value':receipt_value or 0,
+                    'receipt_value':round(receipt_value,3) or 0,
                     'consum_qty':line['consum_qty'] or 0,
                     'consum_value': line['consum_value'] or 0 , 
                     'close_stock':line['opening_stock'] + line['receipt_qty'] - line['consum_qty'] or 0,
-                    'close_value':opening_value + receipt_value - line['consum_value'], 
+                    'close_value': round(opening_value, 3) + round(receipt_value, 3) - round(line['consum_value'],3), #tpt-bm-on 16/09/2016 - round off 3 added
                     'product_id': line['product_id'] or False,                              
                                                 
                                                 
