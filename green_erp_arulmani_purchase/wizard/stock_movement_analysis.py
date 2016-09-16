@@ -2529,7 +2529,7 @@ class stock_movement_analysis(osv.osv_memory):
 
                 (select case when sum(sm.product_qty)!=0 then sum(sm.product_qty) else 0 end product_qty  from stock_adjustment sa
                 inner join stock_move sm on sa.id=sm.stock_adj_id
-                where sm.state='done' and sm.product_id=pp.id and sm.date between '%(date_from)s' and '%(date_to)s'
+                where sa.adj_type='decrease' and sm.state='done' and sm.product_id=pp.id and sm.date between '%(date_from)s' and '%(date_to)s'
                 )              
                              consum_qty,
                  
