@@ -2690,13 +2690,13 @@ class stock_movement_analysis(osv.osv_memory):
                     'item_name': line['name'],
                     'uom':line['uom'] or 0,
                     'open_stock': line['opening_stock'] or 0,
-                    'open_value': round(opening_value,3) or 0,
+                    'open_value': opening_value or 0, #round(opening_value,3) or 0,
                     'receipt_qty':line['receipt_qty'] or 0,
-                    'receipt_value':round(receipt_value,3) or 0,
+                    'receipt_value':receipt_value or 0, #round(receipt_value,3) or 0,
                     'consum_qty':line['consum_qty'] or 0,
                     'consum_value': line['consum_value'] or 0 , 
                     'close_stock':line['opening_stock'] + line['receipt_qty'] - line['consum_qty'] or 0,
-                    'close_value': round(opening_value, 3) + round(receipt_value, 3) - round(line['consum_value'],3), #tpt-bm-on 16/09/2016 - round off 3 added
+                    'close_value': opening_value + receipt_value - line['consum_value'], #round(opening_value, 3) + round(receipt_value, 3) - round(line['consum_value'],3), #tpt-bm-on 16/09/2016 - round off 3 added
                     'product_id': line['product_id'] or False,                              
                                                 
                                                 
