@@ -143,5 +143,58 @@
             parent="purchase.menu_procurement_management" sequence="560" 
             groups="base.user_root"/>
         
+        <!--  -->
+        <record id="view_tpt_update_avg_cost_tree_view" model="ir.ui.view">
+			<field name="name">tpt.update.avg.cost.tree</field>
+			<field name="model">tpt.update.avg.cost</field>
+			<field name="arch" type="xml">
+				<tree string="Mapping Old Data">
+					<field name="product_id" />
+				</tree>
+			</field>
+		</record>
+		
+		<record id="view_tpt_update_avg_cost_form_view" model="ir.ui.view">
+            <field name="name">tpt.update.avg.cost.form</field>
+            <field name="model">tpt.update.avg.cost</field>
+            <field name="arch" type="xml">
+	            <form string="Update Avg Cost" version="7.0">
+		            <header>
+		           
+		            	<button name="stock_adj" string="Adj Avg Cost" type="object" class="oe_highlight"/>
+		            	
+		            </header>    
+	            	<group>
+	            		<field name="product_id"/>
+	                    
+	                    
+	                </group>
+	                <field name='update_line'>
+	                	<tree editable='top'>
+	                		<field name="name"/>
+	                		<field name="product_id"/>
+	                		<field name="date"/>
+	                		<field name="price_unit"/>
+	                	</tree>
+	                </field>
+	        	</form>
+			</field>
+		</record>
+          
+		<record id="action_tpt_update_avg_cost_form" model="ir.actions.act_window">
+            <field name="name">Update Avg Cost</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.update.avg.cost</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">form,tree</field>
+            <field name="view_id" ref="view_tpt_update_avg_cost_tree_view"/>
+        </record>
+        
+        <menuitem action="action_tpt_update_avg_cost_form"
+        	id="menu_action_tpt_update_avg_cost_form"
+            parent="purchase.menu_procurement_management" sequence="561" 
+            groups="base.user_root"/>
+            
+        <!--  -->
     </data>
 </openerp>

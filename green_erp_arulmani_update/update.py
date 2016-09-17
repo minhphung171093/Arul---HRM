@@ -4458,4 +4458,43 @@ class tpt_update_inspection_line(osv.osv):
         return self.write(cr, uid, ids, {'remove':True})
 
 tpt_update_inspection_line()
+
+class tpt_update_avg_cost(osv.osv):
+    _name = "tpt.update.avg.cost"
+    
+    _columns = {
+        'name': fields.char('Name'),
+        #'seq': fields.integer('Sequence'),
+        'product_id': fields.many2one('product.product', 'Product'),
+        'update_line': fields.one2many('tpt.update.avg.cost.line','update_id','Line'),
+        
+    }
+    
+    def bt_remove(self, cr, uid, ids, context=None):
+        for line in self.browse(cr, uid, ids):
+            cr.execute(''' update stock_move set inspec_id = null where id=%s ''',(line.move_id.id,))
+        return self.write(cr, uid, ids, {'remove':True})
+
+tpt_update_avg_cost()
+
+class tpt_update_avg_cost_line(osv.osv):
+    _name = "tpt.update.avg.cost.line"
+    
+    _columns = {
+        'name': fields.char('Name'),
+        'seq': fields.integer('Sequence'),
+        'product_id': fields.many2one('product.product', 'Product'),
+        'date': fields.date('Date'),
+        'price_unit': fields.float('Unit Price', ), 
+        'update_id': fields.many2one('tpt.update.avg.cost', 'Update', ondelete='cascade'),
+    }
+    
+    def bt_remove(self, cr, uid, ids, context=None):
+        for line in self.browse(cr, uid, ids):
+            cr.execute(''' update stock_move set inspec_id = null where id=%s ''',(line.move_id.id,))
+        return self.write(cr, uid, ids, {'remove':True})
+
+tpt_update_avg_cost_line()
+
+
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
