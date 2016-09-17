@@ -550,6 +550,7 @@ class tpt_maintenance_oder(osv.osv):
                                   ('close','Closed'),
                                   ('cancel','Cancelled')],'Status', readonly=True),        
         'total_hours': fields.function(_time_total, string='Total Hours', multi='sums', help="The total amount."),
+        'return_request_line':fields.one2many('tpt.material.return.request','maintenance_id','Return Request', readonly=True),
     }
     _defaults = {
         'state':'draft',
@@ -758,6 +759,24 @@ class tpt_maintenance_oder(osv.osv):
                     'target': 'new',
                 }
         
+    def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
+        if context is None:
+            context = {}
+        if context.get('search_maintenance_in_mrr', False):
+            sql = '''
+                select id from tpt_maintenance_oder where state in ('in','completed')
+                    and id in (select maintenance_id from tpt_material_request)
+            '''
+            cr.execute(sql)
+            maintenance_ids = [row[0] for row in cr.fetchall()]
+            args += [('id','in',maintenance_ids)]
+        return super(tpt_maintenance_oder, self).search(cr, uid, args, offset=offset, limit=limit, order=order, context=context, count=count)
+    
+    def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
+        if context is None:
+            context = {}
+        ids = self.search(cr, user, args, context=context, limit=limit)
+        return self.name_get(cr, user, ids, context=context)
     
 tpt_maintenance_oder()
 #TPT START - By P.vinothkumar - ON 23/06/2016 - FOR (Apply multilines approval and reject)
@@ -1478,7 +1497,47 @@ class tpt_material_issue(osv.osv):
                         pass
             self.write(cr, uid, ids,{'state':'done'})
         return True
+    
+    def name_get(self, cr, uid, ids, context=None):
+        res = []
+        if not ids:
+            return res
+        reads = self.read(cr, uid, ids, ['doc_no'], context)
+   
+        for record in reads:
+            name = record['doc_no']
+            res.append((record['id'], name))
+        return res
+    
 tpt_material_issue()
+
+class tpt_material_issue_line(osv.osv):
+    _inherit = "tpt.material.issue.line"
+    
+    def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
+        if not args:
+            args = []
+        if context is None:
+            context = {}
+        if not name:
+            ids = self.search(cr, user, args, limit=limit, context=context)
+        else:
+            ids = self.search(cr, user, [('product_id',operator,name)] + args, limit=limit, context=context)
+        return self.name_get(cr, user, ids, context=context)
+    
+    def name_get(self, cr, uid, ids, context=None):
+        res = []
+        if not ids:
+            return res
+        reads = self.read(cr, uid, ids, ['product_id'], context)
+   
+        for record in reads:
+            if record['product_id']:
+                for line in self.pool.get('product.product').name_get(cr, uid, [record['product_id'][0]]):
+                    res.append((record['id'],line[1]))
+        return res 
+    
+tpt_material_issue_line()
 
 ### TPT-Start
 class tpt_service_gpass_req(osv.osv):

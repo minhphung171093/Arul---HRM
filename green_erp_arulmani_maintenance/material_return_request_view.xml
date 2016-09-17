@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+
+	<data noupdate='1'>
+<!-- Material Return Request -->
+        <record id="sequence_material_return_request_type" model="ir.sequence.type">
+            <field name="name">Material Return Request Seq</field>
+            <field name="code">material.return.request</field>
+        </record>
+        
+        <record id="sequence_material_return_request_item" model="ir.sequence">
+            <field name="name">Material Return Request Seq</field>
+            <field name="code">material.return.request</field>
+            <field name="prefix">MRR/</field>
+            <field name="padding">5</field>
+            <field name="number_next_actual">00001</field>
+            <field name="implementation">no_gap</field>
+        </record>        
+            
+	</data>
+
+    <data>
+            
+        <record id="view_tpt_material_return_request_tree" model="ir.ui.view">
+			<field name="name">tpt.material.return.request.tree</field>
+			<field name="model">tpt.material.return.request</field>
+			<field name="arch" type="xml">
+				<tree string="Material Return Request">
+					<field name="name"/>
+					<field name="date"/>
+					<field name="maintenance_id"/>
+					<field name="request_id"/>
+					<field name="issue_id"/>
+					<field name="department_id"/>
+					<field name="section_id"/>
+					<field name="state"/>
+				</tree>
+			</field>
+	  </record>
+	  
+	  <record id="view_tpt_material_return_request_form" model="ir.ui.view">
+            <field name="name">tpt.material.return.request.form</field>
+            <field name="model">tpt.material.return.request</field>
+            <field name="arch" type="xml">
+	            <form string="Material Return Request" version="7.0">
+	            	<header>
+	            		<button name="bt_confirm" states='draft' string="Confirm" type="object" class="oe_highlight" groups="green_erp_arulmani_maintenance.group_vvti_maintenance"/>
+	                    <field name ="state" widget="statusbar" statusbar_visible="draft,confirmed"/>
+	                </header>
+	            	<sheet>
+	            		<group col='4' colspan='2'>
+							<field name="name" readonly='1'/>
+							<field name="date"/>
+							<field name="maintenance_id" context="{'search_maintenance_in_mrr': 1}" required='1' on_change="onchange_maintenance_id(maintenance_id)"/>
+							<newline/>
+							<field name="request_id" required='1' domain="[('maintenance_id','=',maintenance_id)]"/>
+							<field name="issue_id" required='1' domain="[('name','=',request_id)]"/>
+							<field name="department_id"/>
+							<field name="section_id" domain="[('department_id','=',department_id)]"/>
+							<field name="reason" colspan='4' required='1'/>
+						</group>
+						<notebook>
+							<page string="Material Return Request Details">
+								<field name="return_request_line" nolabel='1'>
+									<tree editable='bottom'>									
+										<field name="issue_line_id" required='1' on_change="onchange_issue_line_id(issue_line_id)" domain="[('material_issue_id','=',parent.issue_id)]"/>
+										<field name="name"/>
+										<field name="requested_qty"/>
+										<field name="issued_qty"/>
+										<field name="return_request_qty" on_change="onchange_return_request_qty(issued_qty,return_request_qty)"/>
+									</tree>
+								</field>
+							</page>
+						</notebook>
+		         	</sheet>
+		         </form>
+			</field>
+		</record>
+		
+		<record id="action_tpt_material_return_request_form_view" model="ir.actions.act_window">
+            <field name="name">Material Return Request</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.material.return.request</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_tpt_material_return_request_tree"/>
+        </record>
+        <record id="action_tpt_material_return_request_form_view1" model="ir.actions.act_window.view">
+            <field eval="1" name="sequence"/>
+            <field name="view_mode">tree</field>
+            <field name="view_id" ref="view_tpt_material_return_request_tree"/>
+            <field name="act_window_id" ref="action_tpt_material_return_request_form_view"/>
+        </record>
+        <record id="action_tpt_material_return_request_form_view2" model="ir.actions.act_window.view">
+            <field eval="2" name="sequence"/>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="view_tpt_material_return_request_form"/>
+            <field name="act_window_id" ref="action_tpt_material_return_request_form_view"/>
+        </record>
+        
+        <menuitem action="action_tpt_material_return_request_form_view"
+            id="menu_action_tpt_material_return_request_form_view"
+            parent="menu_tpt_maint_mg" sequence="100"/>
+            
+        <record id="view_tpt_material_return_request_accrej_tree" model="ir.ui.view">
+			<field name="name">tpt.material.return.request.line.tree</field>
+			<field name="model">tpt.material.return.request.line</field>
+			<field name="arch" type="xml">
+				<tree string="Material Return Acceptance/Rejection" create='false' edit='false' delete='false'>
+					<field name="return_request_no"/>
+					<field name="return_request_date"/>
+					<field name="maintenance_id"/>
+					<field name="issue_id"/>
+					<field name="issue_line_id"/>
+					<field name="issued_qty"/>
+					<field name="return_request_qty"/>
+					<field name="state" invisible='1'/>
+				</tree>
+			</field>
+	  </record>
+	  
+	  <record id="view_tpt_material_return_request_accrej_form" model="ir.ui.view">
+            <field name="name">tpt.material.return.request.line.form</field>
+            <field name="model">tpt.material.return.request.line</field>
+            <field name="arch" type="xml">
+	            <form string="Material Return Acceptance/Rejection" version="7.0" create='false' edit='false' delete='false'>
+	            	<header>
+	            		<button name="bt_confirm" states='draft' string="Confirm" type="object" class="oe_highlight" groups="green_erp_arulmani_maintenance.group_vvti_maintenance"/>
+	                    <field name ="state" widget="statusbar" statusbar_visible="draft,confirmed,approved" invisible='1'/>
+	                </header>
+	            	<sheet>
+	            		<group col='4' colspan='2'>
+							<field name="return_request_no"/>
+							<field name="return_request_date"/>
+							<field name="maintenance_id"/>
+							<field name="department_id"/>
+							<field name="request_id"/>
+							<field name="section_id"/>
+							<field name="issue_line_id"/>
+							<field name="issue_id"/>
+							<field name="requested_qty"/>
+							<field name="name"/>
+							<field name="issued_qty"/>
+							<field name="return_request_qty"/>
+						</group>
+		         	</sheet>
+		         </form>
+			</field>
+		</record>
+		
+		<record id="action_tpt_material_return_request_accrej_form_view" model="ir.actions.act_window">
+            <field name="name">Material Return Acceptance/Rejection</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.material.return.request.line</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_tpt_material_return_request_accrej_tree"/>
+            <field name="domain">[('state','=','confirmed')]</field>
+        </record>
+        <record id="action_tpt_material_return_request_accrej_form_view1" model="ir.actions.act_window.view">
+            <field eval="1" name="sequence"/>
+            <field name="view_mode">tree</field>
+            <field name="view_id" ref="view_tpt_material_return_request_accrej_tree"/>
+            <field name="act_window_id" ref="action_tpt_material_return_request_accrej_form_view"/>
+        </record>
+        <record id="action_tpt_material_return_request_accrej_form_view2" model="ir.actions.act_window.view">
+            <field eval="2" name="sequence"/>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="view_tpt_material_return_request_accrej_form"/>
+            <field name="act_window_id" ref="action_tpt_material_return_request_accrej_form_view"/>
+        </record>
+        
+        <menuitem action="action_tpt_material_return_request_accrej_form_view"
+            id="menu_action_tpt_material_return_request_form_accrej_view"
+            parent="menu_tpt_maint_mg" sequence="110"/>
+            
+            
+    </data>
+</openerp>
