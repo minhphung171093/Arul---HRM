@@ -652,6 +652,7 @@
 								</field>
 							</page>
 							<page string = "Return Request">
+								<field name="return_request_line" nolabel='1'/>
 							</page> 
 						</notebook>
 		         	</sheet>

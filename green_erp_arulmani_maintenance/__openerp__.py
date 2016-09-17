@@ -22,6 +22,7 @@
         'tpt_maintenance_view.xml',       
         'report/print_gpass_req_view.xml', 
         'report/print_service_gpass_out_view.xml',
+        'material_return_request_view.xml',
     ],
     'test': [
     ],
