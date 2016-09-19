@@ -3318,5 +3318,5 @@ class tpt_move_batch(osv.osv):
             vals['qty']= batch.stock_available or 0
         return {'value': vals}
 tpt_move_batch()
-
+ 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

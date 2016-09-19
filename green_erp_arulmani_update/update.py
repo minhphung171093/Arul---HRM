@@ -4553,9 +4553,67 @@ class tpt_update_stock_move_report(osv.osv):
 #                 break
         return self.write(cr, uid, ids, {'result':'create_one_production_declaration_one_posting remaining'})  
     
+    def adj_goods_issue(self, cr, uid, ids, context=None):
+        temp_obj = self.pool.get('tpt.aml.sl.line')
+        sql = '''
+            select sm.id, pp.default_code, sm.product_qty, sm.price_unit, sm.issue_id, round(sm.product_qty*sm.price_unit, 2) as total  
+            from stock_move sm
+            inner join product_product pp on sm.product_id=pp.id
+            where to_date(to_char(sm.date, 'YYYY-MM-DD'), 'YYYY-MM-DD') between '2015-04-01' and '2016-03-31'
+            and pp.cate_name='spares' and sm.issue_id is not null and sm.state='done' and sm.price_unit>=0
+            --and sm.issue_id=1099
+            order by sm.issue_id
+        '''
+        cr.execute(sql)
+        vals = {}
+            
+        for ma in cr.dictfetchall():
+            sql = '''
+            select aml.id, aml.account_id from account_move_line aml
+            inner join account_move am on aml.move_id=am.id
+            where am.material_issue_id=%s --and aml.debit>0
+            and aml.id not in (select aml_id from tpt_aml_sl_line)
+            order by aml.id limit 2
+            '''%ma['issue_id']
+            cr.execute(sql)
+
+            for aml in cr.dictfetchall():
+                temp_ids = temp_obj.search(cr, uid, [('aml_id','=',aml['id'])])
+                if not temp_ids:
+                    print ma['issue_id']
+                    if aml['account_id']==428:
+                        sql = '''
+                        update account_move_line set credit=%s where id=%s 
+                        '''%(ma['total'], aml['id'])
+                        cr.execute(sql)
+                        #print sql
+                        #print cr.rowcount
+                        if cr.rowcount>0:
+                            vals['aml_id'] = aml['id']
+                            temp_obj.create(cr, uid, vals, context)
+                    if aml['account_id']==106:
+                        sql = '''
+                        update account_move_line set debit=%s where id=%s 
+                        '''%(ma['total'], aml['id'])
+                        cr.execute(sql)
+                        #print sql
+                        #print cr.rowcount
+                        if cr.rowcount>0:
+                            vals['aml_id'] = aml['id']
+                            temp_obj.create(cr, uid, vals, context)
+                        
+     
+        return self.write(cr, uid, ids, {'result':'TPT update ISSUE for report Done'})
 tpt_update_stock_move_report()
 
-
+class tpt_aml_sl_line(osv.osv):
+    _name = "tpt.aml.sl.line"
+    
+    _columns = {
+                'aml_id': fields.many2one('account.move.line', 'Account Move Line ID'),
+                }
+tpt_aml_sl_line()
+    
 class tpt_update_inspection_line(osv.osv):
     _name = "tpt.update.inspection.line"
     
@@ -4583,4 +4641,43 @@ class tpt_update_inspection_line(osv.osv):
         return self.write(cr, uid, ids, {'remove':True})
 
 tpt_update_inspection_line()
+
+class tpt_update_avg_cost(osv.osv):
+    _name = "tpt.update.avg.cost"
+    
+    _columns = {
+        'name': fields.char('Name'),
+        #'seq': fields.integer('Sequence'),
+        'product_id': fields.many2one('product.product', 'Product'),
+        'update_line': fields.one2many('tpt.update.avg.cost.line','update_id','Line'),
+        
+    }
+    
+    def bt_remove(self, cr, uid, ids, context=None):
+        for line in self.browse(cr, uid, ids):
+            cr.execute(''' update stock_move set inspec_id = null where id=%s ''',(line.move_id.id,))
+        return self.write(cr, uid, ids, {'remove':True})
+
+tpt_update_avg_cost()
+
+class tpt_update_avg_cost_line(osv.osv):
+    _name = "tpt.update.avg.cost.line"
+    
+    _columns = {
+        'name': fields.char('Name'),
+        'seq': fields.integer('Sequence'),
+        'product_id': fields.many2one('product.product', 'Product'),
+        'date': fields.date('Date'),
+        'price_unit': fields.float('Unit Price', ), 
+        'update_id': fields.many2one('tpt.update.avg.cost', 'Update', ondelete='cascade'),
+    }
+    
+    def bt_remove(self, cr, uid, ids, context=None):
+        for line in self.browse(cr, uid, ids):
+            cr.execute(''' update stock_move set inspec_id = null where id=%s ''',(line.move_id.id,))
+        return self.write(cr, uid, ids, {'remove':True})
+
+tpt_update_avg_cost_line()
+
+
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
