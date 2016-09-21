@@ -9428,17 +9428,6 @@ class stock_picking_out(osv.osv):
         return super(stock_picking_out, self).write(cr,1,ids,vals,context) 
 stock_picking_out()
 
-<<<<<<< HEAD
-class account_move(osv.osv):
-    _inherit = "account.move"
-    
-    def create(self, cr, uid, vals, context=None):
-        return super(account_move, self).create(cr,1, vals, context)
-    
-    def write(self, cr, uid,ids, vals, context=None):
-        return super(account_move, self).write(cr,1,ids,vals,context) 
-account_move()
-
 class tpt_bank_reconciliation(osv.osv):
     _name = 'tpt.bank.reconciliation'
     _columns = {
@@ -9542,8 +9531,6 @@ class tpt_bank_reconciliation_line(osv.osv):
     
 tpt_bank_reconciliation_line()
 
-=======
->>>>>>> 7de4cb8a68eb7d316517d9ea4e561869005e7b39
 class tpt_auto_posting(osv.osv):
     _name = "tpt.auto.posting"
     _columns = {
