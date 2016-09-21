@@ -126,8 +126,8 @@
             <field name="arch" type="xml">
 	            <form string="Material Return Acceptance/Rejection" version="7.0" create='false' edit='false' delete='false'>
 	            	<header>
-	            		<button name="bt_accept" states='confirmed' string="Accept" confirm="Do you want to accept the returned quantity?" type="object" class="oe_highlight"/>
-	            		<button name="bt_reject" states='confirmed' string="Reject" confirm="Do you want to reject the returned quantity?" type="object" class="oe_highlight"/>
+	            		<button name="bt_accept" states='approved' string="Accept" confirm="Do you want to accept the returned quantity?" type="object" class="oe_highlight"/>
+	            		<button name="bt_reject" states='approved' string="Reject" confirm="Do you want to reject the returned quantity?" type="object" class="oe_highlight"/>
 	                    <field name ="state" widget="statusbar" statusbar_visible="draft,confirmed,approved" invisible='1'/>
 	                </header>
 	            	<sheet>
