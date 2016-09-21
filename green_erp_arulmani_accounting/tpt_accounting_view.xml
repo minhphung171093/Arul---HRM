@@ -3406,6 +3406,7 @@
 							<field name="journal_vouchers"/>
 							<field name="production_declaration"/>
 							<field name="payroll"/>
+							<field name="material_return_request"/>
 						</group>
 					</sheet>
 		         </form>

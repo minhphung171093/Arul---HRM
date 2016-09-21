@@ -32,7 +32,6 @@ class tpt_material_return_request(osv.osv):
         'state':fields.selection([('draft', 'Draft'),
                                   ('confirmed', 'Confirmed'),
                                   ('approved', 'Approved'),
-                                  ('rejected', 'Rejected'),
                                   ],'Status', readonly=True),
     }
     
@@ -70,6 +69,12 @@ class tpt_material_return_request(osv.osv):
                 self.pool.get('tpt.material.return.request.line').write(cr, uid, [line.id], {'state': 'confirmed'})
         return self.write(cr, uid, ids, {'state': 'confirmed'})
     
+    def bt_approve(self, cr, uid, ids, context=None):
+        for mrr in self.browse(cr, uid, ids):
+            for line in mrr.return_request_line:
+                self.pool.get('tpt.material.return.request.line').write(cr, uid, [line.id], {'state': 'approved'})
+        return self.write(cr, uid, ids, {'state': 'approved'})
+    
 tpt_material_return_request()
 
 class tpt_material_return_request_line(osv.osv):
@@ -92,8 +97,10 @@ class tpt_material_return_request_line(osv.osv):
         'state':fields.selection([('draft', 'Draft'),
                                   ('confirmed', 'Confirmed'),
                                   ('approved', 'Approved'),
+                                  ('accepted', 'Accepted'),
                                   ('rejected', 'Rejected'),
                                   ],'Status', readonly=True),
+        'reason_reject': fields.text('Reason for Rejection'),
     }
     
     _defaults = {
@@ -122,6 +129,154 @@ class tpt_material_return_request_line(osv.osv):
             }
         return {'value': vals, 'warning': warning}
     
+    def bt_accept(self, cr, uid, ids, context=None):
+        price = 0.0
+        product_price = 0.0
+        tpt_cost = 0
+        account_move_obj = self.pool.get('account.move')
+        period_obj = self.pool.get('account.period')
+        journal_obj = self.pool.get('account.journal')
+        avg_cost_obj = self.pool.get('tpt.product.avg.cost')
+        journal_line = []
+        source_location_id = False
+        move_obj = self.pool.get('stock.move')
+                
+        
+        for line in self.browse(cr, uid, ids):
+            location_ids=self.pool.get('stock.location').search(cr, uid,[('name','=','Scrapped')])
+            if location_ids:
+                source_location_id = location_ids[0]
+            
+            onhand_qty = 0.0
+            dest_location_id = False
+            locat_ids = []
+            parent_ids = []
+            cate_name = line.issue_line_id.product_id.categ_id and line.issue_line_id.product_id.categ_id.cate_name or False
+            if cate_name == 'raw':
+                parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw material','Raw Material']),('location_id','=',parent_ids[0])])
+                dest_location_id = locat_ids[0]
+            if cate_name == 'spares':
+                parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+                if parent_ids:
+                    locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Spare','Spares']),('location_id','=',parent_ids[0])])
+                if locat_ids:
+                    dest_location_id = locat_ids[0]
+            if dest_location_id and cate_name != 'finish':
+                avg_cost_ids = avg_cost_obj.search(cr, uid, [('product_id','=',line.issue_line_id.product_id.id),('warehouse_id','=',dest_location_id)])
+                unit = 0
+                if avg_cost_ids:
+                    avg_cost_id = avg_cost_obj.browse(cr, uid, avg_cost_ids[0])
+                    unit = avg_cost_id.avg_cost or 0
+                product_price = unit * line.issue_line_id.product_isu_qty
+                
+                rs = {
+                      'name': '/',
+                      'product_id':line.issue_line_id.product_id and line.issue_line_id.product_id.id or False,
+                      'product_qty':line.return_request_qty or False,
+                      'product_uom':line.issue_line_id.uom_po_id and line.issue_line_id.uom_po_id.id or False,
+                      'location_id':source_location_id,
+                      'location_dest_id': dest_location_id,
+                      'mrr_line_id':line.id,
+                      'date':line.return_request_id.date or False,
+                      'price_unit': unit or 0,
+                      }
+                
+                move_id = move_obj.create(cr,uid,rs)
+                # boi vi field price unit tu dong lam tron 2 so thap phan nen phai dung sql de update lai
+                sql = '''
+                        update stock_move set price_unit = %s where id = %s
+                '''%(unit, move_id)
+                cr.execute(sql)
+                move_obj.action_done(cr, uid, [move_id])
+                cr.execute(''' update stock_move set date=%s,date_expected=%s where id=%s ''',(line.return_request_id.date,line.return_request_id.date,move_id,))
+            
+                date_period = line.return_request_id.date
+                sql = '''
+                    select id from account_journal
+                '''
+                cr.execute(sql)
+                journal_ids = [r[0] for r in cr.fetchall()]
+                sql = '''
+                    select id from account_period where '%s' between date_start and date_stop and special is False
+                '''%(date_period)
+                cr.execute(sql)
+                period_ids = [r[0] for r in cr.fetchall()]
+                 
+                if not period_ids:
+                    raise osv.except_osv(_('Warning!'),_('Period is not null, please configure it in Period master !'))
+                    
+                acc_expense = line.issue_line_id.product_id and line.issue_line_id.product_id.property_account_expense and line.issue_line_id.product_id.property_account_expense.id or False
+                acc_asset = line.issue_line_id.product_id and line.issue_line_id.product_id.product_asset_acc_id and line.issue_line_id.product_id.product_asset_acc_id.id or False
+                if not acc_expense or not acc_asset:
+                    raise osv.except_osv(_('Warning!'),_('Please configure Expense Account and Product Asset Account for all materials!'))
+                
+                journal_line.append((0,0,{
+                            'name':line.return_request_id.name + ' - ' + line.issue_line_id.product_id.name, 
+                            'account_id': acc_asset,
+                            'debit':0,
+                            'credit':product_price,
+                            'product_id':line.issue_line_id.product_id.id,
+                                       }))
+                journal_line.append((0,0,{
+                            'name':line.return_request_id.name + ' - ' + line.issue_line_id.product_id.name, 
+                            'account_id': acc_expense,
+                            'credit':0,
+                            'debit':product_price,
+                            'product_id':line.issue_line_id.product_id.id,
+                        }))
+                value={
+                    'journal_id':journal_ids[0],
+                    'period_id':period_ids[0] ,
+                    'ref': line.return_request_id.name,
+                    'date': date_period,
+                    'mrr_line_id': line.id,
+                    'line_id': journal_line,
+                    'doc_type':'material_return_request'
+                }
+                new_jour_id = account_move_obj.create(cr,uid,value)
+                auto_ids = self.pool.get('tpt.auto.posting').search(cr, uid, [])
+                if auto_ids:
+                    auto_id = self.pool.get('tpt.auto.posting').browse(cr, uid, auto_ids[0], context=context)
+                    if auto_id.material_return_request:
+                        try:
+                            account_move_obj.button_validate(cr,uid, [new_jour_id], context)
+                        except:
+                            pass
+        return self.write(cr, uid, ids, {'state': 'approved'})
+    
+    def bt_reject(self, cr, uid, ids, context=None):
+        res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
+                                        'green_erp_arulmani_maintenance', 'tpt_reject_mrr_form_view')
+        return {
+                    'name': 'Alert',
+                    'view_type': 'form',
+                    'view_mode': 'form',
+                    'view_id': res[1],
+                    'res_model': 'tpt.reject.mrr',
+                    'domain': [],
+                    'context': {},
+                    'type': 'ir.actions.act_window',
+                    'target': 'new',
+                }
+    
 tpt_material_return_request_line()
 
+class stock_move(osv.osv):
+    _inherit = "stock.move"
+    
+    _columns = {
+        'mrr_line_id': fields.many2one('tpt.material.return.request.line','Material Return Request Line',ondelete='restrict'),
+    }
+
+stock_move()
+
+class account_move(osv.osv):
+    _inherit = 'account.move'
+    
+    _columns = {
+        'mrr_line_id': fields.many2one('tpt.material.return.request.line','Material Return Request Line',ondelete='restrict'),
+    }
+    
+account_move()
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

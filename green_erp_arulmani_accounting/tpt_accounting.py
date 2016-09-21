@@ -9000,6 +9000,7 @@ class account_move(osv.osv):
                                   ('stock_adj_dec', 'Stock Adjustment Decrease'),
                                   ('return_do', 'Return DO'), #TPT-BM-01/07/2016
                                   ('asset_dp', 'Asset Depreciation'),#TPT-BM- ON13/08/2016
+                                  ('material_return_request', 'Material Return Request'),
                                   ],
                                         'Document Type'),  
         'material_issue_id': fields.many2one('tpt.material.issue','Material Issue',ondelete='restrict'), 
@@ -9024,6 +9025,13 @@ class account_move(osv.osv):
                 'message': _('Date: Not allow future date!')
             }
         return {'value':vals,'warning':warning}
+    
+    def create(self, cr, uid, vals, context=None):
+        return super(account_move, self).create(cr,1, vals, context)
+    
+    def write(self, cr, uid,ids, vals, context=None):
+        return super(account_move, self).write(cr,1,ids,vals,context) 
+    
 account_move()
 
 class tpt_activities(osv.osv):
@@ -9420,6 +9428,7 @@ class stock_picking_out(osv.osv):
         return super(stock_picking_out, self).write(cr,1,ids,vals,context) 
 stock_picking_out()
 
+<<<<<<< HEAD
 class account_move(osv.osv):
     _inherit = "account.move"
     
@@ -9533,6 +9542,8 @@ class tpt_bank_reconciliation_line(osv.osv):
     
 tpt_bank_reconciliation_line()
 
+=======
+>>>>>>> 7de4cb8a68eb7d316517d9ea4e561869005e7b39
 class tpt_auto_posting(osv.osv):
     _name = "tpt.auto.posting"
     _columns = {
@@ -9552,6 +9563,7 @@ class tpt_auto_posting(osv.osv):
         'journal_vouchers':fields.boolean('Journal Vouchers'),
         'production_declaration':fields.boolean('Production Declaration'),
         'payroll':fields.boolean('Payroll'),
+        'material_return_request':fields.boolean('Material Return Request'),
     }
     _defaults = {
         'name':'Auto Account Posting Configuration',
