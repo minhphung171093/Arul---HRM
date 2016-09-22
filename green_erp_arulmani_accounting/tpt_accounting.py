@@ -2339,9 +2339,10 @@ class account_invoice(osv.osv):
                 total_cost = avg_cost*hand_quantity
                 total_cost += freight_amt
                 if hand_quantity>0:
-                    #TPT-BM-ON 05/07/2016 - GET CST INVOICE ATM
+                    #TPT-BM-ON 05/07/2016 - GET CST INVOICE AMT
                     cst_amt = 0
                     frt_amt = 0
+                    si_frt_amt = 0
                     sql = '''
                         select 
                         
@@ -2382,7 +2383,37 @@ class account_invoice(osv.osv):
                     if frt_amt:
                         frt_amt = frt_amt[0]    
                     #
-                    total_cost += (cst_amt + frt_amt)
+                    ##
+                    sql = '''
+                    select 
+                        case when 
+                            SUM(case 
+                            when ail.fright_type='1' then ail.fright*100
+                            when ail.fright_type='2' then ail.fright
+                            when ail.fright_type='3' then ail.fright*ail.quantity
+                            when ail.fright_type is null then ail.fright
+                            else 0 end) >=0
+                            then    
+                            SUM(case 
+                            when ail.fright_type='1' then ail.fright*100
+                            when ail.fright_type='2' then ail.fright
+                            when ail.fright_type='3' then ail.fright*ail.quantity
+                            when ail.fright_type is null then ail.fright
+                            else 0 end)                
+                            else 0 end as frt_amt
+                        from account_invoice ai
+                        inner join account_invoice_line ail on ai.id=ail.invoice_id
+                        where ail.product_id=%s and 
+                        ai.state not in ('draft', 'cancel')
+                        and ai.doc_type='supplier_invoice' and ail.fright>0 
+                        
+                    '''%(line.product_id.id)
+                    cr.execute(sql)
+                    si_frt_amt = cr.fetchone()
+                    if si_frt_amt:
+                        si_frt_amt = si_frt_amt[0] 
+                    ##
+                    total_cost += (cst_amt + frt_amt + si_frt_amt)
                     avg_cost = total_cost  / hand_quantity
                 else:
                     avg_cost = 0
