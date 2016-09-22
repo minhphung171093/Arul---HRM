@@ -4636,12 +4636,10 @@ class tpt_update_stock_move_report(osv.osv):
                     sql = '''
                     update arul_hr_permission_onduty set is_third_permission='t' where id=%s
                     '''%(line3['id'])
-                    #cr.execute(sql)
-                    print line2['id'], line3['date'], line3['id']
+                    cr.execute(sql)
+                    #print sql
+                    #print line2['id'], line3['date'], line3['id']
                 
-            
-                        
-     
         return self.write(cr, uid, ids, {'result':'TPT update 3rd Permission Done'})
 tpt_update_stock_move_report()
 
