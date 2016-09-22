@@ -5358,7 +5358,7 @@ class arul_hr_permission_onduty(osv.osv):
                 #TPT SATRT
                 sql = '''
                     select count(id) as num_of_permission from arul_hr_permission_onduty where non_availability_type_id='permission' and employee_id=%s
-                        and id!=%s and EXTRACT(year from date)='%s'
+                        and id!=%s and EXTRACT(year from date)='%s' and state = 'done' and is_third_permission = False
                 '''%(permission.employee_id.id,permission.id,year)
                 cr.execute(sql)
                 p = cr.dictfetchone()        
@@ -5366,19 +5366,21 @@ class arul_hr_permission_onduty(osv.osv):
                     #raise osv.except_osv(_('Warning!'),_('NO MORE PERMISSION PERMITTED.\n Employee %s have already taken 10 permission for this year!')%(permission.employee_id.name+' '+(permission.employee_id.last_name or '')))
                     res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
                                             'green_erp_arulmani_hrm', 'alert_third_permission_form_view')
-                    return {
-                                    'name': 'Alert Permission',
-                                    'view_type': 'form',
-                                    'view_mode': 'form',
-                                    'view_id': res[1],
-                                    'res_model': 'alert.form',
-                                    'domain': [],
-                                    'context': {'default_message':'Permission exceeds the Limit (Only 10 Permissions for a Year). Do you want to reduce it from Leave Credits (CL/SL/C.Off/PL/LOP) ?','audit_id':permission.id},
-                                    'type': 'ir.actions.act_window',
-                                    'target': 'new',
-                                }
+                    #===========================================================
+                    # return {
+                    #                 'name': 'Alert Permission',
+                    #                 'view_type': 'form',
+                    #                 'view_mode': 'form',
+                    #                 'view_id': res[1],
+                    #                 'res_model': 'alert.form',
+                    #                 'domain': [],
+                    #                 'context': {'default_message':'Permission exceeds the Limit (Only 10 Permissions for a Year). Do you want to reduce it from Leave Credits (CL/SL/C.Off/PL/LOP) ?','audit_id':permission.id},
+                    #                 'type': 'ir.actions.act_window',
+                    #                 'target': 'new',
+                    #             }
+                    #===========================================================
                 #TPT ENDs
-            shift_id = punch_obj.get_work_shift(cr, uid, permission.employee_id.id, int(day), int(month), year)
+            #shift_id = punch_obj.get_work_shift(cr, uid, permission.employee_id.id, int(day), int(month), year)
 #             self.pool.get('arul.hr.audit.shift.time').create(cr, SUPERUSER_ID, {
 #                  'employee_id':permission.employee_id.id,
 #                  'work_date':permission.date,
@@ -5648,7 +5650,7 @@ class arul_hr_permission_onduty(osv.osv):
                 '''%(permission.employee_id.id, year)
                 cr.execute(sql)
                 p = cr.dictfetchone()        
-                if p and p['num_of_permission']>=11  and permission.employee_id.employee_category_id.code!='S1':
+                if p and p['num_of_permission']>=10  and permission.employee_id.employee_category_id.code!='S1':
                     #raise osv.except_osv(_('Warning!'),_('NO MORE PERMISSION PERMITTED.\n Employee %s have already taken 10 permission for this year!')%(permission.employee_id.name+' '+(permission.employee_id.last_name or '')))
                     res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
                                             'green_erp_arulmani_hrm', 'alert_third_permission_form_view')
