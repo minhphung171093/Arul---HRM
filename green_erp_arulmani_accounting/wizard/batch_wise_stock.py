@@ -7,7 +7,7 @@ from openerp.tools.translate import _
 import openerp.tools
 from openerp.tools import DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_DATETIME_FORMAT, float_compare
 
-class tpt_batch_wise_stock(osv.osv_memory):
+class tpt_batch_wise_stock(osv.osv):
     _name = "tpt.batch.wise.stock"
     
     _columns = {    
@@ -39,7 +39,7 @@ class tpt_batch_wise_stock(osv.osv_memory):
     
 tpt_batch_wise_stock()
 
-class tpt_batch_wise_stock_line(osv.osv_memory):
+class tpt_batch_wise_stock_line(osv.osv):
     _name = "tpt.batch.wise.stock.line"
     
     _columns = {    

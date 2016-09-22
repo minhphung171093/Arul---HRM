@@ -45,7 +45,8 @@
 	            <form string="Material Return Request" version="7.0">
 	            	<header>
 	            		<button name="bt_confirm" states='draft' string="Confirm" type="object" class="oe_highlight" groups="green_erp_arulmani_maintenance.group_vvti_maintenance"/>
-	                    <field name ="state" widget="statusbar" statusbar_visible="draft,confirmed"/>
+	            		<button name="bt_approve" states='confirmed' string="Approve" type="object" class="oe_highlight" groups="green_erp_arulmani_maintenance.group_vvti_maintenance_manager"/>
+	                    <field name ="state" widget="statusbar" statusbar_visible="draft,confirmed,approved"/>
 	                </header>
 	            	<sheet>
 	            		<group col='4' colspan='2'>
@@ -125,7 +126,8 @@
             <field name="arch" type="xml">
 	            <form string="Material Return Acceptance/Rejection" version="7.0" create='false' edit='false' delete='false'>
 	            	<header>
-	            		<button name="bt_confirm" states='draft' string="Confirm" type="object" class="oe_highlight" groups="green_erp_arulmani_maintenance.group_vvti_maintenance"/>
+	            		<button name="bt_accept" states='approved' string="Accept" confirm="Do you want to accept the returned quantity?" type="object" class="oe_highlight"/>
+	            		<button name="bt_reject" states='approved' string="Reject" confirm="Do you want to reject the returned quantity?" type="object" class="oe_highlight"/>
 	                    <field name ="state" widget="statusbar" statusbar_visible="draft,confirmed,approved" invisible='1'/>
 	                </header>
 	            	<sheet>
@@ -155,7 +157,7 @@
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
             <field name="view_id" ref="view_tpt_material_return_request_accrej_tree"/>
-            <field name="domain">[('state','=','confirmed')]</field>
+            <field name="domain">[('state','=','approved')]</field>
         </record>
         <record id="action_tpt_material_return_request_accrej_form_view1" model="ir.actions.act_window.view">
             <field eval="1" name="sequence"/>
@@ -172,7 +174,8 @@
         
         <menuitem action="action_tpt_material_return_request_accrej_form_view"
             id="menu_action_tpt_material_return_request_form_accrej_view"
-            parent="menu_tpt_maint_mg" sequence="110"/>
+            parent="menu_tpt_maint_mg" sequence="110"
+            groups="green_erp_arulmani_hrm.group_vvti_hrm_admin,green_erp_arulmani_purchase.group_vvti_purchase_store_user,green_erp_arulmani_purchase.group_vvti_purchase_store_key_user,green_erp_arulmani_purchase.group_vvti_purchase_store_mgr"/>
             
             
     </data>

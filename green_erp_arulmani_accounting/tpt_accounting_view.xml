@@ -185,11 +185,9 @@
             	<xpath expr="//field[@name='partner_id']" position="before">
 					<field name="name" string = "Document No" readonly = '1'/>
 				</xpath>
-				
 				<xpath expr="//button[@name='invoice_open']" position="after">
 					 <button name="%(action_review_posting_view)d" type="action" string="Review Posting" states="draft" context="{'tpt_invoice':True}"/>
 				</xpath>
-				
 				<xpath expr="//field[@name='date_invoice']" position="attributes">
 					<attribute name='string'>Posting Date</attribute>
 					<attribute name='required'>1</attribute>
@@ -332,11 +330,9 @@
             <field name="model">account.invoice</field>
             <field name="inherit_id" ref="account.invoice_form"/>
             <field name="arch" type="xml">
-            
             	<xpath expr="//button[@name='invoice_open']" position="after">
             		<button name="%(action_review_posting_view)d" type="action" string="Review Posting" states="draft" context="{'tpt_invoice':True}"/>
             	</xpath>
-            	
             	<xpath expr="//button[@name='%(account.action_account_invoice_refund)d']" position="attributes">
 					<attribute name='invisible'>1</attribute>
 				</xpath>
@@ -439,9 +435,7 @@
 	            <form string="Supplier Invoice" version="7.0">
 	            <header>
                         <button name="invoice_open" states="draft,proforma2" string="Validate" class="oe_highlight" groups="account.group_account_invoice"/>
-                        
                         <button name="%(action_review_posting_view)d" type="action" string="Review Posting" states="draft" context="{'tpt_invoice':True}"/>
-                        
                         <button name="%(account.action_account_invoice_refund)d" type='action' string='Ask Refund' states='open,paid' groups="account.group_account_invoice"/>
                         <button name="invoice_cancel" states="draft,proforma2" string="Cancel Invoice" groups="account.group_account_invoice"/>
                         <button name="action_cancel_draft" states="cancel" string="Set to Draft" type="object" groups="account.group_account_invoice"/>
@@ -675,9 +669,7 @@
 	            <form string="Service Invoice" version="7.0">
 	            <header>
                         <button name="invoice_open" states="draft,proforma2" string="Validate" class="oe_highlight" groups="account.group_account_invoice,green_erp_arulmani_accounting.group_vvti_accounting_admin"/>
-                        
                         <button name="%(action_review_posting_view)d" type="action" string="Review Posting" states="draft" context="{'tpt_invoice':True}"/>
-                        
                         <button name="%(account.action_account_invoice_refund)d" type='action' string='Ask Refund' states='open,paid' groups="account.group_account_invoice"/>
                         <button name="invoice_cancel" states="draft,proforma2" string="Cancel Invoice" groups="account.group_account_invoice"/>
                         <button name="action_cancel_draft" states="cancel" string="Set to Draft" type="object" groups="account.group_account_invoice"/>
@@ -1416,9 +1408,7 @@
 	            <form string="Freight Invoice" version="7.0">
 	            <header>
                         <button name="invoice_open" states="draft,proforma2" string="Validate" class="oe_highlight" groups="account.group_account_invoice"/>
-                        
                         <button name="%(action_review_posting_view)d" type="action" string="Review Posting" states="draft" context="{'tpt_invoice':True}"/>
-                        
                         <button name="%(account.action_account_invoice_refund)d" type='action' string='Ask Refund' states='open,paid' groups="account.group_account_invoice"/>
                         <button name="invoice_cancel" states="draft,proforma2,sale,open" string="Cancel Invoice" groups="account.group_account_invoice"/>
                         <button name="action_cancel_draft" states="cancel" string="Set to Draft" type="object" groups="account.group_account_invoice"/>
@@ -2239,7 +2229,9 @@
             <field name="inherit_id" ref="green_erp_arulmani_purchase.view_tpt_material_issue_form"/>
             <field name="arch" type="xml">
 	            <data>
-	            
+	            	<xpath expr="//button[@name='bt_approve']" position="after">
+	            		<button name="%(action_review_posting_view)d" type="action" string="Review Posting" states="draft" context="{'tpt_issue':True}"/>
+                    </xpath>
                     <xpath expr="//field[@name='department_id']" position="after">
                     	<field name="warehouse" required='1' domain="[('usage','=','internal'),('chained_location_type','&lt;&gt;','customer')]" options="{'create': false, 'create_edit': false}"/>
                     	<!--<field name="gl_account_id" options="{'create': false, 'create_edit': false}"/>   -->
@@ -3142,9 +3134,49 @@
 					<attribute name='groups'>green_erp_arulmani_accounting.group_vvti_accounting_gm,green_erp_arulmani_hrm.group_vvti_hrm_gm,green_erp_arulmani_accounting.group_vvti_accounting_mgr</attribute>
 				</xpath>
 				<xpath expr="//button[@name='approve_payroll']" position="attributes">
+					<attribute name='context'>{'tpt_approve_payroll':'posting'}</attribute>
 					<attribute name='groups'>green_erp_arulmani_accounting.group_vvti_accounting_gm,green_erp_arulmani_hrm.group_vvti_hrm_gm,green_erp_arulmani_accounting.group_vvti_accounting_mgr</attribute>
 				</xpath>
+				<xpath expr="//button[@name='approve_payroll']" position="before" >
+            		<button name="%(action_review_posting_view)d" type="action" string="Review Excutive Posting" states="draft" context="{'tpt_approve_payroll':'excutive'}"/>
+            		<button name="%(action_review_posting_view)d" type="action" string="Review Staff Posting" states="draft" context="{'tpt_approve_payroll':'staff'}"/>
+            		<button name="%(action_review_posting_view)d" type="action" string="Review Worker Posting" states="draft" context="{'tpt_approve_payroll':'worker'}"/>
+                </xpath>
 		     </field>   
+       </record>
+
+       <record id="tpt_stock_picking_out_form_preview" model="ir.ui.view">
+            <field name="name">tpt.stock.picking.out.form.preview</field>
+            <field name="model">stock.picking.out</field>
+            <field name="inherit_id" ref="green_erp_arulmani_sale.tpt_stock_picking_out_form"/>
+            <field name="arch" type="xml">
+            
+            	<xpath expr="//button[@name='tpt_check_stock']" position="after">
+					<button name="%(action_review_posting_view)d" type="action" string="Review Posting"  context="{'tpt_delivery':True}"/>
+				</xpath> 
+            </field>
+       </record>
+        
+       <record id="tpt_stock_picking_in_form_preview" model="ir.ui.view">
+            <field name="name">stock.picking.in.form.preview</field>
+            <field name="model">stock.picking.in</field>
+            <field name="inherit_id" ref="green_erp_arulmani_purchase.tpt_stock_picking_in_form"/>
+            <field name="arch" type="xml">
+            	<xpath expr="//button[@name='action_revert_done']" position="after">
+            		<button name="%(action_review_posting_view)d" type="action" string="Review Posting"  context="{'tpt_preview_grn':True}"/>
+            	</xpath>
+            </field>
+       </record>
+       
+       <record id="tpt_mrp_production_preview" model="ir.ui.view">
+            <field name="name">tpt.mrp.production.preview</field>
+            <field name="model">mrp.production</field>
+            <field name="inherit_id" ref="mrp.mrp_production_form_view"/>
+            <field name="arch" type="xml">
+            	<xpath expr="//button[@name='%(mrp.act_mrp_product_produce)d']" position="after">
+            		<button name="%(action_review_posting_view)d" type="action" string="Review Posting" states="ready,in_production" context="{'tpt_preview_mrp':True}"/>
+            	</xpath>
+            </field>
        </record>
        
        <record id="inher_tpt_customer_invoice_form" model="ir.ui.view">
@@ -3281,6 +3313,67 @@
             </field>
 	  </record>
 	  
+	  <!--<record id="tpt_bank_reconciliation_tree" model="ir.ui.view">
+            <field name="name">tpt.bank.reconciliation.tree</field>
+            <field name="model">tpt.bank.reconciliation</field>
+            <field name="arch" type="xml">
+                <tree string="Bank Reconciliation">
+                    <field name="name"/>
+                    <field name="date"/>
+                    <field name="state"/>
+                </tree>
+            </field>
+        </record>-->
+        
+        <!--<record id="tpt_bank_reconciliation_form" model="ir.ui.view">
+            <field name="name">tpt.bank.reconciliation.form</field>
+            <field name="model">tpt.bank.reconciliation</field>
+            <field name="arch" type="xml">
+                <form string="Bank Reconciliation" version="7.0">
+                  <header>
+                      <button name="bt_confirm" string="Reconcile" states="draft" type='object' class="oe_highlight"/>
+                      <field name="state" widget="statusbar" statusbar_visible="draft,done"/>
+                  </header>
+                  <sheet>
+                    <group col="4" colspan="4">
+                        <field name="name" on_change="onchange_account(name, date)" domain="[('user_type.code','=','bank')]" options="{'create': false, 'create_edit': false}"/>
+                    	<field name="date" on_change="onchange_account(name, date)"/>
+                    </group>
+                    <notebook colspan="4">
+                        <page>
+                        	<div col='4' colspan='4' class='oe_green_erp_scroll'>
+	                            <field name="reconciliation_line" nolabel='1'>
+	                                <tree string="Voucher Items" create='false' delete='false' editable="bottom">
+	                                    <field name="doc_type" readonly='1'/>
+	                                    <field name="partner_id" readonly='1'/>
+	                                    <field name="name" string="Voucher No" readonly='1'/>
+	                                    <field name="date" string="Payment Date" readonly='1'/>
+	                                    <field name="reference" string="Payment Ref"  readonly='1'/>  
+	                                    <field name="account_id" readonly='1'/>
+	                                    <field name="amount" readonly='1'/>
+	                                    <field name="cheque_date" readonly='1'/>
+	                                    <field name="cheque_no" readonly='1'/>
+	                                    <field name="debit" readonly='1'/>
+	                                    <field name="credit" readonly='1'/>
+	                                    <field name="reconciliation_date" attrs="{'readonly': [('cheque_no','in',['Total','Net Balance'])]}"/>
+	                                </tree>
+	                            </field>
+                            </div>
+                        </page>
+                    </notebook>
+                  </sheet>
+                </form>
+            </field>
+        </record>-->
+          
+       <!--<record id="action_tpt_bank_reconciliation" model="ir.actions.act_window">
+            <field name="name">Bank Reconciliation</field>
+            <field name="res_model">tpt.bank.reconciliation</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form,graph</field>
+            <field name="view_id" eval="tpt_bank_reconciliation_tree"/>
+        </record>-->
+
 	  <record id="tpt_auto_posting_tree_view" model="ir.ui.view">
 			<field name="name">tpt.auto.posting.tree</field>
 			<field name="model">tpt.auto.posting</field>
@@ -3313,6 +3406,7 @@
 							<field name="journal_vouchers"/>
 							<field name="production_declaration"/>
 							<field name="payroll"/>
+							<field name="material_return_request"/>
 						</group>
 					</sheet>
 		         </form>
@@ -3396,6 +3490,7 @@
             <field name="domain">[]</field>
             <field name="view_id" ref="view_tpt_ed_invoice_positing_tree"/>
         </record>
+        
         <menuitem action="action_view_tpt_ed_invoice_positing_form"
             id="menu_action_view_tpt_ed_invoice_positing_form"
             parent="green_erp_arulmani_accounting.menu_tpt_accounting" sequence="10" />
@@ -3422,7 +3517,7 @@
             <field name="inherit_id" ref="green_erp_arulmani_purchase.view_tpt_purchase_indent_line_form_hod"/>
             <field name="arch" type="xml">
             	<xpath expr="//button[@name='%(green_erp_arulmani_purchase.action_reject_pur_line_form)d']" position="attributes">
-					<attribute name='groups'>green_erp_arulmani_production.group_vvti_production_mgr</attribute>
+					<attribute name='groups'>green_erp_arulmani_production.group_vvti_production_mgr,green_erp_arulmani_production.group_vvti_production_mgr</attribute>
 				</xpath>
             </field>
 	  </record>

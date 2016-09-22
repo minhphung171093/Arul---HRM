@@ -18,6 +18,7 @@
     'update_xml': [
         'security/green_erp_arulmani_maintenance_security.xml',
         'security/ir.model.access.csv',
+        'wizard/alert_form_view.xml',
         'mainten_seq.xml',
         'tpt_maintenance_view.xml',       
         'report/print_gpass_req_view.xml', 

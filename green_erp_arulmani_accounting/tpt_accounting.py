@@ -477,7 +477,6 @@ stock_picking_in()
 class stock_picking(osv.osv):
     _inherit = "stock.picking"
     
-        
     def get_pro_account_id(self,cr,uid,name,channel):
         account = False
         account_obj = self.pool.get('account.account')
@@ -2973,7 +2972,7 @@ class account_invoice_line(osv.osv):
         cr.execute('SELECT * FROM account_invoice_line WHERE invoice_id=%s', (invoice_id,))
         for t in cr.dictfetchall():
             product_id = self.pool.get('product.product').browse(cr, uid, t['product_id'])
-            #name = product_id.name or False # TPT - COMMENTED By BalamuruganPurushothaman ON 20/06/2015
+             #name = product_id.name or False # TPT - COMMENTED By BalamuruganPurushothaman ON 20/06/2015
             name = product_id.default_code or False # TPT - Added By BalamuruganPurushothaman ON 20/06/2015 fto get GL code with respect to Product Code
             account = self.get_pro_account_id(cr,uid,name,channel)
             if not account:
@@ -3054,7 +3053,7 @@ class account_invoice_line(osv.osv):
                         'account_analytic_id': line.account_analytic_id.id,
                     })
         return res  
-    
+
     def move_line_amount_tax_credit(self, cr, uid, invoice_id, context = None):
         res = []
         voucher_rate = 1
@@ -4358,48 +4357,24 @@ class account_invoice_line(osv.osv):
                     else:
                         raise osv.except_osv(_('Warning!'),_('Account is not null, please configure GL Account in Tax master !'))
                 tax_amounts = [r.amount for r in line.invoice_line_tax_id]
+                
                 for tax_amount in tax_amounts:
                     tax_value += tax_amount/100
-                    basic = (line.quantity * line.price_unit) - ( (line.quantity * line.price_unit)*line.disc/100)
-#                     basic = round(basic)
-                    if line.p_f_type == '1' :
-                        p_f = basic * line.p_f/100
-#                         p_f = round(p_f)
-                    elif line.p_f_type == '2' :
-                        p_f = line.p_f
-#                         p_f = round(p_f)
-                    elif line.p_f_type == '3' :
-                        p_f = line.p_f * line.quantity
-#                         p_f = round(p_f)
-                    else:
-                        p_f = line.p_f
-#                         p_f = round(p_f)
-                    if line.ed_type == '1' :
-                        ed = (basic + p_f) * line.ed/100
-#                         ed = round(ed)
-                    elif line.ed_type == '2' :
-                        ed = line.ed
-#                         ed = round(ed)
-                    elif line.ed_type == '3' :
-                        ed = line.ed * line.quantity
-#                         ed = round(ed)
-                    else:
-                        ed = line.ed
-#                         ed = round(ed)
-                    if line.aed_id_1:
-                        tax = (basic + p_f + ed + line.aed_id_1)*(tax_value) * voucher_rate
-                    else:
-                        tax = (basic + p_f + ed)*(tax_value) * voucher_rate
-                    if tax:    
-                        res.append({
-                            'type':'tax',
-                            'name':line.name,
-                            'price_unit': line.price_unit,
-                            'quantity': 1,
-                            'price': round(tax),
-                            'account_id': account,
-                            'account_analytic_id': line.account_analytic_id.id,
-                            })
+
+                if line.aed_id_1:
+                    tax = (basic + p_f + ed + line.aed_id_1)*(tax_value) * voucher_rate
+                else:
+                    tax = (basic + p_f + ed)*(tax_value) * voucher_rate
+                if tax:    
+                    res.append({
+                        'type':'tax',
+                        'name':line.name,
+                        'price_unit': line.price_unit,
+                        'quantity': 1,
+                        'price': round(tax),
+                        'account_id': account,
+                        'account_analytic_id': line.account_analytic_id.id,
+                        })
                     
 #                     if 'CST' in tax_name:
 #                         tax_amounts = [r.amount for r in line.invoice_line_tax_id]
@@ -5084,7 +5059,6 @@ class account_invoice_line(osv.osv):
                 base_amount = round(line.fright*line.quantity,2)
                 tax_debit_amount = base_amount*(line.tax_id and line.tax_id.amount/100 or 0)
                 tax_debit_amount = round(tax_debit_amount,2)
-            
             if tax_debit_amount:
                 res.append({
                     'type':'tax',
@@ -8206,17 +8180,22 @@ class tpt_hr_payroll_approve_reject(osv.osv):
                     'line_id': journal_s1_line,
                     'doc_type':'payroll'
                     }
-                new_s1_jour_id = account_move_obj.create(cr,uid,value_s1)
-                auto_ids = self.pool.get('tpt.auto.posting').search(cr, uid, [])
-                if auto_ids:
-                    auto_id = self.pool.get('tpt.auto.posting').browse(cr, uid, auto_ids[0], context=context)
-                    if auto_id.payroll:
-                        try:
-                            account_move_obj.button_validate(cr,uid, [new_s1_jour_id], context)
-                        except:
-                            pass
-                payroll_obj.write(cr, uid, excutive.id, {'state':'approve'})
+                context.update({'get_tpt_payroll': 'excutive'})
+                if context.get('tpt_review_posting',False) and context.get('tpt_approve_payroll',False) and context.get('tpt_approve_payroll',False) == 'excutive':
+                    return value_s1
+                if context.get('tpt_approve_payroll',False) and context.get('tpt_approve_payroll',False) == 'posting':
+                    new_s1_jour_id = account_move_obj.create(cr,uid,value_s1)
+                    auto_ids = self.pool.get('tpt.auto.posting').search(cr, uid, [])
+                    if auto_ids:
+                        auto_id = self.pool.get('tpt.auto.posting').browse(cr, uid, auto_ids[0], context=context)
+                        if auto_id.payroll:
+                            try:
+                                account_move_obj.button_validate(cr,uid, [new_s1_jour_id], context)
+                            except:
+                                pass
+                    payroll_obj.write(cr, uid, excutive.id, {'state':'approve'})
             if payroll_staff_id:
+                context.update({'get_tpt_payroll': 'excutive'})
                 staff = payroll_obj.browse(cr,uid,payroll_staff_id)
                 sql = '''
                     select id
@@ -8371,16 +8350,20 @@ class tpt_hr_payroll_approve_reject(osv.osv):
                     'line_id': journal_s2_line,
                     'doc_type':'staff_payroll'
                     }
-                new_s2_jour_id = account_move_obj.create(cr,uid,value_s2)
-                auto_ids = self.pool.get('tpt.auto.posting').search(cr, uid, [])
-                if auto_ids:
-                    auto_id = self.pool.get('tpt.auto.posting').browse(cr, uid, auto_ids[0], context=context)
-                    if auto_id.payroll:
-                        try:
-                            account_move_obj.button_validate(cr,uid, [new_s2_jour_id], context)
-                        except:
-                            pass
-                payroll_obj.write(cr, uid, staff.id, {'state':'approve'})
+                context.update({'get_tpt_payroll': 'staff'})
+                if context.get('tpt_review_posting',False) and context.get('tpt_approve_payroll',False) and context.get('tpt_approve_payroll',False) == 'staff':
+                    return value_s2
+                if context.get('tpt_approve_payroll',False) and context.get('tpt_approve_payroll',False) == 'posting':
+                    new_s2_jour_id = account_move_obj.create(cr,uid,value_s2)
+                    auto_ids = self.pool.get('tpt.auto.posting').search(cr, uid, [])
+                    if auto_ids:
+                        auto_id = self.pool.get('tpt.auto.posting').browse(cr, uid, auto_ids[0], context=context)
+                        if auto_id.payroll:
+                            try:
+                                account_move_obj.button_validate(cr,uid, [new_s2_jour_id], context)
+                            except:
+                                pass
+                    payroll_obj.write(cr, uid, staff.id, {'state':'approve'})
             if payroll_workers_id:
                 workers = payroll_obj.browse(cr,uid,payroll_workers_id)
                 sql = '''
@@ -8537,16 +8520,20 @@ class tpt_hr_payroll_approve_reject(osv.osv):
                     'line_id': journal_s3_line,
                     'doc_type':'worker_payroll'
                     }
-                new_s3_jour_id = account_move_obj.create(cr,uid,value_s3)
-                auto_ids = self.pool.get('tpt.auto.posting').search(cr, uid, [])
-                if auto_ids:
-                    auto_id = self.pool.get('tpt.auto.posting').browse(cr, uid, auto_ids[0], context=context)
-                    if auto_id.payroll:
-                        try:
-                            account_move_obj.button_validate(cr,uid, [new_s3_jour_id], context)
-                        except:
-                            pass
-                payroll_obj.write(cr, uid, workers.id, {'state':'approve'})
+                context.update({'get_tpt_payroll': 'worker'})
+                if context.get('tpt_review_posting',False) and context.get('tpt_approve_payroll',False) and context.get('tpt_approve_payroll',False) == 'worker':
+                    return value_s3
+                if context.get('tpt_approve_payroll',False) and context.get('tpt_approve_payroll',False) == 'posting':
+                    new_s3_jour_id = account_move_obj.create(cr,uid,value_s3)
+                    auto_ids = self.pool.get('tpt.auto.posting').search(cr, uid, [])
+                    if auto_ids:
+                        auto_id = self.pool.get('tpt.auto.posting').browse(cr, uid, auto_ids[0], context=context)
+                        if auto_id.payroll:
+                            try:
+                                account_move_obj.button_validate(cr,uid, [new_s3_jour_id], context)
+                            except:
+                                pass
+                    payroll_obj.write(cr, uid, workers.id, {'state':'approve'})
         return self.write(cr, uid, line.id, {'state':'done'})
     
 #     def approve_payroll(self, cr, uid, ids, context=None):
@@ -9044,6 +9031,7 @@ class account_move(osv.osv):
                                   ('stock_adj_dec', 'Stock Adjustment Decrease'),
                                   ('return_do', 'Return DO'), #TPT-BM-01/07/2016
                                   ('asset_dp', 'Asset Depreciation'),#TPT-BM- ON13/08/2016
+                                  ('material_return_request', 'Material Return Request'),
                                   ],
                                         'Document Type'),  
         'material_issue_id': fields.many2one('tpt.material.issue','Material Issue',ondelete='restrict'), 
@@ -9068,6 +9056,13 @@ class account_move(osv.osv):
                 'message': _('Date: Not allow future date!')
             }
         return {'value':vals,'warning':warning}
+    
+    def create(self, cr, uid, vals, context=None):
+        return super(account_move, self).create(cr,1, vals, context)
+    
+    def write(self, cr, uid,ids, vals, context=None):
+        return super(account_move, self).write(cr,1,ids,vals,context) 
+    
 account_move()
 
 class tpt_activities(osv.osv):
@@ -9464,15 +9459,108 @@ class stock_picking_out(osv.osv):
         return super(stock_picking_out, self).write(cr,1,ids,vals,context) 
 stock_picking_out()
 
-class account_move(osv.osv):
-    _inherit = "account.move"
+class tpt_bank_reconciliation(osv.osv):
+    _name = 'tpt.bank.reconciliation'
+    _columns = {
+        'name': fields.many2one('account.account', 'Bank GL Account', required=True, states={ 'done':[('readonly', True)]}),
+        'date': fields.date('Payment Date', states={ 'done':[('readonly', True)]}),
+        'reconciliation_line': fields.one2many('tpt.bank.reconciliation.line', 'bank_reconciliation_id', 'Line', states={ 'done':[('readonly', True)]}),
+        'state':fields.selection([('draft', 'Draft'),('done', 'Done')],'Status', readonly=True),
+    }
+    _defaults = {
+        'state': 'draft',
+    }
+
+    def onchange_account(self, cr, uid, ids, account_id=False, date = False, context=None):
+        if context is None:
+            context={}
+        vals = {}
+        if ids:
+            cr.execute(''' delete from tpt_bank_reconciliation_line where bank_reconciliation_id in %s ''',(tuple(ids),))
+        if account_id:
+            tt_debit = 0.0
+            tt_credit = 0.0
+            voucher_obj = self.pool.get('account.voucher')
+            voucher_ids = voucher_obj.search(cr, uid, [('account_id','=',account_id),('reconciliation_date','=',False)])
+            if date:
+                voucher_ids = voucher_obj.search(cr, uid, [('account_id','=',account_id),('reconciliation_date','=',False), ('date','=',date)])
+            reconciliation_line = []
+            for voucher in voucher_obj.browse(cr, uid, voucher_ids):
+                doc_type = ''
+                debit = 0.0
+                credit = 0.0
+                
+                if voucher.journal_id.type=='bank':
+                    if not voucher.tpt_sup_reconcile and voucher.type == 'payment':
+                        doc_type='Supplier Payments'
+                    if not voucher.tpt_sup_reconcile and voucher.type == 'receipt':
+                        doc_type='Customer Payments'
+                    if voucher.type_trans:
+                        doc_type='Bank Transaction'
+                    for move_id in voucher.move_ids:
+                        if move_id.account_id.id == account_id:
+                            if move_id.debit:
+                                debit = move_id.debit
+                            if move_id.credit:
+                                credit = move_id.credit
+                
+                tt_debit += debit
+                tt_credit += credit
+                reconciliation_line.append((0,0,{
+                    'partner_id': voucher.partner_id and voucher.partner_id.id or False,
+                    'name': voucher.name,
+                    'doc_type': doc_type,
+                    'reference': voucher.reference,
+                    'date': voucher.date,
+                    'cheque_no': voucher.cheque_no,
+                    'cheque_date': voucher.cheque_date,
+                    'account_id': voucher.account_id and voucher.account_id.id or False,
+                    'amount': voucher.amount,
+                    'debit': debit,
+                    'credit': credit,
+                    'voucher_id': voucher.id,
+                }))
+            reconciliation_line.append((0,0,{
+                'cheque_no': 'Total',
+                'debit': tt_debit,
+                'credit': tt_credit,
+            }))
+            reconciliation_line.append((0,0,{
+                'cheque_no': 'Net Balance',
+                'debit': tt_debit-tt_credit,
+            }))
+            vals = {'reconciliation_line':reconciliation_line}
+        return {'value': vals}
+
+    def bt_confirm(self, cr, uid, ids, context=None):
+        for bank_reconciliation in self.browse(cr, uid, ids):
+            for line in bank_reconciliation.reconciliation_line:
+                if line.reconciliation_date:
+                    cr.execute(''' update account_voucher set reconciliation_date=%s where id=%s ''',(line.reconciliation_date,line.voucher_id.id,))
+        return self.write(cr, uid, ids,{'state':'done'})
     
-    def create(self, cr, uid, vals, context=None):
-        return super(account_move, self).create(cr,1, vals, context)
+tpt_bank_reconciliation()
+
+class tpt_bank_reconciliation_line(osv.osv):
+    _name = 'tpt.bank.reconciliation.line'
+    _columns = {
+        'partner_id': fields.many2one('res.partner', 'Customer/Verdor'),
+        'name': fields.char('Voucher No', size=1024),
+        'doc_type': fields.char('Document Type', size=1024),
+        'reference': fields.char('Payment Ref', size=1024),
+        'date': fields.date('Payment Date'),
+        'cheque_no': fields.char('Cheque No', size=1024),
+        'cheque_date': fields.date('Cheque Date'),
+        'reconciliation_date': fields.date('Reconciliation Date'),
+        'account_id': fields.many2one('account.account', 'Bank GL Account'),
+        'voucher_id': fields.many2one('account.voucher', 'Voucher'),
+        'amount': fields.float('Payment Amount'),
+        'debit': fields.float('Debit'),
+        'credit': fields.float('Credit'),
+        'bank_reconciliation_id': fields.many2one('tpt.bank.reconciliation', 'Bank Reconciliation', ondelete='cascade'),
+    }
     
-    def write(self, cr, uid,ids, vals, context=None):
-        return super(account_move, self).write(cr,1,ids,vals,context) 
-account_move()
+tpt_bank_reconciliation_line()
 
 class tpt_auto_posting(osv.osv):
     _name = "tpt.auto.posting"
@@ -9493,6 +9581,7 @@ class tpt_auto_posting(osv.osv):
         'journal_vouchers':fields.boolean('Journal Vouchers'),
         'production_declaration':fields.boolean('Production Declaration'),
         'payroll':fields.boolean('Payroll'),
+        'material_return_request':fields.boolean('Material Return Request'),
     }
     _defaults = {
         'name':'Auto Account Posting Configuration',

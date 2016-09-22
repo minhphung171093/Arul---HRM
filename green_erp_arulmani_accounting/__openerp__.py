@@ -40,8 +40,8 @@
         'wizard/genenal_ledger_statement_view.xml',
         'wizard/batch_wise_stock_view.xml',
         'wizard/input_register_form_view.xml',
-        'wizard/review_posting_view.xml',
         'wizard/account_report_common_view.xml',
+        'wizard/review_posting_view.xml',
         'wizard/service_tax_register_view.xml',
         'wizard/ed_type_pop_up_view.xml',
         'wizard/daywise_consumption_view.xml',#TPT-P

@@ -58,6 +58,7 @@
 		            	<button name="delete_issue_1000750" string="Update Issue 1000750/2015 (24/07)" type="object" class="oe_highlight"/>
 		            	<button name="delete_account_move_old_data_for_issue" string="Delete Account Move Old Data For Issue" type="object" class="oe_highlight"/>
 		            	<button name="create_one_issue_one_posting" string="Create One Issue One Posting" type="object" class="oe_highlight"/>
+		            	<button name="uom_change_list16th" string="UOM Change List 16th" type="object" class="oe_highlight"/>
 		            	<button name="update_issue_line_for_request_6000028" string="update issue line for request 6000028" type="object" class="oe_highlight"/>
 		            	<button name="delete_account_move_6000028" string="delete account move 6000028" type="object" class="oe_highlight"/>
 		            	<button name="create_posting_6000028" string="create posting 6000028" type="object" class="oe_highlight"/>
