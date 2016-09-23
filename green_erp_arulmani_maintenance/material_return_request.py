@@ -243,7 +243,7 @@ class tpt_material_return_request_line(osv.osv):
                             account_move_obj.button_validate(cr,uid, [new_jour_id], context)
                         except:
                             pass
-        return self.write(cr, uid, ids, {'state': 'approved'})
+        return self.write(cr, uid, ids, {'state': 'accepted'})
     
     def bt_reject(self, cr, uid, ids, context=None):
         res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 

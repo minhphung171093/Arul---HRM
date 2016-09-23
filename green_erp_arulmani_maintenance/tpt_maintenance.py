@@ -1509,6 +1509,28 @@ class tpt_material_issue(osv.osv):
             res.append((record['id'], name))
         return res
     
+    def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
+        if context is None:
+            context = {}
+        if context.get('search_issue_from_mmr', False):
+            request_id = context.get('request_id', False)
+            issue_ids = []
+            if request_id:
+                sql = '''
+                    select id from tpt_material_issue where name=%s
+                        and id not in (select issue_id from tpt_material_return_request)
+                '''%(request_id)
+                cr.execute(sql)
+                issue_ids = [row[0] for row in cr.fetchall()]
+            args += [('id','in',issue_ids)]
+        return super(tpt_material_issue, self).search(cr, uid, args, offset=offset, limit=limit, order=order, context=context, count=count)
+    
+    def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
+        if context is None:
+            context = {}
+        ids = self.search(cr, user, args, context=context, limit=limit)
+        return self.name_get(cr, user, ids, context=context)
+    
 tpt_material_issue()
 
 class tpt_material_issue_line(osv.osv):

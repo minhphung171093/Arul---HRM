@@ -51,11 +51,11 @@
 	            	<sheet>
 	            		<group col='4' colspan='2'>
 							<field name="name" readonly='1'/>
-							<field name="date"/>
+							<field name="date" required='1'/>
 							<field name="maintenance_id" context="{'search_maintenance_in_mrr': 1}" required='1' on_change="onchange_maintenance_id(maintenance_id)"/>
 							<newline/>
 							<field name="request_id" required='1' domain="[('maintenance_id','=',maintenance_id)]"/>
-							<field name="issue_id" required='1' domain="[('name','=',request_id)]"/>
+							<field name="issue_id" required='1' domain="[('name','=',request_id)]" context="{'search_issue_from_mmr': 1, 'request_id': request_id}"/>
 							<field name="department_id"/>
 							<field name="section_id" domain="[('department_id','=',department_id)]"/>
 							<field name="reason" colspan='4' required='1'/>
