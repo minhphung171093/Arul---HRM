@@ -4604,6 +4604,43 @@ class tpt_update_stock_move_report(osv.osv):
                         
      
         return self.write(cr, uid, ids, {'result':'TPT update ISSUE for report Done'})
+    def adj_third_permission(self, cr, uid, ids, context=None):
+        temp_obj = self.pool.get('tpt.aml.sl.line')
+        sql = '''
+            SELECT to_char(generate_series, 'YYYY-MM-DD') as date FROM generate_series('2016-01-01'::timestamp,'2016-06-30', '1 Months')
+
+        '''
+        cr.execute(sql)
+        vals = {}
+            
+        #for ma in cr.dictfetchall():
+        for line1 in range(1, 10):
+            #print line1
+            sql = '''
+            select distinct he.id from hr_employee he
+            inner join arul_hr_permission_onduty od on he.id=od.employee_id
+            where od.non_availability_type_id='permission' and od.state not in ('draft', 'cancel')
+            and extract(year from date)=2016
+            '''
+            cr.execute(sql)
+            for line2 in cr.dictfetchall():
+                sql = '''
+                select id, date, extract(month from date) as month, employee_id, is_third_permission, non_availability_type_id from arul_hr_permission_onduty 
+                where state not in ('draft', 'cancel') and non_availability_type_id='permission'
+                and extract(year from date)=2016 and extract(month from date)=%s and employee_id=%s
+                order by employee_id, date 
+                limit 10 offset 2
+                '''%(line1, line2['id'])
+                cr.execute(sql)
+                for line3 in cr.dictfetchall():
+                    sql = '''
+                    update arul_hr_permission_onduty set is_third_permission='t' where id=%s
+                    '''%(line3['id'])
+                    cr.execute(sql)
+                    #print sql
+                    #print line2['id'], line3['date'], line3['id']
+                
+        return self.write(cr, uid, ids, {'result':'TPT update 3rd Permission Done'})
 tpt_update_stock_move_report()
 
 class tpt_aml_sl_line(osv.osv):

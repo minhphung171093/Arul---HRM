@@ -171,25 +171,25 @@ class Parser(report_sxw.rml_parse):
                 
     def get_issue_qty_count(self,indent_id,prod_id,item_text,desc):                
                 
-                sql = '''
-                        select count(*)
-                        from purchase_order_line pol
-                        join purchase_order po on (po.id = pol.order_id)
-                        join tpt_purchase_indent pi on (pi.id = pol.po_indent_no)
-                        where pol.po_indent_no = %s and pol.product_id = %s
-                    '''%(indent_id,prod_id)
-                if item_text:
-                    item_text = item_text.replace("'", "'||''''||'")
-                    str = " and pol.item_text = '%s'"%(item_text)
-                    sql = sql+str
-                if desc:
-                    desc = desc.replace("'", "'||''''||'")
-                    str = " and pol.description = '%s'"%(desc)
-                    sql = sql+str
-                self.cr.execute(sql)
-                for move in self.cr.dictfetchall():
-                    count = move['count']
-                    return count or 0.000
+        sql = '''
+                select count(*)
+                from purchase_order_line pol
+                join purchase_order po on (po.id = pol.order_id)
+                join tpt_purchase_indent pi on (pi.id = pol.po_indent_no)
+                where pol.po_indent_no = %s and pol.product_id = %s
+            '''%(indent_id,prod_id)
+        if item_text:
+            item_text = item_text.replace("'", "'||''''||'")
+            str = " and pol.item_text = '%s'"%(item_text)
+            sql = sql+str
+        if desc:
+            desc = desc.replace("'", "'||''''||'")
+            str = " and pol.description = '%s'"%(desc)
+            sql = sql+str
+        self.cr.execute(sql)
+        for move in self.cr.dictfetchall():
+            count = move['count']
+            return count or 0.000
    
     
     def get_on_hand_qty(self,product_id):
@@ -250,59 +250,59 @@ class Parser(report_sxw.rml_parse):
             '''
             
         if date_from or date_to or indent_no or dept or section or requ or project or proj_sec or status:
-                    str = " where "
-                    sql = sql+str
+            str = " where "
+            sql = sql+str
         if date_from and not date_to:
-                    str = " pp.date_indent_relate <= '%s'"%(date_from)
-                    sql = sql+str               
+            str = " pp.date_indent_relate <= '%s'"%(date_from)
+            sql = sql+str               
         if date_to and not date_from:
-                    str = " pp.date_indent_relate <= '%s'"%(date_to)
-                    sql = sql+str
+            str = " pp.date_indent_relate <= '%s'"%(date_to)
+            sql = sql+str
         if date_to and date_from:
-                    str = " pp.date_indent_relate between '%s' and '%s'"%(date_from,date_to)
-                    sql = sql+str
+            str = " pp.date_indent_relate between '%s' and '%s'"%(date_from,date_to)
+            sql = sql+str
         if indent_no and not date_to and not date_from:
-                    str = " pp.pur_product_id = %s"%(indent_no[0])
-                    sql = sql+str
+            str = " pp.pur_product_id = %s"%(indent_no[0])
+            sql = sql+str
         if indent_no and (date_to or date_from):
-                    str = " and pp.pur_product_id = %s"%(indent_no[0])
-                    sql = sql+str
+            str = " and pp.pur_product_id = %s"%(indent_no[0])
+            sql = sql+str
         if dept and not date_to and not date_from and not indent_no:
-                    str = " pp.department_id_relate = %s "%(dept[0])
-                    sql = sql+str
+            str = " pp.department_id_relate = %s "%(dept[0])
+            sql = sql+str
         if dept and (date_to or date_from or indent_no):
-                    str = " and pp.department_id_relate = %s "%(dept[0])
-                    sql = sql+str
+            str = " and pp.department_id_relate = %s "%(dept[0])
+            sql = sql+str
         if section and not dept and not indent_no and not date_to and not date_from:
-                    str = " pp.section_id_relate = %s "%(section[0])
-                    sql = sql+str
+            str = " pp.section_id_relate = %s "%(section[0])
+            sql = sql+str
         if section and (date_to or date_from or indent_no or dept):
-                    str = " and pp.section_id_relate = %s "%(section[0])
-                    sql = sql+str
+            str = " and pp.section_id_relate = %s "%(section[0])
+            sql = sql+str
         if requ and not section and not dept and not indent_no and not date_to and not date_from: 
-                    str = " pp.requisitioner_relate = %s "%(requ[0])
-                    sql = sql+str
+            str = " pp.requisitioner_relate = %s "%(requ[0])
+            sql = sql+str
         if requ and (date_to or date_from or indent_no or dept or section):
-                    str = " and pp.requisitioner_relate = %s "%(requ[0])
-                    sql = sql+str
+            str = " and pp.requisitioner_relate = %s "%(requ[0])
+            sql = sql+str
         if project and not requ and not section and not dept and not indent_no and not date_to and not date_from:
-                    str = " pi.project_id = %s "%(project[0])
-                    sql = sql+str
+            str = " pi.project_id = %s "%(project[0])
+            sql = sql+str
         if project and (date_to or date_from or indent_no or dept or section or requ):
-                    str = " and pi.project_id = %s "%(project[0])
-                    sql = sql+str
+            str = " and pi.project_id = %s "%(project[0])
+            sql = sql+str
         if proj_sec and not project and not requ and not section and not dept and not indent_no and not date_to and not date_from:
-                    str = " pi.project_section_id = %s"%(proj_sec[0])
-                    sql = sql+str
+            str = " pi.project_section_id = %s"%(proj_sec[0])
+            sql = sql+str
         if proj_sec and (date_to or date_from or indent_no or dept or section or requ or project):
-                    str = " and pi.project_section_id = %s "%(proj_sec[0])
-                    sql = sql+str
+            str = " and pi.project_section_id = %s "%(proj_sec[0])
+            sql = sql+str
         if status and not proj_sec and not project and not requ and not section and not dept and not indent_no and not date_to and not date_from:
-                    str = " pp.state = '%s' "%(status)
-                    sql = sql+str
+            str = " pp.state = '%s' "%(status)
+            sql = sql+str
         if status and (date_to or date_from or indent_no or dept or section or requ or project or proj_sec):
-                    str = " and pp.state = '%s' "%(status)
-                    sql = sql+str                           
+            str = " and pp.state = '%s' "%(status)
+            sql = sql+str                           
                      
         sql=sql+" order by pp.date_indent_relate,pi.name"  
         self.cr.execute(sql)
