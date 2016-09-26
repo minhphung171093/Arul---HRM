@@ -764,7 +764,7 @@ class tpt_maintenance_oder(osv.osv):
             context = {}
         if context.get('search_maintenance_in_mrr', False):
             sql = '''
-                select id from tpt_maintenance_oder where state in ('in','completed')
+                select id from tpt_maintenance_oder where state not in ('draft')
                     and id in (select maintenance_id from tpt_material_request)
             '''
             cr.execute(sql)
