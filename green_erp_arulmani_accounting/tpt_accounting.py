@@ -5601,7 +5601,8 @@ class product_product(osv.osv):
                     #TPT START - BM - ON 05/07/2016 - GET CST INVOICE ATM + FREIGHT AMT ADDED in TOTAL COST
                     cst_amt = 0.00
                     frt_amt = 0.00
-                    total_cost = 0.00
+                    si_frt_amt = 0.00
+                    #total_cost = 0.0 commented by BM -ON 26/09/2016 - to solve issue in updating avg, total cost
                     sql = '''
                         select case when sum(ail.tpt_tax_amt) is NULL then 0 else sum(ail.tpt_tax_amt) end as cst_amt from account_invoice ai
                         inner join account_invoice_line ail on ai.id=ail.invoice_id
@@ -5633,9 +5634,38 @@ class product_product(osv.osv):
                     frt_amt = cr.fetchone()
                     if frt_amt:
                         frt_amt = frt_amt[0]    
+                    #
+                    sql = '''
+                    select 
+                        case when 
+                            SUM(case 
+                            when ail.fright_type='1' then ail.fright*100
+                            when ail.fright_type='2' then ail.fright
+                            when ail.fright_type='3' then ail.fright*ail.quantity
+                            when ail.fright_type is null then ail.fright
+                            else 0 end) >=0
+                            then    
+                            SUM(case 
+                            when ail.fright_type='1' then ail.fright*100
+                            when ail.fright_type='2' then ail.fright
+                            when ail.fright_type='3' then ail.fright*ail.quantity
+                            when ail.fright_type is null then ail.fright
+                            else 0 end)                
+                            else 0 end as frt_amt
+                        from account_invoice ai
+                        inner join account_invoice_line ail on ai.id=ail.invoice_id
+                        where ail.product_id=%s and 
+                        ai.state not in ('draft', 'cancel')
+                        and ai.doc_type='supplier_invoice' and ail.fright>0 
+                        
+                    '''%(id)
+                    cr.execute(sql)
+                    si_frt_amt = cr.fetchone()
+                    if si_frt_amt:
+                        si_frt_amt = si_frt_amt[0]
                     #      
                     if hand_quantity>0 and loc['loc'] in [14, 15]: #Spares, Raw respectively 
-                        total_cost += (cst_amt + frt_amt)
+                        total_cost += (cst_amt + frt_amt + si_frt_amt)
                         avg_cost = total_cost  / hand_quantity
                     #TPT-END
                     #
@@ -6909,6 +6939,7 @@ class account_voucher(osv.osv):
             'date': voucher.date,
             'ref': ref,
             'period_id': voucher.period_id.id,
+            'cost_center_id': voucher.cost_center_id.id, # added by P.vinothkumar on 23/09/2016 for adding cost_center_id from voucher
         }
         #TPT-VINOTH-COMMENTED ON 25/04/2016
         #=======================================================================
@@ -9043,6 +9074,7 @@ class account_move(osv.osv):
                                     ('cancel','Cancelled')
                                    ],
                                   'Status' ),
+        'cost_center_id':fields.many2one('tpt.cost.center','Cost Center'),
                 }
     
     def onchange_tpt_date(self, cr, uid, ids, date=False, context=None):
@@ -9458,6 +9490,8 @@ class stock_picking_out(osv.osv):
     def write(self, cr, uid,ids, vals, context=None):
         return super(stock_picking_out, self).write(cr,1,ids,vals,context) 
 stock_picking_out()
+
+
 
 class tpt_bank_reconciliation(osv.osv):
     _name = 'tpt.bank.reconciliation'

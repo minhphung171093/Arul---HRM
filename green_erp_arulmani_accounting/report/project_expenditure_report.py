@@ -77,28 +77,27 @@ class Parser(report_sxw.rml_parse):
         project_id=wizard_data['project_id']
         proj_obj=self.pool.get('tpt.project')
         # Script modified by P.vinothkumar on 10/08/2016 for issue_amount issue-  "and product_id=mil.product_id " is added
+        
+        # Sql script modified by P.vinothkumar on 22/09/2016 for report matching between GL VS project exp report.  
         sql = '''
-        select a.default_code as m_code, a.project,a.section, a.name_template as material_name, sum(a.product_isu_qty) as IssueQty,
-        a.UOM, sum(a.amount) as IssueAmt
-        from (select p.default_code,p.name_template,mil.product_isu_qty, uom.name as UOM,
-        (select sum(credit) from account_move_line where move_id=am.id and product_id=mil.product_id and credit>0) as Amount,
-        mi.doc_no, hs.name as section, tp.name as Project
-        from tpt_material_issue_line mil
-        inner join tpt_material_issue mi on (mil.material_issue_id=mi.id)
-        inner join tpt_material_request mr on (mr.id=mi.name)
-        inner join account_move am on (am.material_issue_id=mi.id)
-        inner join product_product p on (p.id=mil.product_id)
-        inner join arul_hr_section hs on (hs.id=mr.section_id)
-        inner join tpt_project tp on (tp.id=mr.project_id)
-        inner join product_uom uom on (uom.id=mil.uom_po_id)
-        where mi.date_expec>='%s' and mi.date_expec<='%s')a
-        '''%((date_from),(date_to))
+        select (sm.product_qty*sm.price_unit) as issueamt,pp.default_code as m_code, pp.name_template as material_name, 
+        tp.name as project, tps.name as section,sm.product_qty as issueqty,pu.name as uom
+        from tpt_material_issue mi
+        inner join stock_move sm on mi.id=sm.issue_id
+        inner join tpt_material_request mr on mi.name=mr.id
+        inner join product_product pp on sm.product_id=pp.id
+        inner join product_template pt on pp.product_tmpl_id=pt.id
+        inner join product_uom pu on pt.uom_id=pu.id
+        left join tpt_project tp on mr.project_id=tp.id
+        left join tpt_project_section tps on mr.project_section_id=tps.id
+        where sm.date between '%s' and '%s' and sm.state='done' and mi.state='done' and mi.cost_center_id=20
+        and mr.project_id is not null
+    '''%((date_from),(date_to))
         if project_id:
             proj_ids = proj_obj.browse(self.cr,self.uid,project_id[0])
             proj_name = proj_ids.name
-            sql += " where a.project='%s'"%proj_name
-        sql += " group by a.default_code, a.name_template, a.section, a.project, a.uom order by a.project, a.section, a.default_code"
-                     
+            sql += " and  a.project='%s'"%proj_name
+        sql += "order by project,section,default_code"          
         self.cr.execute(sql);
         res = []
         s_no = 1

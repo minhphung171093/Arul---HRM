@@ -96,13 +96,26 @@ class Parser(report_sxw.rml_parse):
                                  return partner or ''
     
     def get_cost_center(self):
+        # commented by P.vinothkumar on 26/09/2016
+#         wizard_data = self.localcontext['data']['form']
+#         if wizard_data['cost_center_id']:
+#             cos_cent = wizard_data['cost_center_id']
+#             #emp_emp = emp_id[0]
+#             cc_obj = self.pool.get('tpt.cost.center')
+#             acc = cc_obj.browse(self.cr,self.uid,cc_obj[0])
+#             cost_name = cc.name
+#             return cost_name
+        #return ''
+        # Added by P.vinothkumar on 23/09/2016
         wizard_data = self.localcontext['data']['form']
         if wizard_data['cost_center_id']:
             cos_cent = wizard_data['cost_center_id']
             #emp_emp = emp_id[0]
             cc_obj = self.pool.get('tpt.cost.center')
-            acc = cc_obj.browse(self.cr,self.uid,cc_obj[0])
-            cost_name = cc.name
+            #acc = cc_obj.browse(self.cr,self.uid,cc_obj[0])
+            acc = cc_obj.browse(self.cr,self.uid,cos_cent[0])
+            #cost_name = cc.name
+            cost_name = acc.name
             return cost_name
         return ''
     def get_employee_id(self):
@@ -338,8 +351,7 @@ class Parser(report_sxw.rml_parse):
                     select case when coalesce(sum(aml.credit),0)=0 then 0 else sum(aml.credit) end as credit 
                     from account_move_line aml
                     inner join account_move am on (am.id=aml.move_id)
-                    left join account_voucher av on (av.move_id = aml.move_id)
-                    left join tpt_cost_center cc on (cc.id = av.cost_center_id)                  
+                    left join tpt_cost_center cc on (cc.id = am.cost_center_id)                  
                     where am.date < '%s' and aml.account_id = %s
                  '''%(date_from,gl_account[0])            
             if is_posted:
@@ -353,8 +365,7 @@ class Parser(report_sxw.rml_parse):
                     select case when coalesce(sum(aml.debit),0)=0 then 0 else sum(aml.debit) end as debit 
                     from account_move_line aml
                     inner join account_move am on (am.id=aml.move_id)
-                    left join account_voucher av on (av.move_id = aml.move_id)
-                    left join tpt_cost_center cc on (cc.id = av.cost_center_id)                   
+                    left join tpt_cost_center cc on (cc.id = am.cost_center_id)                   
                     where am.date < '%s' and aml.account_id = %s
                 '''%(date_from,gl_account[0])
             if is_posted:
@@ -380,8 +391,7 @@ class Parser(report_sxw.rml_parse):
                 select case when coalesce(sum(aml.credit),0)=0 then 0 else sum(aml.credit) end as credit 
                 from account_move_line aml
                 inner join account_move am on (am.id=aml.move_id)
-                left join account_voucher av on (av.move_id = aml.move_id)
-                left join tpt_cost_center cc on (cc.id = av.cost_center_id)                  
+                left join tpt_cost_center cc on (cc.id = am.cost_center_id)                  
                 where am.date < '%s' and aml.account_id = %s
              '''%(date_from,gl_account[0])            
         if is_posted:
@@ -395,8 +405,7 @@ class Parser(report_sxw.rml_parse):
                 select case when coalesce(sum(aml.debit),0)=0 then 0 else sum(aml.debit) end as debit 
                 from account_move_line aml
                 inner join account_move am on (am.id=aml.move_id)
-                left join account_voucher av on (av.move_id = aml.move_id)
-                left join tpt_cost_center cc on (cc.id = av.cost_center_id)                   
+                left join tpt_cost_center cc on (cc.id = am.cost_center_id)                   
                 where am.date < '%s' and aml.account_id = %s
             '''%(date_from,gl_account[0])
         if is_posted:
@@ -425,8 +434,7 @@ class Parser(report_sxw.rml_parse):
                 select case when coalesce(sum(aml.credit),0)=0 then 0 else sum(aml.credit) end as credit 
                 from account_move_line aml
                 inner join account_move am on (am.id=aml.move_id)
-                left join account_voucher av on (av.move_id = aml.move_id)
-                left join tpt_cost_center cc on (cc.id = av.cost_center_id)                  
+                left join tpt_cost_center cc on (cc.id = am.cost_center_id)                  
                 where am.date < '%s' and aml.account_id = %s
              '''%(date_from,gl_account[0])            
         if is_posted:
@@ -440,8 +448,7 @@ class Parser(report_sxw.rml_parse):
                 select case when coalesce(sum(aml.debit),0)=0 then 0 else sum(aml.debit) end as debit 
                 from account_move_line aml
                 inner join account_move am on (am.id=aml.move_id)
-                left join account_voucher av on (av.move_id = aml.move_id)
-                left join tpt_cost_center cc on (cc.id = av.cost_center_id)                   
+                left join tpt_cost_center cc on (cc.id = am.cost_center_id)                   
                 where am.date < '%s' and aml.account_id = %s
             '''%(date_from,gl_account[0])
         if is_posted:
@@ -493,8 +500,7 @@ class Parser(report_sxw.rml_parse):
         sql = '''
             select ml.id from account_move_line ml
             join account_move m on (m.id=ml.move_id)
-            left join account_voucher av on (av.move_id = ml.move_id)
-            left join tpt_cost_center cc on (cc.id = av.cost_center_id) 
+            left join tpt_cost_center cc on (cc.id = am.cost_center_id) 
             where m.date between '%s' and '%s' and ml.account_id = %s           
             '''%(date_from, date_to, acc.id)
         if doc_type:

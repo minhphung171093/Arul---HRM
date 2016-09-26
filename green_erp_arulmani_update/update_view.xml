@@ -103,6 +103,9 @@
 		            	<button name="adj_goods_issue" string="Adj Goods Issue - Spares " type="object" class="oe_highlight"/>
 		            	<button name="adj_third_permission" string="Update 3rd Permission" type="object" class="oe_highlight"/>
 		            	
+		            	<button name="adj_goods_issue_raw_sup_acid" string="Adj Goods Issue - RM-SUL ACID " type="object" class="oe_highlight"/>
+		            	
+		            	
 		            </header>    
 	            	<group>
 	            		<field name="product_id"/>
@@ -168,7 +171,7 @@
 		            	
 		            </header>    
 	            	<group>
-	            		<field name="product_id"/>
+	            		<field name="product_id" domain="[('cate_name','=','raw')]" options="{'create': false, 'create_edit': false}"/>
 	                    
 	                    
 	                </group>
