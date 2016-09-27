@@ -105,6 +105,7 @@
 		            	
 		            	<button name="adj_goods_issue_raw_sup_acid" string="Adj Goods Issue - RM-SUL ACID " type="object" class="oe_highlight"/>
 		            	<button name="adj_goods_issue_raw_sup_alu_sul" string="Adj Goods Issue - RM-ALU SUL " type="object" class="oe_highlight"/>
+		            	<button name="adj_goods_issue_raw_coal" string="Adj Goods Issue - RM-COAL " type="object" class="oe_highlight"/>
 		            	
 		            	
 		            </header>    
