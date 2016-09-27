@@ -104,6 +104,7 @@
 		            	<button name="adj_third_permission" string="Update 3rd Permission" type="object" class="oe_highlight"/>
 		            	
 		            	<button name="adj_goods_issue_raw_sup_acid" string="Adj Goods Issue - RM-SUL ACID " type="object" class="oe_highlight"/>
+		            	<button name="adj_goods_issue_raw_sup_alu_sul" string="Adj Goods Issue - RM-ALU SUL " type="object" class="oe_highlight"/>
 		            	
 		            	
 		            </header>    
