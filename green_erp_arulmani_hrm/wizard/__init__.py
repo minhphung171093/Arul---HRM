@@ -13,5 +13,5 @@ import DailyInOut_form
 import DailyIn_form 
 import canteen_deduct_report
 import salary_bank_transfer_report
-import designation_wise_total_strength
+#import designation_wise_total_strength
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
