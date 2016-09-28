@@ -4586,8 +4586,6 @@ class tpt_update_stock_move_report(osv.osv):
                         update account_move_line set credit=%s where id=%s 
                         '''%(ma['total'], aml['id'])
                         cr.execute(sql)
-                        #print sql
-                        #print cr.rowcount
                         if cr.rowcount>0:
                             vals['aml_id'] = aml['id']
                             temp_obj.create(cr, uid, vals, context)
@@ -4596,8 +4594,296 @@ class tpt_update_stock_move_report(osv.osv):
                         update account_move_line set debit=%s where id=%s 
                         '''%(ma['total'], aml['id'])
                         cr.execute(sql)
-                        #print sql
-                        #print cr.rowcount
+                        if cr.rowcount>0:
+                            vals['aml_id'] = aml['id']
+                            temp_obj.create(cr, uid, vals, context)
+                        
+     
+        return self.write(cr, uid, ids, {'result':'TPT update ISSUE for report Done'})
+    
+    def adj_goods_issue_raw_sup_acid(self, cr, uid, ids, context=None):
+        temp_obj = self.pool.get('tpt.aml.sl.line')
+        sql = '''
+            select sm.id, pp.default_code, sm.product_qty, sm.price_unit, sm.issue_id, round(sm.product_qty*sm.price_unit, 2) as total  
+            from stock_move sm
+            inner join product_product pp on sm.product_id=pp.id
+            where to_date(to_char(sm.date, 'YYYY-MM-DD'), 'YYYY-MM-DD') between '2015-04-01' and '2016-03-31'
+            and pp.cate_name='raw' and sm.issue_id is not null and sm.state='done' and sm.price_unit>=0
+            and sm.product_id=10749
+            order by sm.issue_id
+        '''
+        cr.execute(sql)
+        vals = {}
+            
+        for ma in cr.dictfetchall():
+            sql = '''
+            select aml.id, aml.account_id from account_move_line aml
+            inner join account_move am on aml.move_id=am.id
+            where am.material_issue_id=%s --and aml.debit>0
+            and aml.id not in (select aml_id from tpt_aml_sl_line)
+            and aml.account_id in (413, 4514)
+            order by aml.id limit 2
+            '''%ma['issue_id']
+            cr.execute(sql)
+
+            for aml in cr.dictfetchall():
+                temp_ids = temp_obj.search(cr, uid, [('aml_id','=',aml['id'])])
+                if not temp_ids:
+                    print ma['issue_id']
+                    if aml['account_id']==413:# 0000119403 - RM-SULPHURIC ACID 
+                        sql = '''
+                        update account_move_line set credit=%s where id=%s 
+                        '''%(ma['total'], aml['id'])
+                        cr.execute(sql)
+                        if cr.rowcount>0:
+                            vals['aml_id'] = aml['id']
+                            temp_obj.create(cr, uid, vals, context)
+                    if aml['account_id']==4514:#0009900028 - SULPHURIC ACID - Cons. 
+                        sql = '''
+                        update account_move_line set debit=%s where id=%s 
+                        '''%(ma['total'], aml['id'])
+                        cr.execute(sql)
+                        if cr.rowcount>0:
+                            vals['aml_id'] = aml['id']
+                            temp_obj.create(cr, uid, vals, context)
+                        
+     
+        return self.write(cr, uid, ids, {'result':'TPT update ISSUE for report Done'})
+    def adj_goods_issue_raw_sup_alu_sul(self, cr, uid, ids, context=None):
+        temp_obj = self.pool.get('tpt.aml.sl.line')
+        sql = '''
+            select sm.id, pp.default_code, sm.product_qty, sm.price_unit, sm.issue_id, round(sm.product_qty*sm.price_unit, 2) as total  
+            from stock_move sm
+            inner join product_product pp on sm.product_id=pp.id
+            where to_date(to_char(sm.date, 'YYYY-MM-DD'), 'YYYY-MM-DD') between '2015-04-01' and '2016-03-31'
+            and pp.cate_name='raw' and sm.issue_id is not null and sm.state='done' and sm.price_unit>=0
+            and sm.product_id=10736
+            order by sm.issue_id
+        '''
+        cr.execute(sql)
+        vals = {}
+            
+        for ma in cr.dictfetchall():
+            sql = '''
+            select aml.id, aml.account_id from account_move_line aml
+            inner join account_move am on aml.move_id=am.id
+            where am.material_issue_id=%s --and aml.debit>0
+            and aml.id not in (select aml_id from tpt_aml_sl_line)
+            and aml.account_id in (3470, 4502)
+            order by aml.id limit 2
+            '''%ma['issue_id']
+            cr.execute(sql)
+
+            for aml in cr.dictfetchall():
+                temp_ids = temp_obj.search(cr, uid, [('aml_id','=',aml['id'])])
+                if not temp_ids:
+                    print ma['issue_id']
+                    if aml['account_id']==3470:# 0000119403 - RM-SULPHURIC ACID 
+                        sql = '''
+                        update account_move_line set credit=%s where id=%s 
+                        '''%(ma['total'], aml['id'])
+                        cr.execute(sql)
+                        if cr.rowcount>0:
+                            vals['aml_id'] = aml['id']
+                            temp_obj.create(cr, uid, vals, context)
+                    if aml['account_id']==4502:#0009900028 - SULPHURIC ACID - Cons. 
+                        sql = '''
+                        update account_move_line set debit=%s where id=%s 
+                        '''%(ma['total'], aml['id'])
+                        cr.execute(sql)
+                        if cr.rowcount>0:
+                            vals['aml_id'] = aml['id']
+                            temp_obj.create(cr, uid, vals, context)
+                        
+     
+        return self.write(cr, uid, ids, {'result':'TPT update ISSUE for report Done'})
+    def adj_goods_issue_raw_coal(self, cr, uid, ids, context=None):
+        temp_obj = self.pool.get('tpt.aml.sl.line')
+        sql = '''
+            select sm.id, pp.default_code, sm.product_qty, sm.price_unit, sm.issue_id, round(sm.product_qty*sm.price_unit, 2) as total  
+            from stock_move sm
+            inner join product_product pp on sm.product_id=pp.id
+            where to_date(to_char(sm.date, 'YYYY-MM-DD'), 'YYYY-MM-DD') between '2015-04-01' and '2016-03-31'
+            and pp.cate_name='raw' and sm.issue_id is not null and sm.state='done' and sm.price_unit>=0
+            and sm.product_id=10756
+            order by sm.issue_id
+        '''
+        cr.execute(sql)
+        vals = {}
+            
+        for ma in cr.dictfetchall():
+            sql = '''
+            select aml.id, aml.account_id from account_move_line aml
+            inner join account_move am on aml.move_id=am.id
+            where am.material_issue_id=%s --and aml.debit>0
+            and aml.id not in (select aml_id from tpt_aml_sl_line)
+            and aml.account_id in (431, 4521)
+            order by aml.id limit 2
+            '''%ma['issue_id']
+            cr.execute(sql)
+
+            for aml in cr.dictfetchall():
+                temp_ids = temp_obj.search(cr, uid, [('aml_id','=',aml['id'])])
+                if not temp_ids:
+                    print ma['issue_id']
+                    if aml['account_id']==431:#  0000119451 - RM -COAL 
+                        sql = '''
+                        update account_move_line set credit=%s where id=%s 
+                        '''%(ma['total'], aml['id'])
+                        cr.execute(sql)
+                        if cr.rowcount>0:
+                            vals['aml_id'] = aml['id']
+                            temp_obj.create(cr, uid, vals, context)
+                    if aml['account_id']==4521:# 0009900035 - COAL - Cons. 
+                        sql = '''
+                        update account_move_line set debit=%s where id=%s 
+                        '''%(ma['total'], aml['id'])
+                        cr.execute(sql)
+                        if cr.rowcount>0:
+                            vals['aml_id'] = aml['id']
+                            temp_obj.create(cr, uid, vals, context)
+                        
+     
+        return self.write(cr, uid, ids, {'result':'TPT update ISSUE for report Done'})
+    
+    def adj_goods_issue_foil(self, cr, uid, ids, context=None):
+        temp_obj = self.pool.get('tpt.aml.sl.line')
+        sql = '''
+            select sm.id, pp.default_code, sm.product_qty, sm.price_unit, sm.issue_id, round(sm.product_qty*sm.price_unit, 2) as total  
+            from stock_move sm
+            inner join product_product pp on sm.product_id=pp.id
+            where to_date(to_char(sm.date, 'YYYY-MM-DD'), 'YYYY-MM-DD') between '2015-04-01' and '2016-03-31'
+            and pp.cate_name='raw' and sm.issue_id is not null and sm.state='done' and sm.price_unit>=0
+            and sm.product_id=10754
+            order by sm.issue_id
+        '''
+        cr.execute(sql)
+        vals = {}
+            
+        for ma in cr.dictfetchall():
+            sql = '''
+            select aml.id, aml.account_id from account_move_line aml
+            inner join account_move am on aml.move_id=am.id
+            where am.material_issue_id=%s --and aml.debit>0
+            and aml.id not in (select aml_id from tpt_aml_sl_line)
+            and aml.account_id in (433, 4519)
+            order by aml.id limit 2
+            '''%ma['issue_id']
+            cr.execute(sql)
+
+            for aml in cr.dictfetchall():
+                temp_ids = temp_obj.search(cr, uid, [('aml_id','=',aml['id'])])
+                if not temp_ids:
+                    print ma['issue_id']
+                    if aml['account_id']==433:#   0000119453 - FUEL-FURNACE OIL 
+                        sql = '''
+                        update account_move_line set credit=%s where id=%s 
+                        '''%(ma['total'], aml['id'])
+                        cr.execute(sql)
+                        if cr.rowcount>0:
+                            vals['aml_id'] = aml['id']
+                            temp_obj.create(cr, uid, vals, context)
+                    if aml['account_id']==4519:#  0009900033 - FURNACE OIL - Cons.  
+                        sql = '''
+                        update account_move_line set debit=%s where id=%s 
+                        '''%(ma['total'], aml['id'])
+                        cr.execute(sql)
+                        if cr.rowcount>0:
+                            vals['aml_id'] = aml['id']
+                            temp_obj.create(cr, uid, vals, context)
+                        
+     
+        return self.write(cr, uid, ids, {'result':'TPT update ISSUE for report Done'})
+    def adj_goods_issue_dicamol(self, cr, uid, ids, context=None):
+        temp_obj = self.pool.get('tpt.aml.sl.line')
+        sql = '''
+            select sm.id, pp.default_code, sm.product_qty, sm.price_unit, sm.issue_id, round(sm.product_qty*sm.price_unit, 2) as total  
+            from stock_move sm
+            inner join product_product pp on sm.product_id=pp.id
+            where to_date(to_char(sm.date, 'YYYY-MM-DD'), 'YYYY-MM-DD') between '2015-04-01' and '2016-03-31'
+            and pp.cate_name='raw' and sm.issue_id is not null and sm.state='done' and sm.price_unit>=0
+            and sm.product_id=10733
+            order by sm.issue_id
+        '''
+        cr.execute(sql)
+        vals = {}
+            
+        for ma in cr.dictfetchall():
+            sql = '''
+            select aml.id, aml.account_id from account_move_line aml
+            inner join account_move am on aml.move_id=am.id
+            where am.material_issue_id=%s --and aml.debit>0
+            and aml.id not in (select aml_id from tpt_aml_sl_line)
+            and aml.account_id in (3473, 4499)
+            order by aml.id limit 2
+            '''%ma['issue_id']
+            cr.execute(sql)
+
+            for aml in cr.dictfetchall():
+                temp_ids = temp_obj.search(cr, uid, [('aml_id','=',aml['id'])])
+                if not temp_ids:
+                    print ma['issue_id']
+                    if aml['account_id']==3473:#   0000119453 - FUEL-FURNACE OIL 
+                        sql = '''
+                        update account_move_line set credit=%s where id=%s 
+                        '''%(ma['total'], aml['id'])
+                        cr.execute(sql)
+                        if cr.rowcount>0:
+                            vals['aml_id'] = aml['id']
+                            temp_obj.create(cr, uid, vals, context)
+                    if aml['account_id']==4499:#  0009900033 - FURNACE OIL - Cons.  
+                        sql = '''
+                        update account_move_line set debit=%s where id=%s 
+                        '''%(ma['total'], aml['id'])
+                        cr.execute(sql)
+                        if cr.rowcount>0:
+                            vals['aml_id'] = aml['id']
+                            temp_obj.create(cr, uid, vals, context)
+                        
+     
+        return self.write(cr, uid, ids, {'result':'TPT update ISSUE for report Done'})
+    def adj_goods_issue_cs(self, cr, uid, ids, context=None):
+        temp_obj = self.pool.get('tpt.aml.sl.line')
+        sql = '''
+            select sm.id, pp.default_code, sm.product_qty, sm.price_unit, sm.issue_id, round(sm.product_qty*sm.price_unit, 2) as total  
+            from stock_move sm
+            inner join product_product pp on sm.product_id=pp.id
+            where to_date(to_char(sm.date, 'YYYY-MM-DD'), 'YYYY-MM-DD') between '2015-04-01' and '2016-03-31'
+            and pp.cate_name='raw' and sm.issue_id is not null and sm.state='done' and sm.price_unit>=0
+            and sm.product_id=10724
+            order by sm.issue_id
+        '''
+        cr.execute(sql)
+        vals = {}
+            
+        for ma in cr.dictfetchall():
+            sql = '''
+            select aml.id, aml.account_id from account_move_line aml
+            inner join account_move am on aml.move_id=am.id
+            where am.material_issue_id=%s --and aml.debit>0
+            and aml.id not in (select aml_id from tpt_aml_sl_line)
+            and aml.account_id in (3482, 4490)
+            order by aml.id limit 2
+            '''%ma['issue_id']
+            cr.execute(sql)
+
+            for aml in cr.dictfetchall():
+                temp_ids = temp_obj.search(cr, uid, [('aml_id','=',aml['id'])])
+                if not temp_ids:
+                    print ma['issue_id']
+                    if aml['account_id']==3482:#    0000119410 - CAUSTIC SODA  
+                        sql = '''
+                        update account_move_line set credit=%s where id=%s 
+                        '''%(ma['total'], aml['id'])
+                        cr.execute(sql)
+                        if cr.rowcount>0:
+                            vals['aml_id'] = aml['id']
+                            temp_obj.create(cr, uid, vals, context)
+                    if aml['account_id']==4490:#  0009900033 - FURNACE OIL - Cons.  
+                        sql = '''
+                        update account_move_line set debit=%s where id=%s 
+                        '''%(ma['total'], aml['id'])
+                        cr.execute(sql)
                         if cr.rowcount>0:
                             vals['aml_id'] = aml['id']
                             temp_obj.create(cr, uid, vals, context)
@@ -4649,6 +4935,7 @@ class tpt_aml_sl_line(osv.osv):
     _columns = {
                 'aml_id': fields.many2one('account.move.line', 'Account Move Line ID'),
                 }
+    
 tpt_aml_sl_line()
     
 class tpt_update_inspection_line(osv.osv):
@@ -4672,10 +4959,7 @@ class tpt_update_inspection_line(osv.osv):
         'update_id': fields.many2one('tpt.update.stock.move.report', 'Update', ondelete='cascade'),
     }
     
-    def bt_remove(self, cr, uid, ids, context=None):
-        for line in self.browse(cr, uid, ids):
-            cr.execute(''' update stock_move set inspec_id = null where id=%s ''',(line.move_id.id,))
-        return self.write(cr, uid, ids, {'remove':True})
+    
 
 tpt_update_inspection_line()
 
@@ -4694,9 +4978,301 @@ class tpt_update_avg_cost(osv.osv):
         for line in self.browse(cr, uid, ids):
             cr.execute(''' update stock_move set inspec_id = null where id=%s ''',(line.move_id.id,))
         return self.write(cr, uid, ids, {'remove':True})
+    
+    def stock_adj(self, cr, uid, ids, context=None):
+        #temp_obj = self.pool.get('tpt.aml.sl.line')
+        avg_cost_obj = self.pool.get('tmp.avg.cost')
+        for line in self.browse(cr, uid, ids):
+            sql = '''
+            delete from tmp_avg_cost where product_id=%s
+            '''%line.product_id.id
+            cr.execute(sql)   
+            sql = '''
+                SELECT to_char(generate_series, 'YYYY-MM-DD') as date FROM generate_series('2015-04-01'::timestamp,'2016-09-30', '1 Days')
+            ''' 
+            cr.execute(sql)
+            vals = {}
+                
+            for date in cr.dictfetchall():
+                date = date['date']
+                sql = '''
+                SELECT sum(onhand_qty) onhand_qty, sum(total_cost) total_cost
+                From
+                (SELECT  
+                case when loc1.usage != 'internal' and loc2.usage = 'internal'
+                then stm.product_qty
+                else
+                case when loc1.usage = 'internal' and loc2.usage != 'internal'
+                then -1*stm.product_qty
+                else 0.0 end
+                end onhand_qty,
+
+                case when loc1.usage != 'internal' and loc2.usage = 'internal'
+                then stm.product_qty*stm.price_unit
+                else
+                case when loc1.usage = 'internal' and loc2.usage != 'internal'
+                then -1*stm.product_qty*stm.price_unit
+                else 0.0 end
+                end total_cost
+                       
+                FROM stock_move stm
+                join stock_location loc1 on stm.location_id=loc1.id
+                join stock_location loc2 on stm.location_dest_id=loc2.id
+                WHERE stm.state= 'done' and product_id=%s and to_date(to_char(stm.date, 'YYYY-MM-DD'), 'YYYY-MM-DD') <= '%s' 
+                )foo
+                '''%(line.product_id.id, date)
+                cr.execute(sql)
+                inventory = cr.dictfetchone()
+                if inventory:
+                    hand_quantity_temp = round(float(inventory['onhand_qty']), 3)
+                    total_cost_temp = round(float(inventory['total_cost']), 2)
+                    avg_cost = hand_quantity_temp and round(total_cost_temp/hand_quantity_temp,2) or 0                               
+                    #total_cost = avg_cost*hand_quantity
+                    print date, hand_quantity_temp, total_cost_temp, avg_cost
+                    #
+                    sql = ''' select                
+                    case when 
+                    SUM(case when ail.fright_fi_type='2' then ail.fright
+                    when ail.fright_fi_type='3' then ail.fright*ail.quantity
+                    else 0 end) >=0
+                    then    
+                    SUM(case when ail.fright_fi_type='2' then ail.fright
+                    when ail.fright_fi_type='3' then ail.fright*ail.quantity
+                    else 0 end)                
+                    else 0 end as frt_amt
+                    from account_invoice ai
+                    inner join account_invoice_line ail on ai.id=ail.invoice_id
+                    where ail.product_id=%s and ai.state not in ('draft', 'cancel')
+                    and ai.doc_type='freight_invoice' and ai.date_invoice='%s'
+                    '''%(line.product_id.id, date)
+                    cr.execute(sql)
+                    freight = cr.fetchone()[0]
+                    
+                    sql = '''select 
+                    case when 
+                        SUM(case 
+                        when ail.fright_type='1' then ail.fright*100
+                        when ail.fright_type='2' then ail.fright
+                        when ail.fright_type='3' then ail.fright*ail.quantity
+                        when ail.fright_type is null then ail.fright
+                        else 0 end) >=0
+                        then    
+                        SUM(case 
+                        when ail.fright_type='1' then ail.fright*100
+                        when ail.fright_type='2' then ail.fright
+                        when ail.fright_type='3' then ail.fright*ail.quantity
+                        when ail.fright_type is null then ail.fright
+                        else 0 end)                
+                        else 0 end as frt_amt
+                    from account_invoice ai
+                    inner join account_invoice_line ail on ai.id=ail.invoice_id
+                    where ail.product_id=%s and 
+                    ai.state not in ('draft', 'cancel') and ai.date_invoice='%s'
+                    and ai.doc_type='supplier_invoice' and ail.fright>0
+                    '''%(line.product_id.id, date)
+                    cr.execute(sql)
+                    sup_freight = cr.fetchone()[0]
+                    
+                    sql = '''
+                    select                      
+                    case when sum(ail.tpt_tax_amt)>=0 then sum(ail.tpt_tax_amt) else 0 end as cst_amt 
+                    from account_invoice ai
+                    inner join account_invoice_line ail on ai.id=ail.invoice_id
+                    inner join account_invoice_line_tax ailt on ail.id=ailt.invoice_line_id
+                    inner join account_tax t on ailt.tax_id = t.id
+                    where ail.product_id=%s and ai.state not in ('draft', 'cancel')  and ai.date_invoice='%s'
+                    and ai.doc_type='supplier_invoice' and t.description like '%sCST%s'
+                    '''%(line.product_id.id, date, '%', '%')
+                    cr.execute(sql)
+                    cst = cr.fetchone()[0]
+                    
+                    sql = '''
+                    SELECT sum(onhand_qty) 
+                    From
+                    (SELECT  
+                    case when loc1.usage != 'internal' and loc2.usage = 'internal'
+                    then stm.product_qty
+                    else
+                    case when loc1.usage = 'internal' and loc2.usage != 'internal'
+                    then -1*stm.product_qty--stm.product_qty
+                    else 0.0 end
+                    end onhand_qty
+                           
+                    FROM stock_move stm
+                    join stock_location loc1 on stm.location_id=loc1.id
+                    join stock_location loc2 on stm.location_dest_id=loc2.id
+                    WHERE stm.state= 'done' and product_id=%s and to_date(to_char(stm.date, 'YYYY-MM-DD'), 'YYYY-MM-DD') < '%s' 
+                    )foo
+                    '''%(line.product_id.id, date)
+                    cr.execute(sql)
+                    open_hand_qty = cr.fetchone()[0]
+                    #
+                    cons_qty = 0
+                    cons_value = 0
+                    production_value = 0
+                    sql = '''
+                    select sm.product_qty, sm.price_unit, mi.doc_no from stock_move sm
+                    inner join tpt_material_issue mi on sm.issue_id=mi.id
+                    where sm.issue_id is not null and sm.state='done' and sm.product_id=%s and
+                    to_date(to_char(sm.date, 'YYYY-MM-DD'), 'YYYY-MM-DD') = '%s' 
+                    '''%(line.product_id.id, date)
+                    cr.execute(sql)
+                    for cons in cr.dictfetchall():
+                        cons_qty = cons['product_qty']
+                        cons_unit_price = cons['price_unit']
+                    #
+                    ###
+                    opening_stock_value = 0
+                    parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+                    locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw Material','Raw Materials','Raw material']),('location_id','=',parent_ids[0])])
+                    #TPT START - By P.vinothkumar - ON 31/05/2015 - FOR (adding freight invoice details in query)
+                    sql = '''
+                              select sum(a.ton_sl) ton_sl, sum(a.total_cost) total_cost from
+                            (select 
+                            case when sum(st.product_qty)!=0 then sum(st.product_qty) else 0 end ton_sl,
+                            case when sum(st.price_unit*st.product_qty)!=0 then sum(st.price_unit*st.product_qty) else 0 end total_cost
+                            from stock_move st
+                            where st.state='done' and st.location_dest_id=%s and st.product_id=%s and to_char(date, 'YYYY-MM-DD')<'%s'
+                                                            and st.location_dest_id != st.location_id
+                                                            and ( picking_id is not null 
+                                                            or inspec_id is not null 
+                                                            or (st.id in (select move_id from stock_inventory_move_rel))
+                                                    )
+                            union
+                                            select 0 as ton_sl, case when sum(ail.line_net)!=0 then sum(ail.line_net) else 0 end as total_cost from account_invoice ai
+                                            inner join account_invoice_line ail on ai.id=ail.invoice_id
+                                            where ai.doc_type='freight_invoice' and  ai.date_invoice < '%s' and ai.state not in ('draft','cancel')
+                                            and ail.product_id=%s)a
+                        '''%(locat_ids[0],line.product_id.id,date,date,line.product_id.id)
+                    cr.execute(sql)
+                    inventory = cr.dictfetchone()
+                    #TPT End
+                    if inventory:
+                        hand_quantity = inventory['ton_sl'] or 0
+                        total_cost = inventory['total_cost'] or 0
+    #                     avg_cost = hand_quantity and total_cost/hand_quantity or 0
+                    sql = '''
+                       select case when sum(st.price_unit*st.product_qty)!=0 then sum(st.price_unit*st.product_qty) else 0 end total_cost
+                            from stock_move st
+                            where st.state='done' and st.location_id=%s and st.product_id=%s and to_char(date, 'YYYY-MM-DD')<'%s'
+                            and issue_id is not null
+                            
+                    '''%(locat_ids[0],line.product_id.id,date)
+                    cr.execute(sql)
+                    product_isu_qty = cr.fetchone()[0]
+                    
+                    if line.product_id.default_code == 'M0501060001':
+                       sql = '''
+                           select case when sum(st.price_unit*st.product_qty)!=0 then sum(st.price_unit*st.product_qty) else 0 end total_cost
+                            from stock_move st
+                            where st.state='done' and st.location_id=%s and st.product_id=%s and to_char(date, 'YYYY-MM-DD')<'%s'
+                            and issue_id is null and picking_id is null and inspec_id is null 
+                            and id in (select move_id from mrp_production_move_ids)
+                                
+                       '''%(locat_ids[0],line.product_id.id,date)
+                       cr.execute(sql)
+                       production_value = cr.fetchone()[0]
+                    opening_stock_value = total_cost-(product_isu_qty)-production_value
+                    ###
+                    avg_cost_obj.create(cr, uid, {
+                       #'employee_id': employee_ids[0],
+                       'product_id': line.product_id.id,
+                       'date': date,
+                       'hand_qty': hand_quantity_temp,
+                       'avg_cost': avg_cost or 0,
+                       'total_cost': total_cost_temp,
+                       'freight': freight or 0, 
+                       'sup_freight': sup_freight or 0,
+                       'cst' : cst or 0,
+                       'open_hand_qty': open_hand_qty or 0, 
+                       'open_value': opening_stock_value or 0,
+                       'rx_qty': 0,
+                       'cons_qty' : cons_qty or 0,
+                       'cons_unit_price': cons_unit_price or 0, 
+                       'cons_value' : round(cons_qty*cons_unit_price, 2) or 0
+                      
+                       })
+     
+        #return self.write(cr, uid, ids, {'result':'TPT update 3rd Permission Done'})
+        return True
+    #
+    def adj_goods_issue(self, cr, uid, ids, context=None):
+        temp_obj = self.pool.get('tpt.aml.sl.line')
+        for line in self.browse(cr, uid, ids):
+            vals = {}
+            asset_acc_id =  line.product_id.product_asset_acc_id.id    
+            expense_acc_id =  line.product_id.property_account_expense.id
+            
+            sql = '''
+                select sm.id, pp.default_code, sm.product_qty, sm.price_unit, sm.issue_id, round(sm.product_qty*sm.price_unit, 2) as total  
+                from stock_move sm
+                inner join product_product pp on sm.product_id=pp.id
+                where to_date(to_char(sm.date, 'YYYY-MM-DD'), 'YYYY-MM-DD') between '2015-04-01' and '2016-03-31'
+                and pp.cate_name='raw' and sm.issue_id is not null and sm.state='done' and sm.price_unit>=0
+                and sm.product_id=%s
+                order by sm.issue_id
+            '''%(line.product_id.id)
+            cr.execute(sql)         
+            for ma in cr.dictfetchall():
+                sql = '''
+                select aml.id, aml.account_id from account_move_line aml
+                inner join account_move am on aml.move_id=am.id
+                where am.material_issue_id=%s --and aml.debit>0
+                and aml.id not in (select aml_id from tpt_aml_sl_line)
+                and aml.account_id in (%s, %s)
+                order by aml.id limit 2
+                '''%(ma['issue_id'], asset_acc_id, expense_acc_id)
+                cr.execute(sql)
+    
+                for aml in cr.dictfetchall():
+                    temp_ids = temp_obj.search(cr, uid, [('aml_id','=',aml['id'])])
+                    if not temp_ids:
+                        print ma['issue_id']
+                        if aml['account_id']==asset_acc_id:
+                            sql = '''
+                            update account_move_line set credit=%s where id=%s 
+                            '''%(ma['total'], aml['id'])
+                            cr.execute(sql)
+                            if cr.rowcount>0:
+                                vals['aml_id'] = aml['id']
+                                temp_obj.create(cr, uid, vals, context)
+                        if aml['account_id']==expense_acc_id:
+                            sql = '''
+                            update account_move_line set debit=%s where id=%s 
+                            '''%(ma['total'], aml['id'])
+                            cr.execute(sql)
+                            if cr.rowcount>0:
+                                vals['aml_id'] = aml['id']
+                                temp_obj.create(cr, uid, vals, context)
+                        
+     
+        return self.write(cr, uid, ids, {'result':'TPT update ISSUE for report Done'})
+    #
+
 
 tpt_update_avg_cost()
 
+class temp_avg_cost(osv.osv):
+    _name = "tmp.avg.cost"
+    
+    _columns = {
+        'product_id': fields.many2one('product.product', 'Product'),
+        'date': fields.date('Date'),
+        'hand_qty': fields.float('On-Hand', ), 
+        'avg_cost': fields.float('Avg Cost ', ), 
+        'total_cost': fields.float('Total Cost', ), 
+        'freight':fields.float('Freight', ), 
+        'sup_freight':fields.float('Supplier Invoice Freight', ), 
+        'cst':fields.float('CST Amount', ), 
+        'open_hand_qty': fields.float('Opening On-Hand', ), 
+        'open_value': fields.float('Opening Stock Value', ), 
+        'rx_qty': fields.float('Received Qty', ), 
+        'cons_qty': fields.float('Consumption Qty', ), 
+        'cons_unit_price': fields.float('Consumption Unit Price', ), 
+        'cons_value': fields.float('Consumption Value', ), 
+    }
+temp_avg_cost()
+    
 class tpt_update_avg_cost_line(osv.osv):
     _name = "tpt.update.avg.cost.line"
     

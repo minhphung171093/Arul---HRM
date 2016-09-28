@@ -13,3 +13,4 @@ import DailyInOut_report
 import DailyIn_report
 import canteen_deduct_report
 import salary_bank_transfer_report
+#import designation_wise_total_strength_report

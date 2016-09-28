@@ -227,8 +227,7 @@ class general_ledger_statement(osv.osv_memory):
                     select case when coalesce(sum(aml.credit),0)=0 then 0 else sum(aml.credit) end as credit 
                     from account_move_line aml
                     inner join account_move am on (am.id=aml.move_id)
-                    left join account_voucher av on (av.move_id = aml.move_id)
-                    left join tpt_cost_center cc on (cc.id = av.cost_center_id)                  
+                    left join tpt_cost_center cc on (cc.id = am.cost_center_id)                  
                     where am.date < '%s' and aml.account_id = %s
                  '''%(date_from,gl_account)            
             if is_posted:
@@ -242,8 +241,7 @@ class general_ledger_statement(osv.osv_memory):
                     select case when coalesce(sum(aml.debit),0)=0 then 0 else sum(aml.debit) end as debit 
                     from account_move_line aml
                     inner join account_move am on (am.id=aml.move_id)
-                    left join account_voucher av on (av.move_id = aml.move_id)
-                    left join tpt_cost_center cc on (cc.id = av.cost_center_id)                   
+                    left join tpt_cost_center cc on (cc.id = am.cost_center_id)                   
                     where am.date < '%s' and aml.account_id = %s
                 '''%(date_from,gl_account)
             if is_posted:
@@ -356,8 +354,7 @@ class general_ledger_statement(osv.osv_memory):
             sql = '''
             select ml.id from account_move_line ml
             join account_move m on (m.id=ml.move_id)
-            left join account_voucher av on (av.move_id = ml.move_id)
-            left join tpt_cost_center cc on (cc.id = av.cost_center_id)
+            left join tpt_cost_center cc on (cc.id = am.cost_center_id)
             where m.date between '%s' and '%s' and ml.account_id = %s           
             '''%(date_from, date_to, acc.id)
             if doc_type:
