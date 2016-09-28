@@ -173,7 +173,7 @@
 		            <header>
 		           
 		            	<button name="stock_adj" string="Adj Avg Cost" type="object" class="oe_highlight"/>
-		            	
+		            	<button name="adj_goods_issue" string="SL to GL Update" type="object" class="oe_highlight"/>
 		            </header>    
 	            	<group>
 	            		<field name="product_id" domain="[('cate_name','=','raw')]" options="{'create': false, 'create_edit': false}"/>

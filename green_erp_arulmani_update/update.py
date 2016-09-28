@@ -4984,6 +4984,10 @@ class tpt_update_avg_cost(osv.osv):
         avg_cost_obj = self.pool.get('tmp.avg.cost')
         for line in self.browse(cr, uid, ids):
             sql = '''
+            delete from tmp_avg_cost where product_id=%s
+            '''%line.product_id.id
+            cr.execute(sql)   
+            sql = '''
                 SELECT to_char(generate_series, 'YYYY-MM-DD') as date FROM generate_series('2015-04-01'::timestamp,'2016-09-30', '1 Days')
             ''' 
             cr.execute(sql)
@@ -5105,6 +5109,7 @@ class tpt_update_avg_cost(osv.osv):
                     #
                     cons_qty = 0
                     cons_value = 0
+                    production_value = 0
                     sql = '''
                     select sm.product_qty, sm.price_unit, mi.doc_no from stock_move sm
                     inner join tpt_material_issue mi on sm.issue_id=mi.id
@@ -5114,9 +5119,61 @@ class tpt_update_avg_cost(osv.osv):
                     cr.execute(sql)
                     for cons in cr.dictfetchall():
                         cons_qty = cons['product_qty']
-                        cons_value = cons['price_unit']
+                        cons_unit_price = cons['price_unit']
                     #
+                    ###
+                    opening_stock_value = 0
+                    parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+                    locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw Material','Raw Materials','Raw material']),('location_id','=',parent_ids[0])])
+                    #TPT START - By P.vinothkumar - ON 31/05/2015 - FOR (adding freight invoice details in query)
+                    sql = '''
+                              select sum(a.ton_sl) ton_sl, sum(a.total_cost) total_cost from
+                            (select 
+                            case when sum(st.product_qty)!=0 then sum(st.product_qty) else 0 end ton_sl,
+                            case when sum(st.price_unit*st.product_qty)!=0 then sum(st.price_unit*st.product_qty) else 0 end total_cost
+                            from stock_move st
+                            where st.state='done' and st.location_dest_id=%s and st.product_id=%s and to_char(date, 'YYYY-MM-DD')<'%s'
+                                                            and st.location_dest_id != st.location_id
+                                                            and ( picking_id is not null 
+                                                            or inspec_id is not null 
+                                                            or (st.id in (select move_id from stock_inventory_move_rel))
+                                                    )
+                            union
+                                            select 0 as ton_sl, case when sum(ail.line_net)!=0 then sum(ail.line_net) else 0 end as total_cost from account_invoice ai
+                                            inner join account_invoice_line ail on ai.id=ail.invoice_id
+                                            where ai.doc_type='freight_invoice' and  ai.date_invoice < '%s' and ai.state not in ('draft','cancel')
+                                            and ail.product_id=%s)a
+                        '''%(locat_ids[0],line.product_id.id,date,date,line.product_id.id)
+                    cr.execute(sql)
+                    inventory = cr.dictfetchone()
+                    #TPT End
+                    if inventory:
+                        hand_quantity = inventory['ton_sl'] or 0
+                        total_cost = inventory['total_cost'] or 0
+    #                     avg_cost = hand_quantity and total_cost/hand_quantity or 0
+                    sql = '''
+                       select case when sum(st.price_unit*st.product_qty)!=0 then sum(st.price_unit*st.product_qty) else 0 end total_cost
+                            from stock_move st
+                            where st.state='done' and st.location_id=%s and st.product_id=%s and to_char(date, 'YYYY-MM-DD')<'%s'
+                            and issue_id is not null
+                            
+                    '''%(locat_ids[0],line.product_id.id,date)
+                    cr.execute(sql)
+                    product_isu_qty = cr.fetchone()[0]
                     
+                    if line.product_id.default_code == 'M0501060001':
+                       sql = '''
+                           select case when sum(st.price_unit*st.product_qty)!=0 then sum(st.price_unit*st.product_qty) else 0 end total_cost
+                            from stock_move st
+                            where st.state='done' and st.location_id=%s and st.product_id=%s and to_char(date, 'YYYY-MM-DD')<'%s'
+                            and issue_id is null and picking_id is null and inspec_id is null 
+                            and id in (select move_id from mrp_production_move_ids)
+                                
+                       '''%(locat_ids[0],line.product_id.id,date)
+                       cr.execute(sql)
+                       production_value = cr.fetchone()[0]
+                    opening_stock_value = total_cost-(product_isu_qty)-production_value
+                    ###
                     avg_cost_obj.create(cr, uid, {
                        #'employee_id': employee_ids[0],
                        'product_id': line.product_id.id,
@@ -5128,15 +5185,69 @@ class tpt_update_avg_cost(osv.osv):
                        'sup_freight': sup_freight or 0,
                        'cst' : cst or 0,
                        'open_hand_qty': open_hand_qty or 0, 
+                       'open_value': opening_stock_value or 0,
                        'rx_qty': 0,
                        'cons_qty' : cons_qty or 0,
-                       'cons_value' : cons_value or 0
+                       'cons_unit_price': cons_unit_price or 0, 
+                       'cons_value' : round(cons_qty*cons_unit_price, 2) or 0
                       
                        })
      
         #return self.write(cr, uid, ids, {'result':'TPT update 3rd Permission Done'})
         return True
+    #
+    def adj_goods_issue(self, cr, uid, ids, context=None):
+        temp_obj = self.pool.get('tpt.aml.sl.line')
+        for line in self.browse(cr, uid, ids):
+            vals = {}
+            asset_acc_id =  line.product_id.product_asset_acc_id.id    
+            expense_acc_id =  line.product_id.property_account_expense.id
+            
+            sql = '''
+                select sm.id, pp.default_code, sm.product_qty, sm.price_unit, sm.issue_id, round(sm.product_qty*sm.price_unit, 2) as total  
+                from stock_move sm
+                inner join product_product pp on sm.product_id=pp.id
+                where to_date(to_char(sm.date, 'YYYY-MM-DD'), 'YYYY-MM-DD') between '2015-04-01' and '2016-03-31'
+                and pp.cate_name='raw' and sm.issue_id is not null and sm.state='done' and sm.price_unit>=0
+                and sm.product_id=%s
+                order by sm.issue_id
+            '''%(line.product_id.id)
+            cr.execute(sql)         
+            for ma in cr.dictfetchall():
+                sql = '''
+                select aml.id, aml.account_id from account_move_line aml
+                inner join account_move am on aml.move_id=am.id
+                where am.material_issue_id=%s --and aml.debit>0
+                and aml.id not in (select aml_id from tpt_aml_sl_line)
+                and aml.account_id in (%s, %s)
+                order by aml.id limit 2
+                '''%(ma['issue_id'], asset_acc_id, expense_acc_id)
+                cr.execute(sql)
     
+                for aml in cr.dictfetchall():
+                    temp_ids = temp_obj.search(cr, uid, [('aml_id','=',aml['id'])])
+                    if not temp_ids:
+                        print ma['issue_id']
+                        if aml['account_id']==asset_acc_id:
+                            sql = '''
+                            update account_move_line set credit=%s where id=%s 
+                            '''%(ma['total'], aml['id'])
+                            cr.execute(sql)
+                            if cr.rowcount>0:
+                                vals['aml_id'] = aml['id']
+                                temp_obj.create(cr, uid, vals, context)
+                        if aml['account_id']==expense_acc_id:
+                            sql = '''
+                            update account_move_line set debit=%s where id=%s 
+                            '''%(ma['total'], aml['id'])
+                            cr.execute(sql)
+                            if cr.rowcount>0:
+                                vals['aml_id'] = aml['id']
+                                temp_obj.create(cr, uid, vals, context)
+                        
+     
+        return self.write(cr, uid, ids, {'result':'TPT update ISSUE for report Done'})
+    #
 
 
 tpt_update_avg_cost()
@@ -5154,8 +5265,10 @@ class temp_avg_cost(osv.osv):
         'sup_freight':fields.float('Supplier Invoice Freight', ), 
         'cst':fields.float('CST Amount', ), 
         'open_hand_qty': fields.float('Opening On-Hand', ), 
+        'open_value': fields.float('Opening Stock Value', ), 
         'rx_qty': fields.float('Received Qty', ), 
         'cons_qty': fields.float('Consumption Qty', ), 
+        'cons_unit_price': fields.float('Consumption Unit Price', ), 
         'cons_value': fields.float('Consumption Value', ), 
     }
 temp_avg_cost()

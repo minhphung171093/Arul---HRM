@@ -2164,13 +2164,14 @@ class account_invoice(osv.osv):
                               move_obj.button_validate(cr,uid, [move.id], context)
                           except:
                               pass
-                        else:
-                            if auto_id.supplier_invoice_without:
-                          # sup invoice without po
-                                try:
-                                    move_obj.button_validate(cr,uid, [move.id], context)
-                                except:
-                                    pass
+                    # Modified by P.vinothkumar on 27/09/2016 for fixing auto posting in supplier invoice without po   
+                    else:
+                        if auto_id.supplier_invoice_without:
+                      # sup invoice without po
+                            try:
+                                move_obj.button_validate(cr,uid, [move.id], context)
+                            except:
+                                pass
                 if inv.type == 'in_invoice' and inv.sup_inv_id:
                     if auto_id.freight_invoice:
                       # freight invoice
