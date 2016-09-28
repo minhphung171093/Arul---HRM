@@ -14,5 +14,20 @@
             parent="green_erp_arulmani_hrm.menu_hr_payroll_management" sequence="104"
             /> 
             
+        <menuitem action="action_cost_center_expense_wizard"
+            id="menu_action_cost_center_expense_wizard"
+            parent="green_erp_arulmani_hrm.menu_hr_payroll_management" sequence="105"
+            />
+            
+        <menuitem action="action_single_source_vendor_wizard"
+            id="menu_action_single_source_vendor_wizard"
+            parent="green_erp_arulmani_hrm.menu_hr_payroll_management" sequence="106"
+            /> 
+            
+        <menuitem action="action_new_vendor_list_wizard"
+            id="menu_action_new_vendor_list_wizard"
+            parent="green_erp_arulmani_hrm.menu_hr_payroll_management" sequence="107"
+            /> 
+            
     </data>
 </openerp>

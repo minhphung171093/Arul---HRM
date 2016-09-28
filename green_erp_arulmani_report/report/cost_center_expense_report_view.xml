@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+    	<record id="cost_center_expense_report" model="ir.actions.report.xml">
+	        <field name="name">cost_center_expense_report</field>
+	        <field name="type">ir.actions.report.xml</field>
+	        <field name="model">cost.center.expense.wizard</field>
+	        <field name="report_name">cost_center_expense_report</field>
+	        <field name="report_type">aeroo</field>
+	        <field name="in_format">oo-ods</field>
+	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-xls'),('compatible_types','=','oo-ods')]"/>
+	        <field name="parser_loc">green_erp_arulmani_report/report/cost_center_expense_report.py</field>
+	        <field name="report_rml">green_erp_arulmani_report/report/cost_center_expense_report.ods</field>
+	        <field name="parser_state">loc</field>
+	        <field name="tml_source">file</field>
+	        <field name="attachment_use" eval="0"/>
+    	</record>		    
+		<report 
+			auto="True" 
+			menu="False"
+			id="cost_center_expense_report" 
+			model="cost.center.expense.wizard" 
+			name="cost_center_expense_report"
+	        string="Cost Center Wise Expense Report"
+	        rml="green_erp_arulmani_report/report/cost_center_expense_report.ods"/>
+	        
+    </data>
+</openerp>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>   
+        <record id="cost_center_expense_wizard" model="ir.ui.view">
+            <field name="name">cost.center.expense.wizard</field>
+            <field name="model">cost.center.expense.wizard</field>
+            <field name="arch" type="xml">
+                <form string="Cost Center Wise Expense Report" version="7.0">
+                	<group col='4' colspan='2'>
+	                    <field name='date_from'/>
+	                    <field name='date_to'/>
+	                    <field name='department_id'/>
+	                    <field name='section_id' domain="[('department_id','=',department_id)]"/>
+	                    <field name='cost_center_ids' widget="many2many_tags"/>
+                 	</group>
+                    <footer>
+                        <button name="print_report" string="Submit" type="object" class="oe_highlight"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+        <record id="action_cost_center_expense_wizard" model="ir.actions.act_window">
+            <field name="name">Cost Center Wise Expense Report</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">cost.center.expense.wizard</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+        </record>
+        
+    </data>
+</openerp>
+
