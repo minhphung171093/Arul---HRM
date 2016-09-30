@@ -4700,49 +4700,39 @@ class tpt_update_stock_move_report(osv.osv):
     def adj_goods_issue_raw_coal(self, cr, uid, ids, context=None):
         temp_obj = self.pool.get('tpt.aml.sl.line')
         sql = '''
-            select sm.id, pp.default_code, sm.product_qty, sm.price_unit, sm.issue_id, round(sm.product_qty*sm.price_unit, 2) as total  
-            from stock_move sm
-            inner join product_product pp on sm.product_id=pp.id
-            where to_date(to_char(sm.date, 'YYYY-MM-DD'), 'YYYY-MM-DD') between '2015-04-01' and '2016-03-31'
-            and pp.cate_name='raw' and sm.issue_id is not null and sm.state='done' and sm.price_unit>=0
-            and sm.product_id=10756
-            order by sm.issue_id
+          select  mp.id as production_id
+            from stock_move st
+            inner join mrp_production mp on st.name=mp.name
+            where st.state='done' and st.location_id=15 and st.product_id=10756
+            and to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') between --'201-04-01' and '2015-04-30'
+            '201-04-01' and '2016-03-31'
+            and st.issue_id is null and st.picking_id is null and st.inspec_id is null
+            and st.id in (select move_id from mrp_production_move_ids)
+            order by st.date
+
         '''
-        cr.execute(sql)
-        vals = {}
-            
+        cr.execute(sql)  
         for ma in cr.dictfetchall():
             sql = '''
-            select aml.id, aml.account_id from account_move_line aml
-            inner join account_move am on aml.move_id=am.id
-            where am.material_issue_id=%s --and aml.debit>0
-            and aml.id not in (select aml_id from tpt_aml_sl_line)
-            and aml.account_id in (431, 4521)
-            order by aml.id limit 2
-            '''%ma['issue_id']
+            select aml.id
+            from account_move am
+            inner join account_move_line aml on am.id=aml.move_id
+            where am.product_dec =%s 
+            '''%ma['production_id']
             cr.execute(sql)
 
             for aml in cr.dictfetchall():
-                temp_ids = temp_obj.search(cr, uid, [('aml_id','=',aml['id'])])
-                if not temp_ids:
-                    print ma['issue_id']
-                    if aml['account_id']==431:#  0000119451 - RM -COAL 
-                        sql = '''
-                        update account_move_line set credit=%s where id=%s 
-                        '''%(ma['total'], aml['id'])
-                        cr.execute(sql)
-                        if cr.rowcount>0:
-                            vals['aml_id'] = aml['id']
-                            temp_obj.create(cr, uid, vals, context)
-                    if aml['account_id']==4521:# 0009900035 - COAL - Cons. 
-                        sql = '''
-                        update account_move_line set debit=%s where id=%s 
-                        '''%(ma['total'], aml['id'])
-                        cr.execute(sql)
-                        if cr.rowcount>0:
-                            vals['aml_id'] = aml['id']
-                            temp_obj.create(cr, uid, vals, context)
-                        
+                sql = '''
+                update account_move_line set debit=%s where debit>0 and id=%s 
+                '''%(ma['total'], aml['id'])
+                cr.execute(sql)
+                
+                sql = '''
+                update account_move_line set credit=%s where credit>0 and id=%s 
+                '''%(ma['total'], aml['id'])
+                cr.execute(sql)
+                
+     
      
         return self.write(cr, uid, ids, {'result':'TPT update ISSUE for report Done'})
     
@@ -5248,7 +5238,40 @@ class tpt_update_avg_cost(osv.osv):
      
         return self.write(cr, uid, ids, {'result':'TPT update ISSUE for report Done'})
     #
+    def adj_goods_issue_coal_prd(self, cr, uid, ids, context=None):
+        sql = '''
+          select  mp.id as production_id, round(st.product_qty*st.price_unit, 2) as total
+            from stock_move st
+            inner join mrp_production mp on st.name=mp.name
+            where st.state='done' and st.location_id=15 and st.product_id=10756
+            and to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') between '2015-04-01' and '2016-03-31'
+            and st.issue_id is null and st.picking_id is null and st.inspec_id is null
+            and st.id in (select move_id from mrp_production_move_ids)
+            order by st.date
+        '''
+        cr.execute(sql)  
+        for ma in cr.dictfetchall():
+            sql = '''
+            select aml.id
+            from account_move am
+            inner join account_move_line aml on am.id=aml.move_id
+            where am.product_dec =%s 
+            '''%ma['production_id']
+            cr.execute(sql)
 
+            for aml in cr.dictfetchall():
+                sql = '''
+                update account_move_line set debit=%s where debit>0 and id=%s 
+                '''%(ma['total'], aml['id'])
+                cr.execute(sql)
+                
+                sql = '''
+                update account_move_line set credit=%s where credit>0 and id=%s 
+                '''%(ma['total'], aml['id'])
+                cr.execute(sql)
+                        
+     
+        return self.write(cr, uid, ids, {'result':'TPT update ISSUE for report Done'})
 
 tpt_update_avg_cost()
 
