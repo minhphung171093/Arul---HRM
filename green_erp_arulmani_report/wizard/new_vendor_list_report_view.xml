@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>   
+        <record id="view_new_vendor_list_wizard" model="ir.ui.view">
+            <field name="name">new.vendor.list.wizard</field>
+            <field name="model">new.vendor.list.wizard</field>
+            <field name="arch" type="xml">
+                <form string="New Vendor List Report" version="7.0">
+                	<group col='4' colspan='2'>
+	                    <field name='date_from'/>
+	                    <field name='date_to'/>
+                 	</group>
+                    <footer>
+                        <button name="print_report" string="Submit" type="object" class="oe_highlight"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+        <record id="action_new_vendor_list_wizard" model="ir.actions.act_window">
+            <field name="name">New Vendor List Report</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">new.vendor.list.wizard</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+        </record>
+        
+        <record id="view_new_vendor_list_screen" model="ir.ui.view">
+            <field name="name">new.vendor.list.screen</field>
+            <field name="model">new.vendor.list.screen</field>
+            <field name="arch" type="xml">
+                <form string="New Vendor List Report" version="7.0">
+                	<header>
+                        <button name="print_report_xls" string="Print (.xls)" type="object" class="oe_highlight"/>
+                        <button name="print_report_pdf" string="Print (.pdf)" type="object" class="oe_highlight"/>
+                    </header>
+                    <div class="oe_text_center">
+        				<h2>NEW VENDOR LIST FOR THE MONTH OF <field name="name" class="oe_inline"/></h2>
+        			</div>
+                	<group>
+	                    <field name='screen_line' readonly='1' nolabel='1'>
+	                    	<tree editable='bottom'>
+	                    		<field name="sequence"/>
+	                    		<field name="supplier_name"/>
+	                    		<field name="material"/>
+	                    		<field name="remark"/>
+	                    	</tree>
+	                    </field>
+                 	</group>
+                </form>
+            </field>
+        </record>
+        
+    </data>
+</openerp>
+

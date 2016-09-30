@@ -3,15 +3,30 @@
     <data>
     	<menuitem action="action_lwf_deduction_wizard"
             id="menu_action_lwf_deduction_wizard"
-            parent="green_erp_arulmani_hrm.menu_hr_payroll_management" sequence="102"
+            parent="account.menu_finance_reporting" sequence="215"
             />
         <menuitem action="action_customer_master_report"
             id="menu_action_customer_master_report"
-            parent="green_erp_arulmani_hrm.menu_hr_payroll_management" sequence="103"
+            parent="account.menu_finance_reporting" sequence="216"
             />
         <menuitem action="action_monthwise_lop_wizard"
             id="menu_action_monthwise_lop_wizard"
-            parent="green_erp_arulmani_hrm.menu_hr_payroll_management" sequence="104"
+            parent="account.menu_finance_reporting" sequence="217"
+            /> 
+            
+        <menuitem action="action_cost_center_expense_wizard"
+            id="menu_action_cost_center_expense_wizard"
+            parent="account.menu_finance_reporting" sequence="218"
+            />
+            
+        <menuitem action="action_single_source_vendor_wizard"
+            id="menu_action_single_source_vendor_wizard"
+            parent="account.menu_finance_reporting" sequence="219"
+            /> 
+            
+        <menuitem action="action_new_vendor_list_wizard"
+            id="menu_action_new_vendor_list_wizard"
+            parent="account.menu_finance_reporting" sequence="220"
             /> 
             
     </data>
