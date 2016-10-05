@@ -24,15 +24,34 @@ class new_vendor_list_wizard(osv.osv_memory):
         this = self.browse(cr, uid, ids[0])
         screen_line = []
         name = ''
+#         sql = '''
+#             select rp.name as supplier_name, pt.name as material, po.notes as remark
+#             from
+#                 purchase_order_line pol
+#                 left join purchase_order po on pol.order_id=po.id
+#                 left join res_partner rp on po.partner_id=rp.id
+#                 left join product_product pp on pol.product_id=pp.id
+#                 left join product_template pt on pp.product_tmpl_id=pt.id
+#             where po.state is not null 
+#         '''
+#         if this.date_from:
+#             sql += '''
+#                 and date(timezone('UTC',rp.create_date))>='%s'
+#             '''%(this.date_from)
+#         if this.date_to:
+#             sql += '''
+#                 and date(timezone('UTC',rp.create_date))<='%s'
+#             '''%(this.date_to)
+#             name = datetime.strptime(this.date_to,'%Y-%m-%d').strftime('%B %Y').upper()
+#         sql += '''
+#             group by rp.name, pt.name, po.notes
+#         '''
         sql = '''
-            select rp.name as supplier_name, pt.name as material, po.notes as remark
+            select rp.id as partner_id, rp.name as supplier_name, vg.name as remark
             from
-                purchase_order_line pol
-                left join purchase_order po on pol.order_id=po.id
-                left join res_partner rp on po.partner_id=rp.id
-                left join product_product pp on pol.product_id=pp.id
-                left join product_template pt on pp.product_tmpl_id=pt.id
-            where po.state is not null 
+                res_partner rp
+                left join tpt_vendor_group vg on rp.vendor_group_id=vg.id
+            where rp.name is not null 
         '''
         if this.date_from:
             sql += '''
@@ -43,16 +62,29 @@ class new_vendor_list_wizard(osv.osv_memory):
                 and date(timezone('UTC',rp.create_date))<='%s'
             '''%(this.date_to)
             name = datetime.strptime(this.date_to,'%Y-%m-%d').strftime('%B %Y').upper()
-        sql += '''
-            group by rp.name, pt.name, po.notes
-        '''
         cr.execute(sql)
         res = cr.dictfetchall()
         for seq,line in enumerate(res):
+            material = ''
+            sql = '''
+                select pt.name as material
+                from
+                    purchase_order_line pol
+                    left join purchase_order po on pol.order_id=po.id
+                    left join res_partner rp on po.partner_id=rp.id
+                    left join product_product pp on pol.product_id=pp.id
+                    left join product_template pt on pp.product_tmpl_id=pt.id
+                where po.partner_id=%s  group by pt.name limit 2
+            '''%(line['partner_id'])
+            cr.execute(sql)
+            for product in cr.fetchall():
+                material += (product and product[0] or '')+', '
+            if material:
+                material = material[:-2]
             line_vals = {
                 'sequence': seq+1,
                 'supplier_name': line['supplier_name'],
-                'material': line['material'],
+                'material': material,
                 'remark': line['remark'],
             }
             screen_line.append((0,0,line_vals))
