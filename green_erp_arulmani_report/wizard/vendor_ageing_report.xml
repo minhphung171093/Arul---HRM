@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+		<record id="tpt_vendor_ageing_wzd" model="ir.ui.view">
+	        <field name="name">vendor.ageing</field>
+	        <field name="model">vendor.ageing</field>
+	        <field name="arch" type="xml">
+	            <form string="Vendor Ageing Report" version="7.0">
+	            	<group>
+	                <field name="date_from" required='1' />
+	                <field name="vendor_id"  options="{'create': false, 'create_edit': false}" />
+	                <field name="vendor_group_id" />
+	                </group>
+	                <footer>
+	                     <button name="print_report" type='object' string="OK" class="oe_highlight"/>
+	                    or
+	                     <button string="Cancel" class="oe_highlight" special="cancel" />
+	                </footer>
+	            </form>
+	        </field>
+    	</record>
+
+	    <record model="ir.actions.act_window" id="action_vendor_ageing_report">
+	        <field name="name">Vendor Ageing Report</field>
+	        <field name="type">ir.actions.act_window</field>
+	        <field name="res_model">vendor.ageing</field>
+	        <field name="view_type">form</field>
+	        <field name="view_mode">form</field>
+	        <field name="view_id" ref="tpt_vendor_ageing_wzd" />
+	        <field name="target">new</field>
+	    </record>
+	    
+        <menuitem action="action_vendor_ageing_report"
+            id="menu_action_vendor_ageing_report"
+            parent="account.menu_finance_reporting" sequence="111"/>
+	    
+    </data>
+</openerp>

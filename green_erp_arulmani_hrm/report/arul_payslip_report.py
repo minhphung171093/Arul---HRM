@@ -340,7 +340,8 @@ class Parser(report_sxw.rml_parse):
                         
                     if payroll.employee_id.employee_category_id.code=='S3': 
                         tdw = 26           
-                        temp = 26 - new_emp_day - 4 + 1 # 4 is weekly off
+#                       temp = 26 - new_emp_day - 4 + 1 # 4 is weekly off
+                        temp = tdw - new_emp_day + 1 # Modified by P.vinothkumar on 30/09/2016 for display no of days wrongly in payslip(incident No:3777).
                         ndw = temp - (tpt_lop_leave + tpt_esi_leave)
                         
                 md3 =  round(total_fd) + cd       

@@ -1334,7 +1334,8 @@
 	            <form string="Comparison Chart" version="7.0" >
 	            <header>
 	            		<button name="bt_load" string="Load Comparison Chart" type="object" class="oe_highlight" />
-	            		<button name="bt_print" string="Print .xls" type="object" class="oe_highlight" />
+	            		<!-- Remove button as per customer requirement commented on 01/10/2016 by P.vinothkumar(incident No:2443) -->
+	            		<!-- <button name="bt_print" string="Print .xls" type="object" class="oe_highlight" />  -->
 	            		<button name="bt_print_pdf" string="Print .pdf" type="object" class="oe_highlight" />
 	            </header>    
 	            	<sheet>

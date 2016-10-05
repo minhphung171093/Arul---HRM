@@ -26,7 +26,7 @@
     'sequence': 14,
     'author': 'Tenth Planet',
     'website' : 'http://www. tenthplanet.in',
-    'depends': ['green_erp_arulmani_hrm'],
+    'depends': ['green_erp_arulmani_hrm', 'green_erp_arulmani_purchase', 'green_erp_arulmani_accounting'],
     'data': [
         'security/ir.model.access.csv',
         'report/lwf_deduction_report_view.xml',
@@ -43,6 +43,9 @@
         'wizard/new_vendor_list_report_view.xml',
         'hr_payroll_view.xml',
         'menu.xml',
+        'wizard/vendor_ageing_report.xml',
+        'report/vendor_ageing_report.xml',
+        
     ],
     'css' : [
     ],
