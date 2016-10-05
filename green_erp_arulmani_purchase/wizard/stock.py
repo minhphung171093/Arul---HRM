@@ -198,7 +198,10 @@ class stock_partial_picking(osv.osv_memory):
                             'need_inspec_id':move.id,
                             'price_unit':move.price_unit or 0,
                             }
-                    quality_inspec.create(cr, SUPERUSER_ID, vals)
+                    
+                    #quality_inspec.create(cr, SUPERUSER_ID, vals)
+                     # Modified super user id to uid on 04/10/2016 by P.VINOTHKUMAR
+                    quality_inspec.create(cr,uid, vals)
 #         a_ids = stock_move.search(cr, uid,[('picking_id','=',[partial.picking_id.id]),('action_taken','=','need'),('state','not in',['done','cancel']),('inspec','=',False)])
 #         for line in stock_move.browse(cr,uid,a_ids):
 #             product_line = []

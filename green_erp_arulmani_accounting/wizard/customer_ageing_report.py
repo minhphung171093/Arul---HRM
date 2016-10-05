@@ -24,7 +24,7 @@ class customer_ageing_report(osv.osv_memory):
     def print_xls(self, cr, uid, ids, context=None):
         if context is None:
             context = {}
-        #datas = {'ids': context.get('active_ids', [])}
+        datas = {'ids': context.get('active_ids', [])}
         datas = {'ids': ids}
         datas['model'] = 'customer.ageing.report'
         datas['form'] = self.read(cr, uid, ids)[0]
@@ -34,7 +34,7 @@ class customer_ageing_report(osv.osv_memory):
     def print_pdf(self, cr, uid, ids, context=None):
         if context is None:
             context = {}
-#         datas = {'ids': context.get('active_ids', [])}
+        datas = {'ids': context.get('active_ids', [])}
         datas = {'ids': ids}
         datas['model'] = 'customer.ageing.report'
         datas['form'] = self.read(cr, uid, ids)[0]
@@ -99,7 +99,8 @@ class customer_ageing(osv.osv_memory):
                 customer_group = 'Indirect Export'
             return  customer_group
         
-        def get_balance (code, date):
+        # Modify sql logics on 03/10/2016 by P.vinothkumar
+        def get_balance (partner,code, date):
             credit = 0
 #             sql  = '''
 #                     select case when SUM(debit-credit)=0 then 0 else SUM(debit-credit) end credit from account_move_line where 
@@ -107,12 +108,12 @@ class customer_ageing(osv.osv_memory):
 #                 '''%(code, date)
             sql = '''
                   select 
-                  (select case when sum(amount_total) is null then 0 else sum(amount_total) end as amount_total from account_invoice where 
-                  account_id=(select id from account_account where code = '0000'||'%s') and state!='draft' and date_invoice <= '%s')-
-                 (select case when sum(debit) is null then 0 else sum(debit) end as debit from account_move_line where 
-                 account_id=(select id from account_account where code = '0000'||'%s') and date<='%s' and doc_type='cash_rec')  
-                 as balance 
-              '''%(code, date,code,date)
+                (select case when sum(amount_total) is null then 0 else sum(amount_total) end as amount_total from account_invoice where 
+                account_id=(select id from account_account where code = '0000'||'%s') and state!='draft' and date_invoice <= '%s')-
+                (select case when sum(debit) is null then 0 else sum(debit) end as debit from account_move_line where partner_id=%s
+                and date<='%s' and doc_type='cash_rec')  
+                as balance 
+              '''%(code, date,partner,date)
                 
             cr.execute(sql)
             credit = cr.fetchone()
@@ -120,7 +121,7 @@ class customer_ageing(osv.osv_memory):
                credit = credit[0]            
             return credit 
             
-        def get_balance_30 (code,date):
+        def get_balance_30 (partner,code, date):
             credit = 0
 #             sql  = '''
 #                     select case when SUM(debit-credit)=0.00 or SUM(debit-credit) is null then 0.00 else SUM(debit-credit) end credit from account_move_line where 
@@ -129,19 +130,20 @@ class customer_ageing(osv.osv_memory):
 #                 '''%(code,date,date)
             sql  = '''
                    select (select case when sum(amount_total) is null then 0 else sum(amount_total) end as amount_total from account_invoice where 
-                   account_id=(select id from account_account where code = '0000'||'%s') and state!='draft' and
-                   date_invoice between (select timestamp '%s' - interval '30 days')and(select timestamp '%s' - interval '1 day'))
-                 -(select case when sum(debit) is null then 0 else sum(debit) end as debit  from account_move_line where account_id=(select id from account_account where code = '0000'||'%s') 
-                   and doc_type='cash_rec' and date between (select timestamp '%s' - interval '30 days')
-                   and(select timestamp '%s' - interval '1 day'))  as balance_30
-                 '''%(code,date,date,code,date,date)
+                account_id=(select id from account_account where code = '0000'||'%s') and state!='draft' and
+                date_invoice between (select timestamp '%s' - interval '30 days')and(select timestamp '%s' - interval '1 day'))
+                -(select case when sum(debit) is null then 0 else sum(debit) end as debit  from account_move_line
+                where partner_id=%s
+                and doc_type='cash_rec' and date between (select timestamp '%s' - interval '30 days')
+                and(select timestamp '%s' - interval '1 day')) as balance_30
+                 '''%(code,date,date,partner,date,date)
             cr.execute(sql)
             credit = cr.fetchone()
             if credit:
                credit = credit[0]            
             return credit
         
-        def get_balance_31_45 (code,date):
+        def get_balance_31_45 (partner,code, date):
             credit = 0
 #             sql  = '''
 #                     select case when SUM(debit-credit)=0.00 or SUM(debit-credit) is null then 0.00 else SUM(debit-credit) end credit from account_move_line where 
@@ -152,18 +154,18 @@ class customer_ageing(osv.osv_memory):
                    select (select case when sum(amount_total) is null then 0 else sum(amount_total) end as amount_total  from account_invoice where 
                    account_id=(select id from account_account where code = '0000'||'%s') and state!='draft' and
                    date_invoice between (select timestamp '%s' - interval '45 days')and(select timestamp '%s' - interval '31 days'))
-                 -(select case when sum(debit) is null then 0 else sum(debit) end as debit from account_move_line where 
-                   account_id=(select id from account_account where code = '0000'||'%s') 
+                 -(select case when sum(debit) is null then 0 else sum(debit) end as debit from account_move_line  where 
+                   partner_id=%s
                    and doc_type='cash_rec' and date between (select timestamp '%s' - interval '45 days')
                    and(select timestamp '%s' - interval '31 days'))  as balance_45
-                 '''%(code,date,date,code,date,date)
+                 '''%(code,date,date,partner,date,date)
             cr.execute(sql)
             credit = cr.fetchone()
             if credit:
                credit = credit[0]            
             return credit  
         
-        def get_balance_46_60 (code,date):
+        def get_balance_46_60 (partner,code,date):
             credit = 0
 #             sql  = '''
 #                     select case when SUM(debit-credit)=0.00 or SUM(debit-credit) is null then 0.00 else SUM(debit-credit) end credit from account_move_line where 
@@ -175,17 +177,17 @@ class customer_ageing(osv.osv_memory):
                    account_id=(select id from account_account where code = '0000'||'%s') and state!='draft' and
                    date_invoice between (select timestamp '%s' - interval '60 days')and(select timestamp '%s' - interval '46 days'))
                  -(select case when sum(debit) is null then 0 else sum(debit) end as debit from account_move_line where 
-                   account_id=(select id from account_account where code = '0000'||'%s') 
+                   partner_id=%s 
                    and doc_type='cash_rec' and date between (select timestamp '%s' - interval '60 days')
                    and(select timestamp '%s' - interval '46 days'))  as balance_60
-                 '''%(code,date,date,code,date,date)
+                 '''%(code,date,date,partner,date,date)
             cr.execute(sql)
             credit = cr.fetchone()
             if credit:
                credit = credit[0]            
             return credit 
         
-        def get_balance_61_90 (code,date):
+        def get_balance_61_90 (partner,code,date):
             credit = 0
 #             sql  = '''
 #                     select case when SUM(debit-credit)=0.00 or SUM(debit-credit) is null then 0.00 else SUM(debit-credit) end credit from account_move_line where 
@@ -197,17 +199,17 @@ class customer_ageing(osv.osv_memory):
                    account_id=(select id from account_account where code = '0000'||'%s') and state!='draft' and
                    date_invoice between (select timestamp '%s' - interval '90 days')and(select timestamp '%s' - interval '61 days'))
                  -(select case when sum(debit) is null then 0 else sum(debit) end as debit from account_move_line where 
-                   account_id=(select id from account_account where code = '0000'||'%s') 
+                   partner_id=%s  
                    and doc_type='cash_rec' and date between (select timestamp '%s' - interval '90 days')
                    and(select timestamp '%s' - interval '61 days'))  as balance_90
-                 '''%(code,date,date,code,date,date)
+                 '''%(code,date,date,partner,date,date)
             cr.execute(sql)
             credit = cr.fetchone()
             if credit:
                credit = credit[0]            
             return credit  
         
-        def get_balance_over_90 (code,date):
+        def get_balance_over_90 (partner,code,date):
             credit = 0
 #             sql  = '''
 #                     select case when SUM(debit-credit)=0.00 or SUM(debit-credit) is null then 0.00 else SUM(debit-credit) end credit from account_move_line where 
@@ -217,11 +219,11 @@ class customer_ageing(osv.osv_memory):
             sql = '''
                   select 
                   (select case when sum(amount_total) is null then 0 else sum(amount_total) end as amount_total from account_invoice where 
-                  account_id=(select id from account_account where code = '0000'||'%s') and state!='draft'and date_invoice <= (select timestamp '%s' - interval '90 days'))-
-                 (select case when sum(debit) is null then 0 else sum(debit) end as debit from account_move_line where 
-                 account_id=(select id from account_account where code = '0000'||'%s') and date<=(select timestamp '%s' - interval '90 days') and doc_type='cash_rec')  
+                  account_id=(select id from account_account where code = '0000'||'%s') and state!='draft'and date_invoice <= (select timestamp '%s' - interval '90 days'))
+                  -(select case when sum(debit) is null then 0 else sum(debit) end as debit from account_move_line where 
+                 partner_id=%s  and date<=(select timestamp '%s' - interval '90 days') and doc_type='cash_rec')  
                  as balance_over_90 
-              '''%(code, date,code,date) 
+              '''%(code, date,partner,date) 
               
             cr.execute(sql)
             credit = cr.fetchone()
@@ -262,17 +264,17 @@ class customer_ageing(osv.osv_memory):
             
                 
             res = []
-            
+            # Modified arguments on 03/10/2016 by P.vinothkumar
             for line in bp_obj.browse(cr, uid, bp_ids):
                 res.append({ 
                     'code': line['customer_code'] or '',
                     'name': line['name'] or '',  
-                    'balance': get_balance(line['customer_code'], date) or 0.00,
-                    '0_30_days': get_balance_30(line['customer_code'],date) or 0.00,
-                    '31_45_days': get_balance_31_45(line['customer_code'],date) or 0.00,
-                    '46_60_days': get_balance_46_60(line['customer_code'],date) or 0.00,
-                    '61_90_days': get_balance_61_90(line['customer_code'],date) or 0.00,
-                    'over_90_days':get_balance_over_90(line['customer_code'],date) or 0.00,
+                    'balance': get_balance(line['id'],line['customer_code'], date) or 0.00,
+                    '0_30_days': get_balance_30(line['id'],line['customer_code'],date) or 0.00,
+                    '31_45_days': get_balance_31_45(line['id'],line['customer_code'],date) or 0.00,
+                    '46_60_days': get_balance_46_60(line['id'],line['customer_code'],date) or 0.00,
+                    '61_90_days': get_balance_61_90(line['id'],line['customer_code'],date) or 0.00,
+                    'over_90_days':get_balance_over_90(line['id'],line['customer_code'],date) or 0.00,
                     
                 })
             return res
@@ -327,4 +329,3 @@ customer_ageing()
     
     
     
-

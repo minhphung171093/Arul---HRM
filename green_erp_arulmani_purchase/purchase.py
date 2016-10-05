@@ -4024,10 +4024,14 @@ class tpt_quanlity_inspection(osv.osv):
         return self.write(cr, uid, ids, {'state':'cancel'})
     
     def create(self, cr, uid, vals, context=None):
-        return super(tpt_quanlity_inspection, self).create(cr,1, vals, context)
+         # Modified super_id to uid on 04/10/2016 by TPT balamurugan and P.VINOTHKUMAR.
+        #return super(tpt_quanlity_inspection, self).create(cr,1, vals, context)
+        return super(tpt_quanlity_inspection, self).create(cr,uid, vals, context)
     
     def write(self, cr, uid,ids, vals, context=None):
-        return super(tpt_quanlity_inspection, self).write(cr,1,ids,vals,context) 
+#         return super(tpt_quanlity_inspection, self).write(cr,1,ids,vals,context) 
+          # Modified super_id to uid on 04/10/2016 by TPT balamurugan and P.VINOTHKUMAR.
+        return super(tpt_quanlity_inspection, self).write(cr,uid,ids,vals,context)
 
 #     def onchange_grn_no(self, cr, uid, ids,name=False, context=None):
 #         vals = {}
