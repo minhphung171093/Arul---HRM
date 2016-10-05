@@ -34,12 +34,16 @@ class Parser(report_sxw.rml_parse):
         'get_indent':self.get_indent,
         'freight_lb':self.freight_lb,
         'freight_amt':self.freight_amt,
+        'two_digits':self.two_digits,
+        'three_digits':self.three_digits,
         'v':self.v,
         'get_prod_name':self.get_prod_name,
         })
+        
     def v(self, line):
         a = (line.product_qty * line.price_unit)-((line.product_qty * line.price_unit)*line.discount/100)
         return a
+    
     def get_prod_name(self,prod,desc):
         if desc:               
             return desc 
@@ -93,6 +97,17 @@ class Parser(report_sxw.rml_parse):
         if freight>0:
             freight = format(freight, '.2f')           
             return freight  
+    
+    def two_digits(self,amt):
+        if amt>0:
+            amt = format(amt, '.2f')           
+            return amt    
+        else:
+            return format(0, '.2f')
+    def three_digits(self,amt):
+        if amt>0:
+            amt = format(amt, '.3f')           
+            return amt
         
     def get_item_txt(self, indent_id,productid, quote, line_no):
         if indent_id:  
