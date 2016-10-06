@@ -354,7 +354,7 @@ class general_ledger_statement(osv.osv_memory):
             sql = '''
             select ml.id from account_move_line ml
             join account_move m on (m.id=ml.move_id)
-            left join tpt_cost_center cc on (cc.id = am.cost_center_id)
+            left join tpt_cost_center cc on (cc.id = m.cost_center_id)
             where m.date between '%s' and '%s' and ml.account_id = %s           
             '''%(date_from, date_to, acc.id)
             if doc_type:
