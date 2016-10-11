@@ -208,5 +208,56 @@
             groups="base.user_root"/>
             
         <!--  -->
+        
+        <!--  -->
+        <record id="view_hr_attendance_tree_view" model="ir.ui.view">
+			<field name="name">hr.attendance.tree</field>
+			<field name="model">hr.attendance</field>
+			<field name="arch" type="xml">
+				<tree string="Time Data">
+					<field name="employee_code" />
+				</tree>
+			</field>
+		</record>
+		
+		<record id="view_tpt_hr_attendance_form_view" model="ir.ui.view">
+            <field name="name">tpt.hr.attendance.form</field>
+            <field name="model">hr.attendance</field>
+            <field name="arch" type="xml">
+	            <form string="Update Avg Cost" version="7.0">
+		            <header>
+		           
+		            	<button name="load_data" string="Load Data" type="object" class="oe_highlight"/>	
+		            </header>    
+	            	<group>
+	            		<field name="employee_code" />
+	            		<field name="date" />
+	            		<field name="punch_type" />
+	            		<field name="is_moved" />
+	                    
+	                    
+	                </group>
+	                
+	        	</form>
+			</field>
+		</record>
+          
+		<record id="action_hr_attendance_form" model="ir.actions.act_window">
+            <field name="name">Time Machine Data</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">hr.attendance</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">form,tree</field>
+            <field name="view_id" ref="view_hr_attendance_tree_view"/>
+        </record>
+        
+        <menuitem action="action_hr_attendance_form"
+        	id="menu_action_hr_attendance_form"
+            parent="purchase.menu_procurement_management" sequence="562" 
+            groups="base.user_root"/>
+            
+        <!--  -->
+        
+        
     </data>
 </openerp>

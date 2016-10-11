@@ -5321,7 +5321,7 @@ class hr_attendance(osv.osv):
     _columns = {
         'date': fields.datetime('Date'),
         'employee_code': fields.char('Employee Code'),        
-        'punch_type': fields.float('Punch Type' ,selection=[('in', 'IN'),
+        'punch_type': fields.related('Punch Type' ,selection=[('in', 'IN'),
                                                             ('out', 'OUT')], 
                                    ), 
         'is_moved': fields.boolean('Is Data Moved to OpenERP'),
