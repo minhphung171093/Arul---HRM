@@ -216,6 +216,9 @@
 			<field name="arch" type="xml">
 				<tree string="Time Data">
 					<field name="employee_code" />
+					<field name="date" />
+					<field name="punch_type" />
+					<field name="is_moved" />
 				</tree>
 			</field>
 		</record>
