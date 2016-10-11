@@ -5909,31 +5909,7 @@ class account_voucher(osv.osv):
         name=vals['name'] 
         #
         for voucher in self.browse(cr, uid, ids, context):
-            sql = '''
-             select sum(amount) as vou_amt from account_voucher where partner_id=%s and state not in ('draft', 'cancel')
-            '''%(voucher.partner_id.id)
-            cr.execute(sql)
-            voucher_amount=cr.dictfetchone()['vou_amt']
-            
-            sql = '''
-             select case when sum(debit)>0 then sum(debit) else 0 end as inv_amt from account_move_line aml
-            inner join account_invoice ai on aml.ref=ai.vvt_number
-            where ai.type='out_invoice' and ai.partner_id=%s and (aml.reconcile_id is not null or aml.reconcile_partial_id is not null)
-            '''%(voucher.partner_id.id)
-            cr.execute(sql)
-            invoice_amount=cr.dictfetchone()['inv_amt']
-
-            if invoice_amount > 0 and voucher_amount > invoice_amount:
-                raise osv.except_osv(_('Warning'), _('Please go to customer reconciliation screen and continue process! '))
-
-            # Added by TPT Vinoth on 17/06/2016
-            for reconcile_id in self.browse(cr, uid, ids, context):
-                reconcile ={
-                            'opening_reconcile':'f',
-                            'type':'auto'
-                            }
-                reconcile_id=reconcile_pool.create(cr,uid,reconcile,context=context)
-                     
+  
             # Generate move entry
             #for voucher in self.browse(cr, uid, ids, context):
             move = {
@@ -5948,34 +5924,7 @@ class account_voucher(osv.osv):
                     }       
              
             move_id = move_pool.create(cr, uid, move, context=context)
-            #End am aml for 
-            #Added by P.vinothkumar on 18/07/2016(modify one by one)
-            moveline = {} 
-            sql = ''' 
-            select case when sum(amount) is null then 0 else sum(amount) end as amount from 
-            (select amount_total_inr as amount from 
-            account_invoice ai where ai.state='open' and ai.partner_id=%s union all select null)a
-            '''%(voucher.partner_id.id)
-            cr.execute(sql)
-            total_invoice = cr.dictfetchone()['amount']
-            if total_invoice == 0:
-               raise osv.except_osv(_('Warning'), _('Please create invoice and then continue process! '))  
-            if total_invoice >= voucher.amount:
-                moveline.update({
-                                'debit': voucher.amount,
-                                'reconcile_id':int(reconcile_id)
-                                              })
-                sql = '''
-                   update account_move_line set reconcile_id=%s where id=(select aml.id from account_move_line aml join account_move am on 
-                   am.id=aml.move_id and am.name='%s' and debit=0.00)
-                 '''%(int(reconcile_id),voucher.number)
-                cr.execute(sql)
-            # Invoice -Rs 1000   voucher amt > 1000    
-            else:
-                raise osv.except_osv(_('Warning'), _('Please go to customer reconciliation screen and continue process! '))
-    
-            
-            
+ 
             #-------------------------------Invoice part---------------------------------------
             # Fetch invoice details
             sql = '''
@@ -5988,7 +5937,7 @@ class account_voucher(osv.osv):
             cash_payment=voucher.amount
             allocated_amt=cash_payment
             for invoice in cr.dictfetchall():
-                if allocated_amt>0:                
+                if allocated_amt > 0:                
                     amount += invoice['inv_amt']
                     rec={
                            'opening_reconcile':'f',
@@ -6003,14 +5952,25 @@ class account_voucher(osv.osv):
                         'period_id': voucher.period_id.id,
                         'ref': voucher.number.replace('/',''),
                         'doc_type': 'cash_rec',
+                        'debit':0.00,
                         'credit': round(invoice['inv_amt'],2) or 0,
-                        #'credit':round((invoice_amount),2) or 0,
                         'date': voucher.date,
                         'move_id':int(move_id),
                         'reconcile_id':int(rec_id),
                         }   
-                    # voucher amount >= total invoice amount(Full reconciliation process)
-                    if voucher.amount >= amount: #FULL RECONCILIATION
+                    # added by P.vinothkumar on 22/07/2016
+                     # Fetch Total invoice amount
+                    advance_amount = 0
+                    sql='''
+                       select case when (sum(a.credit)-sum(a.debit)) is null then 0 else (sum(a.credit)-sum(a.debit))  
+                       end as amount from(select credit,debit from account_move_line aml
+                       join account_voucher av on aml.name=av.number 
+                       where av.partner_id=%s and aml.reconcile_partial_id is not null union all select null,null)a 
+                       '''%(voucher.partner_id.id)
+                    cr.execute(sql)
+                    advance_amount=cr.fetchone()[0]   
+                    
+                    if voucher.amount + advance_amount >= amount: #FULL RECONCILIATION
                         move_line_id=move_line_pool.create(cr, uid, moveline, context=context)
                         # Update reconcile id in posted invoice.
                         sql = '''
@@ -6024,6 +5984,8 @@ class account_voucher(osv.osv):
                        '''%(invoice['id'])
                         cr.execute(sql)
                         invoices_list +=  str(invoice['number']) +' : '+ str(invoice['inv_amt']) +'\n' 
+                        
+                         
                     elif voucher.amount <= amount: # Partial reconciliation
                           moveline = {}
                           # Fetch paid amount from previous CR posting
@@ -6037,7 +5999,7 @@ class account_voucher(osv.osv):
                           paid_amt = cr.dictfetchone()['amount']
                           allocated_amt = round(allocated_amt,2)
                           # paided amount > 0
-                          if paid_amt>0:
+                          if paid_amt > 0:
                               allocated_amt = invoice['inv_amt'] - paid_amt
                               moveline.update({
                                           'reconcile_id':int(rec_id),
@@ -6102,25 +6064,130 @@ class account_voucher(osv.osv):
                           
                           
                     
-                    allocated_amt -= invoice['inv_amt']
-                    # update state=reconciled
-                    sql = '''
-                           update account_voucher set state='reconcile' where id=%s
-                           '''%(voucher.id)
-                    cr.execute(sql)
+                allocated_amt -= invoice['inv_amt']
+                    
             ####END FOR LOOP FOR INVOICE 
-            #create moveline for payment 
-            advance_amount = 0.0 
-            sql = '''
-            select case when sum(aml.debit)>0 then sum(aml.debit) else 0 end as inv_amt from account_move_line aml
-            inner join account_voucher av on aml.ref=av.name
-            where av.partner_id=%s and aml.reconcile_partial_id is not null
-            '''%voucher.partner_id.id
+           # -----------------------------------Voucher part----------------------
+ 
+            advance_amount = 0
+            sql='''
+               select case when (sum(a.credit)-sum(a.debit)) is null then 0 else (sum(a.credit)-sum(a.debit))  
+               end as amount from(select credit,debit from account_move_line aml
+               join account_voucher av on aml.name=av.number 
+               where av.partner_id=%s and aml.reconcile_partial_id is not null union all select null,null)a 
+               '''%(voucher.partner_id.id)
             cr.execute(sql)
-            advance_amount = cr.fetchone()[0]
-    
-            #for voucher in self.browse(cr,uid,ids,context):
-            amount = round(voucher.amount,2) + advance_amount
+            advance_amount=cr.fetchone()[0]
+            
+            
+            rec={
+                     'opening_reconcile':'f',
+                     'type':'auto'
+                 }
+            rec_id = reconcile_pool.create(cr,uid,rec,context=context)
+            moveline={}
+            
+         # Total invoice amount
+            sql = '''
+                 select case when sum(debit) is null then 0 else sum(debit) end as invoice_amount from account_move_line aml
+                 inner join account_invoice ai on aml.ref=ai.vvt_number
+                 where ai.type='out_invoice' and ai.partner_id='%s'
+                '''%(voucher.partner_id.id)
+                
+            cr.execute(sql)
+            total_invoice_amount = cr.fetchone()[0]
+                      
+            # Fetch Total paid amount
+            sql='''
+            select sum(amount) as paid_amt from account_voucher where partner_id='%s' and state not in('draft')
+            '''%(voucher.partner_id.id)
+            cr.execute(sql)
+            total_paid_amount = cr.fetchone()[0]
+            remaining_amount = 0.0
+            
+        # Calculate remaining payment amount
+            remaining_amount  =  total_paid_amount - total_invoice_amount
+            
+         # Check condition if customer gives advance amount or not   
+            if advance_amount != 0: 
+                # Fetch advance paid id
+                sql='''select case when a.partial_id is null then 0 else a.partial_id end as partial_id,
+                       case when a.name is null then 'CUP' else a.name end as vou_name
+                       from (select distinct aml.reconcile_partial_id as partial_id,aml.name
+                       from account_move_line aml
+                       join account_voucher av on aml.name=av.number 
+                       where av.partner_id=%s and aml.reconcile_partial_id is not null union all 
+                        select null,null)a where a.partial_id != 0
+                     '''%(voucher.partner_id.id)
+                cr.execute(sql)
+                
+                for payments in cr.dictfetchall():
+                    payment_id = payments['partial_id']
+                    voucher_number = payments['vou_name']
+                
+                moveline.update({
+                    'name': voucher_number,
+                    'partner_id': voucher.partner_id.id,
+                    'journal_id': voucher.journal_id.id,
+                    'period_id': voucher.period_id.id,
+                    'ref': voucher.number.replace('/',''),
+                    'doc_type': 'cash_rec',
+                    'debit': advance_amount,
+                    'credit':0.00,
+                    'date': voucher.date,
+                    'move_id': int(move_id),
+                    'reconcile_id': payment_id,
+                    'reconcile_partial_id':''
+                    })
+                move_line_id=move_line_pool.create(cr, uid, moveline, context=context)
+                
+                moveline.update({
+                             'reconcile_id':int(rec_id),
+                             'debit' : voucher.amount,
+                             'reconcile_partial_id' : '' 
+                             })
+                
+                # update reconcile_id for current payment posting(Added by P.vinothkumar on 25/07/2016
+                sql=''' update account_move_line set reconcile_id=
+                        '%(rec_id)s' where move_id in (select id from account_move where name='%(vou_no)s') and debit=0.00
+                       '''%{'vou_no': voucher.number,
+                            'rec_id': int(rec_id)
+                        }
+                cr.execute(sql)
+
+             # update reconcile_id and partial reconcile_id for previous CR and payment postings  
+                sql=''' update account_move_line set reconcile_partial_id=null,reconcile_id=(select distinct reconcile_partial_id from
+                       account_move_line where partner_id='%(partner_id)s' and reconcile_partial_id is not null)
+                       where partner_id='%(partner_id)s' and reconcile_partial_id is not null 
+                       '''%{'partner_id': voucher.partner_id.id
+                        }
+                cr.execute(sql)
+                       
+            else:
+                
+                if remaining_amount > 0:
+                    partial_payment =voucher.amount - remaining_amount
+                    moveline={}
+                    moveline.update({
+                                      'debit' : partial_payment,
+                                      'reconcile_partial_id' : int(rec_id),
+                                      'reconcile_id' : ''
+                                     })
+                    # Update partial_ids in payment postings
+                    sql = '''
+                      update account_move_line set reconcile_partial_id=%s where 
+                      id=(select aml.id from account_move_line aml join account_move am on 
+                      am.id=aml.move_id and am.name='%s' and debit=0.00)
+                        '''%(int(rec_id),voucher.number)
+                    cr.execute(sql)
+                     
+                else:
+                    moveline.update({
+                                     'reconcile_id' : int(rec_id),
+                                     'debit' : voucher.amount,
+                                     'reconcile_partial_id' : ''
+                                     })
+
             moveline.update({
                     'name': voucher.number,
                     'partner_id': voucher.partner_id.id,
@@ -6128,13 +6195,22 @@ class account_voucher(osv.osv):
                     'period_id': voucher.period_id.id,
                     'ref': voucher.number.replace('/',''),
                     'doc_type': 'cash_rec',
-                    'debit': round(voucher.amount,2),
+                    #'debit': voucher_amount,
+                    'credit':0.00,
                     'date': voucher.date,
                     'move_id':int(move_id),
-                    'reconcile_id':int(reconcile_id)
+    #                     'reconcile_id':int(rec_id),
+    #                     'reconcile_partial_id':''
                     })
+         
             move_line_id=move_line_pool.create(cr, uid, moveline, context=context)
-                    
+
+            # update state=reconciled
+            sql = '''
+                   update account_voucher set state='reconcile' where id=%s
+                   '''%(voucher.id)
+            cr.execute(sql)
+       
             res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
                                                 'green_erp_arulmani_hrm', 'alert_permission_form_view')
             return {

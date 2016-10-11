@@ -4143,7 +4143,7 @@ class tpt_update_stock_move_report(osv.osv):
         inspec_obj = self.pool.get('tpt.quanlity.inspection')
         picking_obj = self.pool.get('stock.picking')
         move_obj = self.pool.get('account.move')
-        for grn in ['VVTi/GRN/00000773']:#['VVTI/GRN/014480/2016']:#['VVTI/GRN/012944/2016']:#['VVTi/GRN/010906/2016']:#['VVTi/GRN/00010161']:#['VVTi/GRN/00010472']:# ['VVTi/GRN/00007438']:#['VVTi/GRN/00004321']:  #['VVTi/GRN/00003451','VVTi/GRN/00003883']
+        for grn in ['VVTI/GRN/015187/2016','VVTI/GRN/015305/2016','VVTI/GRN/015329/2016','VVTI/GRN/015424/2016']:#['VVTi/GRN/00000773']['VVTI/GRN/014480/2016']:#['VVTI/GRN/012944/2016']:#['VVTi/GRN/010906/2016']:#['VVTi/GRN/00010161']:#['VVTi/GRN/00010472']:# ['VVTi/GRN/00007438']:#['VVTi/GRN/00004321']:  #['VVTi/GRN/00003451','VVTi/GRN/00003883']
             sql = '''
                 select id from stock_picking where name = '%s'
             '''%(grn)
@@ -5314,6 +5314,26 @@ class tpt_update_avg_cost_line(osv.osv):
         return self.write(cr, uid, ids, {'remove':True})
 
 tpt_update_avg_cost_line()
+
+class hr_attendance(osv.osv):
+    _name = "hr.attendance"
+    
+    _columns = {
+        'date': fields.datetime('Date'),
+        'employee_code': fields.char('Employee Code'),        
+        'punch_type': fields.float('Punch Type' ,selection=[('in', 'IN'),
+                                                            ('out', 'OUT')], 
+                                   ), 
+        'is_moved': fields.boolean('Is Data Moved to OpenERP'),
+        
+    }
+    
+    _defaults = {
+                 'is_moved': False
+                 
+                 }
+    
+hr_attendance()
 
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

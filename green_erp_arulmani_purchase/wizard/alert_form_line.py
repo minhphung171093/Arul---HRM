@@ -158,89 +158,96 @@ class approve_reject_quanlity_inspection(osv.osv_memory):
             account_move_obj = self.pool.get('account.move')
             grn_obj = self.pool.get('stock.picking')
             for grn_line in line.name.move_lines:
-                if grn_line.action_taken=='need':
-                    amount_cer = grn_line.purchase_line_id.price_unit * wizard.quantity
-                    credit = amount_cer - (amount_cer*grn_line.purchase_line_id.discount)/100
-                    debit = amount_cer - (amount_cer*grn_line.purchase_line_id.discount)/100                    
-                    if grn_line.purchase_line_id and grn_line.purchase_line_id.taxes_id:
-                        description = [r.description for r in grn_line.purchase_line_id.taxes_id]
-                        tax_amounts = [r.amount for r in grn_line.purchase_line_id.taxes_id]
-                        tax_amt = 0
-                        if description:
-                            description = description[0]
-                            if 'CST' in description :
-                                for tax in tax_amounts:
-                                    tax_amt = tax
-                                pf_type = grn_line.purchase_line_id.p_f_type
-                                pf = grn_line.purchase_line_id.p_f
-                                ed_type = grn_line.purchase_line_id.ed_type
-                                ed = grn_line.purchase_line_id.ed
-                                excise_duty = 0.00
-                                basic = (grn_line.purchase_line_id.product_qty * grn_line.purchase_line_id.price_unit) - ( (grn_line.purchase_line_id.product_qty * grn_line.purchase_line_id.price_unit)*grn_line.purchase_line_id.discount/100)
-                                if pf_type == '1' :
-                                    p_f = basic * pf/100
-                                elif pf_type == '2' :
-                                    p_f = pf
-                                elif pf_type == '3':
-                                    p_f = pf * grn_line.purchase_line_id.product_qty
-                                else:
-                                    p_f = pf                                
-                                if ed_type == '1' :
-                                    ed = (basic + p_f) * ed/100
-                                elif ed_type == '2' :
-                                    ed = ed
-                                elif ed_type == '3' :
-                                    ed = ed *  grn_line.purchase_line_id.product_qty
-                                else:
-                                    ed = ed
-                                excise_duty += ed
-                                cst_cr_amt = (credit + excise_duty + p_f)*tax_amt/100    
-                                cst_dr_amt = (debit + excise_duty + p_f)*tax_amt/100                                
-                                #credit += cst_cr_amt# TPT-BM-Rollback-CST value will be added into Product Asset Account During Supplier Invoice Posting- ON 24/08/2016
-                                #debit += cst_dr_amt# TPT-BM-Rollback "" - ON 24/08/2016
-                    #
-                    if not grn_line.product_id.product_asset_acc_id:
-                        raise osv.except_osv(_('Warning!'),_('You need to define Product Asset GL Account for this product'))
-                    journal_line.append((0,0,{
-                        'name':grn_line.name + ' - ' + grn_line.product_id.name, 
-                        'account_id': grn_line.product_id.product_asset_acc_id and grn_line.product_id.product_asset_acc_id.id,
-                        'partner_id': line.name.partner_id and line.name.partner_id.id or False,
-                        'credit':0,
-                        'debit':debit,
-                        'product_id':grn_line.product_id.id,
-                    }))
-                    
-                    if not line.product_id.purchase_acc_id:
-                        raise osv.except_osv(_('Warning!'),_('You need to define Purchase GL Account for this product'))
-                    journal_line.append((0,0,{
-                        'name':line.name.name + ' - ' + grn_line.product_id.name, 
-                        'account_id': grn_line.product_id.purchase_acc_id and grn_line.product_id.purchase_acc_id.id,
-                        'partner_id': line.name.partner_id and line.name.partner_id.id or False,
-                        'credit':credit,
-                        'debit':0,
-                        'product_id':grn_line.product_id.id,
-                    }))
-                    value={
-                    'journal_id':journal.id,
-                    'period_id':period_ids[0] ,
-                    'date': date_period,
-                    'line_id': journal_line,
-                    'doc_type':'grn',
-                    'grn_id':line.name.id,
-                    'ref': line.name.name,
-                    'name':name, 
-                    }
-                    new_jour_id = account_move_obj.create(cr,uid,value)
-                    auto_ids = self.pool.get('tpt.auto.posting').search(cr, uid, [])
-                    if auto_ids:
-                        auto_id = self.pool.get('tpt.auto.posting').browse(cr, uid, auto_ids[0], context=context)
-                        if auto_id.grn:
-                            try:
-                                account_move_obj.button_validate(cr,uid, [new_jour_id], context)
-                            except:
-                                pass
-            #tpt-end
+                 if grn_line.action_taken=='need' and grn_line.product_id.id==line.product_id.id:
+                     amount_cer = grn_line.purchase_line_id.price_unit * wizard.quantity
+                     credit = amount_cer - (amount_cer*grn_line.purchase_line_id.discount)/100
+                     debit = amount_cer - (amount_cer*grn_line.purchase_line_id.discount)/100 
+
+#             for grn_line in line.name.move_lines:
+#                 if grn_line.action_taken=='need':
+#                     amount_cer = grn_line.purchase_line_id.price_unit * wizard.quantity
+#                     credit = amount_cer - (amount_cer*grn_line.purchase_line_id.discount)/100
+#                     debit = amount_cer - (amount_cer*grn_line.purchase_line_id.discount)/100                    
+#                     if grn_line.purchase_line_id and grn_line.purchase_line_id.taxes_id:
+#                         description = [r.description for r in grn_line.purchase_line_id.taxes_id]
+#                         tax_amounts = [r.amount for r in grn_line.purchase_line_id.taxes_id]
+#                         tax_amt = 0
+#                         if description:
+#                             description = description[0]
+#                             if 'CST' in description :
+#                                 for tax in tax_amounts:
+#                                     tax_amt = tax
+#                                 pf_type = grn_line.purchase_line_id.p_f_type
+#                                 pf = grn_line.purchase_line_id.p_f
+#                                 ed_type = grn_line.purchase_line_id.ed_type
+#                                 ed = grn_line.purchase_line_id.ed
+#                                 excise_duty = 0.00
+#                                 basic = (grn_line.purchase_line_id.product_qty * grn_line.purchase_line_id.price_unit) - ( (grn_line.purchase_line_id.product_qty * grn_line.purchase_line_id.price_unit)*grn_line.purchase_line_id.discount/100)
+#                                 if pf_type == '1' :
+#                                     p_f = basic * pf/100
+#                                 elif pf_type == '2' :
+#                                     p_f = pf
+#                                 elif pf_type == '3':
+#                                     p_f = pf * grn_line.purchase_line_id.product_qty
+#                                 else:
+#                                     p_f = pf                                
+#                                 if ed_type == '1' :
+#                                     ed = (basic + p_f) * ed/100
+#                                 elif ed_type == '2' :
+#                                     ed = ed
+#                                 elif ed_type == '3' :
+#                                     ed = ed *  grn_line.purchase_line_id.product_qty
+#                                 else:
+#                                     ed = ed
+#                                 excise_duty += ed
+#                                 cst_cr_amt = (credit + excise_duty + p_f)*tax_amt/100    
+#                                 cst_dr_amt = (debit + excise_duty + p_f)*tax_amt/100                                
+#                                 #credit += cst_cr_amt# TPT-BM-Rollback-CST value will be added into Product Asset Account During Supplier Invoice Posting- ON 24/08/2016
+#                                 #debit += cst_dr_amt# TPT-BM-Rollback "" - ON 24/08/2016
+#                     #
+            #end
+            if not line.product_id.product_asset_acc_id:
+                raise osv.except_osv(_('Warning!'),_('You need to define Product Asset GL Account for this product'))
+            journal_line.append((0,0,{
+                'name':line.name.name + ' - ' + line.product_id.name_template, 
+                'account_id': line.product_id.product_asset_acc_id and line.product_id.product_asset_acc_id.id,
+                'partner_id': line.name.partner_id and line.name.partner_id.id or False,
+                'credit':0,
+                'debit':debit,
+                'product_id':line.product_id.id,
+            }))
             
+            if not line.product_id.purchase_acc_id:
+                raise osv.except_osv(_('Warning!'),_('You need to define Purchase GL Account for this product'))
+            journal_line.append((0,0,{
+                'name':line.name.name + ' - ' + line.product_id.name_template, 
+                'account_id': grn_line.product_id.purchase_acc_id and grn_line.product_id.purchase_acc_id.id,
+                'partner_id': line.name.partner_id and line.name.partner_id.id or False,
+                'credit':credit,
+                'debit':0,
+                'product_id':line.product_id.id,
+            }))
+            value={
+            'journal_id':journal.id,
+            'period_id':period_ids[0] ,
+            'date': date_period,
+            'line_id': journal_line,
+            'doc_type':'grn',
+            'grn_id':line.name.id,
+            'ref': line.name.name,
+            'name':name, 
+            }
+            new_jour_id = account_move_obj.create(cr,uid,value)
+            auto_ids = self.pool.get('tpt.auto.posting').search(cr, uid, [])
+            if auto_ids:
+                auto_id = self.pool.get('tpt.auto.posting').browse(cr, uid, auto_ids[0], context=context)
+                if auto_id.grn:
+                    try:
+                        account_move_obj.button_validate(cr,uid, [new_jour_id], context)
+                    except:
+                        pass
+            #tpt-end
+            #
             if line.remaining_qty==wizard.quantity or wizard.inspection_quantity==wizard.quantity:
                 qty_approve = line.qty_approve
                 qty_approve += wizard.quantity
