@@ -2291,7 +2291,10 @@ class stock_movement_analysis(osv.osv_memory):
             si_frt_amt = cr.fetchone()
             if si_frt_amt:
                 amt_receipt += si_frt_amt[0] 
-            #tpt-end             
+            #tpt-end    
+            print 'CST Value:', cst_amt1       
+            print 'Frt Value:', frt_amt1     
+            print 'Sup Frt Value:', si_frt_amt        
             return amt_opening, amt_receipt   
         #
         
