@@ -1293,7 +1293,7 @@ class tpt_material_issue(osv.osv):
         journal_line = []
         dest_id = False
         move_obj = self.pool.get('stock.move')
-                 
+        opening_stock_value = 0         
          
         for line in self.browse(cr, uid, ids):
             if line.request_type == 'production':
@@ -1305,7 +1305,7 @@ class tpt_material_issue(osv.osv):
              
             for p in line.material_issue_line:
                 onhand_qty = 0.0
-                opening_stock_value = 0 # added by P.vinothkumar on 12/07/2016
+                #opening_stock_value = 0 # added by P.vinothkumar on 12/07/2016
                 location_id = False
                 locat_ids = []
                 parent_ids = []
@@ -1444,7 +1444,24 @@ class tpt_material_issue(osv.osv):
                 if not unit or unit<0:
                     unit=1
                 price += unit * mater.product_isu_qty
+                #product_price = unit * mater.product_isu_qty
+                product_price = opening_stock_value * mater.product_isu_qty
+                #
+                ##TPT-By Balamurugan Purushothaman - ON 18/10/2016 - TO TAKE AVG COST AS UNIT PRICE FOR STOCK_MOVE ENTRIES
+                #above block wont be worked to take avg cost. ref following snippet that fetches from Product master - Avg Cost tab
+                if line.request_type=='production':
+                    warehouse_id = line.dest_warehouse_id.id
+                else:
+                    warehouse_id = line.warehouse.id 
+                avg_cost_ids = avg_cost_obj.search(cr, uid, [('product_id','=',mater.product_id.id),('warehouse_id','=',warehouse_id)])
+                unit = 1
+                if avg_cost_ids:
+                    avg_cost_id = avg_cost_obj.browse(cr, uid, avg_cost_ids[0])
+                    unit = avg_cost_id.avg_cost or 0
                 product_price = unit * mater.product_isu_qty
+
+                #
+                
                 #===============================================================
                 # ##TPT-By Balamurugan Purushothaman - ON 31/08/2016 - TO TAKE AVG COST AS UNIT PRICE FOR STOCK_MOVE ENTRIES
                 # avg_cost_ids = avg_cost_obj.search(cr, uid, [('product_id','=',mater.product_id.id),('warehouse_id','=',line.warehouse.id)])
