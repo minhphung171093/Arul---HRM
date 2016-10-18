@@ -1374,6 +1374,19 @@ class tpt_material_issue(osv.osv):
                     #opening_stock_value = 0
                     if (hand_quantity-hand_quantity_issue)!=0:
                         opening_stock_value = (total_cost-total_cost_issue)/(hand_quantity-hand_quantity_issue)
+                    ##TPT-By Balamurugan Purushothaman - ON 18/10/2016 - TO TAKE AVG COST AS UNIT PRICE FOR STOCK_MOVE ENTRIES
+                    #above block wont be worked to take avg cost. ref following snippet that fetches from Product master - Avg Cost tab
+                    if line.request_type=='production':
+                        warehouse_id = line.dest_warehouse_id.id
+                    else:
+                        warehouse_id = line.warehouse.id 
+                    avg_cost_ids = avg_cost_obj.search(cr, uid, [('product_id','=',p.product_id.id),('warehouse_id','=',warehouse_id)])
+                    unit = 1
+                    if avg_cost_ids:
+                        avg_cost_id = avg_cost_obj.browse(cr, uid, avg_cost_ids[0])
+                        unit = avg_cost_id.avg_cost or 0
+                    opening_stock_value = unit * p.product_isu_qty
+                    ##TPT-END
                      
                 rs = {
                       'name': '/',

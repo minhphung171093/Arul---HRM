@@ -7647,6 +7647,8 @@ class tpt_material_issue(osv.osv):
                     if locat_ids:
                         location_id = locat_ids[0]
                 if location_id and cate_name != 'finish':
+                    if p.product_id.id==10733:
+                        print ""
                     sql = '''
                           select case when sum(st.product_qty)!=0 then sum(st.product_qty) else 0 end ton_sl,case when sum(st.price_unit*st.product_qty)!=0 then sum(st.price_unit*st.product_qty) else 0 end total_cost
                             from stock_move st
@@ -8797,7 +8799,7 @@ class mrp_production(osv.osv):
     _columns = {
                 'produce_cost': fields.float('Produce Cost'),
                 }
-    def write(self, cr, uid, ids, vals, context=None):
+    def write(self, cr, uid, ids, vals, context=None): # Ref tpt_maintenace.py - bt_approve method
         new_write = super(mrp_production, self).write(cr, uid,ids, vals, context)
         account_move_obj = self.pool.get('account.move')
         period_obj = self.pool.get('account.period')
@@ -9002,13 +9004,16 @@ class mrp_production(osv.osv):
                             sql='''
                                 select price_unit from stock_move where date<='%s' and product_id=%s 
                                     and issue_id in (select id from tpt_material_issue where request_type='production')
-                                    order by date desc
+                                    order by date desc 
                             '''%(line.date_planned,mat.product_id.id)
                             cr.execute(sql)
-                            move_ids = cr.fetchone()
+                            #move_ids = cr.fetchone()
+                            move_ids = cr.dictfetchone()
                             if move_ids:
-                                stock_move_obj.write(cr, 1, [mat.id],{'price_unit':move_ids[0]})
-                                price_raw = move_ids[0] * (mat.product_qty or 0)
+                                #move_ids = move_ids[0] prev
+                                move_ids = move_ids['price_unit']
+                                stock_move_obj.write(cr, 1, [mat.id],{'price_unit':move_ids})
+                                price_raw = move_ids * (mat.product_qty or 0)
                                 debit += round(price_raw,2)
                                 if line.product_id.product_credit_id:
                                     journal_line.append((0,0,{
@@ -9023,7 +9028,7 @@ class mrp_production(osv.osv):
                                 raise osv.except_osv(_('Warning!'),_("Do not have material issue for this Production Declaration! Please check it!"))
                 
                 for produce in line.move_created_ids2:
-                    if produce.product_id.id != line.product_id.id:
+                    if produce.product_id.id != line.product_id.id: 
                         sql = '''
                             select price_unit from mrp_subproduct where bom_id=%s and product_id=%s
                         '''%(line.bom_id.id,produce.product_id.id)
@@ -9088,6 +9093,7 @@ class mrp_production(osv.osv):
                '''%(credit,line.id)
                 cr.execute(sql)  
                 ## TPT-END     
+                print journal_line
                 value={
                             'journal_id':journal_ids[0],
                             'period_id':period_ids[0] ,
