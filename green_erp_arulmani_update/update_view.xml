@@ -109,6 +109,8 @@
 		            	<button name="adj_goods_issue_foil" string="Adj Goods Issue - F-OIL " type="object" class="oe_highlight"/>
 		            	<button name="adj_goods_issue_dicamol" string="Adj Goods Issue - RM-DICOMOL " type="object" class="oe_highlight"/>
 		            	<button name="adj_goods_issue_cs" string="Adj Goods Issue - CAUSTIC SODA " type="object" class="oe_highlight"/>
+		            	<!-- Added by P.vinothkumar on 12/10/2016 for GRN fix -->
+		            	<button name="adjust_account_move" string="Adj accounts " type="object" class="oe_highlight"/>
 	
 		            	
 		            </header>    

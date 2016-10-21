@@ -4194,6 +4194,117 @@ class tpt_update_stock_move_report(osv.osv):
          
         return self.write(cr, uid, ids, {'result':'config GRN VVTI/GRN/012821/2016 Done'})  
     
+    # Added by P.vinothkumar on 12/10/2016 for adjust stock move records(to solve duplicate records in the time of inspection approve)
+    def adjust_account_move(self, cr, uid, ids, context=None):
+        invoice_obj = self.pool.get('account.invoice')
+        inspec_obj = self.pool.get('tpt.quanlity.inspection')
+        picking_obj = self.pool.get('stock.picking')
+        move_obj = self.pool.get('account.move')
+        sql='''
+            select sp.name from account_move am
+            inner join stock_picking sp on am.ref=sp.name
+            where
+            am.state='posted' and sp.type='in' and
+            am.doc_type='grn' and am.ref like 'VVTI/GRN/%'
+            group by sp.name,sp.date having count(sp.name)>2
+            order by sp.date
+            '''
+        cr.execute(sql)
+        
+        for grn in cr.dictfetchall():
+            sql = '''
+                delete from account_move where ref= '%s' and doc_type='grn'
+            '''%(grn['name'])
+            cr.execute(sql)
+            sql='''
+                select (pol.price_unit * tpi.qty)-(pol.price_unit * tpi.qty*pol.discount/100) as amount,tpi.date::date as inspection_date,
+                sp.name,pro.product_asset_acc_id as account_id,pro.purchase_acc_id,sp.partner_id,tpi.product_id,sp.id as grn_id
+                from tpt_quanlity_inspection tpi
+                inner join product_product pro on pro.id=tpi.product_id
+                inner join stock_picking sp on sp.id=tpi.name
+                inner join purchase_order po on po.id=sp.purchase_id
+                inner join purchase_order_line pol on po.id=pol.order_id and pol.product_id=tpi.product_id
+                where tpi.name=(select id from stock_picking where name='%s')
+            '''%(grn['name'])
+            cr.execute(sql)
+            for line in cr.dictfetchall():
+                journal_line = []
+                date_period = line['inspection_date'],
+                sql = '''
+                    select id from account_period where special = False and '%s' between date_start and date_stop and special is False
+                 
+                '''%(date_period)
+                cr.execute(sql)
+                period_ids = [r[0] for r in cr.fetchall()]
+                if not period_ids:
+                    raise osv.except_osv(_('Warning!'),_('Period is not null, please configure it in Period master !'))
+                #to get journal id 
+                sql_journal = '''
+                select id from account_journal
+                '''
+                cr.execute(sql_journal)
+                journal_ids = [r[0] for r in cr.fetchall()]
+                journal = self.pool.get('account.journal').browse(cr,uid,journal_ids[0])
+                #for seq generation
+                sql = '''
+                select code from account_fiscalyear where '%s' between date_start and date_stop
+                '''%(time.strftime('%Y-%m-%d'))
+                cr.execute(sql)
+                fiscalyear = cr.dictfetchone()
+                if not fiscalyear:
+                    raise osv.except_osv(_('Warning!'),_('Financial year has not been configured. !'))
+                sequence = self.pool.get('ir.sequence').get(cr, uid, 'grn.posting.account')
+                name = sequence and sequence+'/'+fiscalyear['code'] or '/'
+                temp_flag = False
+                account_move_obj = self.pool.get('account.move')
+                
+                if not line['account_id']:
+                    raise osv.except_osv(_('Warning!'),_('You need to define Product Asset GL Account for this product'))
+                journal_line.append((0,0,{
+                    'name':line['name'], 
+                    'account_id': 428,
+                    'partner_id': line['partner_id'] or False,
+                    'credit':0,
+                    'debit':line['amount'],
+                    'product_id':line['product_id'],
+                }))
+                
+                if not line['purchase_acc_id']:
+                    raise osv.except_osv(_('Warning!'),_('You need to define Purchase GL Account for this product'))
+                journal_line.append((0,0,{
+                    'name':line['name'], 
+                    'account_id': 588,
+                    'partner_id': line['partner_id'] or False,
+                    'credit':line['amount'],
+                    'debit':0,
+                    'product_id':line['product_id'],
+                }))
+                value={
+                'journal_id':journal.id,
+                'period_id':period_ids[0],
+                'date': date_period,
+                'line_id': journal_line,
+                'doc_type':'grn',
+                'grn_id':line['grn_id'],
+                'ref': line['name'],
+                'name':name, 
+                }
+                new_jour_id = account_move_obj.create(cr,uid,value)
+                auto_ids = self.pool.get('tpt.auto.posting').search(cr, uid, [])
+                if auto_ids:
+                    auto_id = self.pool.get('tpt.auto.posting').browse(cr, uid, auto_ids[0], context=context)
+                    if auto_id.grn:
+                        try:
+                            account_move_obj.button_validate(cr,uid, [new_jour_id], context)
+                        except:
+                            pass
+                
+            
+ 
+         
+        return {'type': 'ir.actions.act_window_close'}
+    # TPT end
+    
     def update_price_unit_for_production_declaration(self, cr, uid, ids, context=None):
         if context is None:
             context = {}
