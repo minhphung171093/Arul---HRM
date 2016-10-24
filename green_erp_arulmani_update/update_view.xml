@@ -97,9 +97,10 @@
 		            	<button name="prd_auto_posting" string="Production Auto Posting" type="object" class="oe_highlight"/>
 		            	
 		            	<button name="adjust_issue_posting_raw" string="Adj Goods Issue Posting - Raw Material" type="object" class="oe_highlight"/>
+		            	<!-- 
 		            	<button name="adjust_issue_posting_spares_2015" string="Adj Goods Issue Posting - Spares 2015" type="object" class="oe_highlight"/>
 		            	<button name="adjust_issue_posting_spares_2016" string="Adj Goods Issue Posting - Spares 2016" type="object" class="oe_highlight"/>
-		            	
+		            	 -->
 		            	<button name="adj_goods_issue" string="Adj Goods Issue - Spares " type="object" class="oe_highlight"/>
 		            	<button name="adj_third_permission" string="Update 3rd Permission" type="object" class="oe_highlight"/>
 		            	
