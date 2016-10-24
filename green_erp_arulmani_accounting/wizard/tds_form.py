@@ -218,7 +218,8 @@ class tds_form_report(osv.osv_memory):
                         inner join account_move am on (am.name=ai.number and ai.move_id = am.id)                                             
                         join res_partner bp on (bp.id=ai.partner_id)
                         left join account_tax at on (at.id=ail.tds_id or at.id=ail.tds_id_2)
-                        where am.date between '%s' and '%s'   
+                        where am.date between '%s' and '%s' 
+                        and am.state != 'cancel'
                         and at.gl_account_id=296                     
             '''%(date_from,date_to)
            
@@ -262,7 +263,7 @@ class tds_form_report(osv.osv_memory):
                          inner join account_account aa on avl.account_id=aa.id
                          inner join account_move am on (am.id=av.move_id)
                          inner join account_move_line aml on (aml.move_id=av.move_id and aa.id = aml.account_id)
-                         where am.state = 'posted' and aa.name ~ 'TDS' 
+                         where am.state != 'cancel' and aa.name ~ 'TDS' 
                          --and aa.gl_account_id=296
                         -- and av.type not in ('payment','receipt')
                          and am.date between '%s' and '%s'
