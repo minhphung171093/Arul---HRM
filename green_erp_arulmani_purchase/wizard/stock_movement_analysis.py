@@ -2292,9 +2292,9 @@ class stock_movement_analysis(osv.osv_memory):
             if si_frt_amt:
                 amt_receipt += si_frt_amt[0] 
             #tpt-end    
-            print 'CST Value:', cst_amt1       
-            print 'Frt Value:', frt_amt1     
-            print 'Sup Frt Value:', si_frt_amt        
+            #print 'CST Value:', cst_amt1       
+            #print 'Frt Value:', frt_amt1     
+            #print 'Sup Frt Value:', si_frt_amt        
             return amt_opening, amt_receipt   
         #
         
@@ -2645,11 +2645,11 @@ class stock_movement_analysis(osv.osv_memory):
                                              receipt_qty,
                 
                 (select case when sum(product_qty*price_unit)>0 then sum(product_qty*price_unit) else 0 end from stock_move where product_id=pp.id and location_dest_id=%(location_spare_id)s 
-                and to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') between '%(date_from)s' and '%(date_to)s' and state = 'done') receipt_value,
+                and date between '%(date_from)s' and '%(date_to)s' and state = 'done') receipt_value,
                 
                 
                 (select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_isu_qty from stock_move where product_id=pp.id and issue_id is not null and 
-                to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') between '%(date_from)s' and '%(date_to)s' and state='done') 
+                date between '%(date_from)s' and '%(date_to)s' and state='done') 
                 +
                 (select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty 
                             from stock_move where product_id = pp.id and state = 'done' and issue_id is null 
