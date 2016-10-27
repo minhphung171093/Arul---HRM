@@ -2198,14 +2198,14 @@ class stock_movement_analysis(osv.osv_memory):
                 case when 
                     SUM(case 
                     when ail.fright_type='1' then ail.fright*100
-                    when ail.fright_type='2' then ail.fright
+                    when ail.fright_type='2' then ail.fright*ai.currency_rate
                     when ail.fright_type='3' then ail.fright*ail.quantity
                     when ail.fright_type is null then ail.fright
                     else 0 end) >=0
                     then    
                     SUM(case 
                     when ail.fright_type='1' then ail.fright*100
-                    when ail.fright_type='2' then ail.fright
+                    when ail.fright_type='2' then ail.fright*ai.currency_rate
                     when ail.fright_type='3' then ail.fright*ail.quantity
                     when ail.fright_type is null then ail.fright
                     else 0 end)                
