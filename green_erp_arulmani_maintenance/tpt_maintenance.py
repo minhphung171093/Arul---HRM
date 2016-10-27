@@ -1462,7 +1462,7 @@ class tpt_material_issue(osv.osv):
 
                 #
                 
-                #===============================================================
+                #===============================================================        
                 # ##TPT-By Balamurugan Purushothaman - ON 31/08/2016 - TO TAKE AVG COST AS UNIT PRICE FOR STOCK_MOVE ENTRIES
                 # avg_cost_ids = avg_cost_obj.search(cr, uid, [('product_id','=',mater.product_id.id),('warehouse_id','=',line.warehouse.id)])
                 # unit = 1
@@ -1902,5 +1902,15 @@ class tpt_service_gpass_line(osv.osv):
     
 tpt_service_gpass_line()
 
+class account_invoice(osv.osv):
+    _inherit = "account.invoice"
+    _columns = {
+        'currency_rate': fields.float('Currency Value', size=1024), 
+    }
+    _defaults = {     
+               'currency_rate':1.00  
+                 }
+account_invoice()    
+    
 ### TPT-Start
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
