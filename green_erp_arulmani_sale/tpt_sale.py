@@ -2763,6 +2763,20 @@ class res_partner(osv.osv):
             context = {}
         if not context.get('approve',False):
             vals.update({'disapprove':False})
+             # Added by P.vinothkumar on 17/10/2016 for validate pan_tin must be 10 digits
+            if 'pan_tin' in vals:
+                pan = vals['pan_tin'].replace(" ", "")
+                if pan == '':
+                    raise osv.except_osv(_('Warning!'),_('Please Provide the pan number!'))
+                if len(pan) < 10:
+                    raise osv.except_osv(_('Warning!'),_('Please enter 10 digits PAN'))
+            if 'tin' in vals:
+                tin = vals['tin'].replace(" ", "")
+                if tin == '':
+                    raise osv.except_osv(_('Warning!'),_('Please Provide the tin number!'))
+                if len(tin) < 11:
+                    raise osv.except_osv(_('Warning!'),_('Please enter 10 digits TIN'))
+            # END
         return super(res_partner, self).write(cr, uid,ids, vals, context)
        
 #      def name_search(self, cr, uid, name, args=None, operator='ilike', context=None, limit=100):

@@ -361,7 +361,7 @@ class res_partner(osv.osv):
         'credit_limit_used': fields.float('Credit Limit',degits=(16,2)),
         'credit_exposure': fields.float('Credit Exposure',degits=(16,2)),
         'vat': fields.float('VAT',degits=(16,2)),
-        'pan_tin': fields.char('PAN',size=128),
+        'pan_tin': fields.char('PAN',size=10),
         'ce_rc': fields.char('Ex. C.E.RC.',size=128),
         'ecc': fields.char('Ex. E.C.C',size=128),
         'sin': fields.char('SIN',size=128),
@@ -401,7 +401,7 @@ class res_partner(osv.osv):
         'sychronized': fields.function(get_sychronized, string='Is Sychronized', type='boolean'),
         #TPT'
         'excise_reg_no': fields.char('Ex.RegNo.',size=128),
-        'tin': fields.char('TIN',size=128),
+        'tin': fields.char('TIN',size=11),
         'street3': fields.char('Street3',size=128),       
         'lst': fields.char('LST',size=128),
         'service_reg_no': fields.char('Service RegNo.',size=128),

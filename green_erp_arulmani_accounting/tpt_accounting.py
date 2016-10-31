@@ -1758,8 +1758,18 @@ class account_invoice(osv.osv):
                         if flag is True:
                             iml += invoice_line_obj.move_line_amount_tax_sbc_14(cr, uid, inv.id)
                             iml += invoice_line_obj.move_line_amount_tax_swachh_bharat_cess_5(cr, uid, inv.id)
-                        # Added by P.vinothkumar on 04/08/2016 for adding krishikalyan-legal,labour    
-                        elif line.tax_id.description in ['STax 15%'] or ['STax 15% for labour (Dr)'] or ['STax 14.5% for Legal (Dr)']:
+                        # Added by P.vinothkumar on 04/08/2016 for adding krishikalyan-legal,labour
+                            
+#                         elif line.tax_id.description in ['STax 15%'] or ['STax 15% for labour (Dr)'] or ['STax 14.5% for Legal (Dr)']:
+#                             iml += invoice_line_obj.move_line_amount_tax_sbc_14(cr, uid, inv.id)
+#                             iml += invoice_line_obj.move_line_amount_tax_swachh_bharat_cess_5(cr, uid, inv.id)
+#                             iml += invoice_line_obj.move_line_amount_tax_krishi_kalyan_cess_5(cr, uid, inv.id)
+                        # Modified by P.vinothkumr on 24/10/2016 for fixing issue in posting    
+                        elif line.tax_id.description == 'STax 15%':
+                            iml += invoice_line_obj.move_line_amount_tax_sbc_14(cr, uid, inv.id)
+                            iml += invoice_line_obj.move_line_amount_tax_swachh_bharat_cess_5(cr, uid, inv.id)
+                            iml += invoice_line_obj.move_line_amount_tax_krishi_kalyan_cess_5(cr, uid, inv.id)
+                        elif line.tax_id.description =='STax 15% for labour (Dr)':   
                             iml += invoice_line_obj.move_line_amount_tax_sbc_14(cr, uid, inv.id)
                             iml += invoice_line_obj.move_line_amount_tax_swachh_bharat_cess_5(cr, uid, inv.id)
                             iml += invoice_line_obj.move_line_amount_tax_krishi_kalyan_cess_5(cr, uid, inv.id)
@@ -3749,7 +3759,10 @@ class account_invoice_line(osv.osv):
                     tax_value = tax_value*30/100      
                 if line.aed_id_1:
                     tax = (basic + p_f + ed + line.aed_id_1)*(tax_value) * voucher_rate
-                    tax = round(tax,2)      
+                    tax = round(tax,2)
+                # Added by P.vinothkumar on 24/10/2016 for calculate null tax values    
+                elif not line.tax_id:
+                    tax=0.0          
                 else:
                     tax = (basic + p_f + ed)*(tax_value) * voucher_rate
                     tax = round(tax,2)
@@ -9359,6 +9372,19 @@ class res_partner(osv.osv):
             acc_obj = self.pool.get('account.account')
             acc_parent_ids = []
             acc_type_ids = self.pool.get('account.account.type').search(cr,uid, [('code','=','payable')])
+            # Added by P.vinothkumar on 17/10/2016 for validate pan and tin no must be 10 digits
+            if 'pan_tin' in vals:
+                pan = vals['pan_tin'].replace(" ", "")
+                if pan == '':
+                    raise osv.except_osv(_('Warning!'),_('Please Provide the pan number!'))
+                if len(pan) < 10:
+                    raise osv.except_osv(_('Warning!'),_('Please enter 10 digits PAN'))
+            if 'tin' in vals:
+                tin = vals['tin'].replace(" ", "")
+                if tin == '':
+                    raise osv.except_osv(_('Warning!'),_('Please Provide the tin number!'))
+                if len(tin) < 11:
+                    raise osv.except_osv(_('Warning!'),_('Please enter 10 digits TIN'))
             if 'vendor_group_id' in vals and vals['vendor_group_id']:
                 group = self.pool.get('tpt.vendor.group').browse(cr,uid,vals['vendor_group_id'])
                 if 'Domestic' in group.name:

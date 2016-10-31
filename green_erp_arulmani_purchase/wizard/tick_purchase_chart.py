@@ -33,6 +33,19 @@ class tick_purchase_chart(osv.osv_memory):
         new_po_ids = []
         if not chart.currency_id:
             raise osv.except_osv(_('Warning!'),_('Currency is not null, please configure it in Quotation master !'))
+        # Added by P.vinothkumar on 17/10/2016 for validate pan and tin no must be 10 digits
+        pan_tin = chart.supplier_id.pan_tin
+        tin = chart.supplier_id.tin
+        tin = tin.replace(" ", "")
+        pan = pan_tin.replace(" ", "")
+        if pan == '':
+            raise osv.except_osv(_('Warning!'),_('Please Provide the pan number!'))
+        if len(chart.supplier_id.pan_tin) < 10:
+            raise osv.except_osv(_('Warning!'),_('Please enter correct pan number'))
+        if tin == '':
+            raise osv.except_osv(_('Warning!'),_('Please Provide the tin number!'))
+        if len(chart.supplier_id.tin) < 11:
+            raise osv.except_osv(_('Warning!'),_('Please enter correct tin number'))
         for line in chart.purchase_quotation_line:
             if line.po_indent_id.document_type == 'local':
                 if tick.po_document_type != 'local':

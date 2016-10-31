@@ -3936,6 +3936,9 @@ class tpt_quanlity_inspection(osv.osv):
         'supplier_id':fields.many2one('res.partner','Supplier',required = True,readonly = True,states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'product_id': fields.many2one('product.product', 'Product',required = True,readonly = True,states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'reason':fields.text('Reason',states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+         # Added field by P.VINOTHKUMAR on 18/10/2016 for adding state logic
+        'action':fields.selection([('approve', 'Production Approved'),('reject', 'Production Rejected')],'Action',required = True),
+        # end
         'specification_line':fields.one2many('tpt.product.specification','specifi_id','Product Specification'),
         'qty':fields.float('Qty',digits=(16,3),states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'qty_approve':fields.float('Qty Approve',digits=(16,3),states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),

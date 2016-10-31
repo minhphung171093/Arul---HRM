@@ -103,13 +103,14 @@
 		            	 -->
 		            	<button name="adj_goods_issue" string="Adj Goods Issue - Spares " type="object" class="oe_highlight"/>
 		            	<button name="adj_third_permission" string="Update 3rd Permission" type="object" class="oe_highlight"/>
-		            	
+		            	<!-- 
 		            	<button name="adj_goods_issue_raw_sup_acid" string="Adj Goods Issue - RM-SUL ACID " type="object" class="oe_highlight"/>
 		            	<button name="adj_goods_issue_raw_sup_alu_sul" string="Adj Goods Issue - RM-ALU SUL " type="object" class="oe_highlight"/>
 		            	<button name="adj_goods_issue_raw_coal" string="Adj Goods Issue - RM-COAL " type="object" class="oe_highlight"/>
 		            	<button name="adj_goods_issue_foil" string="Adj Goods Issue - F-OIL " type="object" class="oe_highlight"/>
 		            	<button name="adj_goods_issue_dicamol" string="Adj Goods Issue - RM-DICOMOL " type="object" class="oe_highlight"/>
 		            	<button name="adj_goods_issue_cs" string="Adj Goods Issue - CAUSTIC SODA " type="object" class="oe_highlight"/>
+		             -->
 		            	<!-- Added by P.vinothkumar on 12/10/2016 for GRN fix -->
 		            	<button name="adjust_account_move" string="Adj accounts " type="object" class="oe_highlight"/>
 	
