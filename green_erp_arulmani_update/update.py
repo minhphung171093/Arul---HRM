@@ -4667,12 +4667,12 @@ class tpt_update_stock_move_report(osv.osv):
     def adj_goods_issue(self, cr, uid, ids, context=None):
         temp_obj = self.pool.get('tpt.aml.sl.line')
         sql = '''
-            select sm.id, pp.default_code, sm.product_qty, sm.price_unit, sm.issue_id, round(sm.product_qty*sm.price_unit, 2) as total  
+            select sm.id, sm.product_id, sm.product_qty, sm.price_unit, sm.issue_id, round(sm.product_qty*sm.price_unit, 2) as total  
             from stock_move sm
             inner join product_product pp on sm.product_id=pp.id
             where to_date(to_char(sm.date, 'YYYY-MM-DD'), 'YYYY-MM-DD') between '2015-04-01' and '2016-03-31'
             and pp.cate_name='spares' and sm.issue_id is not null and sm.state='done' and sm.price_unit>=0
-            --and sm.issue_id=1099
+            --and sm.issue_id=36
             order by sm.issue_id
         '''
         cr.execute(sql)
@@ -4684,14 +4684,16 @@ class tpt_update_stock_move_report(osv.osv):
             inner join account_move am on aml.move_id=am.id
             where am.material_issue_id=%s --and aml.debit>0
             and aml.id not in (select aml_id from tpt_aml_sl_line)
-            order by aml.id limit 2
-            '''%ma['issue_id']
+            and aml.product_id=%s
+            --order by aml.id limit 2
+            order by aml.product_id limit 2
+            '''%(ma['issue_id'], ma['product_id'])
             cr.execute(sql)
 
             for aml in cr.dictfetchall():
                 temp_ids = temp_obj.search(cr, uid, [('aml_id','=',aml['id'])])
                 if not temp_ids:
-                    print ma['issue_id']
+                    #print ma['issue_id']
                     if aml['account_id']==428:
                         sql = '''
                         update account_move_line set credit=%s where id=%s 
