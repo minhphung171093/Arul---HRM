@@ -2076,10 +2076,14 @@
 	            <form string="Material Request" version="7.0">   
 	             <header>
 	            		<button name="bt_approve" states='draft' string="Confirm" type="object" class="oe_highlight" />
-	            		<button name="bt_load_norm" attrs="{'invisible': ['|',('request_type', '!=', 'production'), ('state', '=', 'done')]}" string="Load Lines from Norms" type="object" class="oe_highlight" />
+	            		<!-- Modified state from done to confirmed on 27/09/2016 by P.vinothkumar -->
+	            		<button name="bt_load_norm" attrs="{'invisible': ['|',('request_type', '!=', 'production'), ('state', '=', 'confirmed')]}" string="Load Lines from Norms" type="object" class="oe_highlight" />
 	                    <button name="bt_cancel" states='done' string="Cancel" type="object" class="oe_highlight" />
 	                    <button name="bt_draft" states='cancel' string="Set to Draft" type="object" class="oe_highlight" />
-	                    <field name="state" widget="statusbar" statusbar_visible="draft,done,partially,closed" statusbar_colors='{"draft":"blue"}'/>
+	                    <!-- Added this button on 27/09/2016 by  P.vinothkumar  -->
+	                    <button name="bt_final" states='confirmed' string="Approved" type="object" class="oe_highlight" />
+	                    <!-- Added state on 27/09/2016 by  P.vinothkumar  -->
+	                    <field name="state" widget="statusbar" statusbar_visible="draft,confirmed,done,partially,closed" statusbar_colors='{"draft":"blue"}'/>
 	            </header>    
 	            	<sheet>
 		                <group col="4" colspan="2" >    

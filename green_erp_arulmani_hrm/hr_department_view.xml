@@ -60,6 +60,10 @@
 					<field name="code"/>
 					<field name="name"/>
 					<field name="department_id"/>
+					<!--Added the following fields on 27/09/2016 by P.vinothkumar -->
+					<field name = "primary_auditor_id" options="{'create': false, 'create_edit': false}"/>
+                    <field name = "secondary_auditor_id" options="{'create': false, 'create_edit': false}"/>
+					<field name = "emergency_auditor_id" options="{'create': false, 'create_edit': false}"/>
 					
 				</tree>
 			</field>
@@ -77,6 +81,12 @@
 	                <field name="code"/>
 					<field name="name"/>
 					<field name="department_id" options="{'create': false, 'create_edit': false}"/>
+	                </group>
+	                <group string="Auditors">
+					<!--Added the following fields on 27/09/2016 by P.vinothkumar -->
+					<field name = "primary_auditor_id" options="{'create': false, 'create_edit': false}"/>
+                    <field name = "secondary_auditor_id" options="{'create': false, 'create_edit': false}"/>
+					<field name = "emergency_auditor_id" options="{'create': false, 'create_edit': false}"/>
 	                </group>
 	            
 	         </sheet>

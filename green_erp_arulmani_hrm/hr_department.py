@@ -58,8 +58,12 @@ class arul_hr_section(osv.osv):
     _name = 'arul.hr.section'
     _columns = {
         'name': fields.char('Name', size=1024, required = True),
-         'code': fields.char('Code', size=1024, required = True),
-         'department_id': fields.many2one('hr.department', 'Department',ondelete='cascade'),
+        'code': fields.char('Code', size=1024, required = True),
+        'department_id': fields.many2one('hr.department', 'Department',ondelete='cascade'),
+         # Added the following fields on 28/09/2016 by P.vinothkumar
+        'primary_auditor_id': fields.many2one('res.users', 'Primary Time Auditor',ondelete='restrict'),
+        'secondary_auditor_id':  fields.many2one('res.users', 'Sec. Time Auditor',ondelete='restrict'),
+        'emergency_auditor_id':  fields.many2one('res.users', 'Emegency Time Auditor',ondelete='restrict'),
         
     }
     def create(self, cr, uid, vals, context=None):

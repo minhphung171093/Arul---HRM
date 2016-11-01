@@ -4980,7 +4980,8 @@ class tpt_material_request(osv.osv):
         'project_id': fields.many2one('tpt.project','Project', states={'done':[('readonly', True)], 'cancel':[('readonly', True)]}),
         'project_section_id': fields.many2one('tpt.project.section','Project Section',ondelete='restrict',states={'done':[('readonly', True)], 'cancel':[('readonly', True)]}),
         'material_request_line':fields.one2many('tpt.material.request.line','material_request_id','Vendor Group',states={'done':[('readonly', True)], 'cancel':[('readonly', True)]}),
-        'state':fields.selection([('draft', 'Draft'),('done', 'Approved'),('cancel', 'Cancelled'),('partially', 'Partially Issued'),('closed', 'Closed')],'Status', readonly=True),
+         # added state by P.vinothkumar on 27/09/2016
+        'state':fields.selection([('draft', 'Draft'),('confirmed', 'Confirmed'),('done', 'Approved'),('cancel', 'Cancelled'),('partially', 'Partially Issued'),('closed', 'Closed')],'Status', readonly=True),
         'cost_center_id': fields.many2one('tpt.cost.center','Cost center',states={'done':[('readonly', True)], 'cancel':[('readonly', True)]}),
         'request_type':fields.selection([('production', 'Production'),('normal', 'Normal'),('main', 'Maintenance')],'Request Type', states={'done':[('readonly', True)], 'cancel':[('readonly', True)]}),
                 }
@@ -5359,8 +5360,15 @@ class tpt_material_request(osv.osv):
 #         return True  
     def bt_approve(self, cr, uid, ids, context=None):
         for line in self.browse(cr, uid, ids):
-            self.write(cr, uid, ids,{'state':'done'})
+            self.write(cr, uid, ids,{'state':'confirmed'})
         return True  
+    # Added by P.vinothkumar on 27/09/2016 for adding approval state 
+    def bt_final(self, cr, uid, ids, context=None):
+        for line in self.browse(cr, uid, ids):
+            if  line.department_id.primary_auditor_id.id==uid or line.department_id.secondary_auditor_id.id==uid or line.section_id.primary_auditor_id.id==uid or line.section_id.secondary_auditor_id.id==uid or line.section_id.emergency_auditor_id.id==uid:
+                return self.write(cr, uid, ids,{'state':'done'})
+            else:
+                 raise osv.except_osv(_('Warning!'),_('User does not have permission to approve!'))
     def bt_cancel(self, cr, uid, ids, context=None):
         for line in self.browse(cr, uid, ids):
             #TPT-By BalamuruganPurushothaman-ON 25/11/2015-To avoid throwing write method warning during cancel
