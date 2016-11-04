@@ -115,6 +115,9 @@
 		                			<field name="uom"/>
 		                			<field name="req_qty"/>		                			
 		                			<field name="pen_qty"/>
+		                			<!-- Added issue_qty and issue_value fields by P.VINOTHKUMAR ON 03/11/2016 -->
+		                			<field name="issue_qty"/>
+		                			<field name="issue_value"/>
 		                			<field name="bin"/>
 		                			<field name="project"/>
 		                			<field name="project_sec"/>

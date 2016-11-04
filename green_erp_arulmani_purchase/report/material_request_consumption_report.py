@@ -45,6 +45,8 @@ class Parser(report_sxw.rml_parse):
             #'get_on_hand_qty':self.get_on_hand_qty,
             'get_pending_qty' : self.get_pending_qty,
             'get_issue_qty_count':self.get_issue_qty_count,
+            # Added by P.VINOTHKUMAR ON 03/11/2016
+            'convert_date':self.convert_date,
             
         })
         
@@ -65,6 +67,12 @@ class Parser(report_sxw.rml_parse):
             date = datetime.strptime(wizard_data['date_to'], DATE_FORMAT)
             date = date.strftime('%d/%m/%Y')
         return date
+    
+    # Method Added by P.VINOTHKUMAR ON 03/11/2016
+    def convert_date(self,date):
+        if date:
+            date = datetime.strptime(date, DATE_FORMAT)
+            return date.strftime('%d/%m/%Y')
     
     def get_req_name_code(self,name,code,lname):
         req_name = name
@@ -223,23 +231,29 @@ class Parser(report_sxw.rml_parse):
         project_sec_id=wizard_data['project_section_id']       
         #mat_desc=wizard_data['dec_material']
                 
+        # Modified sql script by P.vinothkumar on 03/11/2016  for adding issue qty and value       
         sql = '''
-            select mr.name as mat_req_no,mr.date_request as mat_req_date,mr.date_expec as exp_date,d.name as department,
-            s.name as section,p.bin_location as bin_loc,e.name_related as requisitioner,e.employee_id as requisitioner_code,
-            e.last_name as lname,res.login as req_raise_by,p.default_code as mat_code,p.name_template as mat_desc,
-            pr.name as proj_name,cc.name as cost_center,u.name as uom,mrl.product_uom_qty as req_qty,            
-            mr.state as state,prs.name as proj_sec_name,mrl.id as lineid
-            from tpt_material_request_line mrl
-            join tpt_material_request mr on (mr.id = mrl.material_request_id)
-            join hr_department d on (d.id = mr.department_id)
-            join arul_hr_section s on (s.id = mr.section_id)
-            left join hr_employee e on (e.id = mr.requisitioner)
-            join res_users res on (res.id = mr.create_uid) 
-            join product_product p on (p.id = mrl.product_id)
-            join product_uom u on (u.id = mrl.uom_po_id)            
-            left join tpt_cost_center cc on (cc.id = mr.cost_center_id)
-            left join tpt_project pr on (pr.id = mr.project_id)
-            left join tpt_project_section prs on (prs.id = mr.project_section_id)            
+                select mr.name as mat_req_no_1,mr.id as mat_req_no,mr.date_request as mat_req_date,mr.date_expec as exp_date,d.name as department,
+                s.name as section,p.bin_location as bin_loc,e.name_related as requisitioner,e.employee_id as requisitioner_code,
+                e.last_name as lname,res.login as req_raise_by,p.default_code as mat_code,p.name_template as mat_desc,
+                pr.name as proj_name,cc.name as cost_center,u.name as uom,mrl.product_uom_qty as req_qty,
+                case when msl.product_isu_qty is null or mi.state='draft' then 0.00 else msl.product_isu_qty end as isu_qty,
+                case when (sm.product_qty * sm.price_unit) is null then 0.00 else (sm.product_qty * sm.price_unit) end as issue_value,                    
+                mr.state as state,prs.name as proj_sec_name,mrl.id as lineid, p.id as product_id
+                from tpt_material_request_line mrl
+                join tpt_material_request mr on (mr.id = mrl.material_request_id)
+                left join tpt_material_issue_line msl on(msl.request_line_id=mrl.id)
+                left join tpt_material_issue mi on(mi.id=msl.material_issue_id)
+                left join stock_move sm on(sm.issue_id=mi.id and msl.product_id=sm.product_id)
+                join hr_department d on (d.id = mr.department_id)
+                join arul_hr_section s on (s.id = mr.section_id)
+                left join hr_employee e on (e.id = mr.requisitioner)
+                join res_users res on (res.id = mr.create_uid) 
+                join product_product p on (p.id = mrl.product_id)
+                join product_uom u on (u.id = mrl.uom_po_id)                    
+                left join tpt_cost_center cc on (cc.id = mr.cost_center_id)
+                left join tpt_project pr on (pr.id = mr.project_id)
+                left join tpt_project_section prs on (prs.id = mr.project_section_id)            
             '''
         
         if date_from or date_to or mat_req_no or cost_cent or requisitioner or department or section or state or mat_code or project_id or project_sec_id:

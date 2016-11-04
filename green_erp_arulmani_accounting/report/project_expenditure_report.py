@@ -96,8 +96,8 @@ class Parser(report_sxw.rml_parse):
         if project_id:
             proj_ids = proj_obj.browse(self.cr,self.uid,project_id[0])
             proj_name = proj_ids.name
-            sql += " and  a.project='%s'"%proj_name
-        sql += "order by project,section,default_code"          
+            sql += " and  tp.name='%s'"%proj_name
+        sql += " order by project,section,default_code"          
         self.cr.execute(sql);
         res = []
         s_no = 1

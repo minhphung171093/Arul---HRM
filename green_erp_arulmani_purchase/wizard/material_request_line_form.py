@@ -74,6 +74,9 @@ class tpt_material_request_line_report(osv.osv_memory):
         'req_qty': fields.float('Req Qty'),
         #'on_hand_qty': fields.float('On-hand Qty'), TPT-Y, fix - 3033
         'pen_qty': fields.float('Pending Qty'),
+        # Added Fields issue qty and issue value by P.VINOTHKUMAR ON 03/11/2016 
+        'issue_qty' :fields.float('Issue Qty'),
+        'issue_value' : fields.float('Issue Value'),
         'bin': fields.char('Bin Location', size = 1024),
         'project': fields.char('Project', size = 1024),         
         'project_sec': fields.char('Project Sub Category', size = 1024),
@@ -274,16 +277,21 @@ class material_request_line_report(osv.osv_memory):
                 mat_code= cb.product_id.id
                 project_id = cb.project_id.id
                 project_sec_id = cb.project_section_id.id            
-                
-                         
+                 
+                # Modified sql script by P.vinothkumar on 03/11/2016  for adding issue qty and value            
                 sql = '''
                     select mr.name as mat_req_no_1,mr.id as mat_req_no,mr.date_request as mat_req_date,mr.date_expec as exp_date,d.name as department,
                     s.name as section,p.bin_location as bin_loc,e.name_related as requisitioner,e.employee_id as requisitioner_code,
                     e.last_name as lname,res.login as req_raise_by,p.default_code as mat_code,p.name_template as mat_desc,
-                    pr.name as proj_name,cc.name as cost_center,u.name as uom,mrl.product_uom_qty as req_qty,                    
+                    pr.name as proj_name,cc.name as cost_center,u.name as uom,mrl.product_uom_qty as req_qty,
+                    case when msl.product_isu_qty is null or mi.state='draft' then 0.00 else msl.product_isu_qty end as isu_qty,
+                    case when (sm.product_qty * sm.price_unit) is null then 0.00 else (sm.product_qty * sm.price_unit) end as issue_value,                    
                     mr.state as state,prs.name as proj_sec_name,mrl.id as lineid, p.id as product_id
                     from tpt_material_request_line mrl
                     join tpt_material_request mr on (mr.id = mrl.material_request_id)
+                    left join tpt_material_issue_line msl on(msl.request_line_id=mrl.id)
+                    left join tpt_material_issue mi on(mi.id=msl.material_issue_id)
+                    left join stock_move sm on(sm.issue_id=mi.id and msl.product_id=sm.product_id)
                     join hr_department d on (d.id = mr.department_id)
                     join arul_hr_section s on (s.id = mr.section_id)
                     left join hr_employee e on (e.id = mr.requisitioner)
@@ -292,7 +300,7 @@ class material_request_line_report(osv.osv_memory):
                     join product_uom u on (u.id = mrl.uom_po_id)                    
                     left join tpt_cost_center cc on (cc.id = mr.cost_center_id)
                     left join tpt_project pr on (pr.id = mr.project_id)
-                    left join tpt_project_section prs on (prs.id = mr.project_section_id)                    
+                    left join tpt_project_section prs on (prs.id = mr.project_section_id)                     
                     '''
                 
                 if date_from or date_to or mat_req_no or cost_cent or requisitioner or department or section or state or mat_code or project_id or project_sec_id:
@@ -422,6 +430,10 @@ class material_request_line_report(osv.osv_memory):
                             #'on_hand_qty': get_on_hand_qty(line['lineid']) or 0.000, TPT-Y, fix - 3033
                             #'pen_qty': line['pen_qty'] or 0.000, YuVi 
                             'pen_qty': get_pending_qty(line['lineid'],line['req_qty'],get_issue_qty_count(line['lineid'])) or 0.000,
+                            # Added by P.vinothkumar on 03/11/2016 
+                            'issue_qty':round(line['isu_qty'],3) or 0.000,
+                            'issue_value':round(line['issue_value'],2) or 0.00,
+                            # end
                             'bin': line['bin_loc'],
                             'project' : line['proj_name'] or '',
                             'project_sec' : line['proj_sec_name'] or '',

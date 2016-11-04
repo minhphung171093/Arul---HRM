@@ -1195,7 +1195,8 @@ class arul_hr_payroll_executions(osv.osv):
                         after_dol = calendar_days - new_emp_day                        
                         total_no_of_leave = total_no_of_leave + after_dol
                     if p.employee_category_id and p.employee_category_id.code == 'S3':
-                        after_dol = 26 - new_emp_day                      
+                        #after_dol = 26 - new_emp_day  #TPT-BM-04/10/2016
+                        after_dol = calendar_days -  new_emp_day           
                         total_no_of_leave = total_no_of_leave + after_dol
                     
                 ##TPT END
