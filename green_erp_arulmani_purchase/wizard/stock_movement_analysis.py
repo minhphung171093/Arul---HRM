@@ -2527,23 +2527,23 @@ class stock_movement_analysis(osv.osv_memory):
                 
                 
                 (select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_isu_qty from stock_move where product_id=pp.id and issue_id is not null and 
-                date between '%(date_from)s' and '%(date_to)s' and state='done') 
+                to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') between '%(date_from)s' and '%(date_to)s' and state='done') 
                 +
 
                 (select case when sum(sm.product_qty)!=0 then sum(sm.product_qty) else 0 end product_qty  from stock_adjustment sa
                 inner join stock_move sm on sa.id=sm.stock_adj_id
-                where sa.adj_type='decrease' and sm.state='done' and sm.product_id=pp.id and sm.date between '%(date_from)s' and '%(date_to)s'
+                where sa.adj_type='decrease' and sm.state='done' and sm.product_id=pp.id and to_date(to_char(sm.date, 'YYYY-MM-DD'), 'YYYY-MM-DD') between '%(date_from)s' and '%(date_to)s'
                 )              
                              consum_qty,
                  
                 
                 (select case when sum(price_unit*product_qty)>0 then sum(price_unit*product_qty) else 0 end from stock_move 
-                where issue_id is not null and product_id=pp.id and date between '%(date_from)s' and '%(date_to)s' and state = 'done'
+                where issue_id is not null and product_id=pp.id and to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') between '%(date_from)s' and '%(date_to)s' and state = 'done'
                 ) +
                 (
                 select case when sum(sm.product_qty*sm.price_unit) >0 then sum(sm.product_qty*sm.price_unit) else 0 end as value from stock_move sm
                 inner join stock_adjustment sa on sm.stock_adj_id=sa.id
-                where sa.adj_type='decrease' and sm.product_id=pp.id and sm.date between '%(date_from)s' and '%(date_to)s'
+                where sa.adj_type='decrease' and sm.product_id=pp.id and to_date(to_char(sm.date, 'YYYY-MM-DD'), 'YYYY-MM-DD') between '%(date_from)s' and '%(date_to)s'
                 )
                 as
                 consum_value
@@ -2649,23 +2649,24 @@ class stock_movement_analysis(osv.osv_memory):
                 
                 
                 (select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_isu_qty from stock_move where product_id=pp.id and issue_id is not null and 
-                date between '%(date_from)s' and '%(date_to)s' and state='done') 
+                to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') between '%(date_from)s' and '%(date_to)s' and state='done') 
                 +
-                (select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty 
-                            from stock_move where product_id = pp.id and state = 'done' and issue_id is null 
-                            and picking_id is null and inspec_id is null and location_id = %(location_spare_id)s 
-                            and date between '%(date_from)s' and '%(date_to)s' and location_id != location_dest_id)
-                +
-                (select case when sum(adj_qty)!=0 then sum(adj_qty) else 0 end adj_qty   from stock_adjustment where product_id=pp.id and posting_date between '%(date_from)s' and '%(date_to)s' and state='done' 
-                and adj_type='decrease')    
-                             consum_qty,
+                (select case when sum(sm.product_qty)!=0 then sum(sm.product_qty) else 0 end product_qty  from stock_adjustment sa
+                inner join stock_move sm on sa.id=sm.stock_adj_id
+                where sa.adj_type='decrease' and sm.state='done' and sm.product_id=pp.id and 
+                to_date(to_char(sm.date, 'YYYY-MM-DD'), 'YYYY-MM-DD') between '%(date_from)s' and '%(date_to)s')  consum_qty,
                  
-                
                 (select case when sum(price_unit*product_qty)>0 then sum(price_unit*product_qty) else 0 end from stock_move 
                 where issue_id is not null and product_id=pp.id
-                and date between '%(date_from)s' and '%(date_to)s'
+                and to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') between '%(date_from)s' and '%(date_to)s'
                 and state = 'done'
-                ) consum_value
+                ) +
+                (
+                select case when sum(sm.product_qty*sm.price_unit) >0 then sum(sm.product_qty*sm.price_unit) else 0 end as value from stock_move sm
+                inner join stock_adjustment sa on sm.stock_adj_id=sa.id
+                where sa.adj_type='decrease' and sm.product_id=pp.id and to_date(to_char(sm.date, 'YYYY-MM-DD'), 'YYYY-MM-DD') between '%(date_from)s' and '%(date_to)s'
+                )
+                as consum_value
                                             
                 from product_product pp
                 inner join product_template pt on  pp.product_tmpl_id=pt.id

@@ -867,7 +867,8 @@
         		
         		<xpath expr="//sheet" position="before">
         			<header>
-		        		<button name="approve_customer" string="Approve" type="object" class="oe_highlight" attrs="{'invisible':[('disapprove','=',True)]}" groups="green_erp_arulmani_sale.group_vvti_sale_manager"/>
+        			<!-- Add groups for approve vendors on 04/11/2016 by P.VINOTHKUMAR-->
+		        		<button name="approve_customer" string="Approve" type="object" class="oe_highlight" attrs="{'invisible':[('disapprove','=',True)]}" groups="green_erp_arulmani_sale.group_vvti_sale_manager,green_erp_arulmani_accounting.group_vvti_purchase_mgr,green_erp_arulmani_accounting.group_vvti_accounting_mgr"/>
 		        	</header>
 			    </xpath>
             </field>

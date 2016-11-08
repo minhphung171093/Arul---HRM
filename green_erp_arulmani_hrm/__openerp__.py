@@ -69,8 +69,8 @@
         
         'report/salary_bank_transfer_report.xml', ##  
         'wizard/salary_bank_transfer_report.xml', ##
-        #'report/designation_wise_total_strength.xml'
-        #'wizard/designation_wise_total_strength.xml'
+        'report/designation_wise_total_strength.xml',
+        'wizard/designation_wise_total_strength.xml',
 #         'data_category.xml', 
         'import_view.xml',
         'green_erp_arulmani_sequence.xml',
