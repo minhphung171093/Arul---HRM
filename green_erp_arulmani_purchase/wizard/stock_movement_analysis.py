@@ -2631,7 +2631,7 @@ class stock_movement_analysis(osv.osv_memory):
                                             (select st.product_qty
                                                 from stock_move st 
                                                 where st.state='done' and st.product_id = pp.id and 
-                                                st.location_dest_id = %(location_spare_id)s and date between '%(date_from)s' and '%(date_to)s'
+                                                st.location_dest_id = %(location_spare_id)s and to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') between '%(date_from)s' and '%(date_to)s'
                                                 and st.location_dest_id != st.location_id
                                                 and (picking_id is not null
                                                      or inspec_id is not null
