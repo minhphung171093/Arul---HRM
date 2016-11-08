@@ -2521,7 +2521,7 @@ class stock_movement_analysis(osv.osv_memory):
                 (
                 select case when sum(sm.product_qty*sm.price_unit) >0 then sum(sm.product_qty*sm.price_unit) else 0 end as value from stock_move sm
                 inner join stock_adjustment sa on sm.stock_adj_id=sa.id
-                where sa.adj_type='increase' and sm.product_id=pp.id and sm.date between '%(date_from)s' and '%(date_to)s'
+                where sa.adj_type='increase' and sm.product_id=pp.id and to_date(to_char(sm.date, 'YYYY-MM-DD'), 'YYYY-MM-DD') between '%(date_from)s' and '%(date_to)s'
                 )
                 receipt_value,
                 
@@ -2604,7 +2604,7 @@ class stock_movement_analysis(osv.osv_memory):
                 (select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty 
                             from stock_move where product_id = pp.id and state = 'done' and issue_id is null 
                             and picking_id is null and inspec_id is null and location_id = %(location_spare_id)s 
-                            and date < '%(date_from)s' and location_id != location_dest_id)) opening_stock, 
+                            and to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') < '%(date_from)s' and location_id != location_dest_id)) opening_stock, 
                 
                 (select case when sum(st.product_qty*price_unit)!=0 then sum(st.product_qty*price_unit) else 0 end ton_sl
                             from stock_move st
