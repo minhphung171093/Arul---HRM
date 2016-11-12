@@ -37,7 +37,7 @@
 		            </group>
 	                <footer>
 	                    <button name='bt_approve' type='object' string="Approve" class="oe_highlight"/>
-	                    <button name='bt_reject'  type='object' string="Reject" class="oe_highlight"/>
+	                    <button name='bt_reject' attrs="{'invisible':[('type','!=','reject')]}" type='object' string="Reject" class="oe_highlight"/>
 	                    or
 	                    <button string="Cancel" special="cancel" />
 	                </footer>
