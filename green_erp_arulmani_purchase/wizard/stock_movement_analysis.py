@@ -2697,7 +2697,7 @@ class stock_movement_analysis(osv.osv_memory):
                 receipt_value = round(receipt_value * (10**3)) / float(10**3)
                 consum_value = round(line['consum_value'] * (10**3)) / float(10**3)
                 
-                print line['consum_qty'], consum_value
+                #print line['consum_qty'], consum_value
                 move_analysis_line.append((0,0,{
                     'item_code': line['default_code'],
                     'item_name': line['name'],
