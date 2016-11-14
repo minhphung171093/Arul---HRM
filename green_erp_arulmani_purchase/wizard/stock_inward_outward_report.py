@@ -584,6 +584,14 @@ class stock_inward_outward_report(osv.osv_memory):
                             and ai.doc_type='supplier_invoice' and ail.fright > 0
                             and am.date between '%(date_from)s' and '%(date_to)s')
                          )
+                         or
+                         ( id in (select  am.id
+                            from stock_move sm
+                            inner join stock_adjustment sa on sm.stock_adj_id=sa.id
+                            inner join account_move am on am.ref=sa.name
+                            where to_date(to_char(sm.date, 'YYYY-MM-DD'), 'YYYY-MM-DD') between '2015-04-01' and '2016-03-31'
+                            and sm.product_id=156
+                         ) )
      
 
                          order by date,doc_type = 'grn' desc, doc_type = 'good' desc, doc_type = 'product' desc, id
@@ -631,7 +639,8 @@ class stock_inward_outward_report(osv.osv_memory):
 #===============================================================================
             #
             
-            res = res1 + res2 #+ res3
+            #res = res1 + res2 #+ res3
+            res = res1  #+ res3
             
             move_line = []
             for line in res:

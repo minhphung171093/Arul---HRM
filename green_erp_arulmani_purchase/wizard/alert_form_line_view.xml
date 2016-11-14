@@ -36,7 +36,7 @@
 		                <field name="quantity" on_change="onchange_quantity(quantity,inspection_quantity)"/>
 		            </group>
 	                <footer>
-	                    <button name='bt_approve' type='object' string="Approve" class="oe_highlight"/>
+	                    <button name='bt_approve' attrs="{'invisible':[('type','!=','approve')]}" type='object' string="Approve" class="oe_highlight"/>
 	                    <button name='bt_reject' attrs="{'invisible':[('type','!=','reject')]}" type='object' string="Reject" class="oe_highlight"/>
 	                    or
 	                    <button string="Cancel" special="cancel" />

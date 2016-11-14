@@ -4672,7 +4672,7 @@ class tpt_update_stock_move_report(osv.osv):
             inner join product_product pp on sm.product_id=pp.id
             where to_date(to_char(sm.date, 'YYYY-MM-DD'), 'YYYY-MM-DD') between '2015-04-01' and '2016-03-31'
             and pp.cate_name='spares' and sm.issue_id is not null and sm.state='done' and sm.price_unit>=0
-            --and sm.issue_id=36
+            and sm.issue_id=20316
             order by sm.issue_id
         '''
         cr.execute(sql)

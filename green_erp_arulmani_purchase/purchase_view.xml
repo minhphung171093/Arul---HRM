@@ -1553,8 +1553,8 @@
 	                    <field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
 	                      -->
 	                      <!--Modified by P.vinothkumar on 18/10/2016 for display logic of approve/reject button  -->
-	                     <button name="%(action_approve_reject_quanlity_inspection)d" groups="green_erp_arulmani_crm.group_qc_user" attrs="{'invisible':['|',('action','!=','approve'),('state','=','done')]}"  string="Approve" type="action" class="oe_highlight"/>
-	                    <button name="%(action_approve_reject_quanlity_inspection)d" groups="green_erp_arulmani_crm.group_qc_user" attrs="{'invisible':['|',('action','=',False),('state','=','done')]}"  string="Reject" type="action" class="oe_highlight"/>
+	                     <button name="%(action_approve_reject_quanlity_inspection)d" groups="green_erp_arulmani_crm.group_qc_user" attrs="{'invisible':['|',('action','!=','approve'),('state','=','done')]}"  string="Approve" type="action" class="oe_highlight" context="{'default_type':'approve'}"/>
+	                    <button name="%(action_approve_reject_quanlity_inspection)d" groups="green_erp_arulmani_crm.group_qc_user" attrs="{'invisible':['|',('action','=',False),('state','=','done')]}"  string="Reject" type="action" class="oe_highlight" context="{'default_type':'reject'}"/>
 	                    <field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
 	                    
 	            </header>    
@@ -1568,9 +1568,9 @@
 						<!--Added by P.vinothkumar on 18/10/2016 for display approve/reject button -->
 						<field name="action"/>
 						<!-- tpt-end -->
-						<field name="qty" invisible = "1" />
 						<field name="remaining_qty"/>
 						<field name="qty_approve" invisible = "0" groups="base.user_root" />
+						<field name="qty" invisible = "1" />
 					</group>
 						<notebook>
 							<page string = "Products Specification">
