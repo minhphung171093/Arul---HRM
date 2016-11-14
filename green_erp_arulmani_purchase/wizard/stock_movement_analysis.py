@@ -2689,6 +2689,15 @@ class stock_movement_analysis(osv.osv_memory):
                 receipt_value += receipt
                 #TPT_END
                 
+                #print opening_value, round(opening_value, 3)
+                #print receipt_value, round(receipt_value, 3), round(73805.8425, 3), round(73805.8425 * (10**3)) / float(10**3)
+                #print line['consum_value'], round(line['consum_value'],3)
+                
+                opening_value = round(opening_value * (10**3)) / float(10**3)
+                receipt_value = round(receipt_value * (10**3)) / float(10**3)
+                consum_value = round(line['consum_value'] * (10**3)) / float(10**3)
+                
+                print line['consum_qty'], consum_value
                 move_analysis_line.append((0,0,{
                     'item_code': line['default_code'],
                     'item_name': line['name'],
@@ -2698,9 +2707,9 @@ class stock_movement_analysis(osv.osv_memory):
                     'receipt_qty':line['receipt_qty'] or 0,
                     'receipt_value':receipt_value or 0, #round(receipt_value,3) or 0,
                     'consum_qty':line['consum_qty'] or 0,
-                    'consum_value': line['consum_value'] or 0 , 
+                    'consum_value': consum_value or 0, #line['consum_value'] or 0 , 
                     'close_stock':line['opening_stock'] + line['receipt_qty'] - line['consum_qty'] or 0,
-                    'close_value': opening_value + receipt_value - line['consum_value'], #round(opening_value, 3) + round(receipt_value, 3) - round(line['consum_value'],3), #tpt-bm-on 16/09/2016 - round off 3 added
+                    'close_value': opening_value + receipt_value - consum_value, #tpt-bm-on 16/09/2016 - round off 3 added
                     'product_id': line['product_id'] or False,                              
                                                 
                                                 
