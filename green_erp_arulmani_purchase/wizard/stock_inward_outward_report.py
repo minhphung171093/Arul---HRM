@@ -1469,10 +1469,12 @@ class stock_inward_outward_report(osv.osv_memory):
             self.current = cur
             #
             tpt_doc_type = get_doc_type(line['doc_type'])
-            if doc_flag=='cst_invoice':
-                tpt_doc_type = 'CST Invoice'
-            elif doc_flag=='sup_invoice_freight':
-                tpt_doc_type = 'Supplier Invoice - Freight Value'   
+            # Added by P.VINOTHKUMAR ON 14/11/2016 for fixing document type 
+            if tpt_doc_type=='CST Invoice' or tpt_doc_type=='Supplier Invoice - Freight Value':
+                if doc_flag=='cst_invoice':
+                    tpt_doc_type = 'CST Invoice'
+                elif doc_flag=='sup_invoice_freight':
+                    tpt_doc_type = 'Supplier Invoice - Freight Value'   
             #
             
             stock_in_out_line.append((0,0,{

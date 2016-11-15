@@ -2294,7 +2294,8 @@ class stock_movement_analysis(osv.osv_memory):
             #tpt-end    
             #print 'CST Value:', cst_amt1       
             #print 'Frt Value:', frt_amt1     
-            #print 'Sup Frt Value:', si_frt_amt        
+            #print 'Sup Frt Value:', si_frt_amt  
+            #print amt_opening, amt_receipt      
             return amt_opening, amt_receipt   
         #
         
@@ -2686,7 +2687,9 @@ class stock_movement_analysis(osv.osv_memory):
                 #TPT-BM-ON 07/07/2016 - FOR FREIGHT-CST INCLUSION
                 opening, receipt = get_frt_cst_amt(line['product_id'], stock.date_from, stock.date_to)
                 opening_value += opening
+                #print "test", receipt_value, receipt
                 receipt_value += receipt
+                #print "test2", receipt_value
                 #TPT_END
                 
                 #print opening_value, round(opening_value, 3)
