@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+		<record id="tpt_acl_wzd" model="ir.ui.view">
+	        <field name="name">tpt.acl</field>
+	        <field name="model">tpt.acl</field>
+	        <field name="arch" type="xml">
+	            <form string="ACL Report" version="7.0">
+	            	<group>
+		                <field name="tpt_group_ids"/>
+		                <field name="tpt_model_ids"/>
+	                </group>
+	                <footer>
+	                     <button name="print_report" type='object' string="OK" class="oe_highlight"/>
+	                    or
+	                     <button string="Cancel" class="oe_highlight" special="cancel" />
+	                </footer>
+	            </form>
+	        </field>
+    	</record>
+
+	    <record model="ir.actions.act_window" id="action_tpt_acl_report">
+	        <field name="name">ACL Report</field>
+	        <field name="type">ir.actions.act_window</field>
+	        <field name="res_model">tpt.acl</field>
+	        <field name="view_type">form</field>
+	        <field name="view_mode">form</field>
+	        <field name="view_id" ref="tpt_acl_wzd" />
+	        <field name="target">new</field>
+	    </record>
+	    
+    </data>
+</openerp>
