@@ -638,7 +638,7 @@ class account_balance_report(osv.osv_memory):
                 #if  line['id']  not in  vendor_child_ids:
                 # Added by P.VINOTHKUMAR ON 19/11/2016 for rename 'vvti pigments' into 'Grand Total'   
                 if line['code']=='0':
-                   line['name'] ='Grand Total'
+                   line['name'] ='Grand Total' 
                 #TPT end 
                 balance_line.append((0,0,{
                     'code': line['code'],
