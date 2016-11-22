@@ -397,8 +397,10 @@ class account_balance_report(osv.osv_memory):
     #===========================================================================
                 
                 #TPT-START : BalamuruganPurushothaman - ON 05/05/2016 - FOR TRIAL BALANCE REPORT HIERARCHY FIX
+                
                 code = account_rec['code']
-                name = account_rec['name']   
+                name = account_rec['name'] 
+                      
                 if len(account_rec['code'])==2:
                     code = '  '+account_rec['code']
                     name = '  '+account_rec['name']
@@ -587,8 +589,13 @@ class account_balance_report(osv.osv_memory):
                     close_credit = (open_cr + credit)
                     total_balance = (close_debit)-(close_credit)
                     
-                    code = line['code']
-                    name = line['name']   
+                    #code = line['code']
+                    #name = line['name']
+                    # Added by P.VINOTHKUMAR ON 19/11/2016 for rename 'vvti pigments' into 'Grand Total'  
+                    if line['code']=='0':
+                        code = line['code']
+                        name = 'Grand Total'
+                    #TPT end       
                     if len(line['code'])==2:
                         code = '  '+line['code']
                         name = '  '+line['name']
@@ -629,6 +636,10 @@ class account_balance_report(osv.osv_memory):
                    
             for line in values:
                 #if  line['id']  not in  vendor_child_ids:
+                # Added by P.VINOTHKUMAR ON 19/11/2016 for rename 'vvti pigments' into 'Grand Total'   
+                if line['code']=='0':
+                   line['name'] ='Grand Total'
+                #TPT end 
                 balance_line.append((0,0,{
                     'code': line['code'],
                     'account': line['name'],

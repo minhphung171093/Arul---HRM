@@ -165,7 +165,7 @@ class Parser(report_sxw.rml_parse):
                 sql='''select cc.id from account_move am
                 inner join tpt_material_issue mi on am.ref=mi.doc_no
                 left join tpt_cost_center cc on mi.cost_center_id=cc.id 
-                where am.id =%s'''%(move_id.id)
+                where am.id =%s and am.state!='cancel' '''%(move_id.id)
         else: 
            sql='''select cost_center_id from account_voucher where move_id =%s'''%(move_id.id)    
         self.cr.execute(sql)
@@ -352,7 +352,7 @@ class Parser(report_sxw.rml_parse):
                     from account_move_line aml
                     inner join account_move am on (am.id=aml.move_id)
                     left join tpt_cost_center cc on (cc.id = am.cost_center_id)                  
-                    where am.date < '%s' and aml.account_id = %s
+                    where am.date < '%s' and aml.account_id = %s and am.state!='cancel'
                  '''%(date_from,gl_account[0])            
             if is_posted:
                 str = " and am.state in ('posted')"
@@ -366,7 +366,7 @@ class Parser(report_sxw.rml_parse):
                     from account_move_line aml
                     inner join account_move am on (am.id=aml.move_id)
                     left join tpt_cost_center cc on (cc.id = am.cost_center_id)                   
-                    where am.date < '%s' and aml.account_id = %s
+                    where am.date < '%s' and aml.account_id = %s and am.state!='cancel'
                 '''%(date_from,gl_account[0])
             if is_posted:
                 str = " and am.state in ('posted')"
@@ -392,7 +392,7 @@ class Parser(report_sxw.rml_parse):
                 from account_move_line aml
                 inner join account_move am on (am.id=aml.move_id)
                 left join tpt_cost_center cc on (cc.id = am.cost_center_id)                  
-                where am.date < '%s' and aml.account_id = %s
+                where am.date < '%s' and aml.account_id = %s and am.state!='cancel'
              '''%(date_from,gl_account[0])            
         if is_posted:
             str = " and am.state in ('posted')"
@@ -406,7 +406,7 @@ class Parser(report_sxw.rml_parse):
                 from account_move_line aml
                 inner join account_move am on (am.id=aml.move_id)
                 left join tpt_cost_center cc on (cc.id = am.cost_center_id)                   
-                where am.date < '%s' and aml.account_id = %s
+                where am.date < '%s' and aml.account_id = %s and am.state!='cancel'
             '''%(date_from,gl_account[0])
         if is_posted:
             str = " and am.state in ('posted')"
@@ -435,7 +435,7 @@ class Parser(report_sxw.rml_parse):
                 from account_move_line aml
                 inner join account_move am on (am.id=aml.move_id)
                 left join tpt_cost_center cc on (cc.id = am.cost_center_id)                  
-                where am.date < '%s' and aml.account_id = %s
+                where am.date < '%s' and aml.account_id = %s and am.state!='cancel'
              '''%(date_from,gl_account[0])            
         if is_posted:
             str = " and am.state in ('posted')"
@@ -449,7 +449,7 @@ class Parser(report_sxw.rml_parse):
                 from account_move_line aml
                 inner join account_move am on (am.id=aml.move_id)
                 left join tpt_cost_center cc on (cc.id = am.cost_center_id)                   
-                where am.date < '%s' and aml.account_id = %s
+                where am.date < '%s' and aml.account_id = %s and am.state!='cancel'
             '''%(date_from,gl_account[0])
         if is_posted:
             str = " and am.state in ('posted')"
@@ -501,7 +501,7 @@ class Parser(report_sxw.rml_parse):
             select ml.id from account_move_line ml
             join account_move m on (m.id=ml.move_id)
             left join tpt_cost_center cc on (cc.id = m.cost_center_id) 
-            where m.date between '%s' and '%s' and ml.account_id = %s           
+            where m.date between '%s' and '%s' and ml.account_id = %s and m.state!='cancel'          
             '''%(date_from, date_to, acc.id)
         if doc_type:
             str = " and m.doc_type in('%s')"%(doc_type)
