@@ -6,4 +6,5 @@ import cost_center_expense_report
 import single_source_vendor_report
 import new_vendor_list_report
 import vendor_ageing_report
+import acl_report
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

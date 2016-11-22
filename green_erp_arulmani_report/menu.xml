@@ -29,5 +29,10 @@
             parent="account.menu_finance_reporting" sequence="220"
             /> 
             
+        <menuitem action="action_tpt_acl_report"
+            id="menu_action_tpt_acl_report"
+            parent="account.menu_finance_reporting" sequence="230"
+            />
+            
     </data>
 </openerp>
