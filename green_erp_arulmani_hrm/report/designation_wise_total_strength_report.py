@@ -63,9 +63,9 @@ class Parser(report_sxw.rml_parse):
         res = []   
         emp_obj = self.pool.get('hr.job') 
         sl_no = 1
-        
+                
         sql = '''
-        select jb.id,jb.name from hr_employee he
+        select distinct jb.id,jb.name from hr_employee he
         join hr_job jb on he.job_id=jb.id
         join vsis_hr_employee_category ec on he.employee_category_id=ec.id
         join resource_resource rr on he.id=rr.id 
