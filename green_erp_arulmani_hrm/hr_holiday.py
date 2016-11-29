@@ -10919,7 +10919,8 @@ class tpt_hr_attendance(osv.osv):
         work_date_format = work_date[:4]+'-'+work_date[5:7]+'-'+work_date[8:10]
         return work_date_format
     def upload_in_time_data(self, cr, uid, context=None):
-        attend_obj = self.pool.get('tpt.hr.attendance') 
+        #attend_obj = self.pool.get('tpt.hr.attendance') 
+        attend_obj = self.pool.get('hr.attendance') #TPT-BM-29/11/2019 - NEW RULE
         attend_temp_obj = self.pool.get('tpt.hr.temp.attendance') 
         ast_obj = self.pool.get('arul.hr.audit.shift.time') 
         attend_obj_ids = attend_obj.search(cr, uid, [('is_processed','=',False)]) #, ('punch_type','=','IN')
