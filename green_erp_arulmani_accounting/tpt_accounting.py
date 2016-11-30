@@ -5549,6 +5549,8 @@ class product_product(osv.osv):
             '''
             cr.execute(sql)
             for loc in cr.dictfetchall():
+                if loc['loc']==15:
+                    print "im here"
                 sql = '''
                     select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end ton_sl,case when sum(foo.price_unit)!=0 then sum(foo.price_unit) else 0 end total_cost from 
                         (select st.product_qty,st.price_unit*st.product_qty as price_unit

@@ -589,8 +589,8 @@ class stock_inward_outward_report(osv.osv_memory):
                             from stock_move sm
                             inner join stock_adjustment sa on sm.stock_adj_id=sa.id
                             inner join account_move am on am.ref=sa.name
-                            where to_date(to_char(sm.date, 'YYYY-MM-DD'), 'YYYY-MM-DD') between '2015-04-01' and '2016-03-31'
-                            and sm.product_id=156
+                            where to_date(to_char(sm.date, 'YYYY-MM-DD'), 'YYYY-MM-DD') between '%(date_from)s' and '%(date_to)s'
+                            and sm.product_id=%(product_id)s
                          ) )
      
 

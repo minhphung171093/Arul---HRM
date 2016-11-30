@@ -1293,7 +1293,8 @@ class tpt_material_issue(osv.osv):
         journal_line = []
         dest_id = False
         move_obj = self.pool.get('stock.move')
-        opening_stock_value = 0         
+        opening_stock_value = 0     
+        unit = 0    
          
         for line in self.browse(cr, uid, ids):
             if line.request_type == 'production':
@@ -1381,7 +1382,7 @@ class tpt_material_issue(osv.osv):
                     else:
                         warehouse_id = line.warehouse.id 
                     avg_cost_ids = avg_cost_obj.search(cr, uid, [('product_id','=',p.product_id.id),('warehouse_id','=',warehouse_id)])
-                    unit = 1
+                    
                     if avg_cost_ids:
                         avg_cost_id = avg_cost_obj.browse(cr, uid, avg_cost_ids[0])
                         unit = avg_cost_id.avg_cost or 0
@@ -1397,14 +1398,14 @@ class tpt_material_issue(osv.osv):
                       'location_dest_id':dest_id,
                       'issue_id':line.id,
                       'date':line.date_expec or False,
-                      'price_unit': opening_stock_value or 0,#Average Cost as Unit Price
+                      'price_unit': unit, #opening_stock_value or 0,#Average Cost as Unit Price
                       }
                  
                 move_id = move_obj.create(cr,uid,rs) #Creating Stock Move Entry
                 # boi vi field price unit tu dong lam tron 2 so thap phan nen phai dung sql de update lai
                 sql = '''
                         update stock_move set price_unit = %s where id = %s
-                '''%(opening_stock_value, move_id)
+                '''%(unit, move_id)
                 cr.execute(sql)
                 move_obj.action_done(cr, uid, [move_id])
                 cr.execute(''' update stock_move set date=%s,date_expected=%s where id=%s ''',(line.date_expec,line.date_expec,move_id,))

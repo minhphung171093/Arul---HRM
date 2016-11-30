@@ -12,7 +12,8 @@ class time_data_upload(osv.osv_memory):
 
     def upload_time_data(self, cr, uid, ids, context=None): 
         print "SCHEDULER JOB - STARTED"
-        attend_obj = self.pool.get('tpt.hr.attendance') 
+        #attend_obj = self.pool.get('tpt.hr.attendance') 
+        attend_obj = self.pool.get('hr.attendance') 
         attend_obj_ids = attend_obj.search(cr, uid, [('is_processed','=',False)])  #, ('is_processed','=','f')
         #b_shift_total_time = b_work_shift1.time_total   
         for time_entry in attend_obj.browse(cr,uid,attend_obj_ids):
