@@ -7,3 +7,6 @@ import single_source_vendor_report
 import new_vendor_list_report
 import vendor_ageing_report
 import acl_report
+import month_wise_consumption_report
+import journal_book_report
+import maintenance_order_expense_report

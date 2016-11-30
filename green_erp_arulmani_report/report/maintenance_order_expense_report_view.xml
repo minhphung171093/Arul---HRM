@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+    	<record id="maintenance_order_expense_report_xls" model="ir.actions.report.xml">
+	        <field name="name">maintenance_order_expense_report_xls</field>
+	        <field name="type">ir.actions.report.xml</field>
+	        <field name="model">maintenance.order.expense.screen</field>
+	        <field name="report_name">maintenance_order_expense_report_xls</field>
+	        <field name="report_type">aeroo</field>
+	        <field name="in_format">oo-ods</field>
+	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-xls'),('compatible_types','=','oo-ods')]"/>
+	        <field name="parser_loc">green_erp_arulmani_report/report/maintenance_order_expense_report.py</field>
+	        <field name="report_rml">green_erp_arulmani_report/report/maintenance_order_expense_report.ods</field>
+	        <field name="parser_state">loc</field>
+	        <field name="tml_source">file</field>
+	        <field name="attachment_use" eval="0"/>
+    	</record>		    
+		<report 
+			auto="True" 
+			menu="False"
+			id="maintenance_order_expense_report_xls" 
+			model="maintenance.order.expense.screen" 
+			name="maintenance_order_expense_report_xls"
+	        string=" Report"
+	        rml="green_erp_arulmani_report/report/maintenance_order_expense_report.ods"/>
+    </data>
+</openerp>

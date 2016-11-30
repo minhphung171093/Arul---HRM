@@ -34,5 +34,20 @@
             parent="account.menu_finance_reporting" sequence="230"
             />
             
+        <menuitem action="action_month_wise_consumption_wizard"
+            id="menu_action_month_wise_consumption_wizard"
+            parent="account.menu_finance_reporting" sequence="240"
+            />
+        
+        <menuitem action="action_journal_book_wizard"
+            id="menu_action_journal_book_wizard"
+            parent="account.menu_finance_reporting" sequence="250"
+            />
+            
+        <menuitem action="action_maintenance_order_expense_wizard"
+            id="menu_action_maintenance_order_expense_wizard"
+            parent="account.menu_finance_reporting" sequence="260"
+            />
+            
     </data>
 </openerp>
