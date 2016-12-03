@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+    	<record id="month_wise_consumption_report" model="ir.actions.report.xml">
+	        <field name="name">month_wise_consumption_report</field>
+	        <field name="type">ir.actions.report.xml</field>
+	        <field name="model">month.wise.consumption.wizard</field>
+	        <field name="report_name">month_wise_consumption_report</field>
+	        <field name="report_type">aeroo</field>
+	        <field name="in_format">oo-ods</field>
+	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-xls'),('compatible_types','=','oo-ods')]"/>
+	        <field name="parser_loc">green_erp_arulmani_report/report/month_wise_consumption_report.py</field>
+	        <field name="report_rml">green_erp_arulmani_report/report/month_wise_consumption_report.ods</field>
+	        <field name="parser_state">loc</field>
+	        <field name="tml_source">file</field>
+	        <field name="attachment_use" eval="0"/>
+    	</record>		    
+		<report 
+			auto="True" 
+			menu="False"
+			id="month_wise_consumption_report" 
+			model="month.wise.consumption.wizard" 
+			name="month_wise_consumption_report"
+	        string="Month Wise Consumption Report"
+	        rml="green_erp_arulmani_report/report/month_wise_consumption_report.ods"/>
+	        
+    </data>
+</openerp>
