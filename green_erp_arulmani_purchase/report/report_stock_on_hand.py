@@ -167,20 +167,24 @@ class Parser(report_sxw.rml_parse):
         #TPT_BM-07/06/2016 - AS ON DATE AS PARAM
         wizard_data = self.localcontext['data']['form']
         date = wizard_data['as_date']
+         # Modified by P.VINOTHKUMAR on 03/12/2016 sql script for fix restrict rejected qty displayed in on-hand field 
         sql = '''
                     select pp.default_code, pt.name, pt.standard_price, pu.name as uom, pp.bin_location,
           pp.min_stock,  pp.max_stock,  pp.re_stock,
          (select case when sum(onhand_qty)>0 then sum(onhand_qty) else 0 end ton
                     From
                     (SELECT
-                           
                         case when loc1.usage != 'internal' and loc2.usage = 'internal'
                         then stm.primary_qty
                         else
                         case when loc1.usage = 'internal' and loc2.usage != 'internal'
                         then -1*stm.primary_qty 
+                        else
+                        case when loc1.usage = 'internal' and loc2.usage = 'internal' and loc2.id=
+                        (select id from stock_location where name='Block List' and usage='internal')
+                        then -1*stm.primary_qty
                         else 0.0 end
-                        end onhand_qty
+                        end end onhand_qty
                                 
                     FROM stock_move stm 
                         join stock_location loc1 on stm.location_id=loc1.id

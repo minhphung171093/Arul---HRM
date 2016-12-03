@@ -493,6 +493,7 @@ class stock_on_hand_report(osv.osv_memory):
                 date = o.date
             else:
                 date = time.strftime('%Y-%m-%d')
+             # Modified by P.VINOTHKUMAR on 03/12/2016 sql script for fix restrict rejected qty displayed in on-hand field     
             sql = '''
                         select pp.id as product_id, pp.default_code, pt.name, pt.standard_price, pu.name as uom, pp.bin_location,
               pp.min_stock,  pp.max_stock,  pp.re_stock,
@@ -505,8 +506,12 @@ class stock_on_hand_report(osv.osv_memory):
                             else
                             case when loc1.usage = 'internal' and loc2.usage != 'internal'
                             then -1*stm.primary_qty 
+                            else
+                            case when loc1.usage = 'internal' and loc2.usage = 'internal' and loc2.id=
+                            (select id from stock_location where name='Block List' and usage='internal')
+                            then -1*stm.primary_qty
                             else 0.0 end
-                            end onhand_qty
+                            end end onhand_qty
                                     
                         FROM stock_move stm 
                             join stock_location loc1 on stm.location_id=loc1.id

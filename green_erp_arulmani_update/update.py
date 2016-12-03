@@ -4304,6 +4304,135 @@ class tpt_update_stock_move_report(osv.osv):
          
         return {'type': 'ir.actions.act_window_close'}
     # TPT end
+     # Created by P.vinothkumar on 25/11/2016 for adjust unitprice in stockmove table
+    def adjust_price_unit(self, cr, uid, ids, context=None):
+         stock_move_obj = self.pool.get('stock.move')
+         sql='''
+         select distinct pro.id from stock_move sm inner join product_product pro on sm.product_id=pro.id
+         and sm.issue_id is not null and sm.date >'2016-10-12' order by pro.id'''
+         cr.execute(sql)
+         for product in cr.dictfetchall():
+            sql= '''select max(id) as id from stock_move where issue_id is not null and product_id=%s and date<'2016-10-14'
+            '''%(product['id'])
+            cr.execute(sql)
+            move_id = cr.dictfetchone()['id']
+            if move_id:
+                sql='''
+                select price_unit from stock_move where product_id=%s and id=%s
+                '''%(product['id'],move_id)
+                cr.execute(sql)
+                unit=cr.dictfetchone()['price_unit'] or 0
+                if unit:
+                    sql='''
+                    update stock_move set price_unit=%s where date >'2016-10-13' and product_id=%s
+                    and issue_id is not null
+                    '''%(unit,product['id'])
+                    cr.execute(sql)
+            # Added by P.VINOTHKUMAR AND BM on 28/11/2016 for fixing if consumption is not done upto 14th october         
+            else:
+                sql= '''select max(id) as id from stock_move where product_id=%s and date<'2016-10-14'
+                '''%(product['id'])
+                cr.execute(sql)
+                move_id = cr.dictfetchone()['id']
+                if move_id:
+                    sql='''
+                    select price_unit from stock_move where product_id=%s and id=%s
+                    '''%(product['id'],move_id)
+                    cr.execute(sql)
+                    unit=cr.dictfetchone()['price_unit'] or 0
+                    if unit:
+                        sql='''
+                        update stock_move set price_unit=%s where date >'2016-10-13' and product_id=%s
+                        and issue_id is not null
+                        '''%(unit,product['id'])
+                        cr.execute(sql)
+               # Added by P.VINOTHKUMAR AND BM on 28/11/2016 for fixing new transactions after 14th october         
+                else:
+                    sql= '''select min(id) as id from stock_move where product_id=%s and date>'2016-10-14'
+                    '''%(product['id'])
+                    cr.execute(sql)
+                    move_id = cr.dictfetchone()['id']
+                    sql='''
+                    select price_unit from stock_move where product_id=%s and id=%s
+                    '''%(product['id'],move_id)
+                    cr.execute(sql)
+                    unit=cr.dictfetchone()['price_unit'] or 0
+                    if unit:
+                        sql='''
+                        update stock_move set price_unit=%s where date >'2016-10-13' and product_id=%s
+                        and issue_id is not null
+                        '''%(unit,product['id'])
+                        cr.execute(sql)
+                       # print "TEST-->"+str(product['id'])+'\n' 
+                #
+                if not move_id:
+                    print str(product['id'])+'\n' 
+         return self.write(cr, uid, ids, {'result':'Price unit adjustment is Done'})
+    # TPT end  
+    # Created by P.vinothkumar on 25/11/2016 for adjust postings in account_move_line table
+    def adj_priceunit_post(self, cr, uid, ids, context=None):
+        temp_obj = self.pool.get('tpt.aml.sl.line')
+        prod_obj = self.pool.get('product.product')
+        cr.execute('delete from tpt_aml_sl_line')
+        sql='''
+        select distinct pro.id from stock_move sm inner join product_product pro on sm.product_id=pro.id and pro.cate_name='raw'
+        and sm.issue_id is not null and sm.date >'2016-10-12' 
+        order by pro.id'''
+        cr.execute(sql)
+        product_ids=cr.fetchall()
+        #product_ids=product[0]
+        product_1 = prod_obj.search(cr, uid, [('id','=',product_ids)])
+        product_1_ids = prod_obj.browse(cr,uid,product_1)
+        for line in product_1_ids:
+            vals = {}
+            asset_acc_id =  line.product_asset_acc_id.id    
+            expense_acc_id =  line.property_account_expense.id
+           #before date > '2016-10-13'
+            sql = '''
+                select sm.id, pp.default_code, sm.product_qty, sm.price_unit, sm.issue_id, round(sm.product_qty*sm.price_unit, 2) as total  
+                from stock_move sm
+                inner join product_product pp on sm.product_id=pp.id
+                where date > '2016-10-13'
+                and pp.cate_name='raw' and sm.issue_id is not null and sm.state='done' and sm.price_unit>=0
+                and sm.product_id=%s
+                order by sm.issue_id
+            '''%(line.id)
+            cr.execute(sql)         
+            for ma in cr.dictfetchall():
+                sql = '''
+                select aml.id, aml.account_id from account_move_line aml
+                inner join account_move am on aml.move_id=am.id
+                where am.material_issue_id=%s --and aml.debit>0
+                and aml.id not in (select aml_id from tpt_aml_sl_line)
+                and aml.account_id in (%s, %s)
+                order by aml.id limit 2
+                '''%(ma['issue_id'], asset_acc_id, expense_acc_id)
+                cr.execute(sql)
+    
+                for aml in cr.dictfetchall():
+                    temp_ids = temp_obj.search(cr, uid, [('aml_id','=',aml['id'])])
+                    if not temp_ids:
+                        print ma['issue_id']
+                        if aml['account_id']==asset_acc_id:
+                            sql = '''
+                            update account_move_line set credit=%s where id=%s 
+                            '''%(ma['total'], aml['id'])
+                            cr.execute(sql)
+                            if cr.rowcount>0:
+                                vals['aml_id'] = aml['id']
+                                temp_obj.create(cr, uid, vals, context)
+                        if aml['account_id']==expense_acc_id:
+                            sql = '''
+                            update account_move_line set debit=%s where id=%s 
+                            '''%(ma['total'], aml['id'])
+                            cr.execute(sql)
+                            if cr.rowcount>0:
+                                vals['aml_id'] = aml['id']
+                                temp_obj.create(cr, uid, vals, context)
+                        
+     
+        return self.write(cr, uid, ids, {'result':'TPT update ISSUE for report Done'})
+    # TPT end
     
     def update_price_unit_for_production_declaration(self, cr, uid, ids, context=None):
         if context is None:

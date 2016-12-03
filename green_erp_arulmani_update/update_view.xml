@@ -113,6 +113,8 @@
 		             -->
 		            	<!-- Added by P.vinothkumar on 12/10/2016 for GRN fix -->
 		            	<button name="adjust_account_move" string="Adj accounts " type="object" class="oe_highlight"/>
+		            	<button name="adjust_price_unit" string="Adj unitprice " type="object" class="oe_highlight"/>
+		            	<button name="adj_priceunit_post" string="Adj Raw postings -all products  " type="object" class="oe_highlight"/>
 	
 		            	
 		            </header>    

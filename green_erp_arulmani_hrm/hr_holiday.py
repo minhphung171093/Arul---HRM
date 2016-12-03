@@ -10919,8 +10919,7 @@ class tpt_hr_attendance(osv.osv):
         work_date_format = work_date[:4]+'-'+work_date[5:7]+'-'+work_date[8:10]
         return work_date_format
     def upload_in_time_data(self, cr, uid, context=None):
-        #attend_obj = self.pool.get('tpt.hr.attendance') 
-        attend_obj = self.pool.get('hr.attendance') #TPT-BM-29/11/2019 - NEW RULE
+        attend_obj = self.pool.get('tpt.hr.attendance') 
         attend_temp_obj = self.pool.get('tpt.hr.temp.attendance') 
         ast_obj = self.pool.get('arul.hr.audit.shift.time') 
         attend_obj_ids = attend_obj.search(cr, uid, [('is_processed','=',False)]) #, ('punch_type','=','IN')
@@ -11390,6 +11389,39 @@ class tpt_time_data_move(osv.osv):
             
                 print "TIME DATA MOVED"
             return True
+    ##TPT-BM-29/11/2016
+    def upload_batronix_time_data(self, cr, uid, context=None):
+        time_obj = self.pool.get('tpt.time.data.move')
+ 
+        sql = '''
+            select employee_code, date, punch_type, id from hr_attendance where is_moved='f'
+        '''
+        cr.execute(sql)
+        time_ids = cr.fetchall()
+        
+        attn_obj = self.pool.get('tpt.hr.attendance')
+        vals = []
+        ntm_ids = ''
+        for time in time_ids:
+            vals = {'employee_id':time[0],
+                    'work_date':time[1],
+                    'punch_type':time[2],     
+                    }
+            if ntm_ids=='':
+                ntm_ids = ntm_ids + str(time[3])
+            else:
+                ntm_ids = ntm_ids +', '+ str(time[3])
+            attn_obj.create(cr, uid, vals)
+        ntm_ids = str(ntm_ids).replace("[", "")
+        ntm_ids = ntm_ids.replace("]", "")
+        if len(ntm_ids)>=1:
+            sql = '''
+            update hr_attendance set is_moved='t' where id in (%s)
+            '''%ntm_ids
+            cr.execute(sql)
+            print "TIME DATA MOVED"
+            return True
+    ##
     def upload_employee(self, cr, uid, context=None):
         "This uploads/creates employee in New Time Machine DB from OpenERP Server, when its called based on Auto Synchronization Process"
         time_obj = self.pool.get('tpt.time.data.move')
