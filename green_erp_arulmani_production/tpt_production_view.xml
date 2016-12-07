@@ -634,7 +634,14 @@
             <field name="search_view_id" ref="tpt_quality_verification_search_view"/>
             <field name="view_id" ref="tpt_quality_verification_tree_view"/>
         </record>
-        
+        <!-- 
+        <record id="action_tpt_quality_verification_form_vw1" model="ir.actions.act_window.view">
+            <field eval="2" name="sequence"/>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="tpt_quality_verification_form_view"/>
+            <field name="act_window_id" ref="action_tpt_quality_verification_form"/>         
+       </record>
+        -->
         <menuitem action="action_tpt_quality_verification_form"
             id="menu_action_tpt_quality_verification_form"
             parent="mrp.menu_mrp_manufacturing" sequence="30"/>
