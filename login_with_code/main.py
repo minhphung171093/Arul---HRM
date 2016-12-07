@@ -57,7 +57,7 @@ class Session1(webmain.Session):
         # whitelist_ids = req.session.model('tpt.whitelist').search([])
         # whitelists = req.session.model('tpt.whitelist').read(whitelist_ids, ['name'])
         #=======================================================================
-        ips = [r['name'] for r in whitelists]
+        #ips = [r['name'] for r in whitelists]
         print "======== check..", two_way_req
         if two_way_req.get('two_way_req') and wsgienv['REMOTE_ADDR'] not in ips:
             return {'two_way_req': True}
