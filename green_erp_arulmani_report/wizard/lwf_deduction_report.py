@@ -12,11 +12,14 @@ class lwf_deduction_wizard(osv.osv_memory):
     
     _columns = {
             'year': fields.selection([(num, str(num)) for num in range(2000, 2060)], 'Year'),
-            'month': fields.selection([('1', 'January'),('2', 'February'), ('3', 'March'), ('4','April'), ('5','May'), ('6','June'), ('7','July'), ('8','August'), ('9','September'), ('10','October'), ('11','November'), ('12','December')], 'Month'),
+#            'month': fields.selection([('1', 'January'),('2', 'February'), ('3', 'March'), ('4','April'), ('5','May'), ('6','June'), ('7','July'), ('8','August'), ('9','September'), ('10','October'), ('11','November'), ('12','December')], 'Month'),
+#TPT RK Month change on 22/12/2016
+            'month': fields.selection([('12','December')], 'Month'),
             'category_id': fields.many2one('vsis.hr.employee.category', 'Employee Category'),
     }
     
     _defaults = {
+                 'month': '12' 
     }
     
     def print_report(self, cr, uid, ids, context=None):

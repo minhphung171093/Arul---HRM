@@ -5549,8 +5549,6 @@ class product_product(osv.osv):
             '''
             cr.execute(sql)
             for loc in cr.dictfetchall():
-                if loc['loc']==15:
-                    print "im here"
                 sql = '''
                     select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end ton_sl,case when sum(foo.price_unit)!=0 then sum(foo.price_unit) else 0 end total_cost from 
                         (select st.product_qty,st.price_unit*st.product_qty as price_unit
@@ -5561,8 +5559,9 @@ class product_product(osv.osv):
                 cr.execute(sql)
                 inventory = cr.dictfetchone()
                 if inventory:
-                    hand_quantity = float(inventory['ton_sl'])
+                    hand_quantity =float(inventory['ton_sl'])
                     total_cost = float(inventory['total_cost'])
+                    # Modified by P.VINOTHKUMAR ON 22/11/2016 for round(avg_cost)
                     avg_cost = hand_quantity and total_cost/hand_quantity or 0
                     sql = '''
                         select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end ton_sl 
@@ -5612,8 +5611,10 @@ class product_product(osv.osv):
                     if produce:
 #                         hand_quantity += float(produce['product_qty'])
                         total_cost += float(produce['produce_cost'])
-                        avg_cost = hand_quantity and total_cost/hand_quantity or 0
-                    #
+                         # Added and Modified by P.VINOTHKUMAR ON 23/11/2016 for round(avg_cost)
+                        hand_quantity = round(hand_quantity,2)
+                        avg_cost = hand_quantity and round(total_cost/hand_quantity,2)
+                        
                     #TPT START - BM - ON 05/07/2016 - GET CST INVOICE ATM + FREIGHT AMT ADDED in TOTAL COST
                     cst_amt = 0.00
                     frt_amt = 0.00
@@ -5682,14 +5683,16 @@ class product_product(osv.osv):
                     #      
                     if hand_quantity>0 and loc['loc'] in [14, 15]: #Spares, Raw respectively 
                         total_cost += (cst_amt + frt_amt + si_frt_amt)
-                        avg_cost = total_cost  / hand_quantity
-                    #TPT-END
-                    #
+                        # Modified by P.VINOTHKUMAR ON 23/11/2016 for round(avg_cost,2)
+                        hand_quantity = round(hand_quantity,2)
+                        avg_cost = round(total_cost  / hand_quantity,2)
+                        
                     inventory_obj.create(cr, uid, {'product_id':id,
                                                    'warehouse_id':loc['loc'],
                                                    'hand_quantity':hand_quantity,
                                                    'avg_cost':avg_cost,
-                                                   'total_cost':total_cost})
+                                                   # Modified by P.VINOTHKUMAR ON 22/11/2016
+                                                   'total_cost':avg_cost * hand_quantity})
             result[id] = 'Avg Cost'
         return result
     
