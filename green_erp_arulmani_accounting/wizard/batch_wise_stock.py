@@ -17,12 +17,14 @@ class tpt_batch_wise_stock(osv.osv):
         'product_id':fields.many2one('product.product','Product Code'),
         'location_id':fields.many2one('stock.location','Warehouse Location'),
         'application_id':fields.many2one('crm.application','Application'),
+        'total':fields.float('total',digits=(16,3)),
     }
     
     def print_xls(self, cr, uid, ids, context=None):
         if context is None:
             context = {}
-        datas = {'ids': context.get('active_ids', [])}
+        #datas = {'ids': context.get('active_ids', [])}
+        datas = {'ids': ids}
         datas['model'] = 'tpt.batch.wise.stock'
         datas['form'] = self.read(cr, uid, ids)[0]
         datas['form'].update({'active_id':context.get('active_ids',False)})
@@ -31,7 +33,8 @@ class tpt_batch_wise_stock(osv.osv):
     def print_pdf(self, cr, uid, ids, context=None):
         if context is None:
             context = {}
-        datas = {'ids': context.get('active_ids', [])}
+        #datas = {'ids': context.get('active_ids', [])}
+        datas = {'ids': ids}
         datas['model'] = 'tpt.batch.wise.stock'
         datas['form'] = self.read(cr, uid, ids)[0]
         datas['form'].update({'active_id':context.get('active_ids',False)})
@@ -58,6 +61,7 @@ class batch_wise_stock(osv.osv_memory):
                 'product_id':fields.many2one('product.product','Product Code'),
                 'location_id':fields.many2one('stock.location','Warehouse Location',required=True),
                 'application_id':fields.many2one('crm.application','Application'),
+                #'total':fields.float('total',digits=(16,3)),
                 }
     
     def print_report(self, cr, uid, ids, context=None):
@@ -215,26 +219,28 @@ class batch_wise_stock(osv.osv_memory):
                         )foo
                 '''%(product.id,location_data.id,product.id,location_data.id)
                 cr.execute(sql)
-                tons = cr.fetchone()[0]
+                tons = cr.fetchone()[0]             
             return float(tons)
     
         cr.execute('delete from tpt_batch_wise_stock')
         bw_obj = self.pool.get('tpt.batch.wise.stock')
         bw = self.browse(cr, uid, ids[0])
         bw_line = []
+        theSum = 0.0
         for product in get_line_product(bw):
+            theSum = theSum + get_total_qty(product,bw)            
             bw_line.append((0,0,{
                 'col_1': 'Product Code: ',
                 'col_2': product.default_code,
                 'col_3': 'Product Name: '+product.name,
-                'col_4': 'Total Qty: '+"{0:.3f}".format(get_total_qty(product,bw),','),
+                'col_4': 'Total Qty: '+"{0:.3f}".format(get_total_qty(product,bw),','),                                
             }))
             bw_line.append((0,0,{
                 'col_1': 'S.No',
                 'col_2': 'Batch No',
                 'col_3': 'Application',
                 'col_4': 'On Hand Qty',
-            }))
+            }))            
             for seq, line in enumerate(get_line_batch(product,bw)):
                 bw_line.append((0,0,{
                     'col_1': str(seq+1),
@@ -249,6 +255,7 @@ class batch_wise_stock(osv.osv_memory):
             'product_id': bw.product_id and bw.product_id.id or False,
             'location_id': bw.location_id and bw.location_id.id or False,
             'application_id': bw.application_id and bw.application_id.id or False,
+            'total':theSum,
         }
         bw_id = bw_obj.create(cr, uid, vals)
         res = self.pool.get('ir.model.data').get_object_reference(cr,uid, 

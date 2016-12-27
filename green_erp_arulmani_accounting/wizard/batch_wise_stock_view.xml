@@ -49,8 +49,9 @@
             				Finished Goods Bath Wise List As Of <field name="date" nolabel="1" class = "oe_inline"/>
             			</div>
             			<div class="oe_text_center oe_bold">
-            				Ware House Location: <field name="location_id" nolabel="1" class = "oe_inline"/>
-            			</div>
+            				Ware House Location : <field name="location_id" nolabel="1" class = "oe_inline"/> - 
+            				<field name="total" nolabel="1" class = "oe_inline"/>
+            			</div>   
 		            	<group>
 		                	<field name="batch_wise_line" nolabel='1'>
 		                		<tree create="false" edit="false" delete="false">

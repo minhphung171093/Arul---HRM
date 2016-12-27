@@ -2332,21 +2332,17 @@ class account_invoice(osv.osv):
             hand_quantity = inv_ids.hand_quantity
             total_cost = inv_ids.total_cost
             total_cost += freight_amt
-            #
+            # Added by P.VINOTHKUMAR ON 27/12/2016 for calculate current value in product avg_cost
             sql = '''
-            select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end ton_sl,case when sum(foo.price_unit)!=0 then sum(foo.price_unit) else 0 end total_cost from 
-            (select st.product_qty,st.price_unit*st.product_qty as price_unit
-                from stock_move st 
-                where st.state='done' and st.product_id=%s and st.location_dest_id=%s and st.location_dest_id != st.location_id and production_id is null
-            )foo
-            '''%(line.product_id.id, location_id)
+                select avg_cost,total_cost,hand_quantity
+                from tpt_product_avg_cost where product_id=%s and warehouse_id=%s
+                '''%(line.product_id.id, location_id)
             cr.execute(sql)
             inventory = cr.dictfetchone()
             if inventory:
-                hand_quantity_temp = float(inventory['ton_sl'])
-                total_cost_temp = float(inventory['total_cost'])
-                avg_cost = hand_quantity_temp and total_cost_temp/hand_quantity_temp or 0                               
-                total_cost = avg_cost*hand_quantity
+                hand_quantity = round(float(inventory['hand_quantity']),2)
+                total_cost = round(float(inventory['total_cost']),2)
+                avg_cost = round(float(inventory['avg_cost']),2)
                 total_cost += freight_amt
                 if hand_quantity>0:
                     #TPT-BM-ON 05/07/2016 - GET CST INVOICE AMT
@@ -2393,19 +2389,19 @@ class account_invoice(osv.osv):
                     if frt_amt:
                         frt_amt = frt_amt[0]    
                     #
-                    ##
+                    #Modified by P.VINOTHKUMAR FOR MODIFY ail.fright_type='1' in script 
                     sql = '''
                     select 
                         case when 
                             SUM(case 
-                            when ail.fright_type='1' then ail.fright*100
+                            when ail.fright_type='1' then ((ail.quantity * ail.price_unit) + ail.p_f + ail.ed + ail.tpt_tax_amt) * ail.fright/100
                             when ail.fright_type='2' then ail.fright
                             when ail.fright_type='3' then ail.fright*ail.quantity
                             when ail.fright_type is null then ail.fright
                             else 0 end) >=0
                             then    
                             SUM(case 
-                            when ail.fright_type='1' then ail.fright*100
+                            when ail.fright_type='1' then ((ail.quantity * ail.price_unit) + ail.p_f + ail.ed + ail.tpt_tax_amt) * ail.fright/100
                             when ail.fright_type='2' then ail.fright
                             when ail.fright_type='3' then ail.fright*ail.quantity
                             when ail.fright_type is null then ail.fright
@@ -2415,14 +2411,12 @@ class account_invoice(osv.osv):
                         inner join account_invoice_line ail on ai.id=ail.invoice_id
                         where ail.product_id=%s and 
                         ai.state not in ('draft', 'cancel')
-                        and ai.doc_type='supplier_invoice' and ail.fright>0 
-                        
+                        and ai.doc_type='supplier_invoice' and ail.fright>0  
                     '''%(line.product_id.id)
                     cr.execute(sql)
                     si_frt_amt = cr.fetchone()
                     if si_frt_amt:
                         si_frt_amt = si_frt_amt[0] 
-                    ##
                     total_cost += (cst_amt + frt_amt + si_frt_amt)
                     avg_cost = total_cost  / hand_quantity
                 else:
@@ -2432,10 +2426,10 @@ class account_invoice(osv.osv):
                 cr.execute(sql)  
                 #inventory_obj.write(cr, uid, [inv_ids.id], vals, context)
                 inventory_obj.create(cr, uid, {'product_id': line.product_id.id,
-                                                   'warehouse_id': location_id,
-                                                   'hand_quantity': hand_quantity,
-                                                   'avg_cost': avg_cost, # total_cost/hand_quantity,
-                                                   'total_cost': total_cost})     
+                                               'warehouse_id': location_id,
+                                               'hand_quantity': hand_quantity,
+                                               'avg_cost': avg_cost, # total_cost/hand_quantity,
+                                               'total_cost': avg_cost * hand_quantity})     
         return True
     ###
 
@@ -2448,10 +2442,25 @@ class account_invoice(osv.osv):
         ctx = context.copy()
         inventory_obj = self.pool.get('tpt.product.avg.cost')
         inv_id = self.pool.get('account.invoice').browse(cr, uid, invoice_id)
-        
         inv_line_net_amt = 0
         location_id = False
         for line in inv_id.invoice_line:
+         #Added by P.VINOTHKUMAR on 22/12/2016 for adding freight details in supplier invoice 
+            basic = 0.0
+            p_f = 0.0
+            ed = 0.0
+            fright = 0.0
+            voucher_rate = 1
+            freight_amt = 0
+            basic = (line.quantity * line.price_unit) - ( (line.quantity * line.price_unit)*line.disc/100)
+            basic = round(basic,2)    
+            if line.fright_type=='1':
+                freight_amt =  (basic + line.p_f + line.ed + line.tpt_tax_amt) * line.fright/100
+            elif line.fright_type=='2':
+                freight_amt = line.fright
+            elif line.fright_type=='3':
+                freight_amt = line.fright*line.quantity
+            print freight_amt    
             description = [r.description for r in line.invoice_line_tax_id]
             if description and 'CST' in description[0]:                    
                 print line.tpt_tax_amt
@@ -2459,14 +2468,14 @@ class account_invoice(osv.osv):
                 if line.product_id.cate_name=='spares':
                     location_id = 14
                 if line.product_id.cate_name=='raw':
-                    location_id = 15
-                    
+                    location_id = 15  
                 inv_obj_ids = inventory_obj.search(cr, uid, [('product_id', '=', line.product_id.id),('warehouse_id', '=', location_id)])
                 inv_ids = inventory_obj.browse(cr, uid, inv_obj_ids[0])
                 hand_quantity = inv_ids.hand_quantity
                 total_cost = inv_ids.total_cost
-                total_cost += line.tpt_tax_amt
-                
+                total_cost += line.tpt_tax_amt  
+                total_cost += freight_amt
+
                 #===============================================================
                 # vals = {'total_cost': total_cost,
                 #         'avg_cost': total_cost/hand_quantity, 
@@ -2474,29 +2483,31 @@ class account_invoice(osv.osv):
                 #===============================================================
                 
                 #
+#                 sql = '''
+#                 select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end ton_sl,case when sum(foo.price_unit)!=0 then sum(foo.price_unit) else 0 end total_cost from 
+#                 (select st.product_qty,st.price_unit*st.product_qty as price_unit
+#                     from stock_move st 
+#                     where st.state='done' and st.product_id=%s and st.location_dest_id=%s and st.location_dest_id != st.location_id and production_id is null
+#                 )foo
+#                 '''%(line.product_id.id, location_id)
                 sql = '''
-                select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end ton_sl,case when sum(foo.price_unit)!=0 then sum(foo.price_unit) else 0 end total_cost from 
-                (select st.product_qty,st.price_unit*st.product_qty as price_unit
-                    from stock_move st 
-                    where st.state='done' and st.product_id=%s and st.location_dest_id=%s and st.location_dest_id != st.location_id and production_id is null
-                )foo
+                select avg_cost,total_cost,hand_quantity
+                from tpt_product_avg_cost where product_id=%s and warehouse_id=%s
                 '''%(line.product_id.id, location_id)
                 cr.execute(sql)
                 inventory = cr.dictfetchone()
                 if inventory:
-                    hand_quantity_temp = float(inventory['ton_sl'])
-                    total_cost_temp = float(inventory['total_cost'])
-                    avg_cost = hand_quantity_temp and total_cost_temp/hand_quantity_temp or 0                               
-                    total_cost = avg_cost*hand_quantity
+                    hand_quantity = round(float(inventory['hand_quantity']),2)
+                    total_cost = round(float(inventory['total_cost']),2)
+                    avg_cost = round(float(inventory['avg_cost']),2)
                     total_cost += line.tpt_tax_amt
+                    total_cost += round(freight_amt,2)
                     if hand_quantity>0:
                         #TPT-BM-ON 05/07/2016 - GET CST INVOICE AMT
                         cst_amt = 0.0
                         sql = '''
                         select 
-                        
                         case when sum(ail.tpt_tax_amt)>=0 then sum(ail.tpt_tax_amt) else 0 end as cst_amt 
-                        
                         from account_invoice ai
                         inner join account_invoice_line ail on ai.id=ail.invoice_id
                         inner join account_invoice_line_tax ailt on ail.id=ailt.invoice_line_id
@@ -2510,9 +2521,10 @@ class account_invoice(osv.osv):
                             cst_amt = cst_amt[0]
                         
                         frt_amt = 0.0
+                        si_frt_amt = 0.0
                         sql = '''
                             select
-                            
+
                             case when 
                             SUM(case when ail.fright_fi_type='2' then ail.fright
                             when ail.fright_fi_type='3' then ail.fright*ail.quantity
@@ -2533,24 +2545,23 @@ class account_invoice(osv.osv):
                         if frt_amt:
                             frt_amt = frt_amt[0]
                             
-                        #
                         total_cost += (cst_amt + frt_amt)
                         avg_cost = total_cost  / hand_quantity
+                        #hand_quantity = round(hand_quantity,2)
                     else:
                         avg_cost = 0
-                
-                #
-                #
+
                 
                 sql = 'delete from tpt_product_avg_cost where id=%s'%(inv_ids.id)
                 cr.execute(sql)  
                 #inventory_obj.write(cr, uid, [inv_ids.id], vals, context)
                 inventory_obj.create(cr, uid, {'product_id': line.product_id.id,
-                                                   'warehouse_id': location_id,
-                                                   'hand_quantity': hand_quantity,
-                                                   'avg_cost': avg_cost, # total_cost/hand_quantity,
-                                                   'total_cost': total_cost})     
+                                               'warehouse_id': location_id,
+                                               'hand_quantity': hand_quantity,
+                                               'avg_cost': avg_cost, # total_cost/hand_quantity,
+                                               'total_cost': avg_cost * hand_quantity})     
         return True
+    ##
     ##
     ## 
     ##

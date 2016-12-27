@@ -1614,7 +1614,7 @@
             <field name="arch" type="xml">
                 <tree colors="blue:state == 'draft';gray:state == 'cancel';red:audit" string="Bank Transaction">
                     <field name="date"/>
-                    <field name="number"/>
+                    <field name="name"/>
                     <field name="reference"/>
                     <field name="partner_id"/>
                     <field name="journal_id" groups="account.group_account_user"/>
@@ -1751,7 +1751,7 @@
             <field name="arch" type="xml">
                 <tree colors="blue:state == 'draft';gray:state == 'cancel';red:audit" string="Bank Transaction">
                     <field name="date"/>
-                    <field name="number"/>
+                    <field name="name"/>
                     <field name="reference"/>
                     <field name="partner_id"/>
                     <field name="journal_id" groups="account.group_account_user"/>

@@ -45,8 +45,22 @@ class Parser(report_sxw.rml_parse):
             'get_batch_name': self.get_batch_name,
             'get_application': self.get_application,
             'get_total_qty': self.get_total_qty,
+            'get_total': self.get_total_qty,
+            'get_filter': self.get_filter,
         })
-    
+    def get_filter(self, o):
+        print o#.batch_wise_line
+        res = [] 
+        for prd in o.batch_wise_line:
+            if prd.col_1 not in ('S.No'):
+                res.append( {
+                       'col_1':prd.col_1,
+                       'col_2':prd.col_2,
+                       'col_3':prd.col_3,
+                       'col_4':prd.col_4,
+                       })
+        return res
+        
     def convert_date(self, date):
         if date:
             date = datetime.strptime(date, DATE_FORMAT)
