@@ -297,6 +297,19 @@ class Parser(report_sxw.rml_parse):
                     '''%(month, year, month, year, emp_id)
                 self.cr.execute(sql)
                 special_holiday_worked_count = self.cr.dictfetchone()['total_shift_worked']
+                # Added by P.VINOTHKUMAR on 29/12/2016 for calculate reliving day of employee
+                leaving_action_day=0.0
+                sql='''
+                select distinct case when exists(select extract(day from action_date) as day 
+                from arul_hr_employee_action_history where employee_id=(%(emp_id)s)and action_id=1) then 
+                (select extract(day from action_date) as day 
+                from arul_hr_employee_action_history where employee_id=(%(emp_id)s) and action_id=1) else 0.0 end as day
+                from arul_hr_employee_action_history
+                '''%{'emp_id':int(emp_id)
+                      }
+                self.cr.execute(sql)
+                leaving_action_day = self.cr.dictfetchone()['day']
+                # TPT P.VINOTHKUMAR end
                 
                 title=''
                 if payroll.employee_id.gender=='male':
@@ -313,12 +326,37 @@ class Parser(report_sxw.rml_parse):
                 total_working_days = 0
                 tdw = 0
                 ndw = 0
+                # Commented by P.VINOTHKUMAR on fixing 29/12/2016
+#                 if payroll.employee_id.employee_category_id.code=='S3':
+#                     tdw = 26 
+#                     ndw = tdw - (tpt_lop_leave + tpt_esi_leave)
+#                 else:
+#                     tdw = calendar_days
+#                     ndw = tdw - (tpt_lop_leave + tpt_esi_leave)
+
+                # Added by P.VINOTHKUMAR on 29/12/2016 for calculate reliving day of employee
+                if payroll.employee_id.employee_category_id.code=='S1':
+                        if leaving_action_day:
+                            tdw =leaving_action_day
+                        else:    
+                            tdw = calendar_days          
+                        ndw = tdw - (tpt_lop_leave + tpt_esi_leave)
+                        
+                if payroll.employee_id.employee_category_id.code=='S2':  
+                        if leaving_action_day:
+                            tdw =leaving_action_day
+                        else:    
+                            tdw = calendar_days      
+                        ndw = tdw - (tpt_lop_leave + tpt_esi_leave)
+                        
                 if payroll.employee_id.employee_category_id.code=='S3':
-                    tdw = 26 
-                    ndw = tdw - (tpt_lop_leave + tpt_esi_leave)
-                else:
-                    tdw = calendar_days
-                    ndw = tdw - (tpt_lop_leave + tpt_esi_leave)
+                        if leaving_action_day:
+                            tdw =leaving_action_day
+                        else:    
+                            tdw = 26           
+                        ndw = tdw - (tpt_lop_leave + tpt_esi_leave)
+                        
+                # TPT end 29/12/2016
                 
                 sql = '''
                     select extract(day from date_of_joining) doj from hr_employee where extract(year from date_of_joining)= %s and 
@@ -326,20 +364,32 @@ class Parser(report_sxw.rml_parse):
                     '''%(year,month,emp_id)
                 self.cr.execute(sql)
                 k = self.cr.fetchone()
+                # Modified  by P.VINOTHKUMAR on 29/12/2016 for calculate reliving day of employee
                 if k:
                     new_emp_day = k[0]    
                     if payroll.employee_id.employee_category_id.code=='S1':
-                        tdw = calendar_days          
-                        temp = calendar_days - new_emp_day + 1
+                        if leaving_action_day:
+                            tdw =leaving_action_day
+                        else:    
+                            tdw = calendar_days          
+                        #temp = calendar_days - new_emp_day + 1
+                        temp = tdw - new_emp_day + 1
                         ndw = temp - (tpt_lop_leave + tpt_esi_leave)
                         
                     if payroll.employee_id.employee_category_id.code=='S2':  
-                        tdw = calendar_days         
-                        temp = calendar_days - new_emp_day + 1
+                        if leaving_action_day:
+                            tdw =leaving_action_day
+                        else:    
+                            tdw = calendar_days      
+                        #temp = calendar_days - new_emp_day + 1
+                        temp = tdw - new_emp_day + 1
                         ndw = temp - (tpt_lop_leave + tpt_esi_leave)
                         
-                    if payroll.employee_id.employee_category_id.code=='S3': 
-                        tdw = 26           
+                    if payroll.employee_id.employee_category_id.code=='S3':
+                        if leaving_action_day:
+                            tdw =leaving_action_day
+                        else:    
+                            tdw = 26           
 #                       temp = 26 - new_emp_day - 4 + 1 # 4 is weekly off
                         temp = tdw - new_emp_day + 1 # Modified by P.vinothkumar on 30/09/2016 for display no of days wrongly in payslip(incident No:3777).
                         ndw = temp - (tpt_lop_leave + tpt_esi_leave)

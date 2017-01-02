@@ -3453,7 +3453,14 @@ class purchase_order_line(osv.osv):
                 'po_document_name_relate':fields.related('order_id', 'name',type = 'char', string='PO Document No'),
                 'date_order_relate':fields.related('order_id', 'date_order',type = 'date', string='Order Date'),
                 'po_document_type_relate':fields.related('order_id', 'po_document_type',type = 'selection',selection=[
-            ('raw','VV Raw material PO'),('asset','VV Capital PO'),('standard','VV Standard PO'),('local','VV Local PO'),('return','VV Return PO'),('service','VV Service PO'),('out','VV Out Service PO')], string='PO Document Type'),
+            ('raw','VV Raw material PO'),('asset','VV Capital PO'),
+            ('standard','VV Standard PO'),
+            ('local','VV Local PO'),('return','VV Return PO'),
+            ('service','VV Service PO'),('out','VV Out Service PO'),
+            # Added by Selvaram on 02/01/2016 for tax value issue
+            ('service_qty','VV Service PO(Qty Based)'),('service_amt','VV Service PO(Amt Based)'),
+            ], string='PO Document Type'),
+                # TPT Selvaram end
                 'supplier_relate':fields.related('order_id', 'partner_id',type = 'many2one', relation='res.partner', string='Supplier'),
                 'state_relate':fields.related('order_id', 'state' ,type = 'selection',selection=[
                                    ('draft', 'Draft PO'),
