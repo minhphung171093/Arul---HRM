@@ -10934,6 +10934,7 @@ class tpt_hr_attendance(osv.osv):
             # employee_id = emp_id[0]  #time_entry.employee_id.id
             #===================================================================
             ###Get Employee
+            #print time_entry.employee_id
             emp_obj = self.pool.get('hr.employee') 
             emp_obj_ids = emp_obj.search(cr, uid, [('employee_id','=',time_entry.employee_id)]) 
             emp_root = emp_obj.browse(cr,uid,emp_obj_ids[0])
@@ -10955,7 +10956,7 @@ class tpt_hr_attendance(osv.osv):
             work_date_format = work_date[:4]+'-'+work_date[5:7]+'-'+work_date[8:10]
             
             
-            if punch_type=='IN':
+            if punch_type=='in':
                 in_time = float(hour)+float(min)/60+float(sec)/3600
                 attend_temp_obj.create(cr, uid, {
                                  'employee_id': emp_root.id,
@@ -10975,7 +10976,7 @@ class tpt_hr_attendance(osv.osv):
                                  'employee_category_id':emp_root.employee_category_id.id,
                                  'type':'punch',
                                   })
-            if punch_type=='OUT':
+            if punch_type=='out':
                 out_time = float(hour)+float(min)/60+float(sec)/3600
                 #===============================================================
                 # attend_temp_obj_ids = attend_temp_obj.search(cr, uid, [('employee_id','=',emp_root.id), ('work_date','=',work_date_format)]) 
@@ -11392,8 +11393,7 @@ class tpt_time_data_move(osv.osv):
             return True
     ##TPT-BM-29/11/2016
     def upload_batronix_time_data(self, cr, uid, context=None):
-        time_obj = self.pool.get('tpt.time.data.move')
- 
+        #time_obj = self.pool.get('tpt.time.data.move')
         sql = '''
             select employee_code, date, punch_type, id from hr_attendance where is_moved='f'
         '''
