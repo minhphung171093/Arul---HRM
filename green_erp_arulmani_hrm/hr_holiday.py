@@ -10934,7 +10934,7 @@ class tpt_hr_attendance(osv.osv):
             # employee_id = emp_id[0]  #time_entry.employee_id.id
             #===================================================================
             ###Get Employee
-            print time_entry.employee_id
+            #print time_entry.employee_id
             #self.logger(_("Create attachment error!")+'\n'+str(time_entry.employee_id), netsvc.LOG_ERROR)
             emp_obj = self.pool.get('hr.employee') 
             emp_obj_ids = emp_obj.search(cr, uid, [('employee_id','=',time_entry.employee_id)]) 

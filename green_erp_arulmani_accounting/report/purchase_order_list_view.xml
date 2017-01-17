@@ -19,6 +19,7 @@
 	                
 	                <!-- TPT-BM-ON 11/07/2016 -->
 	                <field name="section_id"/>
+	                <field name="requisitioner"/>
 	                <field name="cost_center_id"/>
 	                
 	                <field name="uom_id"/>
@@ -50,7 +51,7 @@
 	                	<!-- TPT-BM-ON 11/07/2016 -->
 		                <field name="section_id" options="{'create': false, 'create_edit': false}"/>
 		                <field name="cost_center_id" options="{'create': false, 'create_edit': false}"/>
-		                <newline/>
+		                <field name="requisitioner" options="{'create': false, 'create_edit': false}"/>
 	                	<field name="po_indent_no_from" options="{'create': false, 'create_edit': false}"/>
 	                	<field name="po_indent_no_to" options="{'create': false, 'create_edit': false}"/>
 	                	<field name="ind_date_from" />

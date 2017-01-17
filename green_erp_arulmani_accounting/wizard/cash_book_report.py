@@ -43,7 +43,8 @@ class tpt_cash_book_line(osv.osv):
     _name = "tpt.cash.book.line"
     _columns = {
         'cb_id': fields.many2one('tpt.cash.book', 'Cash Book', ondelete='cascade'),
-        'voucher_id': fields.char('Posting Doc No.', size = 1024),
+         #TPT-SSR-ON 06/01/2017- Redmine 3433
+        #'voucher_id': fields.char('Posting Doc No.', size = 1024),
         'opening_balance': fields.char('', size = 1024),
         'debit': fields.float('Debit (Rs.)'),
         'crebit': fields.float('Credit (Rs.)'),
@@ -55,7 +56,7 @@ class tpt_cash_book_line(osv.osv):
         'payee': fields.char('Payee', size = 1024),
         'voucher_desc': fields.char('Description', size = 1024),
         #'is_posted': fields.boolean('Is Posted'),
-        'trans_no': fields.char('Transaction No', size = 1024),#TPT-P
+        'trans_no': fields.char('Voucher No', size = 1024),#TPT-SSR,#TPT-P
         'move_id':fields.many2one('account.move','Document No'),
     }
 

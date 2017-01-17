@@ -556,7 +556,7 @@ class stock_inward_outward_report(osv.osv_memory):
             #TPT-BM-ON 07/07/2016 - Last "or" condition added in the the below sql ('OR' BLOCK CONTAINS : '%(percentage)sCST%(percentage)s') - FOR CST INCLUSION
             sql = '''
                 select * from account_move where doc_type in ('good', 'grn', 'product', 'freight') 
-                    and date between '%(date_from)s' and '%(date_to)s'
+                    and date between '%(date_from)s' and '%(date_to)s' and state!='cancel'
                     and ( id in (select move_id from account_move_line where (move_id in (select move_id from account_invoice where to_char(date_invoice, 'YYYY-MM-DD') between '%(date_from)s' and '%(date_to)s' and id in (select invoice_id from account_invoice_line where product_id=%(product_id)s)))
                         or (ref in (select name from stock_picking where id in (select picking_id from stock_move where to_char(date, 'YYYY-MM-DD') between '%(date_from)s' and '%(date_to)s' and product_id=%(product_id)s)))
                     ) or material_issue_id in (select id from tpt_material_issue where date_expec between '%(date_from)s' and '%(date_to)s' and warehouse in (%(location_row_id)s,%(location_spare_id)s) and id in (select material_issue_id from tpt_material_issue_line where product_id=%(product_id)s)) 

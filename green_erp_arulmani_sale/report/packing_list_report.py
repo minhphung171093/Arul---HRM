@@ -96,7 +96,7 @@ class Parser(report_sxw.rml_parse):
             port_of_discharge_id, mark_container_no, invoice_type,disc_goods,final_desti,country_dest,
             tod_place,lc_no,payment_term,case when gross_weight>0 then gross_weight else 0 end gross_weight  
             from account_invoice where state!='cancel' and delivery_order_id = %s
-            '''%(do_id)
+            '''%(do_id)# TPT-BM-10/01/2017 - state is appended at where condition
         self.cr.execute(sql)
         vals = self.cr.dictfetchone()
         #raise osv.except_osv(_('Warning!'),_(sql))    

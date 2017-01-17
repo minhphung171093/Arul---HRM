@@ -5402,6 +5402,17 @@ class tpt_ed_invoice_positing(osv.osv):
                     'doc_type': False
                     }
             new_jour_id = self.pool.get('account.move').create(cr,uid,value)
+            #TPT-SSR-ON 12/01/2017 - ed posting auto Post
+            move_pool = self.pool.get('account.move')
+            auto_ids = self.pool.get('tpt.auto.posting').search(cr, uid, [])
+            if auto_ids:
+                auto_id = self.pool.get('tpt.auto.posting').browse(cr, uid, auto_ids[0], context=context)             
+                if auto_id.ed_posting:
+                        try:#                          
+                            move_pool.post(cr, uid, [new_jour_id], context={})
+                        except:
+                            pass  
+             ##           
         return self.write(cr, uid, ids,{'state':'posted'})
     
     def bt_cancel(self, cr, uid, ids, context=None):
@@ -9122,7 +9133,7 @@ class mrp_production(osv.osv):
                '''%(credit,line.id)
                 cr.execute(sql)  
                 ## TPT-END     
-                print journal_line
+                #print journal_line
                 value={
                             'journal_id':journal_ids[0],
                             'period_id':period_ids[0] ,
@@ -9741,6 +9752,7 @@ class tpt_auto_posting(osv.osv):
         'production_declaration':fields.boolean('Production Declaration'),
         'payroll':fields.boolean('Payroll'),
         'material_return_request':fields.boolean('Material Return Request'),
+        'ed_posting':fields.boolean('ED Invoice Posting'),
     }
     _defaults = {
         'name':'Auto Account Posting Configuration',
