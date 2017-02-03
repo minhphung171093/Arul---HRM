@@ -12,7 +12,7 @@
             <field name="code">indent.purchase.based</field>
             <field name="prefix">6</field>
             <field name="padding">6</field>
-            <field name="number_next_actual">000001</field>
+<!--             <field name="number_next_actual">000001</field> -->
             <field name="implementation">no_gap</field>
         </record>
 
@@ -27,7 +27,7 @@
             <field name="code">indent.purchase.capital</field>
             <field name="prefix">2</field>
             <field name="padding">6</field>
-            <field name="number_next_actual">000001</field>
+<!--             <field name="number_next_actual">000001</field> -->
             <field name="implementation">no_gap</field>
         </record>
         

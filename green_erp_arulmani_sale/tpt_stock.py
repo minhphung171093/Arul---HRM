@@ -650,6 +650,8 @@ class stock_picking(osv.osv):
         """
         if context is None:
             context = {}
+            #TPT-SSR on 03/02/2017-Trial Balance Issue
+            ctx = context.copy()
         else:
             context = dict(context)
         res = {}
@@ -720,8 +722,31 @@ class stock_picking(osv.osv):
 
             # every line of the picking is empty, do not generate anything
             empty_picking = not any(q for q in move_product_qty.values() if q > 0)
-
+            #TPT-SSR on 03/02/2017-Trial Balance Issue
+            context.update({'date': time.strftime('%Y-%m-%d'), 'rate_type': 'buying' })
+            currency = pick.purchase_id.currency_id.name or False
+            currency_id = pick.purchase_id.currency_id.id or False
+            
+            if currency_id:
+                if currency != 'INR':
+                    if not pick.date:
+                        raise osv.except_osv(_('Warning!'),_('Please choose date of invoice!')) 
+                    cur_rate_obj =self.pool.get('res.currency.rate')
+                    cur_rate_ids = cur_rate_obj.search(cr, uid, [('currency_id','=',currency_id),('name','=',pick.date)])
+                    if not cur_rate_ids:
+                        raise osv.except_osv(_('Warning!'),_('Rate of currency is not defined on %s!'%pick.date)) 
+                    else:
+                        cur_rate_ids1 = cur_rate_obj.search(cr, uid, [('currency_id','=',currency_id),('name','=',pick.date), ('rate_type', '=', 'selling')])
+                        if not cur_rate_ids1:
+                            raise osv.except_osv(_('Warning!'),_('Selling Rate of Currency is not defined on %s!'%pick.date))
+            else:
+                    raise osv.except_osv(_('Warning!'),_('Please check again! Do not have currency for this Picking order!'))                                                 
+            if currency and currency != 'INR':
+                voucher_rate = self.pool.get('res.currency').read(cr, uid, currency_id, ['rate'], context=context)['rate']
+                ##
             for move in too_few:
+                #TPT-SSR on 03/02/2017-Trial Balance Issue
+                amount_total_inr = move.price_unit/voucher_rate
                 product_qty = move_product_qty[move.id]
                 if not new_picking and not empty_picking:
                     new_picking_name = pick.name
@@ -743,7 +768,9 @@ class stock_picking(osv.osv):
                             'picking_id' : new_picking,
                             'state': 'assigned',
                             'move_dest_id': False,
-                            'price_unit': move.price_unit,
+                            #'price_unit': move.price_unit,
+                            #TPT-SSR on 03/02/2017-Trial Balance Issue
+                            'price_unit': amount_total_inr,
                             'product_uom': product_uoms[move.id]
                     }
                     prodlot_id = prodlot_ids[move.id]

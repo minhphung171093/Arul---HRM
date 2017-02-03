@@ -130,6 +130,9 @@ class review_posting(osv.osv_memory):
                     for move in line.move_lines:
                         amount = move.purchase_line_id.price_unit * move.product_qty
                         debit += amount - (amount*move.purchase_line_id.discount)/100
+                         #TPT-SSR on 03/02/2017-Trial Balance Issue
+                        currency = move.purchase_line_id.order_id.currency_id.name or False
+                        currency_id = move.purchase_line_id.order_id.currency_id.id or False
                     date_period = line.date,
                     sql = '''
                         select id from account_period where special = False and '%s' between date_start and date_stop
@@ -148,7 +151,15 @@ class review_posting(osv.osv_memory):
                         journal_ids = [r[0] for r in cr.fetchall()]
                         journal = self.pool.get('account.journal').browse(cr,uid,journal_ids[0])
                         for p in line.move_lines:
-                            amount_cer = p.purchase_line_id.price_unit * p.product_qty
+                            #TPT-SSR on 03/02/2017-Trial Balance Issue
+                            amt_price_unit = p.purchase_line_id.price_unit
+                            if currency != 'INR':
+                                amt_price_unit = round(p.purchase_line_id.price_unit,2)
+                                voucher_rate = self.pool.get('res.currency').read(cr, uid, currency_id, ['rate'])['rate']
+                                amt_price_unit = amt_price_unit/voucher_rate
+                            amount_cer = amt_price_unit * p.product_qty
+                            ## 
+                            ##amount_cer = p.purchase_line_id.price_unit * p.product_qty
                             credit = amount_cer - (amount_cer*p.purchase_line_id.discount)/100
                             debit = amount_cer - (amount_cer*p.purchase_line_id.discount)/100
                             if not p.product_id.product_asset_acc_id:

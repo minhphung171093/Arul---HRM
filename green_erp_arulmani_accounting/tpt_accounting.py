@@ -526,8 +526,36 @@ class stock_picking(osv.osv):
                 credit = 0.0
                 journal_line = []
                 for move in line.move_lines:
-                    amount = move.purchase_line_id.price_unit * move.product_qty
-                    debit += amount - (amount*move.purchase_line_id.discount)/100
+                    #TPT-SSR on 03/02/2017-Trial Balance Issue
+                     if context is None:
+                        context = {}        
+                     context.update({'date': time.strftime('%Y-%m-%d'), 'rate_type': 'buying' })
+                     currency = move.purchase_line_id.order_id.currency_id.name or False
+                     currency_id = move.purchase_line_id.order_id.currency_id.id or False
+                     amount_inr = round(move.purchase_line_id.price_unit,2)
+                     if currency_id:
+                        if currency != 'INR':
+                            if not move.date:
+                                raise osv.except_osv(_('Warning!'),_('Please choose date of invoice!')) 
+                            cur_rate_obj =self.pool.get('res.currency.rate')
+                            cur_rate_ids = cur_rate_obj.search(cr, uid, [('currency_id','=',currency_id),('name','=',move.date)])
+                            if not cur_rate_ids:
+                                raise osv.except_osv(_('Warning!'),_('Rate of currency is not defined on %s!'%move.date)) 
+                            else:
+                                cur_rate_ids1 = cur_rate_obj.search(cr, uid, [('currency_id','=',currency_id),('name','=',move.date), ('rate_type', '=', 'selling')])
+                                if not cur_rate_ids1:
+                                    raise osv.except_osv(_('Warning!'),_('Selling Rate of Currency is not defined on %s!'%move.date))
+                     else:
+                            raise osv.except_osv(_('Warning!'),_('Please check again! Do not have currency for this Picking order!'))                                                     
+                     
+                     if currency and currency != 'INR':
+                        amount_inr = round(move.purchase_line_id.price_unit,2)
+                        voucher_rate = self.pool.get('res.currency').read(cr, uid, currency_id, ['rate'], context=context)['rate']
+                        amount_inr = amount_inr/voucher_rate                     
+                     amount = amount_inr * move.product_qty
+                     ##
+                     #amount = move.purchase_line_id.price_unit * move.product_qty
+                     debit += amount - (amount*move.purchase_line_id.discount)/100
                 date_period = line.date,
                 sql = '''
                     select id from account_period where special = False and '%s' between date_start and date_stop and special is False
@@ -565,7 +593,9 @@ class stock_picking(osv.osv):
 #                                        })]
                 temp_flag = False
                 for p in line.move_lines:
-                    amount_cer = p.purchase_line_id.price_unit * p.product_qty
+                    #TPT-SSR on 03/02/2017-Trial Balance Issue
+                    amount_cer = amount_inr * p.product_qty                    
+                    #amount_cer = p.purchase_line_id.price_unit * p.product_qty
                     credit = amount_cer - (amount_cer*p.purchase_line_id.discount)/100
                     debit = amount_cer - (amount_cer*p.purchase_line_id.discount)/100                    
                     #TPT-Start:  By BalamuruganPurushothaman - ON 24/12/2015
@@ -583,7 +613,9 @@ class stock_picking(osv.osv):
                                 ed_type = p.purchase_line_id.ed_type
                                 ed = p.purchase_line_id.ed
                                 excise_duty = 0.00
-                                basic = (p.purchase_line_id.product_qty * p.purchase_line_id.price_unit) - ( (p.purchase_line_id.product_qty * p.purchase_line_id.price_unit)*p.purchase_line_id.discount/100)
+                                #TPT-SSR on 03/02/2017-Trial Balance Issue
+                                basic = (p.purchase_line_id.product_qty * amount_inr) - ( (p.purchase_line_id.product_qty * amount_inr)*p.purchase_line_id.discount/100)
+                                #basic = (p.purchase_line_id.product_qty * p.purchase_line_id.price_unit) - ( (p.purchase_line_id.product_qty * p.purchase_line_id.price_unit)*p.purchase_line_id.discount/100)
                                 if pf_type == '1' :
                                     p_f = basic * pf/100
                                 elif pf_type == '2' :
@@ -2740,6 +2772,12 @@ class account_invoice_line(osv.osv):
         }  
     def move_line_amount_untaxed(self, cr, uid, invoice_id):
         res = []
+        #TPT-SSR on 03/02/2017-Trial Balance Issue
+        inv_id = self.pool.get('account.invoice').browse(cr, uid, invoice_id)
+        if inv_id:
+            currency = inv_id.currency_id.name or False
+            currency_id = inv_id.currency_id.id or False
+        ##    
         cr.execute('SELECT * FROM account_invoice_line WHERE invoice_id=%s', (invoice_id,))
         for t in cr.dictfetchall():
             basic = (t['quantity'] * t['price_unit']) - ( (t['quantity'] * t['price_unit'])*t['disc']/100)
@@ -2751,6 +2789,9 @@ class account_invoice_line(osv.osv):
             purchase_acc_id = cr.dictfetchone()
             if not purchase_acc_id:
                 raise osv.except_osv(_('Warning!'),_('Account is not null, please configure it in Material master !'))
+            if currency != 'INR':
+                voucher_rate = self.pool.get('res.currency').read(cr, uid, currency_id, ['rate'])['rate']
+                basic = basic/voucher_rate
             if basic:
                 res.append({
                     'type':'tax',

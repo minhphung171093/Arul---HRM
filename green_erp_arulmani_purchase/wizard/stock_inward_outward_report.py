@@ -404,6 +404,27 @@ class stock_inward_outward_report(osv.osv_memory):
                parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw Material','Raw Materials','Raw material']),('location_id','=',parent_ids[0])])
                #TPT START - By P.vinothkumar - ON 24/05/2015 - FOR (adding freight invoice details in query)
+            #===================================================================
+            #  sql = '''
+            #             select sum(a.ton_sl) ton_sl, sum(a.total_cost) total_cost from
+            #           (select 
+            #           case when sum(st.product_qty)!=0 then sum(st.product_qty) else 0 end ton_sl,
+            #           case when sum(st.price_unit*st.product_qty)!=0 then sum(st.price_unit*st.product_qty) else 0 end total_cost
+            #           from stock_move st
+            #           where st.state='done' and st.location_dest_id=%s and st.product_id=%s and to_char(date, 'YYYY-MM-DD')<'%s'
+            #                                           and st.location_dest_id != st.location_id
+            #                                           and ( picking_id is not null 
+            #                                           or inspec_id is not null 
+            #                                           or (st.id in (select move_id from stock_inventory_move_rel))
+            #                                   )
+            #           union
+            #                           select 0 as ton_sl, case when sum(ail.line_net)!=0 then sum(ail.line_net) else 0 end as total_cost from account_invoice ai
+            #                           inner join account_invoice_line ail on ai.id=ail.invoice_id
+            #                           where ai.doc_type='freight_invoice' and  ai.date_invoice < '%s' and ai.state not in('draft','cancel')
+            #                           and ail.product_id=%s)a
+            # '''%(locat_ids[0],product_id.id,date_from,date_from,product_id.id)
+            #===================================================================
+            #TPT-SSR on 03/02/2017-Trial Balance Issue
                sql = '''
                           select sum(a.ton_sl) ton_sl, sum(a.total_cost) total_cost from
                         (select 
@@ -414,14 +435,9 @@ class stock_inward_outward_report(osv.osv_memory):
                                                         and st.location_dest_id != st.location_id
                                                         and ( picking_id is not null 
                                                         or inspec_id is not null 
-                                                        or (st.id in (select move_id from stock_inventory_move_rel))
-                                                )
-                        union
-                                        select 0 as ton_sl, case when sum(ail.line_net)!=0 then sum(ail.line_net) else 0 end as total_cost from account_invoice ai
-                                        inner join account_invoice_line ail on ai.id=ail.invoice_id
-                                        where ai.doc_type='freight_invoice' and  ai.date_invoice < '%s' and ai.state not in('draft','cancel')
-                                        and ail.product_id=%s)a
-              '''%(locat_ids[0],product_id.id,date_from,date_from,product_id.id)
+                                                        or (st.id in (select move_id from stock_inventory_move_rel))))a
+              '''%(locat_ids[0],product_id.id,date_from)
+            ##
                cr.execute(sql)
                inventory = cr.dictfetchone()
                if inventory:
