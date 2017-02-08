@@ -10411,4 +10411,16 @@ class tpt_cform_invoice_line(osv.osv):
         return True
     
 tpt_cform_invoice_line()
-###
+
+# Created by P.VINOTHKUMAR ON 01/02/2016 for adding field carry_forward
+class account_account(osv.osv):
+     _inherit = 'account.account'
+     _columns = {
+                 'carry_forward':fields.boolean('Carry Forward'),
+                 }
+     _defaults= {
+                  'carry_forward' : True,
+                  }
+
+    
+

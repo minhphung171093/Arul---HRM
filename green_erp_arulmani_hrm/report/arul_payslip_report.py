@@ -45,6 +45,8 @@ class Parser(report_sxw.rml_parse):
             'get_month_name': self.get_month_name,
             'get_statutory': self.get_statutory,
             'get_amt': self.get_amt,
+            #TPT-SSR-ON 08/02/2017 - Payslip - PF addition
+            'get_pf':self.get_pf,
         })
     
     def get_fh_name(self, employee_id):
@@ -96,7 +98,16 @@ class Parser(report_sxw.rml_parse):
     def get_month(self):
         wizard_data = self.localcontext['data']['form']
         return self.get_month_name(wizard_data['month'])
-    
+    #TPT-SSR-ON 08/02/2017 - Payslip - PF addition
+    def get_pf(self):
+        wizard_data = self.localcontext['data']['form']
+        pf = wizard_data['ispf']
+        if pf:           
+            txt='Production Commission'
+        else:            
+            txt='Special Allowance'
+        return txt
+    ##End
     def get_year(self):
         wizard_data = self.localcontext['data']['form']
         return wizard_data['year']

@@ -21,6 +21,8 @@ class print_payslip(osv.osv_memory):
             'employee_ids': fields.many2many('hr.employee','print_payslip_ref', 'print_payslip_id', 'employee_id', 'Employee', required=True),
             'year': fields.selection([(num, str(num)) for num in range(1951, 2026)], 'Year', required = True),
             'month': fields.selection([('1', 'January'),('2', 'February'), ('3', 'March'), ('4','April'), ('5','May'), ('6','June'), ('7','July'), ('8','August'), ('9','September'), ('10','October'), ('11','November'), ('12','December')], 'Month',required = True),
+            #TPT-SSR-ON 08/02/2017 - Payslip - PF addition
+            'ispf':fields.boolean('For PF')
     }
     
     _defaults = {

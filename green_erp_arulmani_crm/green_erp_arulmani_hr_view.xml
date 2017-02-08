@@ -176,6 +176,7 @@
                         		<field name="name"/>
                         		<field name="pension_no"/>
                         		<field name="uan"/>
+                        		<field name="aadhar_no"/>
                         		<field name="epf_nominee"/>
                         		<field name="esi_no" />
                         		<field name="eis_nominee"/>
@@ -196,6 +197,7 @@
 	                        		<field name="gratuity_no"/>
 	                        		<field name="gratuity_nominee"/>
 	                        		<field name="pan_no"/>
+	                        		<field name="aadhar_no"/>
 	                        	</group>
                             </form>
                         </field>

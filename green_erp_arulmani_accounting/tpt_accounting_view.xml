@@ -3691,6 +3691,18 @@
 				</xpath>
 			</field>
 		</record>
-		<!-- TPT-END -->
+		<!-- TPT-By P.Vinothkumar - ON 01/02/2017 - TO ADD carry forward field in account -->
+		<record id="tpt_view_account_form" model="ir.ui.view">
+            <field name="name">tpt.account.account.form</field>
+            <field name="model">account.account</field>
+            <field name="inherit_id" ref="account.view_account_form"/>
+            <field name="arch" type="xml">
+            	<xpath expr="//field[@name='active']" position="after">
+                        <field name="carry_forward"  attrs="{'invisible':[('type','!=','view')]}"/>
+				</xpath>
+			</field>
+		</record>
+		
+		
     </data>
 </openerp>
