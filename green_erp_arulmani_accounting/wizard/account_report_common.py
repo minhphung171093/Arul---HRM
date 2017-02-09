@@ -332,7 +332,51 @@ class account_balance_report(osv.osv_memory):
                     # Added by P.VINOTHKUMAR ON 07/02/2016 for update opening debit and credit for expense accounts
                     if acc_id.carry_forward == False:
                         if acc_id.type == 'view' :
-                            if acc_id.code=='04':
+                            if acc_id.code=='02':
+                                sql='''
+                                select date_start from account_fiscalyear where '%s' between date_start and date_stop
+                                '''%(from_date)
+                                cr.execute(sql)
+                                period=cr.fetchone()[0]
+                            
+                                sql = ''' 
+                                select case when sum(aml.debit)!=0 then sum(aml.debit) else 0 end open_sumdebit
+                                from account_move_line aml
+                                join account_move am on (am.id=aml.move_id)
+                                where aml.account_id in (select id from account_account where parent_id in(47,56)) and am.date > '%s' and am.date < '%s' and am.state=%s 
+                               '''%(period,from_date,state)               
+                                cr.execute(sql)
+                                open_sumdebit = cr.fetchone()[0]
+                         
+                                sql = ''' 
+                                select case when sum(aml.credit)!=0 then sum(aml.credit) else 0 end open_sumcredit
+                                from account_move_line aml
+                                join account_move am on (am.id=aml.move_id)
+                                where aml.account_id in (select id from account_account where parent_id in(47,56)) and am.date > '%s' and am.date < '%s' and am.state=%s
+                               '''%(period,from_date,state)
+                                cr.execute(sql)
+                                open_sumcredit = cr.fetchone()[0]
+                             
+                                sql = ''' 
+                                    select case when sum(aml.debit)!=0 then sum(aml.debit) else 0 end sumdebit
+                                     from account_move_line aml
+                                     join account_move am on (am.id=aml.move_id)
+                                     where aml.account_id in (select id from account_account where parent_id in(47,56)) 
+                                     and am.date between '%s' and '%s' and am.state=%s
+                                '''%(from_date,to_date,state)
+                                cr.execute(sql)
+                                sumdebit = cr.fetchone()[0]
+                            
+                                sql = ''' 
+                                    select case when sum(aml.credit)!=0 then sum(aml.credit) else 0 end sumcredit
+                                     from account_move_line aml
+                                     join account_move am on (am.id=aml.move_id)
+                                     where aml.account_id in (select id from account_account where parent_id in(47,56)) 
+                                     and am.date between '%s' and '%s' and am.state=%s 
+                                '''%(from_date,to_date,state)
+                                cr.execute(sql)
+                                sumcredit = cr.fetchone()[0]
+                            elif acc_id.code=='04':
                                 sql='''
                                 select date_start from account_fiscalyear where '%s' between date_start and date_stop
                                 '''%(from_date)
@@ -995,7 +1039,51 @@ class account_balance_report(osv.osv_memory):
                     # Added by P.VINOTHKUMAR ON 07/02/2016 for update opening debit and credit for expense accounts
                     if acc_id.carry_forward == False:
                         if acc_id.type == 'view' :
-                            if acc_id.code=='04':
+                            if acc_id.code=='02':
+                                sql='''
+                                select date_start from account_fiscalyear where '%s' between date_start and date_stop
+                                '''%(balance.date_from)
+                                cr.execute(sql)
+                                period=cr.fetchone()[0]
+                            
+                                sql = ''' 
+                                select case when sum(aml.debit)!=0 then sum(aml.debit) else 0 end open_sumdebit
+                                from account_move_line aml
+                                join account_move am on (am.id=aml.move_id)
+                                where aml.account_id in (select id from account_account where parent_id in(47,56)) and am.date > '%s' and am.date < '%s' and  am.state='posted'
+                               '''%(period,balance.date_from)               
+                                cr.execute(sql)
+                                open_sumdebit = cr.fetchone()[0]
+                         
+                                sql = ''' 
+                                select case when sum(aml.credit)!=0 then sum(aml.credit) else 0 end open_sumcredit
+                                from account_move_line aml
+                                join account_move am on (am.id=aml.move_id)
+                                where aml.account_id in (select id from account_account where parent_id in(47,56)) and am.date > '%s' and am.date < '%s' and am.state='posted'
+                               '''%(period,balance.date_from)
+                                cr.execute(sql)
+                                open_sumcredit = cr.fetchone()[0]
+                             
+                                sql = ''' 
+                                    select case when sum(aml.debit)!=0 then sum(aml.debit) else 0 end sumdebit
+                                     from account_move_line aml
+                                     join account_move am on (am.id=aml.move_id)
+                                     where aml.account_id in (select id from account_account where parent_id in(47,56)) 
+                                     and am.date between '%s' and '%s' and am.state='posted'
+                                '''%(balance.date_from,balance.date_to)
+                                cr.execute(sql)
+                                sumdebit = cr.fetchone()[0]
+                            
+                                sql = ''' 
+                                    select case when sum(aml.credit)!=0 then sum(aml.credit) else 0 end sumcredit
+                                     from account_move_line aml
+                                     join account_move am on (am.id=aml.move_id)
+                                     where aml.account_id in (select id from account_account where parent_id in(47,56)) 
+                                     and am.date between '%s' and '%s' and am.state='posted' 
+                                '''%(balance.date_from,balance.date_to)
+                                cr.execute(sql)
+                                sumcredit = cr.fetchone()[0]
+                            elif acc_id.code=='04':
                                 sql='''
                                 select date_start from account_fiscalyear where '%s' between date_start and date_stop
                                 '''%(balance.date_from)
