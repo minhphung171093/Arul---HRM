@@ -3698,7 +3698,7 @@
             <field name="inherit_id" ref="account.view_account_form"/>
             <field name="arch" type="xml">
             	<xpath expr="//field[@name='active']" position="after">
-                        <field name="carry_forward"  attrs="{'invisible':[('type','!=','view')]}"/>
+                        <field name="carry_forward"/>
 				</xpath>
 			</field>
 		</record>
