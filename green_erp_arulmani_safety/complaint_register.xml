@@ -55,6 +55,9 @@
                         <field name="write_date"/>
                         <field name="write_uid"/>
                     </group>
+                    <group col="4" colspan="4" string="Images">
+						<field name="multi_images" widget="image_multi" nolabel="1"/>
+					</group>
                 </form>
             </field>
         </record>
