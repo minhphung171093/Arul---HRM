@@ -318,7 +318,7 @@ class approve_reject_quanlity_inspection(osv.osv_memory):
             context.update({'date': time.strftime('%Y-%m-%d'), 'rate_type': 'buying' })            
             currency = line.name.purchase_id.currency_id.name or False
             currency_id = line.name.purchase_id.currency_id.id or False
-            
+            amount_total_inr = line.price_unit
             if currency_id:
                 if currency != 'INR':
                     if not line.name.date:
