@@ -731,8 +731,18 @@ class stock_on_hand_report(osv.osv_memory):
                 avg_cost_id = avg_cost_obj.browse(cr, uid, avg_cost_ids[0])
                 avg_cost = avg_cost_id.avg_cost or 0
             if categ=='finish':
-                avg_cost = std_price
-            return avg_cost
+                avg_cost = std_price    
+            if avg_cost == 0.00:
+                sql='''select max(sm.id) as id from stock_move sm join product_product pp on sm.product_id=pp.id and pp.id=%s
+                '''%(product_id)
+                cr.execute(sql)
+                price = cr.dictfetchone()['id']
+                if price: 
+                    sql='''select price_unit from stock_move where id=%s
+                    '''%(price)
+                    cr.execute(sql)
+                    avg_cost = cr.dictfetchone()['price_unit']    
+            return avg_cost or 0.00
         def get_lastpo_cost(product_id, categ, std_price):
             sql = '''
                 select case when price_unit>0 then price_unit else 0 end avg_cost from purchase_order_line where id = (

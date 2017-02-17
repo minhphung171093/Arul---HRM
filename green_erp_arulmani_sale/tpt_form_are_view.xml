@@ -19,10 +19,10 @@
             <field name="arch" type="xml">
 	            <form string="Form A.R.E - 1" version="7.0">  
 	            <header>
-	            	<button name='print_are1' string="Print ARE-1" type="object" class="oe_highlight" />
+	            	<button name='print_are1' string="Print ARE-1 Front" type="object" class="oe_highlight" />
 	            	<button name="bt_approve" states='draft' string="Approve" type="object" class="oe_highlight" groups="green_erp_arulmani_sale.group_vvti_sale_user"/>
                     <button name="bt_cancel" states='draft' string="Cancel" type="object" class="oe_highlight" groups="green_erp_arulmani_sale.group_vvti_sale_user"/>
-	            	<button name='print_are1' string="Print ARE-1" type="object" class="oe_highlight" />
+	            	<button name='print_are1_back' string="Print ARE-1 Back" type="object" class="oe_highlight" />
                     <field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
 	            </header> 
 	            	<sheet>
@@ -41,7 +41,9 @@
 							<field name="create_uid" />
 							<field name="create_date" />
 							<field name="write_uid" />
-							<field name="write_date" />							
+							<field name="write_date" />		
+							<field name="bond_no" />
+							<field name="bond_date" />												
 	            		</group>	            		
 	            	</sheet>
 		         </form>

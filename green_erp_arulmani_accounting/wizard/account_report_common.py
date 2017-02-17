@@ -614,7 +614,7 @@ class account_balance_report(osv.osv_memory):
                     cr.execute(sql)
                     open_dr = cr.fetchone()[0]
                     
-                    
+                     # Added by P.VINOTHKUMAR ON 10/02/2017 for fixing opening debit and credit value is 0 for expense accounts
                     if acc_id.carry_forward==False:
                         sql='''
                              select date_start from account_fiscalyear where '%s' between date_start and date_stop

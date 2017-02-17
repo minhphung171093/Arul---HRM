@@ -11291,9 +11291,13 @@ class tpt_hr_attendance(osv.osv):
         
             #CHANGE STATE OF AST TO DONE - IF ITS AUTO APPROVED
 
+#             sql = '''
+#             update arul_hr_audit_shift_time set state='done', approval='t' where id=%s
+#             '''%ast_id
+            # Modified script by P.VINOTHKUMAR ON 01/02/2017 FOR adding actual work shift_id
             sql = '''
-            update arul_hr_audit_shift_time set state='done', approval='t' where id=%s
-            '''%ast_id
+            update arul_hr_audit_shift_time set state='done', approval='t',actual_work_shift_id=%s where id=%s
+            '''%(work_shift_id,ast_id)
             cr.execute(sql)
             #ast_obj.write(cr, uid, ast_id, {'state':'done', 'approval':True})
         
