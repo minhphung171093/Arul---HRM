@@ -449,7 +449,7 @@ class stock_move(osv.osv):
         'inspec': fields.boolean('Inspec'),  
 #         'bin_location':fields.many2one('stock.location','Bin Location'),
         'bin_location':fields.text('Bin Location'),
-        'si_no':fields.integer('SI.No',readonly = True),
+        'si_no':fields.integer('Line No',readonly = True),
         'description':fields.char('Description', size = 50, readonly = True),
         'item_text':fields.text('Item Text'),
         'inspec_id': fields.many2one('tpt.quanlity.inspection','Quanlity Inspection',ondelete='restrict'),
