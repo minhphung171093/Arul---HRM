@@ -1626,7 +1626,7 @@
             <field name="arch" type="xml">
                 <tree colors="blue:state == 'draft';gray:state == 'cancel';red:audit" string="Bank Transaction">
                     <field name="date"/>
-                    <field name="number"/>
+                    <field name="name"/>
                     <field name="reference"/>
                     <field name="partner_id"/>
                     <field name="journal_id" groups="account.group_account_user"/>
@@ -1763,7 +1763,7 @@
             <field name="arch" type="xml">
                 <tree colors="blue:state == 'draft';gray:state == 'cancel';red:audit" string="Bank Transaction">
                     <field name="date"/>
-                    <field name="number"/>
+                    <field name="name"/>
                     <field name="reference"/>
                     <field name="partner_id"/>
                     <field name="journal_id" groups="account.group_account_user"/>
@@ -3227,7 +3227,17 @@
 	        string="Print Form A.R.E - 1"
 	        groups="green_erp_arulmani_sale.group_vvti_sale_user,green_erp_arulmani_accounting.group_vvti_accounting_user"
 	        rml="green_erp_arulmani_sale/report/print_form_are_1.odt"/> 	
-	        
+
+       <report 
+			auto="False" 
+			menu="True"
+			id="green_erp_arulmani_sale.form_are_1_report_back" 
+			model="tpt.form.are.1" 
+			name="form_are_1_report_back"
+	        string="Print Form A.R.E - 1 Back"
+	        groups="green_erp_arulmani_sale.group_vvti_sale_user,green_erp_arulmani_accounting.group_vvti_accounting_user"
+	        rml="green_erp_arulmani_sale/report/print_form_are_1_back.odt"/> 
+	        	        
 	  <report 
 			auto="False" 
 			menu="True"
@@ -3418,7 +3428,8 @@
 							<field name="journal_vouchers"/>
 							<field name="production_declaration"/>
 							<field name="payroll"/>
-							<field name="material_return_request"/>
+							<field name="material_return_request"/> 
+							<field name="ed_posting"/> 
 						</group>
 					</sheet>
 		         </form>
@@ -3702,6 +3713,18 @@
 				</xpath>
 			</field>
 		</record>
-		<!-- TPT-END -->
+		<!-- TPT-By P.Vinothkumar - ON 01/02/2017 - TO ADD carry forward field in account -->
+		<record id="tpt_view_account_form" model="ir.ui.view">
+            <field name="name">tpt.account.account.form</field>
+            <field name="model">account.account</field>
+            <field name="inherit_id" ref="account.view_account_form"/>
+            <field name="arch" type="xml">
+            	<xpath expr="//field[@name='active']" position="after">
+                        <field name="carry_forward"/>
+				</xpath>
+			</field>
+		</record>
+		
+		
     </data>
 </openerp>

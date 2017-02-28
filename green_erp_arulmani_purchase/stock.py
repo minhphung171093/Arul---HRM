@@ -183,6 +183,15 @@ class stock_picking(osv.osv):
 #                                 'sale_tax_id':picking.purchase_id and picking.purchase_id.purchase_tax_id and picking.purchase_id.purchase_tax_id.id or False,
                                  })
         return invoice_vals
+    #TPT-SSR on 03/02/2017-Trial Balance Issue
+    def _get_price_unit_invoice(self, cursor, user, move_line, type):
+        if move_line.purchase_line_id:
+            if move_line.purchase_line_id.order_id.invoice_method == 'picking':
+                return move_line.purchase_line_id.price_unit
+            else:
+                return move_line.purchase_line_id.price_unit
+        return super(stock_picking, self)._get_price_unit_invoice(cursor, user, move_line, type)
+    ##
     
     def _prepare_invoice_line(self, cr, uid, group, picking, move_line, invoice_id,
         invoice_vals, context=None):
@@ -446,7 +455,7 @@ class stock_move(osv.osv):
         'inspec': fields.boolean('Inspec'),  
 #         'bin_location':fields.many2one('stock.location','Bin Location'),
         'bin_location':fields.text('Bin Location'),
-        'si_no':fields.integer('SI.No',readonly = True),
+        'si_no':fields.integer('Line No',readonly = True),
         'description':fields.char('Description', size = 50, readonly = True),
         'item_text':fields.text('Item Text'),
         'inspec_id': fields.many2one('tpt.quanlity.inspection','Quanlity Inspection',ondelete='restrict'),

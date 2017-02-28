@@ -376,6 +376,8 @@ class hr_statutory (osv.osv):
         'pension_no' : fields.char('Pension No', size=128),
         'employee_id': fields.many2one('hr.employee','Employee',ondelete='cascade'),
         'uan' : fields.char('UAN', size=128),
+        #TPT-SSR-ON 08/02/2017 - Aadhar No addition 
+        'aadhar_no' : fields.char('Aadhar No', size=128),
     }
 
     def _check_epf(self, cr, uid, ids, context=None):

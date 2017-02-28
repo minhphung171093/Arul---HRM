@@ -404,6 +404,27 @@ class stock_inward_outward_report(osv.osv_memory):
                parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw Material','Raw Materials','Raw material']),('location_id','=',parent_ids[0])])
                #TPT START - By P.vinothkumar - ON 24/05/2015 - FOR (adding freight invoice details in query)
+            #===================================================================
+            #  sql = '''
+            #             select sum(a.ton_sl) ton_sl, sum(a.total_cost) total_cost from
+            #           (select 
+            #           case when sum(st.product_qty)!=0 then sum(st.product_qty) else 0 end ton_sl,
+            #           case when sum(st.price_unit*st.product_qty)!=0 then sum(st.price_unit*st.product_qty) else 0 end total_cost
+            #           from stock_move st
+            #           where st.state='done' and st.location_dest_id=%s and st.product_id=%s and to_char(date, 'YYYY-MM-DD')<'%s'
+            #                                           and st.location_dest_id != st.location_id
+            #                                           and ( picking_id is not null 
+            #                                           or inspec_id is not null 
+            #                                           or (st.id in (select move_id from stock_inventory_move_rel))
+            #                                   )
+            #           union
+            #                           select 0 as ton_sl, case when sum(ail.line_net)!=0 then sum(ail.line_net) else 0 end as total_cost from account_invoice ai
+            #                           inner join account_invoice_line ail on ai.id=ail.invoice_id
+            #                           where ai.doc_type='freight_invoice' and  ai.date_invoice < '%s' and ai.state not in('draft','cancel')
+            #                           and ail.product_id=%s)a
+            # '''%(locat_ids[0],product_id.id,date_from,date_from,product_id.id)
+            #===================================================================
+            #TPT-SSR on 03/02/2017-Trial Balance Issue
                sql = '''
                           select sum(a.ton_sl) ton_sl, sum(a.total_cost) total_cost from
                         (select 
@@ -414,14 +435,9 @@ class stock_inward_outward_report(osv.osv_memory):
                                                         and st.location_dest_id != st.location_id
                                                         and ( picking_id is not null 
                                                         or inspec_id is not null 
-                                                        or (st.id in (select move_id from stock_inventory_move_rel))
-                                                )
-                        union
-                                        select 0 as ton_sl, case when sum(ail.line_net)!=0 then sum(ail.line_net) else 0 end as total_cost from account_invoice ai
-                                        inner join account_invoice_line ail on ai.id=ail.invoice_id
-                                        where ai.doc_type='freight_invoice' and  ai.date_invoice < '%s' and ai.state not in('draft','cancel')
-                                        and ail.product_id=%s)a
-              '''%(locat_ids[0],product_id.id,date_from,date_from,product_id.id)
+                                                        or (st.id in (select move_id from stock_inventory_move_rel))))a
+              '''%(locat_ids[0],product_id.id,date_from)
+            ##
                cr.execute(sql)
                inventory = cr.dictfetchone()
                if inventory:
@@ -556,7 +572,7 @@ class stock_inward_outward_report(osv.osv_memory):
             #TPT-BM-ON 07/07/2016 - Last "or" condition added in the the below sql ('OR' BLOCK CONTAINS : '%(percentage)sCST%(percentage)s') - FOR CST INCLUSION
             sql = '''
                 select * from account_move where doc_type in ('good', 'grn', 'product', 'freight') 
-                    and date between '%(date_from)s' and '%(date_to)s'
+                    and date between '%(date_from)s' and '%(date_to)s' and state!='cancel'
                     and ( id in (select move_id from account_move_line where (move_id in (select move_id from account_invoice where to_char(date_invoice, 'YYYY-MM-DD') between '%(date_from)s' and '%(date_to)s' and id in (select invoice_id from account_invoice_line where product_id=%(product_id)s)))
                         or (ref in (select name from stock_picking where id in (select picking_id from stock_move where to_char(date, 'YYYY-MM-DD') between '%(date_from)s' and '%(date_to)s' and product_id=%(product_id)s)))
                     ) or material_issue_id in (select id from tpt_material_issue where date_expec between '%(date_from)s' and '%(date_to)s' and warehouse in (%(location_row_id)s,%(location_spare_id)s) and id in (select material_issue_id from tpt_material_issue_line where product_id=%(product_id)s)) 

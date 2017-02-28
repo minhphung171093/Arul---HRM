@@ -80,6 +80,8 @@ class approve_reject_quanlity_inspection(osv.osv_memory):
     def bt_approve(self,cr,uid,ids,context=None):
         if context is None:
             context = {}
+            #TPT-SSR on 03/02/2017-Trial Balance Issue
+            ctx = context.copy()
         wizard = self.browse(cr, uid, ids[0])
         move_obj = self.pool.get('stock.move')
         inspection_obj = self.pool.get('tpt.quanlity.inspection')
@@ -95,6 +97,7 @@ class approve_reject_quanlity_inspection(osv.osv_memory):
             raise osv.except_osv(_('Warning!'),_('System does not have Quality Inspection  location in Quality Inspection  warehouse, please check it!'))
         else:
             location_id = locat_ids[0]
+          
              
         parent_dest_ids = locat_obj.search(cr, uid, [('name','=','Store'),('usage','=','view')])
         if not parent_dest_ids:
@@ -111,6 +114,28 @@ class approve_reject_quanlity_inspection(osv.osv_memory):
             else:
                 location_dest_id = location_dest_ids[0]
             
+            #TPT-SSR on 03/02/2017-Trial Balance Issue
+            context.update({'date': time.strftime('%Y-%m-%d'), 'rate_type': 'buying' })            
+            currency = line.name.purchase_id.currency_id.name or False
+            currency_id = line.name.purchase_id.currency_id.id or False
+            amount_total_inr = line.price_unit
+            if currency_id:
+                if currency != 'INR':
+                    if not line.name.date:
+                        raise osv.except_osv(_('Warning!'),_('Please choose date of invoice!')) 
+                    cur_rate_obj =self.pool.get('res.currency.rate')
+                    cur_rate_ids = cur_rate_obj.search(cr, uid, [('currency_id','=',currency_id),('name','=',line.name.date)])
+                    if not cur_rate_ids:
+                        raise osv.except_osv(_('Warning!'),_('Rate of currency is not defined on %s!'%line.name.date)) 
+                    else:
+                        cur_rate_ids1 = cur_rate_obj.search(cr, uid, [('currency_id','=',currency_id),('name','=',line.name.date), ('rate_type', '=', 'selling')])
+                        if not cur_rate_ids1:
+                            raise osv.except_osv(_('Warning!'),_('Selling Rate of Currency is not defined on %s!'%line.name.date))
+            else:
+                    raise osv.except_osv(_('Warning!'),_('Please check again! Do not have currency for this Picking order!'))                                                                 
+            if currency and currency != 'INR':
+                voucher_rate = self.pool.get('res.currency').read(cr, uid, currency_id, ['rate'], context=context)['rate']
+                amount_total_inr = line.price_unit              
             rs = {
                   'name': '/',
                   'product_id':line.product_id and line.product_id.id or False,
@@ -120,7 +145,8 @@ class approve_reject_quanlity_inspection(osv.osv_memory):
                   'location_dest_id':location_dest_id,
                   'inspec_id':line.id,
                   'date':line.date,
-                  'price_unit':line.price_unit or 0,
+                   #TPT-SSR on 03/02/2017-Trial Balance Issue
+                  'price_unit':amount_total_inr or 0,
                   }
             move_id = move_obj.create(cr,uid,rs)
             move_obj.action_done(cr, uid, [move_id])
@@ -159,7 +185,8 @@ class approve_reject_quanlity_inspection(osv.osv_memory):
             grn_obj = self.pool.get('stock.picking')
             for grn_line in line.name.move_lines:
                  if grn_line.action_taken=='need' and grn_line.product_id.id==line.product_id.id:
-                     amount_cer = grn_line.purchase_line_id.price_unit * wizard.quantity
+                      #TPT-SSR on 03/02/2017-Trial Balance Issue
+                     amount_cer = amount_total_inr * wizard.quantity
                      credit = amount_cer - (amount_cer*grn_line.purchase_line_id.discount)/100
                      debit = amount_cer - (amount_cer*grn_line.purchase_line_id.discount)/100 
 
@@ -287,6 +314,31 @@ class approve_reject_quanlity_inspection(osv.osv_memory):
         else:
             location_dest_id = location_dest_ids[0]
         for line in inspection_obj.browse(cr,uid,inspection_ids):
+             #TPT-SSR on 03/02/2017-Trial Balance Issue
+            context.update({'date': time.strftime('%Y-%m-%d'), 'rate_type': 'buying' })            
+            currency = line.name.purchase_id.currency_id.name or False
+            currency_id = line.name.purchase_id.currency_id.id or False
+            amount_total_inr = line.price_unit
+            if currency_id:
+                if currency != 'INR':
+                    if not line.name.date:
+                        raise osv.except_osv(_('Warning!'),_('Please choose date of invoice!')) 
+                    cur_rate_obj =self.pool.get('res.currency.rate')
+                    cur_rate_ids = cur_rate_obj.search(cr, uid, [('currency_id','=',currency_id),('name','=',line.name.date)])
+                    if not cur_rate_ids:
+                        raise osv.except_osv(_('Warning!'),_('Rate of currency is not defined on %s!'%line.name.date)) 
+                    else:
+                        cur_rate_ids1 = cur_rate_obj.search(cr, uid, [('currency_id','=',currency_id),('name','=',line.name.date), ('rate_type', '=', 'selling')])
+                        if not cur_rate_ids1:
+                            raise osv.except_osv(_('Warning!'),_('Selling Rate of Currency is not defined on %s!'%line.name.date))
+            else:
+                    raise osv.except_osv(_('Warning!'),_('Please check again! Do not have currency for this Picking order!')) 
+                            
+                            
+            if currency and currency != 'INR':
+                voucher_rate = self.pool.get('res.currency').read(cr, uid, currency_id, ['rate'], context=context)['rate']
+                amount_total_inr = line.price_unit
+            ##
             rs = {
                   'name': '/',
                   'product_id':line.product_id and line.product_id.id or False,
@@ -296,7 +348,7 @@ class approve_reject_quanlity_inspection(osv.osv_memory):
                   'location_dest_id':location_dest_id,
                   'inspec_id':line.id,
                   'date':line.date,
-                  'price_unit':line.price_unit or 0,
+                  'price_unit':amount_total_inr or 0,
                   }
             move_id = move_obj.create(cr,uid,rs)
             move_obj.action_done(cr, uid, [move_id])

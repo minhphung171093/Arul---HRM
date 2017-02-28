@@ -56,7 +56,13 @@ class purchase_order_list(osv.osv_memory):
         'indent_date': fields.date('Indent Date', readonly=True),
         'indent_release_date': fields.date('Indent Release Date', readonly=True),
         #TPT-BM-ON 11/07/2016- Redmine 3474
-        'section_id': fields.many2one('tpt.project.section','Section', readonly=True),
+        #'section_id': fields.many2one('tpt.project.section','Section', readonly=True),
+        #TPT-SSR-ON 06/01/2017- Redmine 3474
+        'section_id': fields.many2one('arul.hr.section','Section', readonly=True),
+        ##
+        #TPT-SSR-ON 12/01/2017- Redmine 3610
+        'requisitioner':fields.many2one('hr.employee','Requisitioner',readonly=True),
+        ##
         'cost_center_id': fields.many2one('tpt.cost.center','Cost Center', readonly=True),
     }
 
@@ -85,6 +91,8 @@ class purchase_order_list_wizard(osv.osv_memory):
         #TPT-BM-ON 11/07/2016- Redmine 3474
         'section_id': fields.many2one('tpt.project.section','Section', ),
         'cost_center_id': fields.many2one('tpt.cost.center','Cost Center', ),
+        #TPT-SSR-ON 12/01/2017- Redmine 3610
+        'requisitioner':fields.many2one('hr.employee','Requisitioner',),
     }
 
     def _check_date(self, cr, uid, ids, context=None):
@@ -106,6 +114,7 @@ class purchase_order_list_wizard(osv.osv_memory):
         date_from = line.date_from
         date_to = line.date_to
         section_id = line.section_id
+        requisitioner = line.requisitioner
         cost_center_id = line.cost_center_id
         
         po_no_from = ''
@@ -145,7 +154,7 @@ class purchase_order_list_wizard(osv.osv_memory):
         indent_release_date_to = line.indent_release_date_to
         type_pend_qty = line.type_pend_qty
         
-        if not date_from and not date_to and not po_no_from and not po_no_to and not po_indent_no_from and not po_indent_no_to and not sup_id and not prod_id and not dept_id and not ind_date_from and not ind_date_to and not indent_release_date_from and not indent_release_date_to and not type_pend_qty and not section_id and not cost_center_id:
+        if not date_from and not date_to and not po_no_from and not po_no_to and not po_indent_no_from and not po_indent_no_to and not sup_id and not prod_id and not dept_id and not ind_date_from and not ind_date_to and not indent_release_date_from and not indent_release_date_to and not type_pend_qty and not section_id and not cost_center_id and not requisitioner:
             raise osv.except_osv(_('Warning!'),_('Please Choose any one of Parameter'))
         
         
@@ -163,7 +172,7 @@ class purchase_order_list_wizard(osv.osv_memory):
             join tpt_purchase_product pp on (pp.pur_product_id = pi.id and pol.product_id = pp.product_id)            
             '''
         
-        if date_from or date_to or po_no_from or po_no_to or po_indent_no_from or po_indent_no_to or sup_id or prod_id or dept_id or ind_date_from or ind_date_to or indent_release_date_from or indent_release_date_to or type_pend_qty or section_id or cost_center_id:
+        if date_from or date_to or po_no_from or po_no_to or po_indent_no_from or po_indent_no_to or sup_id or prod_id or dept_id or ind_date_from or ind_date_to or indent_release_date_from or indent_release_date_to or type_pend_qty or section_id or cost_center_id or requisitioner:
             str = " where "
             sql = sql+str
         if date_from and not date_to:
@@ -278,24 +287,34 @@ class purchase_order_list_wizard(osv.osv_memory):
             str = " and pol.product_qty - (select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty from stock_move where purchase_line_id=pol.id and state='done') <> '0.00'"
             sql = sql+str
         #
-        if section_id and not cost_center_id and not date_from and not date_to:
-            str = " pi.project_section_id=%s "%section_id.id
+      #
+        if section_id and not cost_center_id and not requisitioner and not date_from and not date_to:
+            str = " pi.section_id=%s "%section_id.id
             sql += str
-        if not section_id and cost_center_id and not date_from and not date_to:
+        if not section_id and cost_center_id and not requisitioner and not date_from and not date_to:
             str = " pi.cost_center_id=%s "%cost_center_id.id
-            sql += str    
-        if section_id and not cost_center_id and date_from and not date_to:
-            str = " and pi.project_section_id=%s "%(section_id.id)
+            sql += str  
+        if not section_id and not cost_center_id and requisitioner and not date_from and not date_to:
+            str = " pi.requisitioner=%s "%requisitioner.id
+            sql += str        
+        if section_id and not cost_center_id and not requisitioner and date_from and not date_to:
+            str = " and pi.section_id=%s "%(section_id.id)
             sql += str
-        if section_id and not cost_center_id and date_from and date_to:
-            str = " and pi.project_section_id=%s "%(section_id.id)
+        if section_id and not cost_center_id and not requisitioner and date_from and date_to:
+            str = " and pi.section_id=%s "%(section_id.id)
             sql += str   
-        if not section_id and cost_center_id and date_from and not date_to:
+        if not section_id and cost_center_id and not requisitioner and date_from and not date_to:
             str = " and pi.cost_center_id=%s"%(cost_center_id.id)
             sql += str
-        if not section_id and cost_center_id and date_from and date_to:
+        if not section_id and cost_center_id and not requisitioner and date_from and date_to:
             str = " and pi.cost_center_id=%s "%(cost_center_id.id,)
             sql += str   
+        if not section_id and not cost_center_id and requisitioner and date_from and not date_to:
+            str = "and pi.requisitioner=%s "%(requisitioner.id)
+            sql += str      
+        if not section_id and not cost_center_id and requisitioner and date_from and date_to:
+            str = "and pi.requisitioner=%s "%(requisitioner.id,)
+            sql += str 
              
         sql=sql+" order by id"       
                    
@@ -370,7 +389,11 @@ class purchase_order_list_wizard(osv.osv_memory):
                 'po_indent_no': order_line.po_indent_no.id,
                 'indent_date': order_line.po_indent_no.date_indent,
                 'indent_release_date': hod_date or False,
-                'section_id': indent_ids.project_section_id and indent_ids.project_section_id.id or False, 
+                #'section_id': indent_ids.project_section_id and indent_ids.project_section_id.id or False,
+                #TPT-SSR-ON 06/01/2017- Redmine 3474
+                'section_id': indent_ids.section_id and indent_ids.section_id.id or False, 
+                ##
+                'requisitioner': indent_ids.requisitioner and indent_ids.requisitioner.id or False,
                 'cost_center_id':indent_ids.cost_center_id and indent_ids.cost_center_id.id or False
                 
             }
@@ -414,10 +437,20 @@ class Parser(report_sxw.rml_parse):
     def get_section(self,section_id):
         name = ''
         if section_id:
-            sec_obj = self.pool.get('tpt.project.section')  
+            #sec_obj = self.pool.get('tpt.project.section')  
+            #TPT-SSR-ON 06/01/2017- Redmine 3474
+            sec_obj = self.pool.get('arul.hr.section')
+            ##
             sec_obj_ids = sec_obj.browse(self.cr, self.uid, section_id)
             name = sec_obj_ids.name   
         return name   
+    def get_requisitioner(self,requisitioner):
+        name = ''
+        if requisitioner:
+            req_obj = self.pool.get('hr.employee')  
+            req_obj_ids = req_obj.browse(self.cr, self.uid, requisitioner)
+            name = req_obj_ids.name   
+        return name 
     def get_cost_center(self,cc_id):
         name = ''
         if cc_id:
@@ -440,6 +473,7 @@ class Parser(report_sxw.rml_parse):
         #TPT-BM-ON 11/07/2016
         section_id = wizard_data['section_id'][0] if wizard_data['section_id'] else False
         cost_center_id = wizard_data['cost_center_id'][0] if wizard_data['cost_center_id'] else False
+        requisitioner = wizard_data['requisitioner'][0] if wizard_data['requisitioner'] else False
         #
         
         po_no_from = ''
@@ -467,7 +501,7 @@ class Parser(report_sxw.rml_parse):
         type_pend_qty = wizard_data['type_pend_qty']
         
         
-        if not date_from and not date_to and not po_no_from and not po_no_to and not po_indent_no_from and not po_indent_no_to and not sup_id and not prod_id and not dept_id and not ind_date_from and not ind_date_to and not indent_release_date_from and not indent_release_date_to and not type_pend_qty and not section_id and not cost_center_id:
+        if not date_from and not date_to and not po_no_from and not po_no_to and not po_indent_no_from and not po_indent_no_to and not sup_id and not prod_id and not dept_id and not ind_date_from and not ind_date_to and not indent_release_date_from and not indent_release_date_to and not type_pend_qty and not section_id and not cost_center_id and not requisitioner:
             raise osv.except_osv(_('Warning!'),_('Please Choose any one of Parameter'))
         
         
@@ -485,7 +519,7 @@ class Parser(report_sxw.rml_parse):
             join tpt_purchase_product pp on (pp.pur_product_id = pi.id and pol.product_id = pp.product_id)
              '''
         
-        if date_from or date_to or po_no_from or po_no_to or po_indent_no_from or po_indent_no_to or sup_id or prod_id or dept_id or ind_date_from or ind_date_to or indent_release_date_from or indent_release_date_to or type_pend_qty or section_id or cost_center_id:
+        if date_from or date_to or po_no_from or po_no_to or po_indent_no_from or po_indent_no_to or sup_id or prod_id or dept_id or ind_date_from or ind_date_to or indent_release_date_from or indent_release_date_to or type_pend_qty or section_id or cost_center_id or requisitioner:
             str = " where "
             sql = sql+str
         if date_from and not date_to:
@@ -599,25 +633,34 @@ class Parser(report_sxw.rml_parse):
         if type_pend_qty == 'without_zero' and (indent_release_date_to or indent_release_date_from or ind_date_to or ind_date_from or po_indent_no_to or po_indent_no_from or dept_id or prod_id or sup_id or po_no_to or po_no_from or date_to or date_from):
             str = " and pol.product_qty - (select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty from stock_move where purchase_line_id=pol.id and state='done') <> '0.00'"
             sql = sql+str
-        #TPT-BM-ON 11/07/2016
-        if section_id and not cost_center_id and not date_from and not date_to:
-            str = " pi.project_section_id=%s "%section_id
+          ## TPT - SSR ON 07-01-2017   
+        if section_id and not cost_center_id and not requisitioner and not date_from and not date_to:
+            str = " pi.section_id=%s "%section_id
             sql += str
-        if not section_id and cost_center_id and not date_from and not date_to:
+        if not section_id and cost_center_id and not requisitioner and not date_from and not date_to:
             str = " pi.cost_center_id=%s "%cost_center_id
-            sql += str    
-        if section_id and not cost_center_id and date_from and not date_to:
-            str = " and pi.project_section_id=%s "%(section_id)
+            sql += str  
+        if not section_id and not cost_center_id and requisitioner and not date_from and not date_to:
+            str = " pi.requisitioner=%s "%requisitioner
+            sql += str        
+        if section_id and not cost_center_id and not requisitioner and date_from and not date_to:
+            str = " and pi.section_id=%s "%(section_id)
             sql += str
-        if section_id and not cost_center_id and date_from and date_to:
-            str = " and pi.project_section_id=%s "%(section_id)
+        if section_id and not cost_center_id and not requisitioner and date_from and date_to:
+            str = " and pi.section_id=%s "%(section_id)
             sql += str   
-        if not section_id and cost_center_id and date_from and not date_to:
+        if not section_id and cost_center_id and not requisitioner and date_from and not date_to:
             str = " and pi.cost_center_id=%s"%(cost_center_id)
             sql += str
-        if not section_id and cost_center_id and date_from and date_to:
+        if not section_id and cost_center_id and not requisitioner and date_from and date_to:
             str = " and pi.cost_center_id=%s "%(cost_center_id,)
             sql += str   
+        if not section_id and not cost_center_id and requisitioner and date_from and not date_to:
+            str = "and pi.requisitioner=%s "%(requisitioner)
+            sql += str      
+        if not section_id and not cost_center_id and requisitioner and date_from and date_to:
+            str = "and pi.requisitioner=%s "%(requisitioner)
+            sql += str  
         
         sql = sql+" order by id"
                     
@@ -683,8 +726,13 @@ class Parser(report_sxw.rml_parse):
                 'pending_quantity': order_line.product_qty-grn_qty,
                 'po_indent_no': order_line.po_indent_no.name,
                 'indent_date': order_line.po_indent_no.date_indent,
-                'indent_release_date': hod_date or False,
-                'section_id': self.get_section(indent_ids.project_section_id and indent_ids.project_section_id.id), 
+                'indent_release_date': hod_date or False,            
+                #'section_id': self.get_section(indent_ids.project_section_id and indent_ids.project_section_id.id),
+                #TPT-SSR-ON 06/01/2017- Redmine 3474
+                'section_id': self.get_section(indent_ids.section_id and indent_ids.section_id.id),                
+                #TPT-SSR-ON 12/01/2017- Redmine 3810
+                'requisitioner': self.get_requisitioner(indent_ids.requisitioner and indent_ids.requisitioner.id),
+                ##
                 'cost_center_id':self.get_cost_center(indent_ids.cost_center_id and indent_ids.cost_center_id.id)
             })
         return vals

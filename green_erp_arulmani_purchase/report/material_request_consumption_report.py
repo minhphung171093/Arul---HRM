@@ -231,12 +231,14 @@ class Parser(report_sxw.rml_parse):
         project_sec_id=wizard_data['project_section_id']       
         #mat_desc=wizard_data['dec_material']
                 
-        # Modified sql script by P.vinothkumar on 03/11/2016  for adding issue qty and value       
+        # Modified sql script by P.vinothkumar on 03/11/2016  for adding issue qty and value
+        # Modified sql script by P.vinothkumar on 02/01/2017 for adding case condition for req_qty        
         sql = '''
                 select mr.name as mat_req_no_1,mr.id as mat_req_no,mr.date_request as mat_req_date,mr.date_expec as exp_date,d.name as department,
                 s.name as section,p.bin_location as bin_loc,e.name_related as requisitioner,e.employee_id as requisitioner_code,
                 e.last_name as lname,res.login as req_raise_by,p.default_code as mat_code,p.name_template as mat_desc,
-                pr.name as proj_name,cc.name as cost_center,u.name as uom,mrl.product_uom_qty as req_qty,
+                pr.name as proj_name,cc.name as cost_center,u.name as uom,
+                case when mrl.product_uom_qty is null then 0.00 else mrl.product_uom_qty end as req_qty,
                 case when msl.product_isu_qty is null or mi.state='draft' then 0.00 else msl.product_isu_qty end as isu_qty,
                 case when (sm.product_qty * sm.price_unit) is null then 0.00 else (sm.product_qty * sm.price_unit) end as issue_value,                    
                 mr.state as state,prs.name as proj_sec_name,mrl.id as lineid, p.id as product_id

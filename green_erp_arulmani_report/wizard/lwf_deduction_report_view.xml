@@ -8,11 +8,13 @@
                 <form string="LWF Deduction Report" version="7.0">
                 	<group>
 	                    <field name='category_id' options="{'create': false, 'create_edit': false}"/>
-	                    <field name='month'/>  
 	                    <field name='year'/>
+	                    <field name='month' required='1' domain="[('month','=','12')]"/>  
                  	</group>
                     <footer>
                         <button name="print_report" string="Submit" type="object" class="oe_highlight"/>
+                        
+                        <button string="Cancel" class="oe_link" special="cancel"/>
                     </footer>
                 </form>
             </field>

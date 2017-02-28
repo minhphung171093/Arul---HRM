@@ -4452,10 +4452,21 @@ class arul_hr_employee_leave_details(osv.osv):
         emp_attendance_io = self.pool.get('arul.hr.punch.in.out.time')
         emp_obj = self.pool.get('hr.employee')
         emp_id = emp_obj.search(cr, uid, [('id','=',vals['employee_id'])])
-        emp_attendance_io_ids = emp_attendance_io.search(cr, uid, [('employee_id','=',vals['employee_id']),('work_date','=',vals['date_from'])])
-        if emp_attendance_io_ids:             
-            if vals['haft_day_leave'] is False:
-                raise osv.except_osv(_('Warning!'),_('System Could not Post Leave Entry if Attendance Entry exists for this Day!'))
+        # Commented by P.VINOTHKUMAR on 23/02/2017 FOR fixing attendance vs leave issue Incident No.3857 
+        #emp_attendance_io_ids = emp_attendance_io.search(cr, uid, [('employee_id','=',vals['employee_id']),('work_date','=',vals['date_from'])])
+        #if emp_attendance_io_ids:
+        # Added by P.VINOTHKUMAR on 23/02/2017 FOR fixing attendance vs leave issue Incident No.3857
+        sql='''select count(*) from arul_hr_punch_in_out_time where employee_id=%(emp_id)s and work_date between '%(date_from)s' and '%(date_to)s' 
+                   '''%{'emp_id':vals['employee_id'],
+                      'date_from':vals['date_from'],
+                      'date_to':vals['date_to']}
+        cr.execute(sql)
+        att = cr.fetchone()
+        if att and att[0] > 0:
+        #End    
+            # Commented by P.VINOTHKUMAR ON 02/01/2017 for fixing half-day leave issue for presented employee             
+            #if vals['haft_day_leave'] is False:
+            raise osv.except_osv(_('Warning!'),_('System Could not Post Leave Entry if Attendance Entry exists for this Day!'))
                 
         ## TPT END       
         ##        
@@ -4477,10 +4488,17 @@ class arul_hr_employee_leave_details(osv.osv):
         #TPT START- By Rakesh Kumar - ON 29/01/2016 - Fix For Duplicate Leave Entries
         if vals['employee_id']:
             #if vals['date_from'] == vals['date_to']:
-            sql = '''
-                     select count(*) from arul_hr_employee_leave_details where employee_id=%s and ('%s' between date_from and date_to)
-                    and ('%s' between date_from and date_to) and state not in ('cancel')
-                '''%(vals['employee_id'],vals['date_from'],vals['date_to'])
+            # Commented by P.VINOTHKUMAR ON 23/02/2017 for fixing multiple leave entries
+#             sql = '''
+#                      select count(*) from arul_hr_employee_leave_details where employee_id=%s and ('%s' between date_from and date_to)
+#                     and ('%s' between date_from and date_to) and state not in ('cancel')
+#                 '''%(vals['employee_id'],vals['date_from'],vals['date_to'])
+            # Added by P.VINOTHKUMAR on 23/02/2017 for fixing multiple leave entries
+            sql='''select count(*) from arul_hr_employee_leave_details where employee_id=%(emp_id)s and date_from between '%(date_from)s' and '%(date_to)s' 
+                    and date_to between  '%(date_from)s' and  '%(date_to)s'  and state not in ('cancel')
+                   '''%{'emp_id':vals['employee_id'],
+                      'date_from':vals['date_from'],
+                      'date_to':vals['date_to']}
             cr.execute(sql)# tpt-bm-state check is appended here on 01/03/2016
             k = cr.fetchone()   
             if k and k[0]-1> 0:
@@ -6680,22 +6698,42 @@ class arul_hr_punch_in_out(osv.osv):
                                             ##
                                             details_ids=detail_obj.search(cr, uid, [('employee_id','=',employee_ids[0])])
                                             if details_ids:
-                                                val4={'punch_in_out_id':details_ids[0],'planned_work_shift_id':shift_id,'actual_work_shift_id':shift_id,'employee_id':employee_ids[0],'work_date':date,
-                                                      'in_time':in_time,'out_time':out_time,
-                                                      'ref_in_time':in_time,'ref_out_time':out_time,
-                                                      
-                                                      'a_shift_count1':a_shift, #Here issue raised on 29/08/2016 - due to mismatch time b/w Work Shift & Work Shift Master screen
-                                                      'g1_shift_count1':g1_shift,
-                                                      'g2_shift_count1':g2_shift,
-                                                      'b_shift_count1':b_shift,
-                                                      'c_shift_count1':c_shift,
-                                                      'total_shift_worked1':shift_count,
-                                                      
-                                                      'approval':1}
-                                                if date_2!=date:
-                                                    val4.update({'diff_day':True})
-                                                    val1.update({'diff_day':True})
-                                                detail_obj4.create(cr, uid, val4) 
+                                                #Added by P.VINOTHKUMAR on 22/02/2017 for restricting to create attendance if the leave is created for same employee
+                                                sql ='''
+                                                     select count(*) from arul_hr_employee_leave_details where employee_id=%(emp)s and ('%(date)s' between date_from and date_to)
+                                                     and state in ('done') and haft_day_leave='f'
+                                                ''' %{'date': date,
+                                                      'emp' : employee_ids[0]
+                                                    }
+                                                cr.execute(sql)         
+                                                k = cr.fetchone()
+                                                if k and k[0] == 0:
+                                                # Logic ends    
+                                                    val4={'punch_in_out_id':details_ids[0],'planned_work_shift_id':shift_id,'actual_work_shift_id':shift_id,'employee_id':employee_ids[0],'work_date':date,
+                                                          'in_time':in_time,'out_time':out_time,
+                                                          'ref_in_time':in_time,'ref_out_time':out_time,
+                                                          
+                                                          'a_shift_count1':a_shift, #Here issue raised on 29/08/2016 - due to mismatch time b/w Work Shift & Work Shift Master screen
+                                                          'g1_shift_count1':g1_shift,
+                                                          'g2_shift_count1':g2_shift,
+                                                          'b_shift_count1':b_shift,
+                                                          'c_shift_count1':c_shift,
+                                                          'total_shift_worked1':shift_count,
+                                                          
+                                                          'approval':1}
+                                                    if date_2!=date:
+                                                        val4.update({'diff_day':True})
+                                                        val1.update({'diff_day':True})
+                                                    detail_obj4.create(cr, uid, val4)
+                                                # Condition added on 22/02/2017    
+                                                else:
+                                                    if date_2!=date:
+                                                        val1.update({'diff_day':True})
+                                                    val1['approval']=False  
+                                                    val1['employee_category_id'] = employee.employee_category_id.id
+                                                    val1['type']='punch'
+                                                    detail_obj2.create(cr, uid,val1)
+                                                # End         
                                             else:
                                                 val1={
                                                   'employee_id':employee_ids[0],
@@ -6737,6 +6775,8 @@ class arul_hr_punch_in_out(osv.osv):
                                         val1['approval']=False  
                                         val1['employee_category_id'] = employee.employee_category_id.id
                                         val1['type']='punch'
+                                        # Added by P.VINOTHKUMAR ON 23/02/2017 for incident attendance vs leave
+                                        val1['actual_work_shift_id']=shift_id
                                         detail_obj2.create(cr, uid,val1)
                                     temp +=1
                                     test =  L.pop(i+j+1)
@@ -10933,6 +10973,8 @@ class tpt_hr_attendance(osv.osv):
             # employee_id = emp_id[0]  #time_entry.employee_id.id
             #===================================================================
             ###Get Employee
+            #print time_entry.employee_id
+            #self.logger(_("Create attachment error!")+'\n'+str(time_entry.employee_id), netsvc.LOG_ERROR)
             emp_obj = self.pool.get('hr.employee') 
             emp_obj_ids = emp_obj.search(cr, uid, [('employee_id','=',time_entry.employee_id)]) 
             emp_root = emp_obj.browse(cr,uid,emp_obj_ids[0])
@@ -10954,7 +10996,7 @@ class tpt_hr_attendance(osv.osv):
             work_date_format = work_date[:4]+'-'+work_date[5:7]+'-'+work_date[8:10]
             
             
-            if punch_type=='IN':
+            if punch_type=='in':
                 in_time = float(hour)+float(min)/60+float(sec)/3600
                 attend_temp_obj.create(cr, uid, {
                                  'employee_id': emp_root.id,
@@ -10974,7 +11016,7 @@ class tpt_hr_attendance(osv.osv):
                                  'employee_category_id':emp_root.employee_category_id.id,
                                  'type':'punch',
                                   })
-            if punch_type=='OUT':
+            if punch_type=='out':
                 out_time = float(hour)+float(min)/60+float(sec)/3600
                 #===============================================================
                 # attend_temp_obj_ids = attend_temp_obj.search(cr, uid, [('employee_id','=',emp_root.id), ('work_date','=',work_date_format)]) 
@@ -11288,9 +11330,13 @@ class tpt_hr_attendance(osv.osv):
         
             #CHANGE STATE OF AST TO DONE - IF ITS AUTO APPROVED
 
+#             sql = '''
+#             update arul_hr_audit_shift_time set state='done', approval='t' where id=%s
+#             '''%ast_id
+            # Modified script by P.VINOTHKUMAR ON 01/02/2017 FOR adding actual work shift_id
             sql = '''
-            update arul_hr_audit_shift_time set state='done', approval='t' where id=%s
-            '''%ast_id
+            update arul_hr_audit_shift_time set state='done', approval='t',actual_work_shift_id=%s where id=%s
+            '''%(work_shift_id,ast_id)
             cr.execute(sql)
             #ast_obj.write(cr, uid, ast_id, {'state':'done', 'approval':True})
         
@@ -11391,8 +11437,7 @@ class tpt_time_data_move(osv.osv):
             return True
     ##TPT-BM-29/11/2016
     def upload_batronix_time_data(self, cr, uid, context=None):
-        time_obj = self.pool.get('tpt.time.data.move')
- 
+        #time_obj = self.pool.get('tpt.time.data.move')
         sql = '''
             select employee_code, date, punch_type, id from hr_attendance where is_moved='f'
         '''

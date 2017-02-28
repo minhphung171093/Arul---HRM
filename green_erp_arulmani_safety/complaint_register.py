@@ -36,6 +36,7 @@ class complaint_register(osv.osv):
         'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
         'write_date': fields.datetime('Updated Date',readonly = True),
         'write_uid': fields.many2one('res.users','Updated By',ondelete='restrict',readonly = True),
+        'multi_images': fields.text("Multi Images"),
     }
 
     _defaults = {

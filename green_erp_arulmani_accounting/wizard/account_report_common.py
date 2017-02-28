@@ -367,6 +367,33 @@ class account_balance_report(osv.osv_memory):
                     '''%(acc_ids,from_date,to_date,state)
                     cr.execute(sql)
                     sumcredit = cr.fetchone()[0]
+                    # Added by P.VINOTHKUMAR ON 10/02/2017 for fixing opening debit and credit value is 0 for expense accounts
+                    if acc_id.carry_forward==False:
+                        sql='''
+                             select date_start from account_fiscalyear where '%s' between date_start and date_stop
+                             '''%(from_date)
+                        cr.execute(sql)
+                        period=cr.fetchone()[0]
+                        
+                        sql = ''' 
+                        select case when sum(aml.debit)!=0 then sum(aml.debit) else 0 end open_sumdebit
+                        from account_move_line aml
+                        join account_move am on (am.id=aml.move_id)
+                        where aml.account_id in %s and am.date > '%s' and am.date < '%s' and am.state in %s 
+                    '''%(acc_ids,period,from_date,state)
+                        cr.execute(sql)
+                        open_sumdebit = cr.fetchone()[0]
+                        
+                        sql = ''' 
+                        select case when sum(aml.credit)!=0 then sum(aml.credit) else 0 end open_sumcredit
+                        from account_move_line aml
+                        join account_move am on (am.id=aml.move_id)
+                        where aml.account_id in %s and am.date > '%s' and am.date < '%s' and am.state in %s
+                    '''%(acc_ids,period,from_date,state)
+                        cr.execute(sql)
+                        open_sumcredit = cr.fetchone()[0]
+                    # code end for update opening debit and credit for expense accounts         
+                    
                     #print sql
                     #TPT-Code commented for closing balance                
     #===========================================================================
@@ -543,11 +570,13 @@ class account_balance_report(osv.osv_memory):
                 for line in account_ids:
                     account_id = line['id']
                 # Added by BP and P.vinothkumar on 30/08/2016
+                    acc_id = self.pool.get('account.account').browse(cr,uid,account_id)
                     acc_obj = self.pool.get('account.account')
                     children_and_consolidated = acc_obj._get_children_and_consol(cr, uid, account_id, context=context)
                     
                     child_records = tuple(children_and_consolidated)
                     
+                    # Added by P.VINOTHKUMAR ON 07/02/2016 for update opening debit and credit for expense accounts
                     sql = ''' 
                              select case when sum(aml.debit)!=0 then sum(aml.debit) else 0 end sumdebit
                             from account_move_line aml
@@ -583,8 +612,35 @@ class account_balance_report(osv.osv_memory):
                         where aml.account_id in %s and am.date < '%s' and am.state='posted'
                     '''%(child_records,balance.date_from)
                     cr.execute(sql)
-                    #print sql
                     open_dr = cr.fetchone()[0]
+                    
+                     # Added by P.VINOTHKUMAR ON 10/02/2017 for fixing opening debit and credit value is 0 for expense accounts
+                    if acc_id.carry_forward==False:
+                        sql='''
+                             select date_start from account_fiscalyear where '%s' between date_start and date_stop
+                             '''%(balance.date_from)
+                        cr.execute(sql)
+                        period=cr.fetchone()[0]
+                        
+                        sql = ''' 
+                        select case when sum(aml.debit)!=0 then sum(aml.debit) else 0 end open_sumdebit
+                        from account_move_line aml
+                        join account_move am on (am.id=aml.move_id)
+                        where aml.account_id in %s and am.date > '%s' and am.date < '%s' and am.state='posted'
+                    '''%(child_records,period,balance.date_from)
+                        cr.execute(sql)
+                        open_dr = cr.fetchone()[0]
+                        
+                        sql = ''' 
+                        select case when sum(aml.credit)!=0 then sum(aml.credit) else 0 end open_sumcredit
+                        from account_move_line aml
+                        join account_move am on (am.id=aml.move_id)
+                        where aml.account_id in %s and am.date > '%s' and am.date < '%s' and am.state='posted'
+                    '''%(child_records,period,balance.date_from)
+                        cr.execute(sql)
+                        open_cr = cr.fetchone()[0]
+                    #print sql
+                        
                     close_debit = (open_dr + debit)
                     close_credit = (open_cr + credit)
                     total_balance = (close_debit)-(close_credit)
@@ -618,7 +674,7 @@ class account_balance_report(osv.osv_memory):
                     'open_debit': open_dr,
                     'open_credit':open_cr,
                     'debit': debit,
-                    'credit': credit,
+                    'credit':credit,
                     'close_bal': total_balance,
                     'close_debit': close_debit,
                     'close_credit': close_credit
