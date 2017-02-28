@@ -104,13 +104,17 @@ class input_register_form(osv.osv_memory):
         #YuVi
             
         def get_grn_date(inv_id):      
+            #vsis update for one invoice from multi GRN
+            temp = False
             sql = '''
                   select date from stock_picking where id in (select grn_no from account_invoice where id = %s)
-                  '''%(inv_id)
+                  union all
+                  select date from stock_picking where tpt_invoice_id = %s
+                  '''%(inv_id,inv_id)
             cr.execute(sql)
             grndate = cr.fetchone()
-            date = datetime.strptime(str(grndate[0]), DATETIME_FORMAT)
-            temp=date.strftime('%Y/%m/%d/')
+            date = grndate and datetime.strptime(str(grndate[0]), DATETIME_FORMAT) or False
+            temp= date and date.strftime('%Y/%m/%d/') or False
             return temp
         
         def get_total(value):

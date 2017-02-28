@@ -400,6 +400,9 @@ class account_move_line(osv.osv):
                                   ('return_do', 'Return DO'),
                                   ('asset_dp', 'Asset Depreciation'),#TPT-BM- ON13/08/2016
                                   ], string="Document Type", readonly=True, select=True),
+        #vsis selected grn from pop-up Create invoice
+        'tpt_grn_id': fields.many2one('stock.picking', 'GRN'),
+        'tpt_grn_line_id': fields.many2one('stock.move', 'GRN line'),
     }
     
     def create(self, cr, uid, vals, context=None):
@@ -838,6 +841,9 @@ class account_invoice(osv.osv):
 #                                      ('service_invoice','Service Invoice'),
 #                                      ('freight_invoice','Freight Invoice')
 #                                      ],('Doc Type')),
+
+        # VSIS new one2many grn
+        'tpt_grn_line': fields.one2many('stock.picking','tpt_invoice_id','GRN Line'),
     }
     
     def bt_post_ed(self, cr, uid, ids, context=None):
@@ -1350,8 +1356,14 @@ class account_invoice(osv.osv):
 #             vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.supplier.invoice.sequence') or '/'
 #             vals['doc_type']='service_invoice'
              #TPT START - By P.Vinothkumar - ON 29/03/2016 - FOR (Modify Document Sequence change)
-             sequence = self.pool.get('ir.sequence').get(cr, uid, 'tpt.supplier.invoice.sequence') or '/'
-             vals['name'] =  sequence and sequence+'/'+fiscalyear['code'] or '/'
+            # vsis check context to generate seq for supplier invoice
+            if context is None:
+                context = {}
+            if not context.get('not_gen_seq_inv',False):
+                sequence = self.pool.get('ir.sequence').get(cr, uid, 'tpt.supplier.invoice.sequence') or '/'
+                vals['name'] =  sequence and sequence+'/'+fiscalyear['code'] or '/'
+            else:
+                vals['name'] =  'Draft'
            #TPT END
         if vals.get('type','')=='in_invoice' and 'purchase_id' in vals and 'vendor_ref' in vals and 'sup_inv_id' not in vals:
 #             vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.supplier.invoice.sequence') or '/'
@@ -2554,26 +2566,31 @@ class account_invoice(osv.osv):
     ##
     ## 
     ##
-#     def line_get_convert(self, cr, uid, x, part, date, context=None):
-#         return {
-#             'date_maturity': x.get('date_maturity', False),
-#             'partner_id': part,
-#             'name': x['name'][:64],
-#             'date': date,
-#             'debit': x['price']>0 and x['price'],
-#             'credit': x['price']<0 and -x['price'],
-#             'account_id': x['account_id'],
-#             'analytic_lines': x.get('analytic_lines', []),
-#             'amount_currency': x['price']>0 and abs(x.get('amount_currency', False)) or -abs(x.get('amount_currency', False)),
-#             'currency_id': x.get('currency_id', False),
-#             'tax_code_id': x.get('tax_code_id', False),
-#             'tax_amount': x.get('tax_amount', False),
-#             'ref': x.get('ref', False),
-#             'quantity': x.get('quantity',1.00),
-#             'product_id': x.get('product_id', False),
-#             'product_uom_id': x.get('uos_id', False),
-#             'analytic_account_id': x.get('account_analytic_id', False),
-#         }
+    
+    # vsis inherit
+    def line_get_convert(self, cr, uid, x, part, date, context=None):
+        return {
+            'date_maturity': x.get('date_maturity', False),
+            'partner_id': part,
+            'name': x['name'][:64],
+            'date': date,
+            'debit': x['price']>0 and x['price'],
+            'credit': x['price']<0 and -x['price'],
+            'account_id': x['account_id'],
+            'analytic_lines': x.get('analytic_lines', []),
+            'amount_currency': x['price']>0 and abs(x.get('amount_currency', False)) or -abs(x.get('amount_currency', False)),
+            'currency_id': x.get('currency_id', False),
+            'tax_code_id': x.get('tax_code_id', False),
+            'tax_amount': x.get('tax_amount', False),
+            'ref': x.get('ref', False),
+            'quantity': x.get('quantity',1.00),
+            'product_id': x.get('product_id', False),
+            'product_uom_id': x.get('uos_id', False),
+            'analytic_account_id': x.get('account_analytic_id', False),
+            # vsis add
+            'tpt_grn_id':x.get('tpt_grn_id', False),
+            'tpt_grn_line_id':x.get('tpt_grn_line_id', False),
+        }
 
     
 account_invoice()
@@ -2599,6 +2616,9 @@ class account_invoice_line(osv.osv):
     _columns = {
         'third_party_id': fields.many2one('tpt.third.service.entry', 'Service Entry'), #TPT-BM ON 22/04/2016 - MAINTENANCE MODULE CHANGES
         'third_party_line_id': fields.many2one('tpt.third.service.entry.line', 'Service Entry Line'), #TPT-BM ON 25/04/2016 - MAINTENANCE MODULE CHANGES
+        #vsis selected grn from pop-up Create invoice
+        'tpt_grn_id': fields.many2one('stock.picking', 'GRN'),
+        'tpt_grn_line_id': fields.many2one('stock.move', 'GRN line'),
     }
     #TPT-BM-25/04/2016-MAINTENACE MODULE CHANGES
     def create(self, cr, uid, vals, context=None):
@@ -2726,6 +2746,9 @@ class account_invoice_line(osv.osv):
             'uos_id':line.uos_id.id,
             'account_analytic_id':line.account_analytic_id.id,
             'taxes':line.invoice_line_tax_id,
+            # vsis add
+            'tpt_grn_id':line.tpt_grn_id and line.tpt_grn_id.id or False,
+            'tpt_grn_line_id':line.tpt_grn_line_id and line.tpt_grn_line_id.id or False,
         }  
     def move_line_amount_untaxed(self, cr, uid, invoice_id):
         res = []
@@ -2749,6 +2772,9 @@ class account_invoice_line(osv.osv):
                     'price': basic,
                     'account_id': purchase_acc_id and purchase_acc_id['purchase_acc_id'] or False,
                     'account_analytic_id': t['account_analytic_id'],
+                    # vsis add
+                    'tpt_grn_id':t and t['tpt_grn_id'] or False,
+                    'tpt_grn_line_id':t and t['tpt_grn_line_id'] or False,
                     })
         return res
     def move_line_amount_untaxed_ser_qty_amt(self, cr, uid, invoice_id):
@@ -2776,6 +2802,9 @@ class account_invoice_line(osv.osv):
                     'price': basic,
                     'account_id': account_id, #purchase_acc_id and purchase_acc_id['purchase_acc_id'] or False,
                     'account_analytic_id': t['account_analytic_id'],
+                    # vsis add
+                    'tpt_grn_id':t and t['tpt_grn_id'] or False,
+                    'tpt_grn_line_id':t and t['tpt_grn_line_id'] or False,
                     })
         return res
     def move_line_amount_cst_to_asset_acc(self, cr, uid, invoice_id, tax_amounts):
@@ -2834,6 +2863,9 @@ class account_invoice_line(osv.osv):
                     'price': basic,
                     'account_id': line.product_id.product_asset_acc_id.id or False,
                     #'account_analytic_id': line.account_analytic_id,
+                    # vsis add
+                    'tpt_grn_id':line.tpt_grn_id and line.tpt_grn_id.id or False,
+                    'tpt_grn_line_id':line.tpt_grn_line_id and line.tpt_grn_line_id.id or False,
                     })
         return res
     def move_line_amount_untaxed_cst(self, cr, uid, invoice_id, tax_amounts):
@@ -2888,6 +2920,9 @@ class account_invoice_line(osv.osv):
                     'price': basic,
                     'account_id': purchase_acc_id and purchase_acc_id['purchase_acc_id'] or False,
                     'account_analytic_id': t['account_analytic_id'],
+                    # vsis add
+                    'tpt_grn_id':t and t['tpt_grn_id'] or False,
+                    'tpt_grn_line_id':t and t['tpt_grn_line_id'] or False,
                     })
         return res
     def move_line_amount_untaxed_without_po(self, cr, uid, invoice_id):
@@ -2905,6 +2940,9 @@ class account_invoice_line(osv.osv):
                     'price': basic,
                     'account_id': t['account_id'],
                     'account_analytic_id': t['account_analytic_id'],
+                    # vsis add
+                    'tpt_grn_id':t and t['tpt_grn_id'] or False,
+                    'tpt_grn_line_id':t and t['tpt_grn_line_id'] or False,
                     })
         return res
     
@@ -2927,6 +2965,9 @@ class account_invoice_line(osv.osv):
                         'price': -tds_amount,
                         'account_id': line.tds_id and line.tds_id.gl_account_id and line.tds_id.gl_account_id.id or False,
                         'account_analytic_id': line.account_analytic_id.id,
+                        # vsis add
+                        'tpt_grn_id':line.tpt_grn_id and line.tpt_grn_id.id or False,
+                        'tpt_grn_line_id':line.tpt_grn_line_id and line.tpt_grn_line_id.id or False,
                     })
         return res 
     
@@ -2956,6 +2997,9 @@ class account_invoice_line(osv.osv):
                             'price': -tax_tds_amount,
                             'account_id': line.tds_id_2 and line.tds_id_2.gl_account_id and line.tds_id_2.gl_account_id.id or False,
                             'account_analytic_id': line.account_analytic_id.id,
+                            # vsis add
+                            'tpt_grn_id':line.tpt_grn_id and line.tpt_grn_id.id or False,
+                            'tpt_grn_line_id':line.tpt_grn_line_id and line.tpt_grn_line_id.id or False,
                         })
         return res 
      
@@ -3012,6 +3056,9 @@ class account_invoice_line(osv.osv):
         #                 'account_id': sale_acc_id and sale_acc_id['sale_acc_id'] or False,
                         'account_id': account,
                         'account_analytic_id': t['account_analytic_id'],
+                        # vsis add
+                        'tpt_grn_id':t and t['tpt_grn_id'] or False,
+                        'tpt_grn_line_id':t and t['tpt_grn_line_id'] or False,
                     })
         return res
     def move_line_customer_excise_duty(self, cr, uid, invoice_id, type, context = None):
@@ -3062,6 +3109,9 @@ class account_invoice_line(osv.osv):
                         'price': price or 0.0,
                         'account_id': cus_inv_ed_id and cus_inv_ed_id['cus_inv_ed_id'] or False,
                         'account_analytic_id': line.account_analytic_id.id,
+                        # vsis add
+                        'tpt_grn_id':line.tpt_grn_id and line.tpt_grn_id.id or False,
+                        'tpt_grn_line_id':line.tpt_grn_line_id and line.tpt_grn_line_id.id or False,
                     })
         return res  
 
@@ -3139,6 +3189,9 @@ class account_invoice_line(osv.osv):
                         'price': -tax,
                         'account_id': account,
                         'account_analytic_id': line.account_analytic_id.id,
+                        # vsis add
+                        'tpt_grn_id':line.tpt_grn_id and line.tpt_grn_id.id or False,
+                        'tpt_grn_line_id':line.tpt_grn_line_id and line.tpt_grn_line_id.id or False,
                         })
         return res
     
@@ -3218,6 +3271,9 @@ class account_invoice_line(osv.osv):
                         'price': -tax,
                         'account_id': account,
                         'account_analytic_id': line.account_analytic_id.id,
+                        # vsis add
+                        'tpt_grn_id':line.tpt_grn_id and line.tpt_grn_id.id or False,
+                        'tpt_grn_line_id':line.tpt_grn_line_id and line.tpt_grn_line_id.id or False,
                         })
         return res
     def move_line_amount_tax_credit_5(self, cr, uid, invoice_id, context = None):
@@ -3295,6 +3351,9 @@ class account_invoice_line(osv.osv):
                         'price': -tax,
                         'account_id': 4871, #account, #SWACHH BHARAT CESS ACCOUNT - CODE: 0000450036
                         'account_analytic_id': line.account_analytic_id.id,
+                        # vsis add
+                        'tpt_grn_id':line.tpt_grn_id and line.tpt_grn_id.id or False,
+                        'tpt_grn_line_id':line.tpt_grn_line_id and line.tpt_grn_line_id.id or False,
                         })
         return res
     ###
@@ -3654,6 +3713,9 @@ class account_invoice_line(osv.osv):
                         'price': round(tax,2),
                         'account_id': account,
                         'account_analytic_id': line.account_analytic_id.id,
+                        # vsis add
+                        'tpt_grn_id':line.tpt_grn_id and line.tpt_grn_id.id or False,
+                        'tpt_grn_line_id':line.tpt_grn_line_id and line.tpt_grn_line_id.id or False,
                         })
         return res
     ###
@@ -3775,6 +3837,9 @@ class account_invoice_line(osv.osv):
                         'price': round(tax,2),
                         'account_id': account,
                         'account_analytic_id': line.account_analytic_id.id,
+                        # vsis add
+                        'tpt_grn_id':line.tpt_grn_id and line.tpt_grn_id.id or False,
+                        'tpt_grn_line_id':line.tpt_grn_line_id and line.tpt_grn_line_id.id or False,
                         })
         return res
     ###
@@ -3863,6 +3928,9 @@ class account_invoice_line(osv.osv):
                         'price': round(tax,2),
                         'account_id': 4871, #account, #SWACHH BHARAT CESS ACCOUNT - CODE: 0000450036
                         'account_analytic_id': line.account_analytic_id.id,
+                        # vsis add
+                        'tpt_grn_id':line.tpt_grn_id and line.tpt_grn_id.id or False,
+                        'tpt_grn_line_id':line.tpt_grn_line_id and line.tpt_grn_line_id.id or False,
                         })
         return res
     ###
@@ -3958,6 +4026,9 @@ class account_invoice_line(osv.osv):
                         'price': round(tax,2),
                         'account_id': 5091, #account, #KRISHI KALYAN CESS ACCOUNT - CODE: 0000450036
                         'account_analytic_id': line.account_analytic_id.id,
+                        # vsis add
+                        'tpt_grn_id':line.tpt_grn_id and line.tpt_grn_id.id or False,
+                        'tpt_grn_line_id':line.tpt_grn_line_id and line.tpt_grn_line_id.id or False,
                         })
         return res
     #TPT-BalamuruganPurushothaman - ON 04/11/2015 - TO CREATE POSTGING ENTRY FOR TAX AMOUNT
@@ -4044,6 +4115,9 @@ class account_invoice_line(osv.osv):
                         'price': round(tax,2),
                         'account_id': account,
                         'account_analytic_id': line.account_analytic_id.id,
+                        # vsis add
+                        'tpt_grn_id':line.tpt_grn_id and line.tpt_grn_id.id or False,
+                        'tpt_grn_line_id':line.tpt_grn_line_id and line.tpt_grn_line_id.id or False,
                         })
         return res
     
@@ -4145,6 +4219,9 @@ class account_invoice_line(osv.osv):
                         'price': round(tax,2),
                         'account_id': account,
                         'account_analytic_id': line.account_analytic_id.id,
+                        # vsis add
+                        'tpt_grn_id':line.tpt_grn_id and line.tpt_grn_id.id or False,
+                        'tpt_grn_line_id':line.tpt_grn_line_id and line.tpt_grn_line_id.id or False,
                         })
         return res
     def tpt_move_line_amount_tax_5(self, cr, uid, invoice_id, context = None):
@@ -4244,6 +4321,9 @@ class account_invoice_line(osv.osv):
                         'price': round(tax,2),
                         'account_id': 4871, #account, #SWACHH BHARAT CESS ACCOUNT - CODE: 0000450036
                         'account_analytic_id': line.account_analytic_id.id,
+                        # vsis add
+                        'tpt_grn_id':line.tpt_grn_id and line.tpt_grn_id.id or False,
+                        'tpt_grn_line_id':line.tpt_grn_line_id and line.tpt_grn_line_id.id or False,
                         })
         return res
     ###
@@ -4388,6 +4468,9 @@ class account_invoice_line(osv.osv):
                         'price': round(tax),
                         'account_id': account,
                         'account_analytic_id': line.account_analytic_id.id,
+                        # vsis add
+                        'tpt_grn_id':line.tpt_grn_id and line.tpt_grn_id.id or False,
+                        'tpt_grn_line_id':line.tpt_grn_line_id and line.tpt_grn_line_id.id or False,
                         })
                     
 #                     if 'CST' in tax_name:
@@ -4582,6 +4665,9 @@ class account_invoice_line(osv.osv):
                                     'price': tax,
                                     'account_id': account,
                                     'account_analytic_id': t['account_analytic_id'],
+                                    # vsis add
+                                    'tpt_grn_id':t and t['tpt_grn_id'] or False,
+                                    'tpt_grn_line_id':t and t['tpt_grn_line_id'] or False,
                                 })
                                 break
                     elif 'VAT' in inv_id.sale_tax_id.name:
@@ -4604,6 +4690,9 @@ class account_invoice_line(osv.osv):
                                     'price': tax,
                                     'account_id': account,
                                     'account_analytic_id': t['account_analytic_id'],
+                                    # vsis add
+                                    'tpt_grn_id':t and t['tpt_grn_id'] or False,
+                                    'tpt_grn_line_id':t and t['tpt_grn_line_id'] or False,
                                 })
                                 break
                     else:
@@ -4632,6 +4721,9 @@ class account_invoice_line(osv.osv):
                                         'price': tax,
                                         'account_id': account,
                                         'account_analytic_id': t['account_analytic_id'],
+                                        # vsis add
+                                        'tpt_grn_id':t and t['tpt_grn_id'] or False,
+                                        'tpt_grn_line_id':t and t['tpt_grn_line_id'] or False,
                                     })
                                     break
                         else :
@@ -4661,6 +4753,9 @@ class account_invoice_line(osv.osv):
                         'price': account['fright'],
                         'account_id': sup_inv_fright_id and sup_inv_fright_id['sup_inv_fright_id'] or False,
                         'account_analytic_id': t['account_analytic_id'],
+                        # vsis add
+                        'tpt_grn_id':t and t['tpt_grn_id'] or False,
+                        'tpt_grn_line_id':t and t['tpt_grn_line_id'] or False,
                     })
                     break
                 break
@@ -4686,6 +4781,9 @@ class account_invoice_line(osv.osv):
                             'price': account['amount_round_off'],
                             'account_id': account_ids[0],
                             'account_analytic_id': t['account_analytic_id'],
+                            # vsis add
+                            'tpt_grn_id':t and t['tpt_grn_id'] or False,
+                            'tpt_grn_line_id':t and t['tpt_grn_line_id'] or False,
                     })
                 break
             break
@@ -4777,6 +4875,9 @@ class account_invoice_line(osv.osv):
                     'price': fright,
                     'account_id': account,
                     'account_analytic_id': line.account_analytic_id and line.account_analytic_id.id or False,
+                    # vsis add
+                    'tpt_grn_id':line.tpt_grn_id and line.tpt_grn_id.id or False,
+                    'tpt_grn_line_id':line.tpt_grn_line_id and line.tpt_grn_line_id.id or False,
                 })
         return res 
     
@@ -4908,6 +5009,9 @@ class account_invoice_line(osv.osv):
                         'price': account['excise_duty'],
                         'account_id': sup_inv_ed_id and sup_inv_ed_id['sup_inv_ed_id'] or False,
                         'account_analytic_id': t['account_analytic_id'],
+                        # vsis add
+                        'tpt_grn_id':t and t['tpt_grn_id'] or False,
+                        'tpt_grn_line_id':t and t['tpt_grn_line_id'] or False,
                     })
                     break
             break
@@ -4966,6 +5070,9 @@ class account_invoice_line(osv.osv):
                         'price': account['p_f_charge'],
                         'account_id': sup_inv_pf_id and sup_inv_pf_id['sup_inv_pf_id'] or False,
                         'account_analytic_id': t['account_analytic_id'],
+                        # vsis add
+                        'tpt_grn_id':t and t['tpt_grn_id'] or False,
+                        'tpt_grn_line_id':t and t['tpt_grn_line_id'] or False,
                     })
                     break
                 break
@@ -5056,6 +5163,9 @@ class account_invoice_line(osv.osv):
     #                 'account_id': sale_acc_id and sale_acc_id['sale_acc_id'] or False,
                     'account_id': account,
                     'account_analytic_id': t['account_analytic_id'],
+                    # vsis add
+                    'tpt_grn_id':t and t['tpt_grn_id'] or False,
+                    'tpt_grn_line_id':t and t['tpt_grn_line_id'] or False,
                 })           
         return res
     
@@ -5082,6 +5192,9 @@ class account_invoice_line(osv.osv):
                     'price': tax_debit_amount,
                     'account_id': line.tax_id and line.tax_id.gl_account_id and line.tax_id.gl_account_id.id or False,
                     'account_analytic_id': line.account_analytic_id.id,
+                    # vsis add
+                    'tpt_grn_id':line.tpt_grn_id and line.tpt_grn_id.id or False,
+                    'tpt_grn_line_id':line.tpt_grn_line_id and line.tpt_grn_line_id.id or False,
                 })
         return res
     def move_line_fi_debit_14(self, cr, uid, invoice_id):
@@ -5120,6 +5233,9 @@ class account_invoice_line(osv.osv):
                     'price': tax_debit_amount,
                     'account_id': line.tax_id and line.tax_id.gl_account_id and line.tax_id.gl_account_id.id or False,
                     'account_analytic_id': line.account_analytic_id.id,
+                    # vsis add
+                    'tpt_grn_id':line.tpt_grn_id and line.tpt_grn_id.id or False,
+                    'tpt_grn_line_id':line.tpt_grn_line_id and line.tpt_grn_line_id.id or False,
                 })
         return res
     def move_line_fi_debit_5(self, cr, uid, invoice_id):
@@ -5157,6 +5273,9 @@ class account_invoice_line(osv.osv):
                     'price': tax_debit_amount,
                     'account_id': 4871,
                     'account_analytic_id': line.account_analytic_id.id,
+                    # vsis add
+                    'tpt_grn_id':line.tpt_grn_id and line.tpt_grn_id.id or False,
+                    'tpt_grn_line_id':line.tpt_grn_line_id and line.tpt_grn_line_id.id or False,
                 })
         return res
     def move_line_fi_debit_deducte(self, cr, uid, invoice_id):
@@ -5226,6 +5345,9 @@ class account_invoice_line(osv.osv):
                     'price': -tax_credit_amount,
                     'account_id': line.tax_credit and line.tax_credit.gl_account_id and line.tax_credit.gl_account_id.id or False,
                     'account_analytic_id': line.account_analytic_id.id,
+                    # vsis add
+                    'tpt_grn_id':line.tpt_grn_id and line.tpt_grn_id.id or False,
+                    'tpt_grn_line_id':line.tpt_grn_line_id and line.tpt_grn_line_id.id or False,
                 })
         return res
     ###
@@ -5254,6 +5376,9 @@ class account_invoice_line(osv.osv):
                     'price': -tax_credit_amount,
                     'account_id': line.tax_credit and line.tax_credit.gl_account_id and line.tax_credit.gl_account_id.id or False,
                     'account_analytic_id': line.account_analytic_id.id,
+                    # vsis add
+                    'tpt_grn_id':line.tpt_grn_id and line.tpt_grn_id.id or False,
+                    'tpt_grn_line_id':line.tpt_grn_line_id and line.tpt_grn_line_id.id or False,
                 })
         return res
     def move_line_fi_credit_5(self, cr, uid, invoice_id):
@@ -5281,6 +5406,9 @@ class account_invoice_line(osv.osv):
                     'price': -tax_credit_amount,
                     'account_id': 4871,
                     'account_analytic_id': line.account_analytic_id.id,
+                    # vsis add
+                    'tpt_grn_id':line.tpt_grn_id and line.tpt_grn_id.id or False,
+                    'tpt_grn_line_id':line.tpt_grn_line_id and line.tpt_grn_line_id.id or False,
                 })
         return res
     ###

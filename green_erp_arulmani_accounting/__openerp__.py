@@ -77,6 +77,7 @@
         'report/sales_vat_report.xml',
         'wizard/sales_cst_wizard.xml',
         'report/sales_cst_report.xml',
+        'wizard/selecting_grn_to_create_invoice_form_view.xml', ###
     ],
     'css' : [
         "static/src/css/base.css",
