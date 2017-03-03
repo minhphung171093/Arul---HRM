@@ -2253,7 +2253,7 @@ class arul_hr_payroll_executions(osv.osv):
                                           'float': pt,
                                     }))
 
-		            #Start:TPT hadling Workers - S3 category
+		            #Start:TPT handling Workers - S3 category
                     if p.employee_category_id and p.employee_category_id.code == 'S3':
                         pfd = pd = vpfd = esid = fd = cd = ld = ind = pt = lwf = total_deduction = 0.0
                         i_lic_prem = i_others = l_vvti_loan = l_lic_hfl = l_hdfc = l_tmb = l_sbt = l_others = it_deduction = 0
@@ -2370,7 +2370,7 @@ class arul_hr_payroll_executions(osv.osv):
                             ma = (total_shift_worked * ( lunch_allowance + washing_allowane )) + total_all_shift_allowance
                             ma = round(ma,0) 
 			            
-                        if line.month==2 and total_no_of_leave > 20:
+                        if int(line.month)==2 and total_no_of_leave > 20:
                             total_no_of_leave = 26                       
                         net_basic = round(basic - (basic / s3_working_days) * total_no_of_leave, 0)
                         net_da = round(da - (da / s3_working_days) * total_no_of_leave, 0)
