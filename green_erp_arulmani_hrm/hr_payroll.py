@@ -1020,11 +1020,13 @@ class arul_hr_payroll_executions(osv.osv):
         for line in self.browse(cr,uid,ids):
             time_leav_obj = self.pool.get('tpt.time.leave.evaluation')
             time_leav_ids = time_leav_obj.search(cr, uid, [('payroll_area_id','=',line.payroll_area_id.id),('year','=',line.year),('month','=',line.month),('state','=','done')])
-            if not time_leav_ids:
-                raise osv.except_osv(_('Warning!'),_('Time/Leave Evaluation is not made or confirm!'))
-            for ti_le in time_leav_obj.browse(cr,uid,time_leav_ids):
-                if len(ti_le.shift_time_id)!=0 or len(ti_le.leave_request_id)!=0 or len(ti_le.non_availability_id)!=0:
-                    raise osv.except_osv(_('Warning!'),_('Time/Leave Evaluation is not completed!'))
+            #===================================================================
+            # if not time_leav_ids:
+            #     raise osv.except_osv(_('Warning!'),_('Time/Leave Evaluation is not made or confirm!'))
+            # for ti_le in time_leav_obj.browse(cr,uid,time_leav_ids):
+            #     if len(ti_le.shift_time_id)!=0 or len(ti_le.leave_request_id)!=0 or len(ti_le.non_availability_id)!=0:
+            #         raise osv.except_osv(_('Warning!'),_('Time/Leave Evaluation is not completed!'))
+            #===================================================================
 
             emp_obj = self.pool.get('hr.employee')
             payroll_emp_struc_obj = self.pool.get('arul.hr.payroll.employee.structure')
