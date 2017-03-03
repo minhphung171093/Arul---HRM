@@ -1579,8 +1579,7 @@ class arul_hr_payroll_executions(osv.osv):
                                 #spa = spa / (calendar_days - 4 - special_holidays) * total_working_days_s1 
                                 spa = spa / calendar_days  * total_working_days_s1   
                                 spa  = round(spa,0)                     
-                        if line.month==2 and total_no_of_leave > 20:
-                            total_no_of_leave = 26
+
                         net_basic = round(basic - (basic / calendar_days) * total_no_of_leave,0)
                         net_da = round(da - (da / calendar_days) * total_no_of_leave, 0)
                         net_c = round(c - (c / calendar_days) * total_no_of_leave, 0)
@@ -2368,7 +2367,9 @@ class arul_hr_payroll_executions(osv.osv):
                         else:
                             ma = (total_shift_worked * ( lunch_allowance + washing_allowane )) + total_all_shift_allowance
                             ma = round(ma,0) 
-			                                   
+			            
+                        if line.month==2 and total_no_of_leave > 20:
+                            total_no_of_leave = 26                       
                         net_basic = round(basic - (basic / s3_working_days) * total_no_of_leave, 0)
                         net_da = round(da - (da / s3_working_days) * total_no_of_leave, 0)
                         net_c = round(c - (c / s3_working_days) * total_no_of_leave, 0)
