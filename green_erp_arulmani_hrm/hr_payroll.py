@@ -1721,12 +1721,17 @@ class arul_hr_payroll_executions(osv.osv):
                             temp_list = [r[0] for r in cr.fetchall()]
                             month_list = []
                             year_list = [] #TPT-BM-year list added on 01/03/2016
+                            payroll_ids = []
                             for k in temp_list:
-                                month_list.append(str(int(k[5:7])))
-                                year_list.append(str(int(k[:4])))
+                                #month_list.append(str(int(k[5:7])))
+                                #year_list.append(str(int(k[:4])))
+                                month = str(int(k[5:7]))
+                                year = str(int(k[:4]))
+                                payroll_ids += payroll_obj.search(cr, uid,[('month','=',month),('year','=',year),('employee_id','=',p.id),('payroll_executions_id.state','in',['confirm','approve'])])
                                       
                             #payroll_ids = payroll_obj.search(cr, uid,[('month','in',month_list),('year','=',line.year),('employee_id','=',p.id),('payroll_executions_id.state','in',['confirm','approve'])])
-                            payroll_ids = payroll_obj.search(cr, uid,[('month','in',month_list),('year','in',year_list),('employee_id','=',p.id),('payroll_executions_id.state','in',['confirm','approve'])])
+                            ##COMMENTED ON 07/02/2017 - Ticker No:
+                            #payroll_ids = payroll_obj.search(cr, uid,[('month','in',month_list),('year','in',year_list),('employee_id','=',p.id),('payroll_executions_id.state','in',['confirm','approve'])])
                             if payroll_ids:
                                 for pay in payroll_ids:
                                     payroll = payroll_obj.browse(cr, uid, pay)
@@ -2116,12 +2121,17 @@ class arul_hr_payroll_executions(osv.osv):
                             temp_list = [r[0] for r in cr.fetchall()]
                             month_list = []
                             year_list = []
+                            payroll_ids = []
                             for k in temp_list:
-                                month_list.append(str(int(k[5:7])))
-                                year_list.append(str(int(k[:4])))
+                                #month_list.append(str(int(k[5:7])))
+                                #year_list.append(str(int(k[:4])))
+                                month = str(int(k[5:7]))
+                                year = str(int(k[:4]))
+                                payroll_ids += payroll_obj.search(cr, uid,[('month','=',month),('year','=',year),('employee_id','=',p.id),('payroll_executions_id.state','in',['confirm','approve'])])
                                       
                             #payroll_ids = payroll_obj.search(cr, uid,[('month','in',month_list),('year','=',line.year),('employee_id','=',p.id),('payroll_executions_id.state','in',['confirm','approve'])])
-                            payroll_ids = payroll_obj.search(cr, uid,[('month','in',month_list),('year','in',year_list),('employee_id','=',p.id),('payroll_executions_id.state','in',['confirm','approve'])])
+                            ##COMMENTED ON 07/02/2017 - Ticker No:
+                            #payroll_ids = payroll_obj.search(cr, uid,[('month','in',month_list),('year','in',year_list),('employee_id','=',p.id),('payroll_executions_id.state','in',['confirm','approve'])])
                             if payroll_ids:
                                 for pay in payroll_ids:
                                     payroll = payroll_obj.browse(cr, uid, pay)
@@ -2369,9 +2379,10 @@ class arul_hr_payroll_executions(osv.osv):
                         else:
                             ma = (total_shift_worked * ( lunch_allowance + washing_allowane )) + total_all_shift_allowance
                             ma = round(ma,0) 
-			            
+			            # Added by BP on 03/03/2017 for fixing payroll issue
                         if int(line.month)==2 and total_no_of_leave > 20:
-                            total_no_of_leave = 26                       
+                            total_no_of_leave = 26 
+                        #END                          
                         net_basic = round(basic - (basic / s3_working_days) * total_no_of_leave, 0)
                         net_da = round(da - (da / s3_working_days) * total_no_of_leave, 0)
                         net_c = round(c - (c / s3_working_days) * total_no_of_leave, 0)
@@ -2524,12 +2535,17 @@ class arul_hr_payroll_executions(osv.osv):
                             temp_list = [r[0] for r in cr.fetchall()]
                             month_list = []
                             year_list = []
+                            payroll_ids = []
                             for k in temp_list:
-                                month_list.append(str(int(k[5:7])))
-                                year_list.append(str(int(k[:4])))
+                                #month_list.append(str(int(k[5:7])))
+                                #year_list.append(str(int(k[:4])))
+                                month = str(int(k[5:7]))
+                                year = str(int(k[:4]))
+                                payroll_ids += payroll_obj.search(cr, uid,[('month','=',month),('year','=',year),('employee_id','=',p.id),('payroll_executions_id.state','in',['confirm','approve'])]) 
                                       
                             #payroll_ids = payroll_obj.search(cr, uid,[('month','in',month_list),('year','=',line.year),('employee_id','=',p.id),('payroll_executions_id.state','in',['confirm','approve'])])
-                            payroll_ids = payroll_obj.search(cr, uid,[('month','in',month_list),('year','in',year_list),('employee_id','=',p.id),('payroll_executions_id.state','in',['confirm','approve'])])
+                            ##COMMENTED ON 07/02/2017 - Ticker No:
+                            #payroll_ids = payroll_obj.search(cr, uid,[('month','in',month_list),('year','in',year_list),('employee_id','=',p.id),('payroll_executions_id.state','in',['confirm','approve'])])
                             if payroll_ids:
                                 for pay in payroll_ids:
                                     payroll = payroll_obj.browse(cr, uid, pay)

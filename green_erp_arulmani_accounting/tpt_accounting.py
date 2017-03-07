@@ -10404,6 +10404,10 @@ class tpt_cform_invoice_line(osv.osv):
         'form_date': fields.date('Form Date'),
         'invoice_id': fields.many2one('account.invoice', 'Invoice ID'),
         'cform_id': fields.many2one('tpt.cform.invoice', 'C Form', ondelete='cascade'),
+        'status': fields.selection([('received', 'Received'),('pending', 'Pending')], 'Status'), # Added by SSR - 7-3-2017 - Ticket No - 3839
+    }    
+    _defaults = {
+        'status': 'pending',        
     }
     def onchange_type(self, cr, uid, ids, type, context=None):
         if type=='tbc':

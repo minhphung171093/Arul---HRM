@@ -1737,10 +1737,17 @@ class account_invoice(osv.osv):
                 'report_name': 'tpt_export_account_invoice',
             }
         else:
-            return {
+            #TPT-SSr-ON 7-3-2017 - 3607
+            if invoice_ids.state == 'open':
+               return {
                 'type': 'ir.actions.report.xml',
                 'report_name': 'tpt_domestic_account_invoice',
-            }
+               }
+            else:
+               return {
+                'type': 'ir.actions.report.xml',
+                'report_name': 'tpt_domestic_account_invoice_draft',
+            }    
     
     def write(self, cr, uid, ids, vals, context=None):
         for id in ids:
