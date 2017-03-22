@@ -3815,7 +3815,7 @@ class tpt_update_stock_move_report(osv.osv):
 
         where --sm.product_id=10721 
         pp.cate_name='raw'
-        and sm.date between '2015-04-01' and '2016-08-30'
+        and sm.date between '2016-04-01' and '2017-03-31'
         order by pp.name_template, sm.date
         '''
         cr.execute(sql)
@@ -3824,7 +3824,7 @@ class tpt_update_stock_move_report(osv.osv):
             sql = '''
             select case when sum(aml.debit) is null then 0 else sum(aml.debit) end as debit from account_move_line aml
             inner join account_move am on aml.move_id=am.id
-            where am.doc_type='grn' and am.state='posted' and am.date between '2015-04-01' and '2016-08-30' and aml.debit>0
+            where am.doc_type='grn' and am.state='posted' and am.date between '2016-04-01' and '2017-03-31' and aml.debit>0
             and aml.ref='%s' and aml.account_id=(select product_asset_acc_id from product_product where id=%s)
 
 
@@ -3851,7 +3851,7 @@ class tpt_update_stock_move_report(osv.osv):
         inner join product_product pp on sm.product_id=pp.id
         where --sm.product_id=10759 and 
         pp.cate_name='raw' and sm.location_id=15 and sm.state='done' and 
-        sm.date >= '2015-04-01' order by mi.doc_no
+        sm.date >= '2016-04-01' order by mi.doc_no
         '''
         cr.execute(sql)
         for line in cr.dictfetchall():
