@@ -49,17 +49,31 @@ class tpt_select_grn_invoice_wiz(osv.osv_memory):
         tpt_grn_line = []
         if tpt_po_id:
             grn_obj = self.pool.get('stock.picking')
+#             sql = '''
+#             select id from stock_picking where purchase_id=%s and type='in' and state='done'
+#                 and tpt_invoice_id is null and id not in (select grn_no from account_invoice 
+#                             where purchase_id = %s and grn_no is not null)
+#                 and id not in ( select pic.id 
+#                                 from stock_picking pic, tpt_quanlity_inspection ins
+#                                 where pic.id=ins.name
+#                                     and pic.purchase_id=%s and pic.type='in' and pic.state='done' and ins.state!='done'
+#                                 )
+#                 and warehouse not in (select id from stock_location where name ='Block List')
+#             '''%(tpt_po_id,tpt_po_id,tpt_po_id)
+            
             sql = '''
-            select id from stock_picking where purchase_id=%s and type='in' and state='done'
-                and tpt_invoice_id is null and id not in (select grn_no from account_invoice 
-                            where purchase_id = %s and grn_no is not null)
-                and id not in ( select pic.id 
-                                from stock_picking pic, tpt_quanlity_inspection ins
-                                where pic.id=ins.name
-                                    and pic.purchase_id=%s and pic.type='in' and pic.state='done' and ins.state!='done'
-                                )
+                select id
+                
+                from stock_picking 
+                
+                where state='done' and invoice_state='2binvoiced' and purchase_id=%s
+                
                 and warehouse not in (select id from stock_location where name ='Block List')
-            '''%(tpt_po_id,tpt_po_id,tpt_po_id)
+                
+                and purchase_id not in (select purchase_id from stock_picking where id in (select name from tpt_quanlity_inspection where state!='done'))
+                
+            '''%(tpt_po_id)
+            
             cr.execute(sql)
             grn_ids = [r[0] for r in cr.fetchall()]
             for grn in grn_obj.browse(cr, uid, grn_ids, context):

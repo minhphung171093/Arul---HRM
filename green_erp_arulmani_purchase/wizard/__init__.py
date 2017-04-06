@@ -20,5 +20,7 @@ import purchase_vat_wizard
 import purchase_cst_wizard
 import rawmaterial_stock_statement
 import stock_movement_analysis_finished
-
+import slow_moving_items_report
+import idle_stock_list_report
+import cop_report
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

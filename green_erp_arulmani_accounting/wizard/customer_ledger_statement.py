@@ -285,7 +285,8 @@ class customer_ledger_statement(osv.osv_memory):
         cls_line.append((0,0,{
                 'cheque_no': 'Total',
                 #'debit': get_total(get_invoice(cls),'debit'),
-                'debit': get_total_debit(get_invoice(cls), get_opening_balance(cls)), #TPT-Y on 23/09/2015
+#                 'debit': get_total_debit(get_invoice(cls), get_opening_balance(cls)), #TPT-Y on 23/09/2015
+                'debit': get_total_debit(get_invoice(cls), 0), #TPT-Y on 23/09/2015
                 'credit': get_total(get_invoice(cls)), #TPT-Y on 23/09/2015
             }))
         cls_line.append((0,0,{

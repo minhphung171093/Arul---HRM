@@ -8,7 +8,7 @@
 	            <form string="General Ledger Statement" version="7.0">
 	            	<group>
 	            		<group col="4" colspan="2">
-	            			<field name="account_id" options="{'create': false, 'create_edit': false}" />
+	            			<field name="account_ids" widget="many2many_tags" options="{'create': false, 'create_edit': false}" />
 	            			<newline/>
 	            			<field name="doc_type" />
 	            			<newline/>
@@ -31,7 +31,9 @@
 	                	</group>
 	                </group>
 	                <footer>
-	                    <button name="print_report" type='object' string="OK" class="oe_highlight"/>
+	                    <button name="print_report_pdf" type='object' string="Print (.pdf)" class="oe_highlight"/>
+	                    or
+	                    <button name="print_report_xls" type='object' string="Print (.xls)" class="oe_highlight"/>
 	                    or
 	                    <button string="Cancel" class="oe_highlight" special="cancel" />
 	                </footer>

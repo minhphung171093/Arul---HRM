@@ -144,6 +144,8 @@
                         <field name="tcs" /> 
                         <field name="credit_limit_used" attrs="{'invisible': [('customer', '=',False)]}" />
                         <field name="disapprove" readonly="1"/>
+                        <field name="date_of_action" />
+                        <field name="remarks" />
                         <!--<field name="order_probability_id" widget="selection" attrs="{'invisible': [('customer', '=',False)]}" />--> 
                         <!--<field name="reconciliation_acct_id" widget="selection"/>--> 
                         

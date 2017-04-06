@@ -102,10 +102,29 @@ tpt_general_ledger_line()
 
 class general_ledger_statement(osv.osv_memory):
     _name = "general.ledger.statement"
+    
+    def default_get(self, cr, uid, fields, context=None):
+        if context is None:
+            context = {}
+        res = super(general_ledger_statement, self).default_get(cr, uid, fields, context=context)
+        date_now = time.strftime('%Y-%m-%d')
+        sql = '''
+            select date_start, date_stop
+                from account_fiscalyear
+                where '%s' between date_start and date_stop
+        '''%(date_now)
+        cr.execute(sql)
+        fiscalyear = cr.dictfetchone()
+        if fiscalyear:
+            res['date_from'] = fiscalyear['date_start']
+            res['date_to'] = fiscalyear['date_stop']
+        return res
+    
     _columns = {    
-                'date_from': fields.date('Posting Date From', required=True),
-                'date_to': fields.date('To', required=True),
-                'account_id':fields.many2one('account.account','GL Account',required=True),
+                'date_from': fields.date('Posting Date From', required=False),
+                'date_to': fields.date('To', required=False),
+                'account_id':fields.many2one('account.account','GL Account',required=False),
+                'account_ids':fields.many2many('account.account', 'tpt_gls_account_ref', 'gls_id', 'account_id','GL Account',required=True),
                 'doc_type': fields.selection([('cus_inv', 'Customer Invoice'),('cus_pay', 'Customer Payment'),
                                   ('sup_inv_po', 'Supplier Invoice(With PO)'),('sup_inv', 'Supplier Invoice(Without PO)'),('sup_pay', 'Supplier Payment'),
                                   ('payroll', 'Executives Payroll'),
@@ -141,6 +160,11 @@ class general_ledger_statement(osv.osv_memory):
                 
                 }
     
+    _defaults = {
+#         'date_from': lambda *a: time.strftime('%Y-%m-01'),
+#         'date_to': lambda *a: str(datetime.now() + relativedelta(months=+1, day=1, days=-1))[:10]
+    }
+    
     def _check_date(self, cr, uid, ids, context=None):
         for date in self.browse(cr, uid, ids, context=context):
             if date.date_to < date.date_from:
@@ -150,6 +174,24 @@ class general_ledger_statement(osv.osv_memory):
     _constraints = [
         (_check_date, 'Identical Data', []),
     ]
+    
+    def print_report_pdf(self, cr, uid, ids, context=None):
+        if context is None:
+            context = {}
+        datas = {'ids': context.get('active_ids', [])}
+        datas['model'] = 'general.ledger.statement'
+        datas['form'] = self.read(cr, uid, ids)[0]
+        datas['form'].update({'active_id':context.get('active_ids',False)})
+        return {'type': 'ir.actions.report.xml', 'report_name': 'general_ledger_statement_report_pdf', 'datas': datas}
+        
+    def print_report_xls(self, cr, uid, ids, context=None):
+        if context is None:
+            context = {}
+        datas = {'ids': context.get('active_ids', [])}
+        datas['model'] = 'general.ledger.statement'
+        datas['form'] = self.read(cr, uid, ids)[0]
+        datas['form'].update({'active_id':context.get('active_ids',False)})
+        return {'type': 'ir.actions.report.xml', 'report_name': 'general_ledger_statement_report_xls', 'datas': datas}
     
     def print_report(self, cr, uid, ids, context=None):
         

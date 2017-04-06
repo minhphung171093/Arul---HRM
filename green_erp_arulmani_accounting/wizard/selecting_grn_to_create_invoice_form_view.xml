@@ -7,8 +7,8 @@
 	        <field name="arch" type="xml">
 	            <form string="Create Invoice" version="7.0">
 	            	<group>
-	            	<field name="tpt_po_id" 
-	            	domain="[('state','=','approved'),('po_document_type','!=','service')]"
+	            	<field name="tpt_po_id" string="PO No" context="{'search_po_multi_grn': 1}"
+	            	domain="[('po_document_type','!=','service')]"
 	            	options="{'create': false, 'create_edit': false}" on_change="onchange_tpt_po_id(tpt_po_id)"/>
 	                <field name="journal_id" invisible="1"/>
 					<field name="invoice_date"/>

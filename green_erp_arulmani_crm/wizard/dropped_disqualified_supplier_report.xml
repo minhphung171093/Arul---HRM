@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+    
+        <record id="view_dropped_disqualified_supplier_report" model="ir.ui.view">
+            <field name="name">dropped.disqualified.supplier.report</field>
+            <field name="model">dropped.disqualified.supplier.report</field>
+            <field name="arch" type="xml">
+                <form string="Dropped/Disqualified Supplier" version="7.0">
+                    <group colspan="4" col="4" >
+	                    <field name='date_from' required='1'/>
+	                    <field name='date_to' required='1'/>
+	                    <field name='partner_id' domain="[('supplier','=',True)]"/>
+                    </group>
+                    <footer>
+                        <button name="print_report" string="Print" type="object" class="oe_highlight" context="{'type':'appointments'}"/>
+                        or
+                        <button string="Cancel" class="oe_link" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+        
+        <record id="action_dropped_disqualified_supplier_report" model="ir.actions.act_window">
+            <field name="name">Dropped/Disqualified Supplier</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">dropped.disqualified.supplier.report</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="view_dropped_disqualified_supplier_report"/>
+            <field name="target">new</field>
+        </record>
+        <menuitem action="action_dropped_disqualified_supplier_report"
+        	name="Dropped/Disqualified Supplier"
+            id="menu_dropped_disqualified_supplier_report"
+            parent="base.next_id_64" sequence="16"/>
+            
+    </data>
+</openerp>
+

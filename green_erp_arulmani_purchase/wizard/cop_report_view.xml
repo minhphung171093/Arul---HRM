@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+		<record id="cop_report_view" model="ir.ui.view">
+	        <field name="name">cop.report.view</field>
+	        <field name="model">cop.report</field>
+	        <field name="arch" type="xml">
+	            <form string="COP Report" version="7.0">
+	               	<group col="4" colspan="2">
+		               	<field name="bom_ids" domain="[('bom_id','=',False)]" widget="many2many_tags"/>
+		               	<newline/>
+		               	<field name="date_from" required="1"/>
+		               	<field name="date_to" required="1"/>
+	                </group>
+	                <footer>
+	                    <button name="print_report" type='object' string="OK" class="oe_highlight"/>
+	                    or
+	                    <button string="Cancel" class="oe_highlight" special="cancel" />
+	                </footer>
+	            </form>
+	        </field>
+    	</record>
+
+	    <record model="ir.actions.act_window" id="action_cop_report_view">
+	        <field name="name">COP Report</field>
+	        <field name="res_model">cop.report</field>
+	        <field name="view_type">form</field>
+	        <field name="view_mode">form</field>
+	        <field name="view_id" ref="cop_report_view" />
+	        <field name="target">new</field>
+	    </record>
+	     
+       <menuitem action="action_cop_report_view" 
+       		id="menu_action_cop_report_view" parent="stock.menu_stock_warehouse_mgmt" sequence="152"/>
+       		
+    </data>
+</openerp>
+

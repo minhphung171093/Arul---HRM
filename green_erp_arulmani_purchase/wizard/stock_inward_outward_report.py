@@ -659,6 +659,7 @@ class stock_inward_outward_report(osv.osv_memory):
             res = res1  #+ res3
             
             move_line = []
+            check_inspection_exits = []
             for line in res:
                 if line['doc_type'] == 'grn':
                     sql = '''
@@ -672,17 +673,20 @@ class stock_inward_outward_report(osv.osv_memory):
                         if move['action_taken'] == 'need':
                             sql = '''
                                 select id, qty_approve from tpt_quanlity_inspection where need_inspec_id = %s and state in ('done', 'remaining') and to_char(date, 'YYYY-MM-DD') between '%s' and '%s'
-                            '''%(move['id'], date_from, date_to)
+                                    and product_id=%s
+                            '''%(move['id'], date_from, date_to, product_id.id)
                             cr.execute(sql)
                             for move_sql in cr.dictfetchall():
                                 if move_sql['qty_approve']:
-                                    sql = '''
-                                        select id from stock_move where inspec_id = %s and state = 'done' and to_char(date, 'YYYY-MM-DD') between '%s' and '%s'
-                                    '''%(move_sql['id'], date_from, date_to)
-                                    cr.execute(sql)
-                                    move_sql2 = cr.fetchall()
-                                    if move_sql2:
-                                        move_line.append(line)
+                                    if move_sql['id'] not in check_inspection_exits:
+                                        check_inspection_exits.append(move_sql['id'])
+                                        sql = '''
+                                            select id from stock_move where inspec_id = %s and state = 'done' and to_char(date, 'YYYY-MM-DD') between '%s' and '%s'
+                                        '''%(move_sql['id'], date_from, date_to)
+                                        cr.execute(sql)
+                                        move_sql2 = cr.fetchall()
+                                        if move_sql2:
+                                            move_line.append(line)
                                         
                 elif line['doc_type'] == 'product' and product_id.code == 'M0501060001':
                     move_line.append(line)

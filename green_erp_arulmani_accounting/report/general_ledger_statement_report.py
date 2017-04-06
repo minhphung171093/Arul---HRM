@@ -59,6 +59,7 @@ class Parser(report_sxw.rml_parse):
             'get_total_balance':self.get_total_balance,
             'get_total_balance_dr':self.get_total_balance_dr,
             'get_total_balance_cr':self.get_total_balance_cr,
+            'get_account_ids': self.get_account_ids,
         })
         
     def get_emp(self):
@@ -73,27 +74,27 @@ class Parser(report_sxw.rml_parse):
         return ''
     
     def get_partner(self,move_id):
-            emp_id = move_id.id
-            if emp_id:
-                sql ='''
-                     select customer,name,customer_code,vendor_code from res_partner where id = %s
-                     '''%(emp_id)
-                self.cr.execute(sql)
-                for move in self.cr.dictfetchall():
-                     if move['customer'] == 't':
-                         if move['customer_code'] and move['name']:
-                            partner = move['customer_code'] +'-'+ move['name']
+        emp_id = move_id.id
+        if emp_id:
+            sql ='''
+                 select customer,name,customer_code,vendor_code from res_partner where id = %s
+                 '''%(emp_id)
+            self.cr.execute(sql)
+            for move in self.cr.dictfetchall():
+                 if move['customer'] == 't':
+                     if move['customer_code'] and move['name']:
+                        partner = move['customer_code'] +'-'+ move['name']
+                        return partner or ''
+                     elif move['name']:
+                         partner = move['name']
+                         return partner or ''
+                 else:
+                         if move['vendor_code'] and move['name']:
+                            partner = move['vendor_code'] +'-'+ move['name']
                             return partner or ''
                          elif move['name']:
                              partner = move['name']
                              return partner or ''
-                     else:
-                             if move['vendor_code'] and move['name']:
-                                partner = move['vendor_code'] +'-'+ move['name']
-                                return partner or ''
-                             elif move['name']:
-                                 partner = move['name']
-                                 return partner or ''
     
     def get_cost_center(self):
         # commented by P.vinothkumar on 26/09/2016
@@ -175,22 +176,32 @@ class Parser(report_sxw.rml_parse):
             cost_center = self.pool.get('tpt.cost.center').browse(self.cr,self.uid, p[0]).name
             return cost_center
     
+    def get_account_ids(self):
+        wizard_data = self.localcontext['data']['form']
+        account_ids = wizard_data['account_ids']
+        return account_ids
+    
     def get_date_from(self):
         wizard_data = self.localcontext['data']['form']
-        date = datetime.strptime(wizard_data['date_from'], DATE_FORMAT)
-        return date.strftime('%d/%m/%Y')
+        date = wizard_data['date_from']
+        if date:
+            date = datetime.strptime(date, DATE_FORMAT)
+            return date.strftime('%d/%m/%Y')
+        return ''
     
     def get_date_to(self):
         wizard_data = self.localcontext['data']['form']
-        date = datetime.strptime(wizard_data['date_to'], DATE_FORMAT)
-        return date.strftime('%d/%m/%Y')
+        date = wizard_data['date_to']
+        if date:
+            date = datetime.strptime(date, DATE_FORMAT)
+            return date.strftime('%d/%m/%Y')
+        return ''
     
     #TPT-Y
-    def get_gl_acct(self):
+    def get_gl_acct(self, gl_account):
         wizard_data = self.localcontext['data']['form']
-        gl_account = wizard_data['account_id']        
         acc_obj = self.pool.get('account.account')
-        acc = acc_obj.browse(self.cr,self.uid,gl_account[0])
+        acc = acc_obj.browse(self.cr,self.uid,gl_account)
         gl_act = acc.code +''+acc.name
         return gl_act
     #TPT-Y
@@ -330,7 +341,7 @@ class Parser(report_sxw.rml_parse):
         return sum 
     
     #TPT-Y on 22/09/2015
-    def get_total_debit(self,get_move_ids,get_opening_balance):
+    def get_total_debit(self,get_move_ids):
         debit = 0.0
         for move in get_move_ids:
             debit += move['debit']    
@@ -338,10 +349,10 @@ class Parser(report_sxw.rml_parse):
         return debit # TPT BY RAKESH KUMAR ON 09/02/2016 FOR TOTAL AMOUNT CHANGE
         
     #TPT-Y on 22/09/2015   
-    def get_opening_balance(self):
-            wizard_data = self.localcontext['data']['form']
-            date_from = wizard_data['date_from']            
-            gl_account = wizard_data['account_id']
+    def get_opening_balance(self,gl_account):
+        wizard_data = self.localcontext['data']['form']
+        date_from = wizard_data['date_from']      
+        if date_from:      
             is_posted = wizard_data['is_posted']            
             balance = 0.0  
             credit = 0.0
@@ -353,7 +364,7 @@ class Parser(report_sxw.rml_parse):
                     inner join account_move am on (am.id=aml.move_id)
                     left join tpt_cost_center cc on (cc.id = am.cost_center_id)                  
                     where am.date < '%s' and aml.account_id = %s and am.state!='cancel'
-                 '''%(date_from,gl_account[0])            
+                 '''%(date_from,gl_account)            
             if is_posted:
                 str = " and am.state in ('posted')"
                 sql = sql+str            
@@ -367,7 +378,7 @@ class Parser(report_sxw.rml_parse):
                     inner join account_move am on (am.id=aml.move_id)
                     left join tpt_cost_center cc on (cc.id = am.cost_center_id)                   
                     where am.date < '%s' and aml.account_id = %s and am.state!='cancel'
-                '''%(date_from,gl_account[0])
+                '''%(date_from,gl_account)
             if is_posted:
                 str = " and am.state in ('posted')"
                 sql = sql+str                  
@@ -376,93 +387,96 @@ class Parser(report_sxw.rml_parse):
                 debit += move['debit']                  
             balance = debit - credit          
             return balance
+        return 0
       # TPT START BY BALAMURGAN ON 19/02/2016 FOR CREDIT COLUMN CHANGE
         
-    def get_opening_balance_dr(self):
+    def get_opening_balance_dr(self,gl_account):
         wizard_data = self.localcontext['data']['form']
-        date_from = wizard_data['date_from']            
-        gl_account = wizard_data['account_id']
-        is_posted = wizard_data['is_posted']            
-        balance = 0.0  
-        credit = 0.0
-        debit = 0.0
-        
-        sql = '''
-                select case when coalesce(sum(aml.credit),0)=0 then 0 else sum(aml.credit) end as credit 
-                from account_move_line aml
-                inner join account_move am on (am.id=aml.move_id)
-                left join tpt_cost_center cc on (cc.id = am.cost_center_id)                  
-                where am.date < '%s' and aml.account_id = %s and am.state!='cancel'
-             '''%(date_from,gl_account[0])            
-        if is_posted:
-            str = " and am.state in ('posted')"
-            sql = sql+str            
-        self.cr.execute(sql)
-        for move in self.cr.dictfetchall():
-            credit += move['credit']               
-                
-        sql = '''
-                select case when coalesce(sum(aml.debit),0)=0 then 0 else sum(aml.debit) end as debit 
-                from account_move_line aml
-                inner join account_move am on (am.id=aml.move_id)
-                left join tpt_cost_center cc on (cc.id = am.cost_center_id)                   
-                where am.date < '%s' and aml.account_id = %s and am.state!='cancel'
-            '''%(date_from,gl_account[0])
-        if is_posted:
-            str = " and am.state in ('posted')"
-            sql = sql+str                  
-        self.cr.execute(sql)
-        for move in self.cr.dictfetchall():
-            debit += move['debit']                  
-        balance = debit - credit 
-        if balance>0:
-            balance = balance
-        else:
-            balance = 0.00           
-        return balance
+        date_from = wizard_data['date_from']   
+        if date_from:         
+            is_posted = wizard_data['is_posted']            
+            balance = 0.0  
+            credit = 0.0
+            debit = 0.0
+            
+            sql = '''
+                    select case when coalesce(sum(aml.credit),0)=0 then 0 else sum(aml.credit) end as credit 
+                    from account_move_line aml
+                    inner join account_move am on (am.id=aml.move_id)
+                    left join tpt_cost_center cc on (cc.id = am.cost_center_id)                  
+                    where am.date < '%s' and aml.account_id = %s and am.state!='cancel'
+                 '''%(date_from,gl_account)            
+            if is_posted:
+                str = " and am.state in ('posted')"
+                sql = sql+str            
+            self.cr.execute(sql)
+            for move in self.cr.dictfetchall():
+                credit += move['credit']               
+                    
+            sql = '''
+                    select case when coalesce(sum(aml.debit),0)=0 then 0 else sum(aml.debit) end as debit 
+                    from account_move_line aml
+                    inner join account_move am on (am.id=aml.move_id)
+                    left join tpt_cost_center cc on (cc.id = am.cost_center_id)                   
+                    where am.date < '%s' and aml.account_id = %s and am.state!='cancel'
+                '''%(date_from,gl_account)
+            if is_posted:
+                str = " and am.state in ('posted')"
+                sql = sql+str                  
+            self.cr.execute(sql)
+            for move in self.cr.dictfetchall():
+                debit += move['debit']                  
+            balance = debit - credit 
+#             if balance>0:
+#                 balance = balance
+#             else:
+#                 balance = 0.00           
+            return balance
+        return 0
     
-    def get_opening_balance_cr(self):
+    def get_opening_balance_cr(self,gl_account):
         wizard_data = self.localcontext['data']['form']
-        date_from = wizard_data['date_from']            
-        gl_account = wizard_data['account_id']
-        is_posted = wizard_data['is_posted']            
-        balance = 0.0  
-        credit = 0.0
-        debit = 0.0
-        
-        sql = '''
-                select case when coalesce(sum(aml.credit),0)=0 then 0 else sum(aml.credit) end as credit 
-                from account_move_line aml
-                inner join account_move am on (am.id=aml.move_id)
-                left join tpt_cost_center cc on (cc.id = am.cost_center_id)                  
-                where am.date < '%s' and aml.account_id = %s and am.state!='cancel'
-             '''%(date_from,gl_account[0])            
-        if is_posted:
-            str = " and am.state in ('posted')"
-            sql = sql+str            
-        self.cr.execute(sql)
-        for move in self.cr.dictfetchall():
-            credit += move['credit']               
-                
-        sql = '''
-                select case when coalesce(sum(aml.debit),0)=0 then 0 else sum(aml.debit) end as debit 
-                from account_move_line aml
-                inner join account_move am on (am.id=aml.move_id)
-                left join tpt_cost_center cc on (cc.id = am.cost_center_id)                   
-                where am.date < '%s' and aml.account_id = %s and am.state!='cancel'
-            '''%(date_from,gl_account[0])
-        if is_posted:
-            str = " and am.state in ('posted')"
-            sql = sql+str                  
-        self.cr.execute(sql)
-        for move in self.cr.dictfetchall():
-            debit += move['debit']                  
-        balance = debit - credit  
-        if balance<0:
-            balance = balance
-        else:
-            balance = 0.00          
-        return balance
+        date_from = wizard_data['date_from']  
+        if date_from:          
+            is_posted = wizard_data['is_posted']            
+            balance = 0.0  
+            credit = 0.0
+            debit = 0.0
+            
+            sql = '''
+                    select case when coalesce(sum(aml.credit),0)=0 then 0 else sum(aml.credit) end as credit 
+                    from account_move_line aml
+                    inner join account_move am on (am.id=aml.move_id)
+                    left join tpt_cost_center cc on (cc.id = am.cost_center_id)                  
+                    where am.date < '%s' and aml.account_id = %s and am.state!='cancel'
+                 '''%(date_from,gl_account)            
+            if is_posted:
+                str = " and am.state in ('posted')"
+                sql = sql+str            
+            self.cr.execute(sql)
+            for move in self.cr.dictfetchall():
+                credit += move['credit']               
+                    
+            sql = '''
+                    select case when coalesce(sum(aml.debit),0)=0 then 0 else sum(aml.debit) end as debit 
+                    from account_move_line aml
+                    inner join account_move am on (am.id=aml.move_id)
+                    left join tpt_cost_center cc on (cc.id = am.cost_center_id)                   
+                    where am.date < '%s' and aml.account_id = %s and am.state!='cancel'
+                '''%(date_from,gl_account)
+            if is_posted:
+                str = " and am.state in ('posted')"
+                sql = sql+str                  
+            self.cr.execute(sql)
+            for move in self.cr.dictfetchall():
+                debit += move['debit']                  
+            balance = debit - credit  
+            if balance<0:
+                balance = balance
+            else:
+                balance = 0.00          
+            return balance
+        return 0
             
             # TPT START BY BALAMURGAN ON 19/02/2016 FOR CREDIT COLUMN CHANGE  
            
@@ -478,12 +492,11 @@ class Parser(report_sxw.rml_parse):
         return balance
     #TPT-Y
         
-    def get_invoice(self):
+    def get_invoice(self,gl_account):
         res = {}
         wizard_data = self.localcontext['data']['form']
-        gl_account = wizard_data['account_id']
         acc_obj = self.pool.get('account.account')
-        acc = acc_obj.browse(self.cr,self.uid,gl_account[0])
+        acc = acc_obj.browse(self.cr,self.uid,gl_account)
         doc_type = wizard_data['doc_type']
         doc_no = wizard_data['doc_no'] or ''
         narration = wizard_data['narration'] or ''
@@ -501,8 +514,16 @@ class Parser(report_sxw.rml_parse):
             select ml.id from account_move_line ml
             join account_move m on (m.id=ml.move_id)
             left join tpt_cost_center cc on (cc.id = m.cost_center_id) 
-            where m.date between '%s' and '%s' and ml.account_id = %s and m.state!='cancel'          
-            '''%(date_from, date_to, acc.id)
+            where ml.account_id = %s and m.state!='cancel'          
+            '''%(acc.id)
+        if date_from:
+            sql += '''
+                and m.date >= '%s' 
+            '''%(date_from)
+        if date_to:
+            sql += '''
+                and m.date <= '%s' 
+            '''%(date_to)
         if doc_type:
             str = " and m.doc_type in('%s')"%(doc_type)
             sql = sql+str
