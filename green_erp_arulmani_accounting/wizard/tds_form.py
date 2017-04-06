@@ -220,7 +220,7 @@ class tds_form_report(osv.osv_memory):
                         left join account_tax at on (at.id=ail.tds_id or at.id=ail.tds_id_2)
                         where am.date between '%s' and '%s' 
                         and am.state != 'cancel'
-                        and at.gl_account_id=296                     
+                        --and at.gl_account_id=296                     
             '''%(date_from,date_to)
            
             if vendor:
@@ -232,6 +232,9 @@ class tds_form_report(osv.osv_memory):
             if gl_accnt:
                 str1 = " and at.gl_account_id = %s"%(gl_accnt)
                 sql = sql+str1
+            # Added by P.VINOTHKUMAR ON 27/02/2017 for fix TDS professional issue incident No.3784    
+            else:
+                str1 = " and at.gl_account_id=296 "  
             if invoicetype:
                 str1 = " and am.doc_type = '%s'"%(invoicetype)
                 sql = sql+str1

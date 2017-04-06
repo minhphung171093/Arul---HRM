@@ -673,6 +673,8 @@
 					<field name="description" />
 					<field name="item_text" />
 					<field name="product_uom_qty" />
+					<!-- Added by P.VINOTHKUMAR ON 09/03/2017 FOR adding pending qty in tree view incident No:3082 -->
+					<field name="pending_qty"/>
 					<field name="price_unit" />
 					<field name="recom_vendor" />
 					<field name="mrs_qty" />
@@ -2794,6 +2796,8 @@
 					<field name="product_id" />
 					<field name="description" />
 					<field name="product_qty" />
+					<!-- Added by P.VINOTHKUMAR ON 09/03/2017 FOR adding pending qty in tree view incident No:3082 -->
+					<field name="pending_qty"/>
 					<field name="product_uom" />
 					<field name="price_unit" />
 					<field name="discount" />

@@ -4440,12 +4440,12 @@ class arul_hr_employee_leave_details(osv.osv):
         cr.execute(sql)
         # TPT End
         new = self.browse(cr, uid, new_id)
-        if new.date_from: 
-            month = new.date_from[5:7]
-            year = new.date_from[:4]
-            payroll_ids = self.pool.get('arul.hr.payroll.executions').search(cr,uid,[('month','=',month),('year','=',year),('state','=','approve'),('payroll_area_id','=',new.employee_id.payroll_area_id.id)])
-            if payroll_ids :
-                raise osv.except_osv(_('Warning!'),_('Payroll were already exists, not allowed to create again!'))
+#         if new.date_from: 
+#             month = new.date_from[5:7]
+#             year = new.date_from[:4]
+#             payroll_ids = self.pool.get('arul.hr.payroll.executions').search(cr,uid,[('month','=',month),('year','=',year),('state','=','approve'),('payroll_area_id','=',new.employee_id.payroll_area_id.id)])
+#             if payroll_ids :
+#                 raise osv.except_osv(_('Warning!'),_('Payroll were already exists, not allowed to create again!'))
         #        
         ##TPT START: 18/05/2015
         #employee_leave_detail_obj = self.pool.get('employee.leave.detail')
@@ -4502,7 +4502,22 @@ class arul_hr_employee_leave_details(osv.osv):
             cr.execute(sql)# tpt-bm-state check is appended here on 01/03/2016
             k = cr.fetchone()   
             if k and k[0]-1> 0:
-              raise osv.except_osv(_('Warning!'),_('Leave Entry were already created for this Date!'))                           
+              raise osv.except_osv(_('Warning!'),_('Leave Entry were already created for this Date!'))
+            # Added by P.VINOTHKUMAR ON 09/03/2017   
+            if 'date_from' in vals and 'date_to' in vals:
+                time_evalv_obj = self.pool.get('tpt.time.leave.evaluation')
+                day_obj = self.pool.get('tpt.month')
+                date_from = vals['date_from']
+                date_to = vals['date_to']
+                month = date_from[5:7]
+                year = date_from[:4]
+                payroll_ids = self.pool.get('arul.hr.payroll.executions').search(cr,uid,[('month','=',int(month)),('year','=',year),('state','=','approve'),('payroll_area_id','=',emp_ids.payroll_area_id.id)])
+                if payroll_ids :
+                    raise osv.except_osv(_('Warning!'),_('Payroll were already exists, not allowed to save the record!'))
+                time_evalv_ids = time_evalv_obj.search(cr,uid,[('month','=',int(month)),('year','=',year),('state','=','done'),('payroll_area_id','=',emp_ids.payroll_area_id.id)])
+                if time_evalv_ids:
+                    raise osv.except_osv(_('Warning!'),_('Time Leave Evaluation Confirmed!'))                          
+        ## TPT END                           
         ## TPT END
         DATETIME_FORMAT = "%Y-%m-%d"
         from_dt = datetime.datetime.strptime(vals['date_from'], DATETIME_FORMAT)

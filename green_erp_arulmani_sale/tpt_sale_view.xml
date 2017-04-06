@@ -327,6 +327,9 @@
 										options="{'create': false, 'create_edit': false}"/>									 
 										<field name="name_consignee_id" invisible='1' domain="[('consignee_parent_id','=',parent.customer_id)]" 
 										on_change = "onchange_consignee_id(name_consignee_id)" options="{'create': false, 'create_edit': false}"/>
+										
+										
+										
 										<field name="location" invisible='1'/>  
 										<field name="freight" />
 										<!-- TPT-By BalamuruganPurushothaman - ON 04/11/2015 - 
@@ -701,16 +704,31 @@
 	            <form string="Consignee Details" version="7.0">
 	            	<sheet>
 		                <group col='4' colspan='2'> 
-		                	<field name="tpt_consignee_header_id" />
-		                	<field name="tpt_consignee_id"/>
-							<field name="tpt_consignee_code" />
-							<field name="name" />
+		                	<field name="tpt_consignee_id" context="{'show_address':1}"/>
+							
+							<field name="tpt_consignee_code" invisible='1' />
+							<field name="tpt_consignee_header_id" invisible='1'/>
+							<!--<field name="name" />  --> <!-- Commented by P.VINOTHKUMAR ON 06/03/2017 -->
+						
+						<label for="street" string="Address"/>
+                            <div>
+	                            <field name="street" />
+								<field name="street2" />
+								<field name="street3" />
+								<div class="address_format">
+                                    <field name="city" />
+                                    <field name="state_id"  style="width: 37%%" />
+                                    <field name="zip" style="width: 20%%"/>
+                                </div>
+                                <field name="country_id" />
+                            </div>
+						
 						</group>
 						
 				    </sheet>
 		         </form>
 			</field>
-		</record>
+		</record> 
 		<record id="view_tpt_commission_tree_vew" model="ir.ui.view">
 			<field name="name">tpt.cus.ind.commission.tree</field>
 			<field name="model">tpt.cus.ind.commission</field>

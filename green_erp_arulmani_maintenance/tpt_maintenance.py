@@ -1377,10 +1377,11 @@ class tpt_material_issue(osv.osv):
                         opening_stock_value = (total_cost-total_cost_issue)/(hand_quantity-hand_quantity_issue)
                     ##TPT-By Balamurugan Purushothaman - ON 18/10/2016 - TO TAKE AVG COST AS UNIT PRICE FOR STOCK_MOVE ENTRIES
                     #above block wont be worked to take avg cost. ref following snippet that fetches from Product master - Avg Cost tab
-                    if line.request_type=='production':
-                        warehouse_id = line.dest_warehouse_id.id
-                    else:
-                        warehouse_id = line.warehouse.id 
+                    # Commenting by SSR - 13-3-2017 - For Production Posting Issue Goods
+#                     if line.request_type=='production':
+#                         warehouse_id = line.dest_warehouse_id.id
+#                     else:
+                    warehouse_id = line.warehouse.id 
                     avg_cost_ids = avg_cost_obj.search(cr, uid, [('product_id','=',p.product_id.id),('warehouse_id','=',warehouse_id)])
                     
                     if avg_cost_ids:
@@ -1450,10 +1451,11 @@ class tpt_material_issue(osv.osv):
                 #
                 ##TPT-By Balamurugan Purushothaman - ON 18/10/2016 - TO TAKE AVG COST AS UNIT PRICE FOR STOCK_MOVE ENTRIES
                 #above block wont be worked to take avg cost. ref following snippet that fetches from Product master - Avg Cost tab
-                if line.request_type=='production':
-                    warehouse_id = line.dest_warehouse_id.id
-                else:
-                    warehouse_id = line.warehouse.id 
+                # Commenting by SSR - 13-3-2017 - For Production Posting Issue Goods
+#                 if line.request_type=='production':
+#                     warehouse_id = line.dest_warehouse_id.id
+#                 else:
+                warehouse_id = line.warehouse.id 
                 avg_cost_ids = avg_cost_obj.search(cr, uid, [('product_id','=',mater.product_id.id),('warehouse_id','=',warehouse_id)])
                 unit = 1
                 if avg_cost_ids:

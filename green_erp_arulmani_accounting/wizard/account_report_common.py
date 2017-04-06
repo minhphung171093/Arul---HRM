@@ -367,6 +367,29 @@ class account_balance_report(osv.osv_memory):
                     '''%(acc_ids,from_date,to_date,state)
                     cr.execute(sql)
                     sumcredit = cr.fetchone()[0]
+                    
+                    # Add condition by P.VINOTHKUMAR on 06/03/2017 for fixing grand total as carry forward is true
+                    if acc_id.code == '0':
+                        sql = ''' 
+                        select case when sum(aml.debit)!=0 then sum(aml.debit) else 0 end open_sumdebit
+                        from account_move_line aml
+                        join account_move am on (am.id=aml.move_id)
+                        join account_account aa on (aa.id=aml.account_id)
+                        where aml.account_id in %s and am.date < '%s' and am.state in %s and aa.carry_forward='t'
+                    '''%(acc_ids,from_date,state)
+                        cr.execute(sql)
+                        open_sumdebit = cr.fetchone()[0]
+                    
+                        sql = ''' 
+                            select case when sum(aml.credit)!=0 then sum(aml.credit) else 0 end open_sumcredit
+                            from account_move_line aml
+                            join account_move am on (am.id=aml.move_id)
+                            join account_account aa on (aa.id=aml.account_id)
+                            where aml.account_id in %s and am.date < '%s' and am.state in %s and aa.carry_forward='t'
+                        '''%(acc_ids,from_date,state)
+                        cr.execute(sql)
+                        open_sumcredit = cr.fetchone()[0]
+                    # END
                     # Added by P.VINOTHKUMAR ON 10/02/2017 for fixing opening debit and credit value is 0 for expense accounts
                     if acc_id.carry_forward==False:
                         sql='''
@@ -614,6 +637,28 @@ class account_balance_report(osv.osv_memory):
                     cr.execute(sql)
                     open_dr = cr.fetchone()[0]
                     
+                    #Added by P.VINOTHKUMAR on 06/03/2017 for fixing grand total as carry forward is true
+                    if acc_id.code == '0':
+                        sql = ''' 
+                        select case when sum(aml.debit)!=0 then sum(aml.debit) else 0 end open_sumdebit
+                        from account_move_line aml
+                        join account_move am on (am.id=aml.move_id)
+                        join account_account aa on (aa.id=aml.account_id)
+                        where aml.account_id in %s and am.date < '%s' and aa.carry_forward='t' and am.state='posted'
+                    '''%(child_records,balance.date_from)
+                        cr.execute(sql)
+                        open_dr = cr.fetchone()[0]
+                     
+                        sql = ''' 
+                            select case when sum(aml.credit)!=0 then sum(aml.credit) else 0 end open_sumcredit
+                            from account_move_line aml
+                            join account_move am on (am.id=aml.move_id)
+                            join account_account aa on (aa.id=aml.account_id)
+                            where aml.account_id in %s and am.date < '%s' and aa.carry_forward='t' and am.state='posted'
+                        '''%(child_records,balance.date_from)
+                        cr.execute(sql)
+                        open_cr = cr.fetchone()[0]
+                    #END
                      # Added by P.VINOTHKUMAR ON 10/02/2017 for fixing opening debit and credit value is 0 for expense accounts
                     if acc_id.carry_forward==False:
                         sql='''
