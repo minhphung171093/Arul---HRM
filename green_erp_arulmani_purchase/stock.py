@@ -34,7 +34,9 @@ class stock_picking(osv.osv):
             ], string='Action to be Taken'),
         'tpt_create_grn': fields.boolean('Create GRN'),
         'gate_out_id':fields.many2one('tpt.gate.out.pass','Gate Out Pass'),
-        
+        # VSIS new invoice_id
+        'tpt_invoice_id':fields.many2one('account.invoice','Invoice'),
+
         #
         #'return_do_id': fields.many2one('stock.picking', 'Return DO'),
         #
@@ -261,6 +263,7 @@ class stock_picking(osv.osv):
     #                 'product_type':move_line.product_type or False,
     #                 'application_id':move_line.application_id or False,
         #                 'freight':move_line.freight or False,
+                
             })            
             if move_line.action_taken == 'need' :
                 inpec_obj = self.pool.get('tpt.quanlity.inspection')
@@ -318,6 +321,9 @@ class stock_picking_in(osv.osv):
             ], string='Action to be Taken'),
         'tpt_create_grn': fields.boolean('Create GRN'),
         'gate_out_id':fields.many2one('tpt.gate.out.pass','Gate Out Pass No'),
+        # VSIS new invoice_id
+        'tpt_invoice_id':fields.many2one('account.invoice','Invoice'),
+
                 }
     
     def create(self, cr, uid, vals, context=None):

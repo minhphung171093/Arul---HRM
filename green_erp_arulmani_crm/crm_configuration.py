@@ -446,6 +446,8 @@ class res_partner(osv.osv):
         'state_char': fields.function(_state_char, string='State', multi='test_qty13'), 
         'country_char': fields.function(_country_char, string='State', multi='test_qty14'), 
         
+        'date_of_action': fields.date('Date of Action', ),
+        'remarks': fields.text('Remarks', ),
     }
     _defaults = {
         'is_company': True,

@@ -35,6 +35,8 @@
                                     <field name="state"/>
                                     <field name="reconcile_id"/>
                                     <field name="reconcile_partial_id"/>
+                                    <field name="tpt_grn_id" invisible="1"/>
+                                    <field name="tpt_grn_line_id" invisible="1"/>
                                 </tree>
                             </field>
                         </page>

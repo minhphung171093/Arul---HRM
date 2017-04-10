@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+		<record id="idle_stock_list_report_view" model="ir.ui.view">
+	        <field name="name">idle.stock.list.report.view</field>
+	        <field name="model">idle.stock.list.report</field>
+	        <field name="arch" type="xml">
+	            <form string="Idle Stock List Report" version="7.0">
+	               	<group col="4" colspan="2">
+		               	<field name="product_id" domain="[('categ_id.cate_name','in',['raw','spares'])]"/>
+		               	<newline/>
+		               	<field name="date_from" required="1"/>
+		               	<field name="date_to" required="1"/>
+		               	<field name="idle_period"/>
+	                </group>
+	                <footer>
+	                    <button name="print_report" type='object' string="OK" class="oe_highlight"/>
+	                    or
+	                    <button string="Cancel" class="oe_highlight" special="cancel" />
+	                </footer>
+	            </form>
+	        </field>
+    	</record>
+
+	    <record model="ir.actions.act_window" id="action_idle_stock_list_report_view">
+	        <field name="name">Idle Stock List Report</field>
+	        <field name="res_model">idle.stock.list.report</field>
+	        <field name="view_type">form</field>
+	        <field name="view_mode">form</field>
+	        <field name="view_id" ref="idle_stock_list_report_view" />
+	        <field name="target">new</field>
+	    </record>
+	     
+       <menuitem action="action_idle_stock_list_report_view" 
+       		id="menu_action_idle_stock_list_report_view" parent="stock.menu_stock_warehouse_mgmt" sequence="152"/>
+       		
+    </data>
+</openerp>
+

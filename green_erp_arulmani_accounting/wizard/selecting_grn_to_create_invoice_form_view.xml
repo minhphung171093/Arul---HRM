@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+		<record id="tpt_select_grn_invoice_wiz_view" model="ir.ui.view">
+	        <field name="name">tpt.select.grn.invoice.wiz.view</field>
+	        <field name="model">tpt.select.grn.invoice.wiz</field>
+	        <field name="arch" type="xml">
+	            <form string="Create Invoice" version="7.0">
+	            	<group>
+	            	<field name="tpt_po_id" string="PO No" context="{'search_po_multi_grn': 1}"
+	            	domain="[('po_document_type','!=','service')]"
+	            	options="{'create': false, 'create_edit': false}" on_change="onchange_tpt_po_id(tpt_po_id)"/>
+	                <field name="journal_id" invisible="1"/>
+					<field name="invoice_date"/>
+					<field name="tpt_grn_line">
+						<tree editable="1">
+							<field name="tpt_grn_name" readonly="1"/>
+							<field name="tpt_grn_id" invisible="1" options="{'create': false, 'create_edit': false}"/>
+						</tree>
+						<form>
+							<field name="tpt_grn_name" readonly="1"/>
+							<field name="tpt_grn_id" invisible="1" options="{'create': false, 'create_edit': false}"/>
+						</form>
+					</field>
+	                </group>
+	                <footer>
+	                    <button name="create_invoice" type='object' string="Create Invoice" class="oe_highlight"/>
+	                    or
+	                    <button string="Discard" class="oe_highlight" special="cancel" />
+	                </footer>
+	            </form>
+	        </field>
+    	</record>
+
+	    <record model="ir.actions.act_window" id="action_tpt_select_grn_invoice_wiz_view">
+	        <field name="name">Create Invoice</field>
+	        <field name="res_model">tpt.select.grn.invoice.wiz</field>
+	        <field name="view_type">form</field>
+	        <field name="view_mode">form</field>
+	        <field name="view_id" ref="tpt_select_grn_invoice_wiz_view" />
+	        <field name="target">new</field>
+	    </record>
+	    
+        <menuitem action="action_tpt_select_grn_invoice_wiz_view"
+            id="menu_action_tpt_select_grn_invoice_wiz_view"
+            parent="green_erp_arulmani_accounting.menu_tpt_accounting" sequence="30"/>
+	 
+	    
+    </data>
+</openerp>
+

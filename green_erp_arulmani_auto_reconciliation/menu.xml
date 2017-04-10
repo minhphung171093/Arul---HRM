@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+    	<menuitem action="action_tpt_customer_auto_reconciliation"
+            id="menu_action_tpt_customer_auto_reconciliation"
+            parent="account.menu_finance_receivables" sequence="14"
+            />
+            
+        <menuitem action="action_tpt_supplier_auto_reconciliation"
+            id="menu_action_tpt_supplier_auto_reconciliation"
+            parent="account.menu_finance_payables" sequence="14"
+            />
+            
+    </data>
+</openerp>

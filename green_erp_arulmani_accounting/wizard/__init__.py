@@ -21,4 +21,5 @@ import customer_ageing_group
 import project_expenditure_report
 import sales_vat_wizard
 import sales_cst_wizard
+import selecting_grn_to_create_invoice_form
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

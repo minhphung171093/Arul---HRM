@@ -47,7 +47,9 @@
         'report/hr_employee_report_view.xml',
         'report/quotation_report_view.xml',
         'report/customer_export_template_view.xml',
+        'report/dropped_disqualified_supplier_report.xml',
         'wizard/hr_employee_report.xml',
+        'wizard/dropped_disqualified_supplier_report.xml',
         'menu_inherit_view.xml',
     ],
     'css' : [

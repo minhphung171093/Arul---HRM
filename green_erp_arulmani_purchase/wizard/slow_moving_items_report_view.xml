@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+		<record id="slow_moving_items_report_view" model="ir.ui.view">
+	        <field name="name">slow.moving.items.report.view</field>
+	        <field name="model">slow.moving.items.report</field>
+	        <field name="arch" type="xml">
+	            <form string="Slow Moving Items Report" version="7.0">
+	               	<group col="4" colspan="2">
+		               	<field name="product_id" domain="[('categ_id.cate_name','in',['raw','spares'])]"/>
+		               	<newline/>
+		               	<field name="percentage_in_range_from"/>
+		               	<field name="percentage_in_range_to"/>
+		               	<field name="stock_value_from"/>
+		               	<field name="stock_value_to"/>
+	                </group>
+	                <footer>
+	                    <button name="print_report" type='object' string="OK" class="oe_highlight"/>
+	                    or
+	                    <button string="Cancel" class="oe_highlight" special="cancel" />
+	                </footer>
+	            </form>
+	        </field>
+    	</record>
+
+	    <record model="ir.actions.act_window" id="action_slow_moving_items_report_view">
+	        <field name="name">Slow Moving Items Report</field>
+	        <field name="res_model">slow.moving.items.report</field>
+	        <field name="view_type">form</field>
+	        <field name="view_mode">form</field>
+	        <field name="view_id" ref="slow_moving_items_report_view" />
+	        <field name="target">new</field>
+	    </record>
+	     
+       <menuitem action="action_slow_moving_items_report_view" 
+       		id="menu_action_slow_moving_items_report_view" parent="stock.menu_stock_warehouse_mgmt" sequence="151"/>
+       		
+    </data>
+</openerp>
+

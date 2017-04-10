@@ -659,6 +659,7 @@ class stock_inward_outward_report(osv.osv_memory):
             res = res1  #+ res3
             
             move_line = []
+            check_inspection_exits = []
             for line in res:
                 if line['doc_type'] == 'grn':
                     sql = '''
@@ -672,17 +673,20 @@ class stock_inward_outward_report(osv.osv_memory):
                         if move['action_taken'] == 'need':
                             sql = '''
                                 select id, qty_approve from tpt_quanlity_inspection where need_inspec_id = %s and state in ('done', 'remaining') and to_char(date, 'YYYY-MM-DD') between '%s' and '%s'
-                            '''%(move['id'], date_from, date_to)
+                                    and product_id=%s
+                            '''%(move['id'], date_from, date_to, product_id.id)
                             cr.execute(sql)
                             for move_sql in cr.dictfetchall():
                                 if move_sql['qty_approve']:
-                                    sql = '''
-                                        select id from stock_move where inspec_id = %s and state = 'done' and to_char(date, 'YYYY-MM-DD') between '%s' and '%s'
-                                    '''%(move_sql['id'], date_from, date_to)
-                                    cr.execute(sql)
-                                    move_sql2 = cr.fetchall()
-                                    if move_sql2:
-                                        move_line.append(line)
+                                    if move_sql['id'] not in check_inspection_exits:
+                                        check_inspection_exits.append(move_sql['id'])
+                                        sql = '''
+                                            select id from stock_move where inspec_id = %s and state = 'done' and to_char(date, 'YYYY-MM-DD') between '%s' and '%s'
+                                        '''%(move_sql['id'], date_from, date_to)
+                                        cr.execute(sql)
+                                        move_sql2 = cr.fetchall()
+                                        if move_sql2:
+                                            move_line.append(line)
                                         
                 elif line['doc_type'] == 'product' and product_id.code == 'M0501060001':
                     move_line.append(line)
@@ -731,12 +735,24 @@ class stock_inward_outward_report(osv.osv_memory):
                 for qty in cr.dictfetchall():
                     name = qty['name']
             if move_type == 'sup_inv_po':#TPT-BM-07/07/2016
+                name =''
                 sql = '''
                    select name from account_invoice where move_id = %s and grn_no is not null
                 '''%(move_id)
                 cr.execute(sql)
                 for invoice in cr.dictfetchall():
                    name = invoice['name'] or 0
+                #vsis created invoice from multi GRN
+                if not name:
+                    sql = '''
+                    select name from account_invoice where move_id = %s and grn_no is null
+                                and id in (select tpt_invoice_id from stock_picking where tpt_invoice_id is not null 
+                                            and type='in' and state='done')
+                    '''%(move_id)
+                    cr.execute(sql)
+                    for invoice in cr.dictfetchall():
+                        name = invoice['name'] or 0
+
             return name
         
         def get_create_date(move_id, material_issue_id, product_dec, move_type):
@@ -779,12 +795,23 @@ class stock_inward_outward_report(osv.osv_memory):
                     date = picking['create_date']
             ##
             if move_type == 'sup_inv_po':#TPT-BM-07/07/2016
+                date = False
                 sql = '''
                    select create_date from account_invoice where move_id = %s and grn_no is not null
                 '''%(move_id)
                 cr.execute(sql)
                 for invoice in cr.dictfetchall():
-                   date = invoice['create_date'] or 0
+                    date = invoice['create_date'] or 0
+                #vsis created invoice from multi GRN
+                if not date:
+                    sql = '''
+                    select create_date from account_invoice where move_id = %s and grn_no is null
+                            and id in (select tpt_invoice_id from stock_picking where tpt_invoice_id is not null 
+                                        and type='in' and state='done')
+                    '''%(move_id)
+                    cr.execute(sql)
+                    for invoice in cr.dictfetchall():
+                        date = invoice['create_date'] or 0
             return date
         
         def get_transaction_qty(o, move_id, material_issue_id, product_dec, move_type):
@@ -1142,7 +1169,10 @@ class stock_inward_outward_report(osv.osv_memory):
                 self.current_transaction_qty = 1
                 sql = '''
                     select case when sum(tpt_tax_amt)!=0 then sum(tpt_tax_amt) else 0 end line_net, product_id from account_invoice_line 
-                    where product_id = %s and invoice_id in (select id from account_invoice where move_id = %s and grn_no is not null)
+                    where product_id = %s and invoice_id in (select id from account_invoice where move_id = %s and 
+                                                        (grn_no is not null or (grn_no is null and 
+                                            id in (select tpt_invoice_id from stock_picking where tpt_invoice_id is not null 
+                                            and type='in' and state='done'))))
                     group by product_id
                    '''%(o.product_id.id, move_id)
                 cr.execute(sql)

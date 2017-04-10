@@ -462,5 +462,7 @@ class review_posting_line(osv.osv_memory):
         'reconcile_partial_id': fields.many2one('account.move.reconcile', 'Partial Reconcile', readonly=True, ondelete='set null', select=2),
         'state': fields.selection([('draft','Unbalanced'), ('valid','Balanced')], 'Status', readonly=True),
         'analytic_account_id': fields.many2one('account.analytic.account', 'Analytic Account'),
+        'tpt_grn_id': fields.many2one('stock.picking', 'GRN'),
+        'tpt_grn_line_id': fields.many2one('stock.move', 'GRN line'),
     }
 review_posting_line()

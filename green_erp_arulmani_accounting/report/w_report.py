@@ -159,6 +159,7 @@ class Parser(report_sxw.rml_parse):
         inv_obj = self.pool.get('account.invoice')
         emp_obj = self.pool.get('hr.employee')
         inv_line_obj = self.pool.get('account.invoice.line')
+        #vsis update for one invoice from multi GRN
         sql = '''
         select  
         ai.name as inv_doc, at.description tax_name,rs.name partnername, rs.tin, ai.bill_number, ai.bill_date,ai.date_invoice,
@@ -220,14 +221,87 @@ class Parser(report_sxw.rml_parse):
             where ai.date_invoice between '%s' and '%s' and
             at.description like '%s' and ai.type='in_invoice'
             and at.amount>0 and ai.doc_type<>'freight_invoice' and ai.state not in ('draft', 'cancel')
+            and ai.grn_no is not null
             group by at.id, ai.name, rs.name, rs.tin, ai.bill_number, ai.bill_date, ai.date_invoice, 
             sp.name, ai.number--, pu.name--, -- ail.name
         order by ai.name
+
         '''%(date_from, date_to, "VAT%(P)")
         self.cr.execute(sql)
         res = self.cr.dictfetchall()
         #print sql
         
+        sql = '''
+        select  
+        ai.name as inv_doc, at.description tax_name,rs.name partnername, rs.tin, ai.bill_number, ai.bill_date,ai.date_invoice,
+        case when sum(ail.tpt_tax_amt)>0 then sum(ail.tpt_tax_amt) else 0 end  as paid_amt_1,
+        sum(ail.quantity) as vatbased_qty, max(pu.name) as uom, max(ail.name) as productname, --sum(ail.line_net) as vatbased_amt, 
+        
+        case when max(ed_type)='1' or max(ed_type) is null then 
+            case when max(ail.p_f_type)='1' or max(ail.p_f_type) is null then
+                sum((ail.quantity*ail.price_unit)+((ail.quantity*ail.price_unit)*ail.ed/100)
+                +coalesce(ail.aed_id_1,0)+((ail.quantity*ail.price_unit)*ail.p_f/100))
+
+                 when max(ail.p_f_type)='2' then
+                sum(ail.quantity*ail.price_unit)+(sum(ail.quantity*ail.price_unit)*sum(ail.ed)/100)
+                +coalesce(sum(ail.aed_id_1),0)+coalesce(sum(ail.p_f),0)
+
+                 when max(ail.p_f_type)='3' then
+                sum((ail.quantity*ail.price_unit)+((ail.quantity*ail.price_unit)*ail.ed/100)
+                +coalesce(ail.aed_id_1,0)+(ail.p_f*ail.quantity)) 
+                 else 0 
+        end 
+        
+    when max(ed_type)='2' or max(ed_type) is null then 
+            case when max(ail.p_f_type)='1' or max(ail.p_f_type) is null then
+                sum(ail.quantity*ail.price_unit)+coalesce(sum(ail.ed),0)
+                +coalesce(sum(ail.aed_id_1),0)+(sum(ail.quantity*ail.price_unit)*coalesce(sum(ail.p_f),0)/100)
+                when max(ail.p_f_type)='2' then
+                sum(ail.quantity*ail.price_unit)+coalesce(sum(ail.ed),0)
+                +coalesce(sum(ail.aed_id_1),0)+coalesce(sum(ail.p_f),0)
+                when max(ail.p_f_type)='3' then
+                sum(ail.quantity*ail.price_unit)+coalesce(sum(ail.ed),0)
+                +coalesce(sum(ail.aed_id_1),0)+sum(ail.p_f*ail.quantity)
+                else 0
+        end 
+    when max(ed_type)='3' or max(ed_type) is null then 
+            case when max(ail.p_f_type)='1' or max(ail.p_f_type) is null then
+                sum(ail.quantity*ail.price_unit)+sum(ail.ed*ail.quantity)+coalesce(sum(ail.aed_id_1),0)
+                +sum(ail.quantity*ail.price_unit)*sum(ail.p_f)/100
+                when max(ail.p_f_type)='2' then
+                sum(ail.quantity*ail.price_unit)+sum(ail.ed*ail.quantity)+coalesce(sum(ail.aed_id_1),0)
+                +coalesce(sum(ail.p_f),0)
+                when max(ail.p_f_type)='3' then
+                    sum(ail.quantity*ail.price_unit)+sum(ail.ed*ail.quantity)+coalesce(sum(ail.aed_id_1),0)
+                +sum(ail.p_f*ail.quantity)
+               else 0
+               end    
+         else 0
+         end             
+        as vatbased_amt,
+                
+                
+        sp.name grn,ai.number as number
+        from account_invoice ai
+            inner join account_invoice_line ail on ai.id=ail.invoice_id
+            inner join account_invoice_line_tax ailt on (ailt.invoice_line_id=ail.id)
+            inner join account_tax at on (at.id=ailt.tax_id)
+            inner join res_partner rs on ai.partner_id=rs.id
+            inner join stock_picking sp on ai.id=sp.tpt_invoice_id
+            inner join product_uom pu on ail.uos_id=pu.id
+            where ai.date_invoice between '%s' and '%s' and
+            at.description like '%s' and ai.type='in_invoice'
+            and at.amount>0 and ai.doc_type<>'freight_invoice' and ai.state not in ('draft', 'cancel')
+            and ai.grn_no is null
+            group by at.id, ai.name, rs.name, rs.tin, ai.bill_number, ai.bill_date, ai.date_invoice, 
+            sp.name, ai.number--, pu.name--, -- ail.name
+        order by ai.name
+        '''%(date_from, date_to, "VAT%(P)")
+        self.cr.execute(sql)
+        res_up = self.cr.dictfetchall()
+        if res_up:
+            res = res+res_up
+
         sql = '''
             select av.name as inv_doc, av.date date_invoice, null bill_number, null bill_date, 
             null tax_name,

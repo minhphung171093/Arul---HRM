@@ -602,7 +602,7 @@ class stock_picking(osv.osv):
                                 invoice_id, invoice_vals, context=context)                    
                     inv_qty_count = inv_qty_count + move_line.product_qty 
                 
-                if vals:
+                if vals and vals.get('account_id', False):
                     vals.update({
                             'quantity':inv_qty_count                 
                     })  
@@ -619,7 +619,7 @@ class stock_picking(osv.osv):
                     #invoice_vals.update({'doc_type':'supplier_invoice'})
                     vals = self._prepare_invoice_line(cr, uid, group, picking, move_line,
                                     invoice_id, invoice_vals, context=context)
-                    if vals:
+                    if vals and vals.get('account_id', False):
                         invoice_line_id = invoice_line_obj.create(cr, uid, vals, context=context) 
                         self._invoice_line_hook(cr, uid, move_line, invoice_line_id)
                         sql = '''

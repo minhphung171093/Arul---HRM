@@ -386,6 +386,8 @@
 					<field name="fright"/>
 					<field name="fright_type"/>
 					<field name="line_net"/>
+                    <field name="tpt_grn_id" invisible="1"/>
+                    <field name="tpt_grn_line_id" invisible="1"/>
 				</xpath>
 				<xpath expr="//page[@string='Invoice']/field/tree/field[@name='price_subtotal']" position="attributes">
 					<attribute name='invisible'>1</attribute>
@@ -397,6 +399,16 @@
 					<attribute name='string'>Code</attribute>
 				</xpath>
 				
+                <xpath expr="//page[@string='Invoice']" position="after">
+					<page string="GRN">
+                    <field name="tpt_grn_line" readonly="1">
+                        <tree editable="top">
+                            <field name="name"/>
+                            <field name="state" invisible="1"/>
+                        </tree>
+                    </field>
+                    </page>
+				</xpath>
 				
 			</field>
 		</record> 
@@ -2054,7 +2066,7 @@
                 <data>
                 	<xpath expr="//button[@name='proforma_voucher']" position="after" >
                 		<button name="%(action_review_posting_view)d" type="action" string="Review Posting" states="draft" context="{'tpt_voucher':True}"/>
-                    	<button name="action_auto_reconcile" type="object" states="posted" string="Reconcile" />
+                    	<!-- <button name="action_auto_reconcile" type="object" states="posted" string="Reconcile" /> -->
                     </xpath> 
                     <xpath expr="//field[@name='account_id']" position="replace"/>
                     <xpath expr="//field[@name='partner_id']" position="attributes">
@@ -2095,7 +2107,10 @@
 					</xpath> 
                     <xpath expr="//page[@string='Payment Information']/field/tree/field[@name='account_id']" position="attributes">
 						<attribute name='invisible'>1</attribute>
-					</xpath> 
+					</xpath>
+					<xpath expr="//page[@string='Payment Information']/field/tree/field[@name='reconcile']" position="attributes">
+						<attribute name='invisible'>1</attribute>
+					</xpath>  
 					
 					<xpath expr="//field[@name='amount']" position="replace">
                     	<field name="tpt_currency_id" required="1" on_change="onchange_tpt_currency(tpt_currency_id,currency_id,type)"/>
@@ -2206,6 +2221,9 @@
                     <xpath expr="//button[@string='Unreconcile']" position="attributes">
                     	<attribute name='groups'>base.user_root</attribute>
                     </xpath>
+                    <xpath expr="//page[@string='Payment Information']/field/tree/field[@name='reconcile']" position="attributes">
+						<attribute name='invisible'>1</attribute>
+					</xpath> 
                 </data>
             </field>
         </record>
@@ -2980,7 +2998,7 @@
             <field name="res_model">account.voucher</field>
             <field name="view_type">form</field>
             <field name="domain">[('journal_id.type', 'in', ['bank', 'cash']), ('type','=','receipt'), ('tpt_cus_reconcile','=',False)]</field>
-            <field name="context">{'type':'receipt','tpt_remove_dr_cr':1}</field>
+            <field name="context">{'type':'receipt','journal_type': 'cash','tpt_show_cr':1}</field>
             <field name="search_view_id" ref="account_voucher.view_voucher_filter_customer_pay"/>
             <field name="view_id" eval="False"/>
             <field name="target">current</field>
@@ -3001,7 +3019,7 @@
             <field name="res_model">account.voucher</field>
             <field name="view_type">form</field>
             <field name="domain">[('journal_id.type', 'in', ['bank', 'cash']), ('type','=','payment'), ('tpt_sup_reconcile','=',False)]</field>
-            <field name="context">{'type':'payment','tpt_remove_dr_cr':1}</field>
+            <field name="context">{'type':'payment','journal_type': 'cash','tpt_show_dr':1}</field>
             <field name="view_id" eval="False"/>
             <field name="search_view_id" ref="account_voucher.view_voucher_filter_vendor_pay"/>
             <field name="target">current</field>
