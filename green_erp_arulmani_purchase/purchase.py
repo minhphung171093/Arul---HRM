@@ -4984,6 +4984,8 @@ res_partner()
 class tpt_material_request(osv.osv):
     _name = "tpt.material.request"
     _order = 'name desc'
+    ## TPT - SSR - 10-4-2017 - Incident Id - 25884
+    _order = 'date_request desc'
     def _get_department_id(self,cr,uid,context=None):
         user = self.pool.get('res.users').browse(cr,uid,uid)
         return user.employee_id and user.employee_id.department_id and user.employee_id.department_id.id or False
@@ -5647,7 +5649,9 @@ tpt_material_request_line()
 
 class tpt_material_issue(osv.osv):
     _name = "tpt.material.issue"
-    _order = 'doc_no desc'
+    #_order = 'doc_no desc'
+    ## TPT - SSR - 10-4-2017 - Incident Id - 25884
+    _order = 'date_request desc'
     _columns = {
         'name': fields.many2one('tpt.material.request','Material Request No',required = True,states={'done':[('readonly', True)]}),
         'date_request':fields.date('Material Request Date',states={'done':[('readonly', True)]}),

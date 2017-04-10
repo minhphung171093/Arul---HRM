@@ -47,7 +47,8 @@ class Parser(report_sxw.rml_parse):
             'get_issue_qty_count':self.get_issue_qty_count,
             # Added by P.VINOTHKUMAR ON 03/11/2016
             'convert_date':self.convert_date,
-            
+            ## TPT - SSR - 10-4-2017 - Incident Id - 25872
+            'get_lastpo_cost':self.get_lastpo_cost,
         })
         
     def get_date_from(self):
@@ -92,8 +93,20 @@ class Parser(report_sxw.rml_parse):
             return 'Partially Issued'
         if type == 'closed':
             return 'Closed'
-        
-    
+    ## TPT - SSR - 10-4-2017 - Incident Id - 25872        
+    def get_lastpo_cost(self,product_id):
+            sql = '''
+            select case when price_unit>0 then price_unit else 0 end avg_cost from purchase_order_line where id = (
+            select max(id) from purchase_order_line pol
+            where pol.product_id=%s)
+            '''%(product_id)
+            self.cr.execute(sql)
+            avg = self.cr.dictfetchone()
+            avg_cost = 0
+            if avg:
+                avg_cost=avg['avg_cost']
+                return float(avg_cost)        
+    ##
     def get_pending_qty(self,move_line_id,req_qty,check_count):
         
         if check_count > 0:                

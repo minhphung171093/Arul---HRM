@@ -218,7 +218,21 @@ class material_request_line_report(osv.osv_memory):
                     return '['+req_code+']' +req_name+' ' +lname
                 else:
                     return ' '
-                
+            ## TPT - SSR - 10-4-2017 - Incident Id - 25872
+            def get_lastpo_cost(product_id):
+                sql = '''
+                    select case when price_unit>0 then price_unit else 0 end avg_cost from purchase_order_line where id = (
+                    select max(id) from purchase_order_line pol
+                    where pol.product_id=%s)
+                '''%(product_id)
+                cr.execute(sql)
+                avg = cr.dictfetchone()
+                avg_cost = 0
+                if avg:
+                    avg_cost=avg['avg_cost']
+                return float(avg_cost)            
+             ##       
+                            
             def get_pending_qty(move_line_id,req_qty,check_count):
                 
                if check_count > 0:
@@ -434,7 +448,9 @@ class material_request_line_report(osv.osv_memory):
                             'pen_qty': get_pending_qty(line['lineid'],line['req_qty'],get_issue_qty_count(line['lineid'])) or 0.000,
                             # Added by P.vinothkumar on 03/11/2016 
                             'issue_qty':round(line['isu_qty'],3) or 0.000,
-                            'issue_value':round(line['issue_value'],2) or 0.00,
+                             ## TPT - SSR - 10-4-2017 - Incident Id - 25872
+                            'issue_value':(get_lastpo_cost(line['product_id'])*round(line['isu_qty'],2)) or 0.00,
+                            ##
                             # end
                             'bin': line['bin_loc'],
                             'project' : line['proj_name'] or '',
