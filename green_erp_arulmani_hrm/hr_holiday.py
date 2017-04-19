@@ -4489,16 +4489,16 @@ class arul_hr_employee_leave_details(osv.osv):
         if vals['employee_id']:
             #if vals['date_from'] == vals['date_to']:
             # Commented by P.VINOTHKUMAR ON 23/02/2017 for fixing multiple leave entries
-#             sql = '''
-#                      select count(*) from arul_hr_employee_leave_details where employee_id=%s and ('%s' between date_from and date_to)
-#                     and ('%s' between date_from and date_to) and state not in ('cancel')
-#                 '''%(vals['employee_id'],vals['date_from'],vals['date_to'])
+            sql = '''
+                      select count(*) from arul_hr_employee_leave_details where employee_id=%s and ('%s' between date_from and date_to)
+                     and ('%s' between date_from and date_to) and state not in ('cancel')
+                 '''%(vals['employee_id'],vals['date_from'],vals['date_to'])
             # Added by P.VINOTHKUMAR on 23/02/2017 for fixing multiple leave entries
-            sql='''select count(*) from arul_hr_employee_leave_details where employee_id=%(emp_id)s and date_from between '%(date_from)s' and '%(date_to)s' 
-                    and date_to between  '%(date_from)s' and  '%(date_to)s'  and state not in ('cancel')
-                   '''%{'emp_id':vals['employee_id'],
-                      'date_from':vals['date_from'],
-                      'date_to':vals['date_to']}
+#             sql='''select count(*) from arul_hr_employee_leave_details where employee_id=%(emp_id)s and date_from between '%(date_from)s' and '%(date_to)s' 
+#                     and date_to between  '%(date_from)s' and  '%(date_to)s'  and state not in ('cancel')
+#                    '''%{'emp_id':vals['employee_id'],
+#                       'date_from':vals['date_from'],
+#                       'date_to':vals['date_to']}
             cr.execute(sql)# tpt-bm-state check is appended here on 01/03/2016
             k = cr.fetchone()   
             if k and k[0]-1> 0:
