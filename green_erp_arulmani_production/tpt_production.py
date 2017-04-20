@@ -1001,7 +1001,7 @@ tpt_activities_line()
 
 class mrp_production(osv.osv):
     _inherit = 'mrp.production'
-    _order = 'name desc'
+    _order = 'date_planned desc'
     _columns = {
             
             'move_lines': fields.many2many('stock.move', 'mrp_production_move_ids', 'production_id', 'move_id', 'Products to Consume',

@@ -4105,6 +4105,11 @@ class tpt_gate_out_pass(osv.osv):
         'gate_date_time': fields.datetime('Gate Out Pass Date & Time'),
         'gate_out_pass_line': fields.one2many('tpt.gate.out.pass.line', 'gate_out_pass_id', 'Product Details', readonly = True),
         'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancel'),('confirm', 'Confirm'),('done', 'Done')],'Status', readonly=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'gate_pass_type':fields.selection([('return-purchase', 'Returnable (Purchase)'),
+                                           ('non-return-purchase', 'Non- Returnable (Purchase)'),
+                                           ('return-service', 'Returnable (Service)'),
+                                           ('non-return-service', 'Non- Returnable (Service)')],'Gate Pass Type', 
+                                          required = False),
                 }
     _defaults={
                'name':'/',
@@ -4112,6 +4117,31 @@ class tpt_gate_out_pass(osv.osv):
                'state': 'draft',
     }
     
+#     def create(self, cr, uid, vals, context=None):
+#         if 'good_id' in vals:
+#             gate_out_pass_line = []
+#             good_req_id = self.pool.get('tpt.good.return.request').browse(cr,uid,vals['good_id'])
+#             for line in good_req_id.product_detail_line:
+#                 gate_out_pass_line.append((0,0,{
+#                           'product_id': line.product_id and line.product_id.id or False,
+#                           'product_qty':line.product_qty or False,
+#                           'uom_po_id': line.uom_po_id and line.uom_po_id.id or False,
+#                           'reason': line.reason or False,
+#                     }))
+#                 vals.update({
+#                     'grn_id':good_req_id.grn_no_id.id or False,
+#                     'header_text': good_req_id.grn_no_id.header_text or '',
+#                     'invoice_no': good_req_id.grn_no_id.invoice_no or '',
+#                     'supplier_id': good_req_id.grn_no_id and good_req_id.grn_no_id.partner_id and good_req_id.grn_no_id.partner_id.id or False,
+#                     'po_id': good_req_id.grn_no_id and good_req_id.grn_no_id.purchase_id and good_req_id.grn_no_id.purchase_id.id or False,
+#                     'gate_out_pass_line': gate_out_pass_line,
+#                     })
+#         if vals.get('name','/')=='/':
+#             vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.gate.out.pass.import') or '/'
+#         new_id = super(tpt_gate_out_pass, self).create(cr, uid, vals, context=context)
+# 
+#         return new_id
+
     def create(self, cr, uid, vals, context=None):
         if 'good_id' in vals:
             gate_out_pass_line = []
@@ -4132,9 +4162,24 @@ class tpt_gate_out_pass(osv.osv):
                     'gate_out_pass_line': gate_out_pass_line,
                     })
         if vals.get('name','/')=='/':
-            vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.gate.out.pass.import') or '/'
-        new_id = super(tpt_gate_out_pass, self).create(cr, uid, vals, context=context)
-
+            sql = '''
+                select name from account_fiscalyear where '%s' between date_start and date_stop
+            '''%(time.strftime('%Y-%m-%d'))
+            cr.execute(sql)
+            fiscalyear = cr.dictfetchone()
+            if not fiscalyear:
+                raise osv.except_osv(_('Warning!'),_('Financial year has not been configured. !'))
+            else:
+                sequence = self.pool.get('ir.sequence').get(cr, uid, 'tpt.gate.out.pass.import')
+                #print(sequence.split('/')[-1])
+                num = sequence.split('/')[-1]                                                       
+        type = vals.get('gate_pass_type')
+        if type == 'return-purchase' or type == 'return-service':            
+            serious='RGP'            
+        elif type == 'non-return-purchase' or type == 'non-return-service':
+            serious='NRGP' 
+        vals['name'] = 'VVTI/'+serious+'/'+fiscalyear['name']+'/G'+num or '/'    
+        new_id = super(tpt_gate_out_pass, self).create(cr, uid, vals, context=context)            
         return new_id
 
     def write(self, cr, uid, ids, vals, context=None):
