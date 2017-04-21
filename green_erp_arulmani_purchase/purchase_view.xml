@@ -172,7 +172,7 @@
 									<tree editable='bottom'>
 										<field name="doc_type_relate" invisible='1' />
 										<field name="product_id"
-											domain="['|',('default_code','in',['FERROUS SULPHATE','FSH','M0501010002']),('categ_id.cate_name','in',['raw','spares']),('active','=',True)]"
+											domain="[('active','=',True)]"
 											context="{'search_indent_type_cate':True,'document_type':parent.document_type}"
 											on_change="onchange_product_id(product_id)" required='1'
 											options="{'create': false, 'create_edit': false}" />

@@ -7627,6 +7627,51 @@ class account_voucher(osv.osv):
             default['value']['writeoff_amount'] = self._compute_writeoff_amount(cr, uid, default['value']['line_dr_ids'], default['value']['line_cr_ids'], price, ttype)
         return default
     
+    def onchange_journal_voucher(self, cr, uid, ids, line_ids=False, tax_id=False, price=0.0, partner_id=False, journal_id=False, ttype=False, company_id=False, context=None):
+        """price
+        Returns a dict that contains new values and context
+
+        @param partner_id: latest value from user input for field partner_id
+        @param args: other arguments
+        @param context: context arguments, like lang, time zone
+
+        @return: Returns a dict which contains new values, and context
+        """
+        default = {
+            'value':{},
+        }
+
+        if not partner_id or not journal_id:
+            return default
+
+        partner_pool = self.pool.get('res.partner')
+        journal_pool = self.pool.get('account.journal')
+
+        journal = journal_pool.browse(cr, uid, journal_id, context=context)
+        partner = partner_pool.browse(cr, uid, partner_id, context=context)
+        account_id = False
+        tr_type = False
+        if journal.type in ('sale','sale_refund'):
+            account_id = partner.property_account_receivable.id
+            tr_type = 'sale'
+        elif journal.type in ('purchase', 'purchase_refund','expense'):
+            account_id = partner.property_account_payable.id
+            tr_type = 'purchase'
+        else:
+            if not journal.default_credit_account_id or not journal.default_debit_account_id:
+                raise osv.except_osv(_('Error!'), _('Please define default credit/debit accounts on the journal "%s".') % (journal.name))
+            account_id = journal.default_credit_account_id.id or journal.default_debit_account_id.id
+            tr_type = 'receipt'
+
+        default['value']['account_id'] = account_id
+        default['value']['type'] = ttype or tr_type
+        default['value']['partner_id'] = partner_id
+        
+        vals = self.onchange_journal(cr, uid, ids, journal_id, line_ids, tax_id, partner_id, time.strftime('%Y-%m-%d'), price, ttype, company_id, context)
+        default['value'].update(vals.get('value'))
+
+        return default
+    
     def onchange_journal(self, cr, uid, ids, journal_id, line_ids, tax_id, partner_id, date, amount, ttype, company_id, context=None):
         if context is None:
             context = {}

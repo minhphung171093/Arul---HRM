@@ -5028,9 +5028,9 @@ res_partner()
 
 class tpt_material_request(osv.osv):
     _name = "tpt.material.request"
-    _order = 'name desc'
+#    _order = 'name desc'
     ## TPT - SSR - 10-4-2017 - Incident Id - 25884
-    _order = 'date_request desc'
+    _order = 'id desc'
     def _get_department_id(self,cr,uid,context=None):
         user = self.pool.get('res.users').browse(cr,uid,uid)
         return user.employee_id and user.employee_id.department_id and user.employee_id.department_id.id or False
