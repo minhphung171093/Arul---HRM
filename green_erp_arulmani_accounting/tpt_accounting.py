@@ -7751,6 +7751,9 @@ class account_voucher(osv.osv):
 #         return res
         return {'value': {}}
     
+    def onchange_type_trans(self, cr, uid, ids, type_trans, context=None):
+        return {'value': {'type': type_trans}}
+    
     def onchange_partner_id(self, cr, uid, ids, partner_id, journal_id, amount, currency_id, ttype, date, context=None):
         if not journal_id:
             return {}
