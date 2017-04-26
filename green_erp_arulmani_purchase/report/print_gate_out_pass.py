@@ -35,6 +35,9 @@ class Parser(report_sxw.rml_parse):
             'get_iamt':self.get_iamt,
 
             'get_dec':self.get_dec, 
+            # Added by SSR ON 20/04/2017 - Incident Id - 2482
+            'get_gatepass_type':self.get_gatepass_type,
+            'get_return_type':self.get_return_type
         })
     def get_approx_value(self, po_id, product_id, prod_qty):
         sql = '''
@@ -81,7 +84,28 @@ class Parser(report_sxw.rml_parse):
         date = datetime.strptime(date, DATETIME_FORMAT)
         return date.strftime('%d/%m/%Y')
     
-
+     # Added by SSR ON 20/04/2017 - Incident Id - 2482
+    def get_gatepass_type(self,pass_type,date=False):
+        type = ''
+        var = pass_type
+        if var == 'return-purchase' or var == 'return-service':
+            date = time.strftime(DATETIME_FORMAT)
+            date = datetime.strptime(date, DATETIME_FORMAT)
+            date.strftime('%d/%m/%Y')
+            type='DATE OF RETURN :'
+            type += date.strftime('%d/%m/%Y')
+        elif var == 'non-return-purchase' or var == 'non-return-service':
+            type=''
+        return type
         
-
+    def get_return_type(self,pass_type,date=False):
+        type = ''
+        var = pass_type
+        if var == 'return-purchase' or var == 'return-service':
+            type='RETURNABLE'
+        elif var == 'non-return-purchase' or var == 'non-return-service':
+            type=' NON-RETURNABLE'                
+        return type
+    
+    ##
     
