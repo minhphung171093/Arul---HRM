@@ -46,7 +46,7 @@ class asset_asset(osv.osv):
     
     def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
         if name:
-            ids = self.search(cr, user, ['|',('name','like',name),('asset_number','like',name)]+args, context=context, limit=limit)
+            ids = self.search(cr, user, ['|',('name','ilike',name),('asset_number','ilike',name)]+args, context=context, limit=limit)
         else:
             ids = self.search(cr, user, args, context=context, limit=limit)
         return self.name_get(cr, user, ids, context=context)
@@ -165,7 +165,7 @@ class account_asset_category(osv.osv):
     
     def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
         if name:
-            ids = self.search(cr, user, ['|',('name','like',name),('code','like',name)]+args, context=context, limit=limit)
+            ids = self.search(cr, user, ['|',('name','ilike',name),('code','ilike',name)]+args, context=context, limit=limit)
         else:
             ids = self.search(cr, user, args, context=context, limit=limit)
         return self.name_get(cr, user, ids, context=context)  

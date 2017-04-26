@@ -34,6 +34,23 @@ class stock_picking(osv.osv):
             ], string='Action to be Taken'),
         'tpt_create_grn': fields.boolean('Create GRN'),
         'gate_out_id':fields.many2one('tpt.gate.out.pass','Gate Out Pass'),
+        'tpt_short_close': fields.boolean('Short Close'),
+        'state': fields.selection([
+            ('draft', 'Draft'),
+            ('cancel', 'Cancelled'),
+            ('auto', 'Waiting Another Operation'),
+            ('confirmed', 'Waiting Availability'),
+            ('assigned', 'Ready to Transfer'),
+            ('short_closed', 'Short Closed'),
+            ('done', 'Transferred'),
+            ], 'Status', readonly=True, select=True, track_visibility='onchange', help="""
+            * Draft: not confirmed yet and will not be scheduled until confirmed\n
+            * Waiting Another Operation: waiting for another move to proceed before it becomes automatically available (e.g. in Make-To-Order flows)\n
+            * Waiting Availability: still waiting for the availability of products\n
+            * Ready to Transfer: products reserved, simply waiting for confirmation.\n
+            * Transferred: has been processed, can't be modified or cancelled anymore\n
+            * Cancelled: has been cancelled, can't be confirmed anymore"""
+        ),
         # VSIS new invoice_id
         'tpt_invoice_id':fields.many2one('account.invoice','Invoice'),
 
@@ -304,6 +321,14 @@ class stock_picking(osv.osv):
 #             })
         return invoice_line_vals
     
+    def draft_force_assign(self, cr, uid, ids, *args):
+        res = super(stock_picking, self).draft_force_assign(cr, uid, ids, *args)
+        purchase_line_obj = self.pool.get('purchase.order.line')
+        for picking in self.browse(cr, uid, ids):
+            if picking.tpt_short_close:
+                self.write(cr, uid, [picking.id], {'state': 'short_closed'})
+        return res
+    
 stock_picking()
 
 class stock_picking_in(osv.osv):
@@ -321,6 +346,23 @@ class stock_picking_in(osv.osv):
             ], string='Action to be Taken'),
         'tpt_create_grn': fields.boolean('Create GRN'),
         'gate_out_id':fields.many2one('tpt.gate.out.pass','Gate Out Pass No'),
+        'tpt_short_close': fields.boolean('Short Close'),
+        'state': fields.selection([
+            ('draft', 'Draft'),
+            ('cancel', 'Cancelled'),
+            ('auto', 'Waiting Another Operation'),
+            ('confirmed', 'Waiting Availability'),
+            ('assigned', 'Ready to Transfer'),
+            ('short_closed', 'Short Closed'),
+            ('done', 'Transferred'),
+            ], 'Status', readonly=True, select=True, track_visibility='onchange', help="""
+            * Draft: not confirmed yet and will not be scheduled until confirmed\n
+            * Waiting Another Operation: waiting for another move to proceed before it becomes automatically available (e.g. in Make-To-Order flows)\n
+            * Waiting Availability: still waiting for the availability of products\n
+            * Ready to Transfer: products reserved, simply waiting for confirmation.\n
+            * Transferred: has been processed, can't be modified or cancelled anymore\n
+            * Cancelled: has been cancelled, can't be confirmed anymore"""
+        ),
         # VSIS new invoice_id
         'tpt_invoice_id':fields.many2one('account.invoice','Invoice'),
 
@@ -443,6 +485,14 @@ class stock_picking_in(osv.osv):
 #                     'move_lines':move_lines
 #                     }
         return {'value':vals}
+    
+    def draft_force_assign(self, cr, uid, ids, *args):
+        res = super(stock_picking_in, self).draft_force_assign(cr, uid, ids, *args)
+        purchase_line_obj = self.pool.get('purchase.order.line')
+        for picking in self.browse(cr, uid, ids):
+            if picking.tpt_short_close:
+                self.write(cr, uid, [picking.id], {'state': 'short_closed'})
+        return res
     
 stock_picking_in()
 

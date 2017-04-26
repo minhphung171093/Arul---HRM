@@ -30,8 +30,8 @@
     'data': [
 
         'tpt_asset_view.xml',
-        'tpt_asset_sequence.xml'
-        
+        'tpt_asset_sequence.xml',
+        'import_view.xml',
     ],
     'css' : [
         "static/src/css/base.css",

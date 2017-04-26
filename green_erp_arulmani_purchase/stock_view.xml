@@ -24,23 +24,6 @@
 	            </tree>
             </field>
         </record>
-        <record id="stock_picking_in_inherit_purchase_inherit" model="ir.ui.view">
-            <field name="name">stock.picking.in.form</field>
-            <field name="model">stock.picking.in</field>
-            <field name="inherit_id" ref="purchase.stock_picking_in_inherit_purchase"/>
-            <field name="arch" type="xml">
-				<xpath expr="//field[@name='purchase_id']" position="attributes">
-					<attribute name='options'>{'create': false, 'create_edit': false}</attribute>
-					<attribute name='on_change'>onchange_purchase_id(purchase_id)</attribute>
-					<attribute name='domain'>[('state','=','md'),('po_document_type','!=','service')]</attribute>
-					<attribute name='attrs'>{'readonly':[('state','!=','draft')]}</attribute>
-				</xpath>
-            	<xpath expr="//field[@name='purchase_id']" position="after">
-            		<field name="po_date"/>
-            		<field name="tpt_create_grn" invisible='1'/>
-            	</xpath>
-            </field>
-        </record>
         <record id="view_picking_in_search_inherit" model="ir.ui.view">
             <field name="name">stock.picking.in.form</field>
             <field name="model">stock.picking.in</field>
@@ -64,6 +47,12 @@
             		<button name="button_cancel" states="assigned,confirmed,draft" string="Cancel Transfer" groups="base.user_root"/>
             	</xpath>-->
             	
+            	<xpath expr="//button[@name='button_cancel']" position="attributes">
+            		<attribute name='attrs'>{'invisible': ['|',('tpt_short_close','=',True)]}</attribute>
+            	</xpath>
+            	<xpath expr="//button[@name='draft_validate']" position="attributes">
+            		<attribute name='attrs'>{'invisible': ['|',('tpt_short_close','=',True)]}</attribute>
+            	</xpath>
             	<xpath expr="//header"  position="inside">
             		<button name="action_revert_done" string="Reopen" states="done,cancel" type="object" icon="gtk-cancel" 
 	                	confirm="Do you want to reopen this GRN?" groups="base.group_no_one"
@@ -82,28 +71,29 @@
             		<field name="min_date" invisible="1"/>
             	</xpath>
             	<xpath expr="//field[@name='date']" position="replace">
-					<field name="date" on_change = "onchange_picking_date(date)" string = "GRN Date"/>
+					<field name="date" attrs="{'readonly': [('tpt_short_close','=',True)]}" on_change = "onchange_picking_date(date)" string = "GRN Date"/>
 				</xpath>
 				<xpath expr="//field[@name='date']" position="after">
-				<field name="header_text"/>
+				<field name="header_text" attrs="{'readonly': [('tpt_short_close','=',True)]}"/>
 				<field name="gate_out_id" readonly="1"/>
+				<field name="tpt_short_close" attrs="{'readonly': [('state','!=','draft')]}"/>
 				</xpath>
 				<xpath expr="//field[@name='backorder_id']" position="attributes">
 					<attribute name='invisible'>1</attribute>
 				</xpath>
 				<xpath expr="//field[@name='invoice_state']" position="attributes">
-					<attribute name='attrs'>{'readonly': [('state', 'in', ['draft','auto','confirmed','assigned','done','cancel'])]}</attribute>
+					<attribute name='attrs'>{'readonly': ['|',('tpt_short_close','=',True),('state', 'in', ['draft','auto','confirmed','assigned','done','cancel'])]}</attribute>
 				</xpath>
                 <xpath expr="//field[@name='partner_id']" position="replace">
                     <field name="partner_id" readonly="1" options="{'create': false, 'create_edit': false}" on_change="onchange_partner_in(partner_id)" string="Supplier" domain="[('supplier','=',True)]" context="{'default_supplier':1,'default_customer':0}"/>
-                    <field name="document_type"/>
-                    <field name="warehouse" domain="[('usage','=','internal'),('chained_location_type','&lt;&gt;','customer')]" on_change="onchange_dest_loca_id(warehouse)" required="1" options="{'create': false, 'create_edit': false}"/>
-                    <field name="gate_in_pass_no" options="{'create': false, 'create_edit': false}"/>
-                    <field name="truck"/>
-                    <field name="invoice_no"/>                   
+                    <field name="document_type" attrs="{'readonly': [('tpt_short_close','=',True)]}"/>
+                    <field name="warehouse" attrs="{'readonly': [('tpt_short_close','=',True)]}" domain="[('usage','=','internal'),('chained_location_type','&lt;&gt;','customer')]" on_change="onchange_dest_loca_id(warehouse)" required="1" options="{'create': false, 'create_edit': false}"/>
+                    <field name="gate_in_pass_no" attrs="{'readonly': [('tpt_short_close','=',True)]}" options="{'create': false, 'create_edit': false}"/>
+                    <field name="truck" attrs="{'readonly': [('tpt_short_close','=',True)]}"/>
+                    <field name="invoice_no" attrs="{'readonly': [('tpt_short_close','=',True)]}"/>                   
                 </xpath>
                 <xpath expr="//field[@name='move_lines']" position="replace">
-                    <field name="move_lines" string="Stock Move" context="{'address_in_id': partner_id, 'picking_type': 'in', 'form_view_ref':'stock.view_move_picking_form', 'tree_view_ref':'stock.view_move_picking_tree'}" options='{"reload_on_button": true}'>
+                    <field name="move_lines" attrs="{'readonly': ['|',('tpt_short_close','=',True),('state','in',['cancel','done'])]}" string="Stock Move" context="{'address_in_id': partner_id, 'picking_type': 'in', 'form_view_ref':'stock.view_move_picking_form', 'tree_view_ref':'stock.view_move_picking_tree'}" options='{"reload_on_button": true}'>
 						<tree editable='top' create='false' colors="grey:state == 'cancel';red:(state not in ('cancel','done')) and date > current_date" string="Moves">
 		                    <field name="name" invisible="1"/>
 		                    <field name="picking_id" string="Reference" invisible="1"/>
@@ -151,7 +141,23 @@
                 </xpath>
             </field>
         </record>
-		
+		<record id="stock_picking_in_inherit_purchase_inherit" model="ir.ui.view">
+            <field name="name">stock.picking.in.form</field>
+            <field name="model">stock.picking.in</field>
+            <field name="inherit_id" ref="purchase.stock_picking_in_inherit_purchase"/>
+            <field name="arch" type="xml">
+				<xpath expr="//field[@name='purchase_id']" position="attributes">
+					<attribute name='options'>{'create': false, 'create_edit': false}</attribute>
+					<attribute name='on_change'>onchange_purchase_id(purchase_id)</attribute>
+					<attribute name='domain'>[('state','=','md'),('po_document_type','!=','service')]</attribute>
+					<attribute name='attrs'>{'readonly':['|',('tpt_short_close','=',True),('state','!=','draft')]}</attribute>
+				</xpath>
+            	<xpath expr="//field[@name='purchase_id']" position="after">
+            		<field name="po_date"/>
+            		<field name="tpt_create_grn" invisible='1'/>
+            	</xpath>
+            </field>
+        </record>
 		<record id="tpt_invoice_supplier_form" model="ir.ui.view">
             <field name="name">tpt.invoice.supplier.form</field>
             <field name="model">account.invoice</field>

@@ -442,7 +442,7 @@ class stock_picking_in(osv.osv):
             
         if context.get('search_grn_with_name', False):
             name = context.get('name')
-            grn_ids = self.search(cr, uid, [('name','like',name)])
+            grn_ids = self.search(cr, uid, [('name','ilike',name)])
             args += [('id','in',grn_ids)]
         return super(stock_picking_in, self).search(cr, uid, args, offset=offset, limit=limit, order=order, context=context, count=count)
     
@@ -834,7 +834,7 @@ class stock_picking(osv.osv):
             context = {}
         if context.get('search_grn_with_name', False):
             name = context.get('name')
-            grn_ids = self.search(cr, uid, [('name','like',name)])
+            grn_ids = self.search(cr, uid, [('name','ilike',name)])
             args += [('id','in',grn_ids)]
         return super(stock_picking, self).search(cr, uid, args, offset=offset, limit=limit, order=order, context=context, count=count)
     
@@ -5914,7 +5914,7 @@ class product_product(osv.osv):
             context = {}
         if context.get('search_product_with_name', False):
             name = context.get('name')
-            product_ids = self.search(cr, uid, ['|',('name','like',name),('default_code','like',name)])
+            product_ids = self.search(cr, uid, ['|',('name','ilike',name),('default_code','ilike',name)])
             args += [('id','in',product_ids)]
         return super(product_product, self).search(cr, uid, args, offset=offset, limit=limit, order=order, context=context, count=count)
     
@@ -9849,7 +9849,7 @@ class res_partner(osv.osv):
             context = {}
         if context.get('search_partner_with_name', False):
             name = context.get('name')
-            partner_ids = self.search(cr, uid, [('name','like',name)])
+            partner_ids = self.search(cr, uid, [('name','ilike',name)])
             args += [('id','in',partner_ids)]
         return super(res_partner, self).search(cr, uid, args, offset=offset, limit=limit, order=order, context=context, count=count)
     
@@ -10685,7 +10685,7 @@ class tpt_cform_invoice(osv.osv):
             cr.execute(''' delete from tpt_cform_invoice_line where cform_id in %s ''',(tuple(ids),))
         for bank in self.browse(cr, uid, ids):
             invoice_obj = self.pool.get('account.invoice')
-            invoice_ids = invoice_obj.search(cr, uid, [('form_type' ,'=', 'tbc'), ('type', '=', 'out_invoice'), ('state', '=', 'open'), ('sale_tax_id', 'like', 'CST')])
+            invoice_ids = invoice_obj.search(cr, uid, [('form_type' ,'=', 'tbc'), ('type', '=', 'out_invoice'), ('state', '=', 'open'), ('sale_tax_id', 'ilike', 'CST')])
             cform_line = []
             for invoice in invoice_obj.browse(cr, uid, invoice_ids):  
                 for line in invoice.invoice_line:

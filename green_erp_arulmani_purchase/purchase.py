@@ -3185,7 +3185,7 @@ class purchase_order(osv.osv):
         #END    
         if context.get('search_po_with_name', False):
             name = context.get('name')
-            po_ids = self.search(cr, uid, [('name','like',name)])
+            po_ids = self.search(cr, uid, [('name','ilike',name)])
             args += [('id','in',po_ids)]
 
             
@@ -3291,7 +3291,11 @@ class purchase_order_line(osv.osv):
             }
             short = 0
             sql = '''
-                select case when sum(product_qty) != 0 then sum(product_qty) else 0 end product_qty from stock_move where purchase_line_id = %s and state='cancel'
+                select case when sum(stm.product_qty) != 0 then sum(stm.product_qty) else 0 end product_qty
+                    from stock_move stm
+                    left join stock_picking sp on stm.picking_id=sp.id
+                    where stm.purchase_line_id = %s
+                    and sp.state='short_closed'
             '''%(line.id)
             cr.execute(sql)
             product_qty = cr.dictfetchone()['product_qty']
@@ -3743,7 +3747,7 @@ class stock_picking_in(osv.osv):
             
         if context.get('search_grn_with_name', False):
             name = context.get('name')
-            grn_ids = self.search(cr, uid, [('name','like',name)])
+            grn_ids = self.search(cr, uid, [('name','ilike',name)])
             args += [('id','in',grn_ids)]
         return super(stock_picking_in, self).search(cr, uid, args, offset=offset, limit=limit, order=order, context=context, count=count)
     
@@ -5017,7 +5021,7 @@ class tpt_material_request(osv.osv):
             context = {}
         if context.get('search_material_request_with_name', False):
             name = context.get('name')
-            material_requests = self.search(cr, uid, [('name','like',name)])
+            material_requests = self.search(cr, uid, [('name','ilike',name)])
             args += [('id','in',material_requests)]
         return super(tpt_material_request, self).search(cr, uid, args, offset=offset, limit=limit, order=order, context=context, count=count)
     

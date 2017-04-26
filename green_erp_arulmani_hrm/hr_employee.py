@@ -691,7 +691,7 @@ class hr_employee(osv.osv):
     
     def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
         if name:
-            ids = self.search(cr, user, ['|',('name','like',name),('employee_id','like',name)]+args, context=context, limit=limit)
+            ids = self.search(cr, user, ['|',('name','ilike',name),('employee_id','ilike',name)]+args, context=context, limit=limit)
         else:
             ids = self.search(cr, user, args, context=context, limit=limit)
         return self.name_get(cr, user, ids, context=context)
@@ -1007,7 +1007,7 @@ class food_subsidy(osv.osv):
     
     def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
         if name:
-            ids = self.search(cr, user, [('food_category','like',name)]+args, context=context, limit=limit)
+            ids = self.search(cr, user, [('food_category','ilike',name)]+args, context=context, limit=limit)
         else:
             ids = self.search(cr, user, args, context=context, limit=limit)
         return self.name_get(cr, user, ids, context=context)
@@ -1401,9 +1401,9 @@ class employee_leave_detail(osv.osv):
                     date_now = datetime.datetime.strptime(now, DATETIME_FORMAT)
                     timedelta = date_now - join_date
             if line.leave_type_id.code=='LOP':
-                shift_ids = self.pool.get('arul.hr.audit.shift.time').search(cr, uid, [('work_date','like',line.emp_leave_id.year),('employee_id','=',emp),('state','=','cancel'),('additional_shifts','=',False)])
+                shift_ids = self.pool.get('arul.hr.audit.shift.time').search(cr, uid, [('work_date','ilike',line.emp_leave_id.year),('employee_id','=',emp),('state','=','cancel'),('additional_shifts','=',False)])
                 taken_day += len(shift_ids)
-            leave_detail_ids = leave_detail_obj.search(cr, uid, [('date_from','like',line.emp_leave_id.year),('employee_id','=',emp),('leave_type_id','=',leave_type),('state','=','done')])
+            leave_detail_ids = leave_detail_obj.search(cr, uid, [('date_from','ilike',line.emp_leave_id.year),('employee_id','=',emp),('leave_type_id','=',leave_type),('state','=','done')])
             for detail in leave_detail_obj.browse(cr, uid, leave_detail_ids, context=context):
 #                 if not timedelta and (detail.leave_type_id.code=='CL' or detail.leave_type_id.code=='SL' or detail.leave_type_id.code=='PL'):
 #                     raise osv.except_osv(_('Warning!'),_('The Selected Employee does not reach 1 year from The Date of Joining'))

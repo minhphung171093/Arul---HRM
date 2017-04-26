@@ -4845,7 +4845,7 @@ class arul_hr_employee_leave_details(osv.osv):
             ##TPT BM on 27/06/2016 - Update Leave Details
             leave_detail_obj = self.pool.get('arul.hr.employee.leave.details')
             taken_day = 0
-            leave_detail_ids = leave_detail_obj.search(cr, uid, [('date_from','like',year),('employee_id','=',line.employee_id.id),('leave_type_id','=',line.leave_type_id.id),('state','=','done')])
+            leave_detail_ids = leave_detail_obj.search(cr, uid, [('date_from','ilike',year),('employee_id','=',line.employee_id.id),('leave_type_id','=',line.leave_type_id.id),('state','=','done')])
             for detail in leave_detail_obj.browse(cr, uid, leave_detail_ids, context=context):
                   taken_day += detail.days_total
             total = taken_day 
@@ -4949,7 +4949,7 @@ class arul_hr_employee_leave_details(osv.osv):
             emp_leave_obj = self.pool.get('employee.leave')
             taken_day = 0
             year_now = line.date_from[0:4]
-            leave_detail_ids = leave_detail_obj.search(cr, uid, [('date_from','like',year),('employee_id','=',line.employee_id.id),('leave_type_id','=',line.leave_type_id.id),('state','=','done')])
+            leave_detail_ids = leave_detail_obj.search(cr, uid, [('date_from','ilike',year),('employee_id','=',line.employee_id.id),('leave_type_id','=',line.leave_type_id.id),('state','=','done')])
             for detail in leave_detail_obj.browse(cr, uid, leave_detail_ids, context=context):
                   taken_day += detail.days_total
             total = taken_day 
@@ -5017,7 +5017,7 @@ class arul_hr_employee_leave_details(osv.osv):
             emp_leave_obj = self.pool.get('employee.leave')
             year_now = line.date_from[0:4]
             taken_day = 0
-            leave_detail_ids = leave_detail_obj.search(cr, uid, [('date_from','like',year),('employee_id','=',line.employee_id.id),('leave_type_id','=',line.leave_type_id.id),('state','=','done')])
+            leave_detail_ids = leave_detail_obj.search(cr, uid, [('date_from','ilike',year),('employee_id','=',line.employee_id.id),('leave_type_id','=',line.leave_type_id.id),('state','=','done')])
             for detail in leave_detail_obj.browse(cr, uid, leave_detail_ids, context=context):
                   taken_day += detail.days_total
             total = taken_day 
