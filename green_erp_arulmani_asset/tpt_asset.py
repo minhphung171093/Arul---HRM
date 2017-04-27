@@ -120,6 +120,7 @@ class account_asset_asset(osv.osv):
 #                 'desc':fields.text('Description'), 
                 'product_id':fields.many2one('product.product', 'Product'),    
                 'grn_id':fields.many2one('stock.picking', 'GRN No'),
+                'asset_id':fields.many2one('asset.asset', 'Asset'),
                 'category_id':fields.many2one('account.asset.category', 'Category'),
                 'grn_date' : fields.date('GRN Date'),      
                 'caps_date':fields.date('Capitalization Date'),  
@@ -203,44 +204,46 @@ class stock_picking(osv.osv):
                 for grn_line in grn.move_lines:
                     if grn_line.product_id.cate_name=='assets':
                         asset_ids = asset_obj.search(cr, uid, [('product_id', '=', grn_line.product_id.id)])
-                        asset_id = asset_obj.browse(cr, uid, asset_ids[0], context=context)
-                        # Added by P.vinothkumar on 27/08/2016 for generate register code
-                        asset_categ = self.pool.get('account.asset.category')
-                        asset_category = asset_categ.browse(cr, uid, asset_id.category_id.id)
-                        asset_master = asset_obj.browse(cr, uid,asset_id.id)
-                        category_code = asset_category.code
-                        master_code = asset_master.asset_number
-                        sql= '''
-                                 select case when max(aa.am_code) is null then 01 else max(aa.am_code)+ 1 end as am_code from 
-                                 asset_asset aa join account_asset_category ac on aa.category_id=ac.id where ac.code='%s'                 
-                                '''%(category_code)
-                        cr.execute(sql) 
-                        am_code = cr.dictfetchone()['am_code'] 
-                        sql='''
-                                 select case when max(asset.ar_code) is null then 01 else max(asset.ar_code) + 1 end as ar_code from 
-                                 asset_asset am 
-                                 inner join account_asset_category ac on am.category_id=ac.id 
-                                 inner join account_asset_asset asset on asset.asset_id=am.id
-                                 where ac.code='%s' and am.asset_number='%s' 
-                                '''%(category_code,master_code)
-                        cr.execute(sql)
-                        ar_code = cr.dictfetchone()['ar_code'] 
-                          # TPT-END      
-                        for asset_reg in range(int(grn_line.product_qty)):
-                            register_code = category_code +'-' +'0'+"%g"% am_code +'-' +'00'+"%g"% (ar_code) # added on 27/08/2016
-                            asset_reg_obj.create(cr, uid, {
-                               'product_id': grn_line.product_id and grn_line.product_id.id or False,
-                               'partner_id': grn.partner_id.id or False,
-                               'register_code':register_code,
-                               'purchase_date': grn.date or False, 
-                               'grn_id': grn.id or False, # Added by P.vinothkumar on 23/08/2016
-                               'state': 'draft',
-                               'purchase_value': 1 * grn_line.price_unit or 0,
-                               'asset_id': asset_id.id or False,
-                               'category_id': asset_id.category_id and asset_id.category_id.id or False,
-                               'method': 'linear' or '',
-                               })
-                            ar_code = ar_code + 1 
+                        if asset_ids:
+                            asset_id = asset_obj.browse(cr, uid, asset_ids[0], context=context)
+                            # Added by P.vinothkumar on 27/08/2016 for generate register code
+                            asset_categ = self.pool.get('account.asset.category')
+                            asset_category = asset_categ.browse(cr, uid, asset_id.category_id.id)
+                            asset_master = asset_obj.browse(cr, uid,asset_id.id)
+                            category_code = asset_category.code
+                            master_code = asset_master.asset_number
+                            sql= '''
+                                     select case when max(aa.am_code) is null then 01 else max(aa.am_code)+ 1 end as am_code from 
+                                     asset_asset aa join account_asset_category ac on aa.category_id=ac.id where ac.code='%s'                 
+                                    '''%(category_code)
+                            cr.execute(sql) 
+                            am_code = cr.dictfetchone()['am_code'] 
+                            sql='''
+                                     select case when max(asset.ar_code) is null then 01 else max(asset.ar_code) + 1 end as ar_code from 
+                                     asset_asset am 
+                                     inner join account_asset_category ac on am.category_id=ac.id 
+                                     inner join account_asset_asset asset on asset.category_id=ac.id
+                                     where ac.code='%s' and am.asset_number='%s' 
+                                    '''%(category_code,master_code)
+                            cr.execute(sql)
+                            ar_code = cr.dictfetchone()['ar_code'] 
+                              # TPT-END      
+                            for asset_reg in range(int(grn_line.product_qty)):
+                                register_code = category_code +'-' +'0'+"%g"% am_code +'-' +'00'+"%g"% (ar_code) # added on 27/08/2016
+                                asset_reg_obj.create(cr, uid, {
+                                   'product_id': grn_line.product_id and grn_line.product_id.id or False,
+                                   'partner_id': grn.partner_id.id or False,
+                                   'register_code':register_code,
+                                   'purchase_date': grn.date or False, 
+                                   'grn_id': grn.id or False, # Added by P.vinothkumar on 23/08/2016
+                                   'state': 'draft',
+                                   'purchase_value': 1 * grn_line.price_unit or 0,
+                                   'asset_id': asset_id.id or False,
+                                   'category_id': asset_id.category_id and asset_id.category_id.id or False,
+                                   'method': 'linear' or '',
+                                   'name': grn_line.product_id and grn_line.product_id.name or '',
+                                   })
+                                ar_code = ar_code + 1 
                          
         return True
             
