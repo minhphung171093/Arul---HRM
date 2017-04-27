@@ -245,34 +245,34 @@ class tpt_form_are_3(osv.osv):
              'form': self.read(cr, uid, ids[0], context=context)
         }
         are3_ids = self.browse(cr, uid, ids[0])  
-        if are3_ids.is_original is False and are3_ids.is_duplicate is False and are3_ids.is_triplicate is False and are3_ids.is_quadruplicate is False:
-            raise osv.except_osv(_('Warning!'),
-                _('Please Select any one of the following: -Original Copy\n -Duplicate Copy\n -Triplicate Copy\n -Quadruplicate Copy'))
-        if are3_ids.is_original is True:
-            return {
-                    'type': 'ir.actions.report.xml',
-                    'report_name': 'form_are_3_report_original',
-                } 
-        elif are3_ids.is_duplicate is True:
-            return {
-                    'type': 'ir.actions.report.xml',
-                    'report_name': 'form_are_3_report_duplicate',
-                } 
-        elif are3_ids.is_triplicate is True:
-            return {
-                    'type': 'ir.actions.report.xml',
-                    'report_name': 'form_are_3_report_triplicate',
-                } 
-        elif are3_ids.is_quadruplicate is True:
-            return {
-                    'type': 'ir.actions.report.xml',
-                    'report_name': 'form_are_3_report_quadruplicate',
-                } 
-        else:
-            return {
-                    'type': 'ir.actions.report.xml',
-                    'report_name': 'form_are_3_report',
-                } 
+#         if are3_ids.is_original is False and are3_ids.is_duplicate is False and are3_ids.is_triplicate is False and are3_ids.is_quadruplicate is False:
+#             raise osv.except_osv(_('Warning!'),
+#                 _('Please Select any one of the following: -Original Copy\n -Duplicate Copy\n -Triplicate Copy\n -Quadruplicate Copy'))
+#         if are3_ids.is_original is True:
+#             return {
+#                     'type': 'ir.actions.report.xml',
+#                     'report_name': 'form_are_3_report_original',
+#                 } 
+#         elif are3_ids.is_duplicate is True:
+#             return {
+#                     'type': 'ir.actions.report.xml',
+#                     'report_name': 'form_are_3_report_duplicate',
+#                 } 
+#         elif are3_ids.is_triplicate is True:
+#             return {
+#                     'type': 'ir.actions.report.xml',
+#                     'report_name': 'form_are_3_report_triplicate',
+#                 } 
+#         elif are3_ids.is_quadruplicate is True:
+#             return {
+#                     'type': 'ir.actions.report.xml',
+#                     'report_name': 'form_are_3_report_quadruplicate',
+#                 } 
+#         else:
+        return {
+                'type': 'ir.actions.report.xml',
+                'report_name': 'form_are_3_report',
+            } 
     
 tpt_form_are_3()
 

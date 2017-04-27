@@ -73,6 +73,9 @@ class stock_picking(osv.osv):
                         update tpt_purchase_product set state='po_raised' where pur_product_id=%s and product_id=%s
                     '''%(move.po_indent_id.id,move.product_id.id)
                     cr.execute(sql)
+            
+            if vals.get('state', False)=='done' and line.tpt_short_close:
+                super(stock_picking, self).write(cr, uid, [line.id], {'state': 'short_closed'})
         return new_write
 
 #     def create(self, cr, user, vals, context=None):

@@ -78,13 +78,13 @@ class complaint_register(osv.osv):
     def bt_approve(self, cr, uid, ids, context=None):
         for line in self.browse(cr,uid,ids):
             if line.state == 'confirmed':
-                self.write(cr, uid, ids,{'state':'sm_approved'})
+                self.write(cr, uid, [line.id],{'state':'sm_approved'})
         return True
     
     def bt_reject(self, cr, uid, ids, context=None):
         for line in self.browse(cr,uid,ids):
             if line.state == 'confirmed':
-                self.write(cr, uid, ids,{'state':'sm_rejected'})
+                self.write(cr, uid, [line.id],{'state':'sm_rejected'})
         return True
     
     def bt_hod_approve(self, cr, uid, ids,notif, context=None):
@@ -97,7 +97,7 @@ class complaint_register(osv.osv):
         if hod[0]:
             for line in self.browse(cr,uid,ids):
                 if line.state == 'sm_approved':
-                    self.write(cr, uid, line.id,{'state':'hod_approved'})   
+                    self.write(cr, uid, [line.id],{'state':'hod_approved'})   
                 if notif:
                     self.pool.get('tpt.notification').create(cr,uid,{ 
                                                                      'complaint_number': line.id,
@@ -109,7 +109,7 @@ class complaint_register(osv.osv):
                                                                     'section_id': line.section_id and line.section_id.id or False,
                                                                     'issue_reported': line.issue_reported or False,
                                                                      })
-                    self.write(cr, uid, ids,{'state':'notif_created'})
+                    self.write(cr, uid, [line.id],{'state':'notif_created'})
         else:
             raise osv.except_osv(_('Warning!'),_('User does not have permission to approve!'))
         return True
@@ -124,7 +124,7 @@ class complaint_register(osv.osv):
         if hod[0]:
             for line in self.browse(cr,uid,ids):
                 if line.state == 'sm_approved':
-                    self.write(cr, uid, ids,{'state':'hod_rejected','hod_reject_reason':hod_reject_reason})
+                    self.write(cr, uid, [line.id],{'state':'hod_rejected','hod_reject_reason':hod_reject_reason})
         else:
             raise osv.except_osv(_('Warning!'),_('User does not have permission to approve!'))
         return True

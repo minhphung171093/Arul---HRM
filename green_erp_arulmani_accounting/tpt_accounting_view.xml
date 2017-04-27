@@ -3632,7 +3632,7 @@
             <field name="arch" type="xml">
                 <tree string="C-FORM Invoice">
                     <field name="name"/>
-                    
+                    <field name="invoice_type"/>
                 </tree>
             </field>
         </record>
@@ -3659,6 +3659,9 @@
                         <field name="create_uid" />  -->
                     	
                     <!-- <field name="name"/>  -->
+                    <group>
+                    	<field name="invoice_type" required="1"/>
+                    </group>
                     <notebook colspan="4">
                         <page>
                         	<div col='4' colspan='4'>

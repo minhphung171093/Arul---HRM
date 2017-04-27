@@ -10705,10 +10705,12 @@ class tpt_cform_invoice(osv.osv):
         'state':fields.selection([('draft', 'Draft'),('done', 'Done')],'Status', readonly=True),
         'create_date': fields.datetime('Created Date',readonly = True),
         'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
+        'invoice_type':fields.selection([('to_be_collected', 'To be collected'),('collected', 'collected')],'Invoices'),
     }
     _defaults = {
         'state': 'draft',
         'name': 'Update C-Form',
+        'invoice_type': 'to_be_collected',
     }
     def _check_state(self, cr, uid, ids, context=None):
         for bank in self.browse(cr, uid, ids, context=context):
@@ -10733,7 +10735,10 @@ class tpt_cform_invoice(osv.osv):
             cr.execute(''' delete from tpt_cform_invoice_line where cform_id in %s ''',(tuple(ids),))
         for bank in self.browse(cr, uid, ids):
             invoice_obj = self.pool.get('account.invoice')
-            invoice_ids = invoice_obj.search(cr, uid, [('form_type' ,'=', 'tbc'), ('type', '=', 'out_invoice'), ('state', '=', 'open'), ('sale_tax_id', 'ilike', 'CST')])
+            invoice_domain = [('type', '=', 'out_invoice'), ('state', '=', 'open'), ('sale_tax_id', 'ilike', 'CST')]
+            if bank.invoice_type=='to_be_collected':
+                invoice_domain = invoice_domain+[('form_type' ,'=', 'tbc')]
+            invoice_ids = invoice_obj.search(cr, uid, invoice_domain)
             cform_line = []
             for invoice in invoice_obj.browse(cr, uid, invoice_ids):  
                 for line in invoice.invoice_line:

@@ -16,29 +16,69 @@ class alert_warning_form_purchase(osv.osv_memory):
             context = {}
         res = super(alert_warning_form_purchase, self).default_get(cr, uid, fields, context=context)
         if context.get('active_id'):
-            po_line = self.pool.get('purchase.order.line').browse(cr, uid, context['active_id'], context=context)
-            ton_sl = 0
-            mess = ''
-            if po_line.product_id:
-                if po_line.product_id.categ_id.cate_name != 'consum':
-                    sql = '''
-                            select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton_sl from 
-                                    (select st.product_qty
-                                        from stock_move st 
-                                        where st.state='done' and st.product_id=%s and st.location_dest_id in (select id from stock_location
-                                                                                                where usage = 'internal')
-                                    union all
-                                    select st.product_qty*-1
-                                        from stock_move st 
-                                        where st.state='done' and st.product_id=%s and st.location_id in (select id from stock_location
-                                                                                                where usage = 'internal')
-                                    )foo
-                    '''%(po_line.product_id.id,po_line.product_id.id)
-                    cr.execute(sql)
-                    ton_sl = cr.dictfetchone()['ton_sl']
-                    mess = 'Current Stock Position of product %s (%s) is %s %s'%(po_line.product_id.name,po_line.product_id.default_code,ton_sl,po_line.product_uom.name)
-                else:
-                    mess = 'The system does not manage quantity on stock for Consumable Product!'
+            if context.get('indent', False):
+                product_id = context.get('product_id', False)
+                if product_id:
+                    product = self.pool.get('product.product').browse(cr, uid, product_id)
+                    po_line = self.pool.get('purchase.order.line').browse(cr, uid, context['active_id'], context=context)
+                    ton_sl = 0
+                    mess = ''
+                    if product.categ_id.cate_name != 'consum':
+                        product_uom_qty = context.get('product_uom_qty', 0)
+                        sql = '''
+                                select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton_sl from 
+                                        (select st.product_qty
+                                            from stock_move st 
+                                            where st.state='done' and st.product_id=%s and st.location_dest_id in (select id from stock_location
+                                                                                                    where usage = 'internal')
+                                        union all
+                                        select st.product_qty*-1
+                                            from stock_move st 
+                                            where st.state='done' and st.product_id=%s and st.location_id in (select id from stock_location
+                                                                                                    where usage = 'internal')
+                                        union all
+                                        (select st.product_qty
+                                            from stock_move st 
+                                            left join stock_picking sp on st.picking_id=sp.id 
+                                            where st.state='done' and st.product_id=%s
+                                            and sp.state in ('draft'))
+                                            
+                                        union all
+                                        (select remaining_qty
+                                            from tpt_quanlity_inspection
+                                            where state='draft' and product_id=%s)
+                                        )foo
+                        '''%(product_id,product_id,product_id,product_id)
+                        cr.execute(sql)
+                        ton_sl = cr.dictfetchone()['ton_sl']
+                        ton_sl += product_uom_qty
+                        mess = 'Current Stock Position of product %s (%s) is %s %s'%(product.name,product.default_code,ton_sl,product.uom_id.name)
+                    else:
+                        mess = 'The system does not manage quantity on stock for Consumable Product!'
+            else:
+                po_line = self.pool.get('purchase.order.line').browse(cr, uid, context['active_id'], context=context)
+                ton_sl = 0
+                mess = ''
+                if po_line.product_id:
+                    if po_line.product_id.categ_id.cate_name != 'consum':
+                        sql = '''
+                                select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton_sl from 
+                                        (select st.product_qty
+                                            from stock_move st 
+                                            where st.state='done' and st.product_id=%s and st.location_dest_id in (select id from stock_location
+                                                                                                    where usage = 'internal')
+                                        union all
+                                        select st.product_qty*-1
+                                            from stock_move st 
+                                            where st.state='done' and st.product_id=%s and st.location_id in (select id from stock_location
+                                                                                                    where usage = 'internal')
+                                        )foo
+                        '''%(po_line.product_id.id,po_line.product_id.id)
+                        cr.execute(sql)
+                        ton_sl = cr.dictfetchone()['ton_sl']
+                        mess = 'Current Stock Position of product %s (%s) is %s %s'%(po_line.product_id.name,po_line.product_id.default_code,ton_sl,po_line.product_uom.name)
+                    else:
+                        mess = 'The system does not manage quantity on stock for Consumable Product!'
             res.update({'name': mess})
         return res
     

@@ -348,7 +348,7 @@
 	                    <button name="reject_leave_request" states='draft' string="Reject" type="object" class="oe_highlight" groups="green_erp_arulmani_hrm.group_vvti_hrm_hr_manager,green_erp_arulmani_hrm.group_vvti_unit_user"/>
 	                    <button name="rollback_leave_request" states='done,reject' string="Rollback" type="object" class="oe_highlight" groups="green_erp_arulmani_hrm.group_vvti_hrm_hr_manager,green_erp_arulmani_hrm.group_vvti_unit_user"/>
 	                    <!-- "leave_cance" context is added for cancel_leave_request button #TPT-BM-ON 24/02/2016 - TO AVOID THROW THIS ERROR WHEN CANCEL LEAVE -->
-	                    <button name="cancel_leave_request" context="{'leave_cancel':1}" states='done' string="Cancel" type="object" class="oe_highlight" groups="green_erp_arulmani_hrm.group_vvti_hrm_hr_manager,green_erp_arulmani_hrm.group_vvti_unit_user"/>
+	                    <button name="cancel_leave_request" confirm="Do you want to cancel the leave?" context="{'leave_cancel':1}" states='done' string="Cancel" type="object" class="oe_highlight" groups="green_erp_arulmani_hrm.group_vvti_hrm_hr_manager,green_erp_arulmani_hrm.group_vvti_unit_user"/>
 	                	<field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue","done":"blue"}'/>
 	                </header>   
 	            	<sheet>

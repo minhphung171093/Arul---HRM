@@ -76,7 +76,7 @@
 				<xpath expr="//field[@name='date']" position="after">
 				<field name="header_text" attrs="{'readonly': [('tpt_short_close','=',True)]}"/>
 				<field name="gate_out_id" readonly="1"/>
-				<field name="tpt_short_close" attrs="{'readonly': [('state','!=','draft')]}"/>
+				<field name="tpt_short_close" attrs="{'readonly': [('state','not in',['draft','assigned','confirmed'])]}"/>
 				</xpath>
 				<xpath expr="//field[@name='backorder_id']" position="attributes">
 					<attribute name='invisible'>1</attribute>
