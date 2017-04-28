@@ -196,7 +196,9 @@
 										<!-- <field name="release_by" required='1'/> -->
 										<field name="total_val" />
 										<field name="state" required='1' />
-
+										<button name="%(action_alert_warning_purchase)d" icon="STOCK_APPLY"
+											string="Show Current Stock" type="action" context="{'indent': 1,'product_id': product_id, 'product_uom_qty': product_uom_qty}"
+											groups="green_erp_arulmani_purchase.group_vvti_purchase_mgr,green_erp_arulmani_purchase.group_vvti_purchase_gm" />
 									</tree>
 								</field>
 							</page>

@@ -128,6 +128,7 @@
 	            <form string="Form A.R.E - 3" version="7.0">   
 	            <header> 
 	            <button name='print_are3' string="Print ARE-3" type="object" class="oe_highlight" />
+	            <button name='print_are3_back' string="Print ARE-3 Back" type="object" class="oe_highlight" />
 	            </header> 
 	            	<sheet>
 	            		<group col="4" colspan="2">

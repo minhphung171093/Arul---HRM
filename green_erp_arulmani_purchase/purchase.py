@@ -3442,7 +3442,7 @@ class purchase_order_line(osv.osv):
                 'fright_type':fields.selection([('1','%'),('2','Rs'), ('3','Per Qty')],('Frt Type'), track_visibility='onchange',states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}),  
                 'line_no': fields.integer('Sl.No', readonly = True),
                 # ham function line_net
-                'short_qty': fields.function(get_short_qty,type='float',digits=(16,0),multi='sum', string='Short Closed Qty',),
+                'short_qty': fields.function(get_short_qty,type='float',digits=(16,3),multi='sum', string='Short Closed Qty',),
                 'amount_basic': fields.function(line_net_line_po, store = True, multi='deltas' ,string='Value',),
                 'line_net': fields.function(line_net_line_po, store = True, multi='deltas' ,string='Line Net',),
                 'state': fields.selection([('amendement', 'Amendement'), ('draft', 'Draft'), ('confirmed', 'Confirmed'), ('done', 'Done'), ('cancel', 'Cancelled')], 'Status', required=True, readonly=True,

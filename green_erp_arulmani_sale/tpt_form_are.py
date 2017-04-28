@@ -245,34 +245,50 @@ class tpt_form_are_3(osv.osv):
              'form': self.read(cr, uid, ids[0], context=context)
         }
         are3_ids = self.browse(cr, uid, ids[0])  
-#         if are3_ids.is_original is False and are3_ids.is_duplicate is False and are3_ids.is_triplicate is False and are3_ids.is_quadruplicate is False:
-#             raise osv.except_osv(_('Warning!'),
-#                 _('Please Select any one of the following: -Original Copy\n -Duplicate Copy\n -Triplicate Copy\n -Quadruplicate Copy'))
-#         if are3_ids.is_original is True:
-#             return {
-#                     'type': 'ir.actions.report.xml',
-#                     'report_name': 'form_are_3_report_original',
-#                 } 
-#         elif are3_ids.is_duplicate is True:
-#             return {
-#                     'type': 'ir.actions.report.xml',
-#                     'report_name': 'form_are_3_report_duplicate',
-#                 } 
-#         elif are3_ids.is_triplicate is True:
-#             return {
-#                     'type': 'ir.actions.report.xml',
-#                     'report_name': 'form_are_3_report_triplicate',
-#                 } 
-#         elif are3_ids.is_quadruplicate is True:
-#             return {
-#                     'type': 'ir.actions.report.xml',
-#                     'report_name': 'form_are_3_report_quadruplicate',
-#                 } 
-#         else:
+        if are3_ids.is_original is False and are3_ids.is_duplicate is False and are3_ids.is_triplicate is False and are3_ids.is_quadruplicate is False:
+            raise osv.except_osv(_('Warning!'),
+                _('Please Select any one of the following: -Original Copy\n -Duplicate Copy\n -Triplicate Copy\n -Quadruplicate Copy'))
+        if are3_ids.is_original is True:
+            return {
+                    'type': 'ir.actions.report.xml',
+                    'report_name': 'form_are_3_report_original',
+                } 
+        elif are3_ids.is_duplicate is True:
+            return {
+                    'type': 'ir.actions.report.xml',
+                    'report_name': 'form_are_3_report_duplicate',
+                } 
+        elif are3_ids.is_triplicate is True:
+            return {
+                    'type': 'ir.actions.report.xml',
+                    'report_name': 'form_are_3_report_triplicate',
+                } 
+        elif are3_ids.is_quadruplicate is True:
+            return {
+                    'type': 'ir.actions.report.xml',
+                    'report_name': 'form_are_3_report_quadruplicate',
+                } 
+        else:
+            return {
+                    'type': 'ir.actions.report.xml',
+                    'report_name': 'form_are_3_report',
+                }
+            
+    def print_are3_back(self, cr, uid, ids, context=None):
+        '''
+        This function prints the invoice and mark it as sent, so that we can see more easily the next step of the workflow
+        '''
+        assert len(ids) == 1, 'This option should only be used for a single id at a time.'
+        self.write(cr, uid, ids, {'sent': True}, context=context)
+        datas = {
+             'ids': ids,
+             'model': 'tpt.form.are.3',
+             'form': self.read(cr, uid, ids[0], context=context)
+        }
         return {
                 'type': 'ir.actions.report.xml',
-                'report_name': 'form_are_3_report',
-            } 
+                'report_name': 'form_are_3_back_report',
+            }
     
 tpt_form_are_3()
 
