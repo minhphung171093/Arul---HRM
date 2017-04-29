@@ -17,14 +17,15 @@ class alert_warning_form_purchase(osv.osv_memory):
         res = super(alert_warning_form_purchase, self).default_get(cr, uid, fields, context=context)
         if context.get('active_id'):
             if context.get('indent', False):
-                product_id = context.get('product_id', False)
-                if product_id:
-                    product = self.pool.get('product.product').browse(cr, uid, product_id)
-                    po_line = self.pool.get('purchase.order.line').browse(cr, uid, context['active_id'], context=context)
+                indent_line = self.pool.get('tpt.purchase.product').browse(cr, uid, context['active_id'], context=context)
+                product = indent_line.product_id
+                if product:
+                    product_id = product.id
+#                     product = self.pool.get('product.product').browse(cr, uid, product_id)
                     ton_sl = 0
                     mess = ''
                     if product.categ_id.cate_name != 'consum':
-                        product_uom_qty = context.get('product_uom_qty', 0)
+                        product_uom_qty = indent_line.product_uom_qty or 0
                         sql = '''
                                 select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton_sl from 
                                         (select st.product_qty

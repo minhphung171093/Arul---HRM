@@ -5696,8 +5696,9 @@ class product_product(osv.osv):
     
     def write(self, cr, uid, ids, vals, context=None):
         if 'cate_name' in vals and vals['cate_name'] in ('finish', 'raw', 'service', 'assets'):
-            vals.update({'purchase_acc_id':False, 'product_asset_acc_id':False, 
-                     'property_account_income':False, 'property_account_expense':False})
+#             vals.update({'purchase_acc_id':False, 'product_asset_acc_id':False, 
+#                      'property_account_income':False, 'property_account_expense':False})
+            vals.update({'property_account_income':False, 'property_account_expense':False})
         if 'cate_name' in vals and vals['cate_name']=='spares':
             incomeaccount_id = self.pool.get('account.account').search(cr, uid, [('code','in',['0000119503'])]) #income & purchase account id for spares
             expenseaccount_id = self.pool.get('account.account').search(cr, uid, [('code','in',['0000404010'])]) # Expense Account for Spares  0000404010
@@ -7640,12 +7641,24 @@ class account_voucher(osv.osv):
         default = {
             'value':{},
         }
-
-        if not partner_id or not journal_id:
+        journal_pool = self.pool.get('account.journal')
+        if not journal_id:
+            return default
+        if not partner_id and journal_id:
+            journal = journal_pool.browse(cr, uid, journal_id, context=context)
+            account_id = False
+            if journal.type in ('sale','sale_refund'):
+                account_id = partner.property_account_receivable.id
+            elif journal.type in ('purchase', 'purchase_refund','expense'):
+                account_id = partner.property_account_payable.id
+            else:
+                if not journal.default_credit_account_id or not journal.default_debit_account_id:
+                    raise osv.except_osv(_('Error!'), _('Please define default credit/debit accounts on the journal "%s".') % (journal.name))
+                account_id = journal.default_credit_account_id.id or journal.default_debit_account_id.id
+            default['value']['account_id'] = account_id
             return default
 
         partner_pool = self.pool.get('res.partner')
-        journal_pool = self.pool.get('account.journal')
 
         journal = journal_pool.browse(cr, uid, journal_id, context=context)
         partner = partner_pool.browse(cr, uid, partner_id, context=context)
@@ -7666,10 +7679,8 @@ class account_voucher(osv.osv):
         default['value']['account_id'] = account_id
         default['value']['type'] = ttype or tr_type
         default['value']['partner_id'] = partner_id
-        
         vals = self.onchange_journal(cr, uid, ids, journal_id, line_ids, tax_id, partner_id, time.strftime('%Y-%m-%d'), price, ttype, company_id, context)
         default['value'].update(vals.get('value'))
-
         return default
     
     def onchange_journal(self, cr, uid, ids, journal_id, line_ids, tax_id, partner_id, date, amount, ttype, company_id, context=None):
