@@ -104,6 +104,12 @@ class tpt_import_asset_product(osv.osv):
                         raise osv.except_osv(_('Warning!'),_('Please config Account "%s"!'%(account)))
                     else:
                         account_id = account_ids[0]
+                        
+                    purchase_account_ids = account_obj.search(cr, uid, [('code','=','0000119503')],limit=1)
+                    if not purchase_account_ids:
+                        raise osv.except_osv(_('Warning!'),_('Please config Account "0000119503"!'))
+                    else:
+                        purchase_account_id = purchase_account_ids[0]
                     
                     product_vals = product_obj.onchange_category_product_id(cr, uid, [], category_id)['value']
                     
@@ -111,7 +117,7 @@ class tpt_import_asset_product(osv.osv):
                         'name': name,
                         'categ_id': category_id,
                         'product_asset_acc_id': account_id,
-                        'purchase_acc_id': account_id,
+                        'purchase_acc_id': purchase_account_id,
                         'uom_id': uom_id,
                         'uom_po_id': uom_id,
                         'default_code': code,
