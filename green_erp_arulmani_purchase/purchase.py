@@ -1208,7 +1208,10 @@ class product_product(osv.osv):
             # Added by P.VINOTHKUMAR ON 04/11/2016 for adding validation unique product name
             #product_name_ids = self.search(cr, uid, [('id','!=',product.id),('name','=',product.name)])
             sql = '''
-                select id from product_product where id != %s and categ_id=%s and lower(regexp_replace((name_template),'[^a-zA-Z0-9]', '', 'g')) = lower(regexp_replace(('%s'),'[^a-zA-Z0-9]', '', 'g'))
+                select pp.id
+                    from product_product pp
+                    left join product_template pt on pp.product_tmpl_id=pt.id
+                    where pp.id != %s and pt.categ_id=%s and lower(regexp_replace((pp.name_template),'[^a-zA-Z0-9]', '', 'g')) = lower(regexp_replace(('%s'),'[^a-zA-Z0-9]', '', 'g'))
             '''%(product.id,product.categ_id.id,product.name)
             cr.execute(sql)
             product_name_ids = [row[0] for row in cr.fetchall()]
