@@ -1208,15 +1208,15 @@ class product_product(osv.osv):
             # Added by P.VINOTHKUMAR ON 04/11/2016 for adding validation unique product name
             #product_name_ids = self.search(cr, uid, [('id','!=',product.id),('name','=',product.name)])
             sql = '''
-                select id from product_product where id != %s and lower(regexp_replace((name_template),'[^a-zA-Z0-9]', '', 'g')) = lower(regexp_replace(('%s'),'[^a-zA-Z0-9]', '', 'g'))
-            '''%(product.id,product.name)
+                select id from product_product where id != %s and categ_id=%s and lower(regexp_replace((name_template),'[^a-zA-Z0-9]', '', 'g')) = lower(regexp_replace(('%s'),'[^a-zA-Z0-9]', '', 'g'))
+            '''%(product.id,product.categ_id.id,product.name)
             cr.execute(sql)
             product_name_ids = [row[0] for row in cr.fetchall()]
             if product_name_ids:
                 raise osv.except_osv(_('Warning!'),_('Product Name should be Unique!'))
                 return False
             # End
-            product_code_ids = self.search(cr, uid, [('id','!=',product.id),('default_code', '=',product.default_code)])
+            product_code_ids = self.search(cr, uid, [('id','!=',product.id),('default_code', '=',product.default_code),('categ_id','=',product.categ_id.id)])
             if product_code_ids:
 #                 raise osv.except_osv(_('Warning!'),_('Product Code and Name should be Unique!'))
                 raise osv.except_osv(_('Warning!'),_('Product Code should be Unique!'))

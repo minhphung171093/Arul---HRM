@@ -117,9 +117,9 @@ class tpt_import_asset_product(osv.osv):
                         'default_code': code,
                     })
                     sql = '''
-                        select id from product_product where lower(regexp_replace((name_template),'[^a-zA-Z0-9]', '', 'g')) = lower(regexp_replace(('%s'),'[^a-zA-Z0-9]', '', 'g'))
-                            or lower(regexp_replace((default_code),'[^a-zA-Z0-9]', '', 'g')) = lower(regexp_replace(('%s'),'[^a-zA-Z0-9]', '', 'g'))
-                    '''%(name,code)
+                        select id from product_product where (lower(regexp_replace((name_template),'[^a-zA-Z0-9]', '', 'g')) = lower(regexp_replace(('%s'),'[^a-zA-Z0-9]', '', 'g'))
+                            or lower(regexp_replace((default_code),'[^a-zA-Z0-9]', '', 'g')) = lower(regexp_replace(('%s'),'[^a-zA-Z0-9]', '', 'g'))) and categ_id=%s
+                    '''%(name,code,category_id)
                     cr.execute(sql)
                     product_ids = [row[0] for row in cr.fetchall()]
                     if product_ids:
