@@ -1630,7 +1630,7 @@ class arul_hr_payroll_executions(osv.osv):
                         base_amount = net_basic + net_da 
                         #TPT-SSR-ON 02/05/2017 - Ticket Id - 26794
 #                         emp_pf_con_amount = round(base_amount*emp_pf_con/100)                        
-                        emp_pf_con_amount = pf_am 
+                        emp_pf_con_amount = round(pf_am) 
 # #                         
                         vpfd_amount = round(base_amount * vpfd / 100) 	
                         total_deduction += (emp_pf_con_amount + emp_esi_con_amount + emp_lwf_amt + vpfd_amount)            
@@ -2049,7 +2049,7 @@ class arul_hr_payroll_executions(osv.osv):
                         base_amount = net_basic + net_da 
                         #TPT-SSR-ON 02/05/2017 - Ticket Id - 26794
 #                         emp_pf_con_amount = round(base_amount*emp_pf_con/100)
-                        emp_pf_con_amount = pf_am
+                        emp_pf_con_amount = round(pf_am)
 # #                         
                         vpfd_amount = round(base_amount * vpfd / 100) 	
                         total_deduction += (emp_pf_con_amount + emp_esi_con_amount + emp_lwf_amt + vpfd_amount)
@@ -2478,7 +2478,7 @@ class arul_hr_payroll_executions(osv.osv):
                         base_amount = net_basic + net_da 
                         #TPT-SSR-ON 02/05/2017 - Ticket Id - 26794
 #                         emp_pf_con_amount = round(base_amount*emp_pf_con/100) #math.ceil(base_amount*emp_pf_con/100)
-                        emp_pf_con_amount = pf_am
+                        emp_pf_con_amount = round(pf_am)
 # #                         
                         vpfd_amount = round(base_amount * vpfd / 100) 	
                         total_deduction += (emp_pf_con_amount + emp_esi_con_amount + emp_lwf_amt + vpfd_amount)
