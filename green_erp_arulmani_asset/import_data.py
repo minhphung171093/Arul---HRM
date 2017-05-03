@@ -331,11 +331,11 @@ class tpt_import_asset_register(osv.osv):
                     capitalization_date = self.convert_float2date(capitalization_date)
                     
                     name = str(sh.cell(row, 3).value) or False
-                    asset_ids = asset_obj.search(cr, uid, [('name','=',name)])
-                    if not asset_ids:
-                        raise osv.except_osv(_('Warning!'),_('Please config Asset Master "%s"!'%(name)))
-                    else:
-                        asset_id = asset_ids[0]
+#                     asset_ids = asset_obj.search(cr, uid, [('name','=',name)])
+#                     if not asset_ids:
+#                         raise osv.except_osv(_('Warning!'),_('Please config Asset Master "%s"!'%(name)))
+#                     else:
+#                         asset_id = asset_ids[0]
                     gross_value = sh.cell(row, 4).value
                     
                     asset_vals = {
@@ -344,7 +344,7 @@ class tpt_import_asset_register(osv.osv):
                         'caps_date': capitalization_date,
                         'purchase_value': gross_value,
                         'name': name,
-                        'asset_id': asset_id,
+#                         'asset_id': asset_id,
                     }
                     account_asset_obj.create(cr, uid, asset_vals)
 #                         
