@@ -1593,7 +1593,24 @@ class arul_hr_payroll_executions(osv.osv):
             
                         total_earning =  net_basic + net_da + net_c + net_hra + net_ea + net_aa + net_la + net_oa + fa + spa + pc + cre + sha + lta + med
                         gross_sal =  net_basic + net_da + net_c + net_hra + net_ea + net_aa + net_la + net_oa + fa + spa + pc + cre + sha + lta + med
-
+#TPT-SSR-ON 02/05/2017 - Ticket Id - 26794
+                        sql = '''
+                        select pf,pf_amt,pf_percentage from tpt_hr_pf_slab where %s between from_range and to_range
+                        '''%(gross_sal)
+                        cr.execute(sql)
+                        k = cr.fetchone()
+                        pf=k[0]
+                        pf_type=k[1]
+                        pf_percentage=k[2]
+                        if int(pf_type)==1:
+                            gs=(gross_sal/100)*pf
+                            pf_am=(gs*pf_percentage)/100
+#                             gross_sal = gross_sal - pf_am
+                        else:
+                            pf_am = pf
+                            a = (pf_am*pf_percentage)/100
+                            pf_am=a
+# #                             
                         if gross_sal + esi_check >= emp_esi_limit:
                             ## TPT-By BalamuruganPurushothaman - on 20/20/2015 - to skip esi on apr,oct month only - this snippet is added as separately for every emp category
                             if skip_esi_flag is True and line.month not in ('4', '10'): # SKip in only 4-April, 10-October
@@ -1611,7 +1628,10 @@ class arul_hr_payroll_executions(osv.osv):
                                 }) 
                             
                         base_amount = net_basic + net_da 
-                        emp_pf_con_amount = round(base_amount*emp_pf_con/100)                        
+                        #TPT-SSR-ON 02/05/2017 - Ticket Id - 26794
+#                         emp_pf_con_amount = round(base_amount*emp_pf_con/100)                        
+                        emp_pf_con_amount = pf_am 
+# #                         
                         vpfd_amount = round(base_amount * vpfd / 100) 	
                         total_deduction += (emp_pf_con_amount + emp_esi_con_amount + emp_lwf_amt + vpfd_amount)            
                         net_sala = gross_sal - total_deduction
@@ -1995,7 +2015,23 @@ class arul_hr_payroll_executions(osv.osv):
                             shd = round(shd, 0)
                         total_earning = total_earning + shd
                         gross_sal = gross_sal + shd
-                        
+                        #TPT-SSR-ON 02/05/2017 - Ticket Id - 26794
+                        sql = '''
+                        select pf,pf_amt,pf_percentage from tpt_hr_pf_slab where %s between from_range and to_range
+                        '''%(gross_sal)
+                        cr.execute(sql)
+                        k = cr.fetchone()
+                        pf=k[0]
+                        pf_type=k[1]
+                        pf_percentage=k[2]
+                        if int(pf_type)==1:
+                            gs=(gross_sal/100)*pf
+                            pf_am=(gs*pf_percentage)/100
+                        else:
+                            pf_am = pf
+                            a = (pf_am*pf_percentage)/100
+                            pf_am=a
+# #                             
                         if for_esi_base_gross_sal + esi_check >= emp_esi_limit:#S2
                             if skip_esi_flag is True and line.month not in ('4', '10'): # SKip in only April, October
                                 emp_esi_con_amount = math.ceil(total_earning*emp_esi_con/100)
@@ -2011,7 +2047,10 @@ class arul_hr_payroll_executions(osv.osv):
                             }) 
 
                         base_amount = net_basic + net_da 
-                        emp_pf_con_amount = round(base_amount*emp_pf_con/100)
+                        #TPT-SSR-ON 02/05/2017 - Ticket Id - 26794
+#                         emp_pf_con_amount = round(base_amount*emp_pf_con/100)
+                        emp_pf_con_amount = pf_am
+# #                         
                         vpfd_amount = round(base_amount * vpfd / 100) 	
                         total_deduction += (emp_pf_con_amount + emp_esi_con_amount + emp_lwf_amt + vpfd_amount)
                         net_sala = gross_sal - total_deduction
@@ -2405,7 +2444,23 @@ class arul_hr_payroll_executions(osv.osv):
                             shd = round(shd, 0)
                         total_earning = total_earning + shd
                         gross_sal = gross_sal + shd
-                        
+                        #TPT-SSR-ON 02/05/2017 - Ticket Id - 26794
+                        sql = '''
+                        select pf,pf_amt,pf_percentage from tpt_hr_pf_slab where %s between from_range and to_range
+                        '''%(gross_sal)
+                        cr.execute(sql)
+                        k = cr.fetchone()
+                        pf=k[0]
+                        pf_type=k[1]
+                        pf_percentage=k[2]
+                        if int(pf_type) == 1:
+                            gs=(gross_sal/100)*pf
+                            pf_am=(gs*pf_percentage)/100
+                        else:
+                            pf_am = pf
+                            a = (pf_am*pf_percentage)/100
+                            pf_am=a
+                        ##    
                         if for_esi_base_gross_sal + esi_check >= emp_esi_limit:
                             if skip_esi_flag is True and line.month not in ('4', '10'): # SKip in only April, October
                                 emp_esi_con_amount = math.ceil(total_earning*emp_esi_con/100)
@@ -2421,7 +2476,10 @@ class arul_hr_payroll_executions(osv.osv):
                             }) 
 
                         base_amount = net_basic + net_da 
-                        emp_pf_con_amount = round(base_amount*emp_pf_con/100) #math.ceil(base_amount*emp_pf_con/100)
+                        #TPT-SSR-ON 02/05/2017 - Ticket Id - 26794
+#                         emp_pf_con_amount = round(base_amount*emp_pf_con/100) #math.ceil(base_amount*emp_pf_con/100)
+                        emp_pf_con_amount = pf_am
+# #                         
                         vpfd_amount = round(base_amount * vpfd / 100) 	
                         total_deduction += (emp_pf_con_amount + emp_esi_con_amount + emp_lwf_amt + vpfd_amount)
                         net_sala = gross_sal - total_deduction
@@ -2914,7 +2972,42 @@ class tpt_hr_ptax_slab(osv.osv):
         new_write = super(tpt_hr_ptax_slab, self).write(cr, uid,ids, vals, context)
         return new_write
 tpt_hr_ptax_slab()
-
+#TPT-SSR-ON 02/05/2017 - Ticket Id - 26794
+class tpt_hr_pf_slab(osv.osv):
+    _name = "tpt.hr.pf.slab"
+    _columns = {  
+        'name': fields.char('Name'), 
+        'from_range': fields.float('Salary Amt From'),
+        'to_range': fields.float('Salary Amt To'),   
+        'pf_amt': fields.selection([('1', 'Percentage %'),('2', 'Rs')],'PF Type'),
+        'pf':  fields.float('PF'),   
+        'pf_percentage':fields.float('PF Percentage'),
+        'is_active': fields.boolean('Is Active'),  
+        'create_date': fields.datetime('Created Date',readonly = True), 
+        'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True), 
+    }
+    _defaults = {
+        'is_active': True,
+    }
+    def create(self, cr, uid, vals, context=None):
+        vals.update({'name':'Between Rs.'+str(vals['from_range'])+ ' to Rs.'+str(vals['to_range']),
+                        })
+        return super(tpt_hr_pf_slab, self).create(cr, uid, vals, context)
+    
+    def write(self, cr, uid, ids, vals, context=None):
+        pf_obj = self.pool.get('tpt.hr.pf.slab') 
+        pf_obj_id = pf_obj.browse(cr,uid,ids[0])
+        if 'from_range' in vals:
+            
+            vals.update({'name':'Between Rs.'+str(vals['from_range'])+ ' to Rs.'+str(pf_obj_id.to_range),
+                         })
+        if 'to_range' in vals:
+            vals.update({'name':'Between Rs.'+str(pf_obj_id.from_range)+ ' to Rs.'+str(vals['to_range']),
+                         })
+        new_write = super(tpt_hr_pf_slab, self).write(cr, uid,ids, vals, context)
+        return new_write
+tpt_hr_pf_slab()
+##
 class tpt_skip_esi(osv.osv):
     _name = "tpt.skip.esi"
     _columns = {   

@@ -748,6 +748,59 @@
        <menuitem action="action_tpt_hr_ptax_slab_form"
             id="menu_action_tpt_hr_ptax_slab_form"
             parent="menu_hr_payroll_management" sequence="93"/>  
+            
+       <record id="view_tpt_hr_pf_slab_tree_vew" model="ir.ui.view">
+			<field name="name">tpt.hr.pf.slab.tree</field>
+			<field name="model">tpt.hr.pf.slab</field>
+			<field name="arch" type="xml">
+				<tree string="Proffesional Tax Slab">	
+					<field name="name" />	
+					<field name="from_range" />
+					<field name="to_range" />
+					<field name ="create_date"/>
+                	<field name ="create_uid"/>
+				</tree>
+			</field>
+	   </record>
+	   
+	   <record id="view_tpt_hr_pf_slab_form_vew" model="ir.ui.view">
+            <field name="name">tpt.hr.pf.slab.form</field>
+            <field name="model">tpt.hr.pf.slab</field>
+            <field name="arch" type="xml">
+	            <form string="PF Slab Range" version="7.0">   
+	            <sheet>
+		           <group col='4' colspan='2' string="PF Range">
+						<field name="from_range" required='1'/>
+						<field name="to_range" required='1'/>
+						<field name="is_active" />
+		            </group>	
+		            <group col='4' colspan='2' string="PF Amount">
+						<field name="pf_amt" />
+						<field name="pf" />
+						<field name="pf_percentage" />
+		            </group>	
+					<newline/>
+					<group col='4' colspan='2' >
+						<field name ="create_date"/>
+	                	<field name ="create_uid"/>
+                	 </group>	
+				</sheet>
+		        </form>
+		     </field>   
+       </record>
+        <record id="action_tpt_hr_pf_slab_form" model="ir.actions.act_window">
+            <field name="name">PF Slab Range</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.hr.pf.slab</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_tpt_hr_pf_slab_tree_vew"/> 
+        </record>       
+       
+            
+       <menuitem action="action_tpt_hr_pf_slab_form"
+            id="menu_action_tpt_hr_pf_slab_form"
+            parent="menu_hr_payroll_management" sequence="94"/>  
          <!-- TPT-END -->
     </data>
     
