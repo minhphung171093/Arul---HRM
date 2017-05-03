@@ -230,6 +230,13 @@ class material_request_line_report(osv.osv_memory):
                 avg_cost = 0
                 if avg:
                     avg_cost=avg['avg_cost']
+                else:
+                    sql = '''
+                    select price_unit from stock_move where product_id=%s order by id desc limit 1
+                    '''%(product_id)
+                    cr.execute(sql)
+                    avg = cr.dictfetchone()
+                    avg_cost=avg['price_unit']
                 return float(avg_cost)            
              ##       
                             
