@@ -3173,7 +3173,7 @@
             <field name="arch" type="xml">
             
             	<xpath expr="//button[@name='tpt_check_stock']" position="after">
-					<button name="%(action_review_posting_view)d" attrs="{'invisible': [('tpt_short_close','=',True)]}" type="action" string="Review Posting"  context="{'tpt_delivery':True}"/>
+		<!--  			<button name="%(action_review_posting_view)d" attrs="{'invisible': [('tpt_short_close','=',True)]}" type="action" string="Review Posting"  context="{'tpt_delivery':True}"/> -->
 				</xpath> 
             </field>
        </record>
