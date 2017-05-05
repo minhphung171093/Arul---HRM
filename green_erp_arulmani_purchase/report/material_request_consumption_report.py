@@ -105,7 +105,16 @@ class Parser(report_sxw.rml_parse):
             avg_cost = 0
             if avg:
                 avg_cost=avg['avg_cost']
-                return float(avg_cost)        
+                return float(avg_cost)
+            else:
+                sql = '''
+                select price_unit from stock_move where product_id=%s order by id desc limit 1
+                '''%(product_id)
+                self.cr.execute(sql)
+                avg = self.cr.dictfetchone()
+                avg_cost=avg['price_unit']
+                return float(avg_cost)
+                   
     ##
     def get_pending_qty(self,move_line_id,req_qty,check_count):
         
