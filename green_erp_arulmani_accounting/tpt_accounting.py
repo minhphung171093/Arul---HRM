@@ -571,10 +571,12 @@ class stock_picking(osv.osv):
                     raise osv.except_osv(_('Warning!'),_('Period is not null, please configure it in Period master !'))
                  
                 sql_journal = '''
-                select id from account_journal
+                    select id from account_journal where name='Stock Journal' or code='STJ'
                 '''
                 cr.execute(sql_journal)
                 journal_ids = [r[0] for r in cr.fetchall()]
+                if not journal_ids:
+                    raise osv.except_osv(_('Warning!'),_('Please config Journal "Stock Journal"!'))
                 journal = self.pool.get('account.journal').browse(cr,uid,journal_ids[0])
                 ##
                 #TPT START - By P.VINOTHKUMAR - ON 12/04/2015 - FOR (Generate document sequence for GRN Account postings)
@@ -694,11 +696,14 @@ class stock_picking(osv.osv):
                 date_period = line.date
                 account = False
                 asset_id = False
+                
                 sql_journal = '''
-                    select id from account_journal
-                    '''
+                    select id from account_journal where name='Stock Journal' or code='STJ'
+                '''
                 cr.execute(sql_journal)
                 journal_ids = [r[0] for r in cr.fetchall()]
+                if not journal_ids:
+                    raise osv.except_osv(_('Warning!'),_('Please config Journal "Stock Journal"!'))
                 journal = self.pool.get('account.journal').browse(cr,uid,journal_ids[0])
                 sql = '''
                     select id from account_period where special = False and '%s' between date_start and date_stop and special is False
@@ -5550,10 +5555,13 @@ class tpt_ed_invoice_positing(osv.osv):
                                    'credit': ed_line.credit,
                                    }))
             sql = '''
-                select id from account_journal
+                select id from account_journal where name='Purchase Journal' or code='EXJ'
             '''
             cr.execute(sql)
             journal_ids = [r[0] for r in cr.fetchall()]
+            if not journal_ids:
+                raise osv.except_osv(_('Warning!'),_('Please config Journal "Purchase Journal"!'))
+                
             sql = '''
                 select id from account_period where '%s' between date_start and date_stop
             '''%(ed.date)
@@ -8293,10 +8301,12 @@ class tpt_material_issue(osv.osv):
             if line.state=='done':
                 date_period = line.date_expec
                 sql = '''
-                    select id from account_journal
+                    select id from account_journal where name='Stock Journal' or code='STJ'
                 '''
                 cr.execute(sql)
                 journal_ids = [r[0] for r in cr.fetchall()]
+                if not journal_ids:
+                    raise osv.except_osv(_('Warning!'),_('Please config Journal "Stock Journal"!'))
                 sql = '''
                     select id from account_period where '%s' between date_start and date_stop and special is False
                 '''%(date_period)
@@ -8586,10 +8596,12 @@ class tpt_hr_payroll_approve_reject(osv.osv):
             year = str(line.year)
             month = str(line.month)
             sql_journal = '''
-            select id from account_journal
+                select id from account_journal where name='Payroll Journal'
             '''
             cr.execute(sql_journal)
             journal_ids = [r[0] for r in cr.fetchall()]
+            if not journal_ids:
+                raise osv.except_osv(_('Warning!'),_('Please config Journal "Payroll Journal"!'))
             journal = self.pool.get('account.journal').browse(cr,uid,journal_ids[0]) 
             for configuration in configuration_obj.browse(cr,uid,configuration_ids):
                 gross_acc = configuration.salari_id and configuration.salari_id.id or False

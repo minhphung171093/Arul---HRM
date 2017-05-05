@@ -325,12 +325,12 @@
 			<field name="arch" type="xml">
 				<tree string="Employee Leave Details">
 					<field name="employee_id" options="{'create': false, 'create_edit': false}"/>
-					<field name="leave_type_id" options="{'create': false, 'create_edit': false}"/>
+					<field name="leave_type_id" options="{'create': false, 'create_edit': false}" invisible="1"/>
 					<field name="date_from"/>
 					<field name="date_to" />
-					<field name="days_total"/>
-					<field name="haft_day_leave"/>
-					<field name="reason"/>
+					<field name="days_total" invisible="1"/>
+					<field name="haft_day_leave" invisible="1"/>
+					<field name="reason" invisible="1"/>
 					<field name="create_date"/>
 					<field name="create_uid"/>
 					<field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue","done":"blue"}'/>
@@ -409,10 +409,10 @@
 					<field name="start_time" widget="float_time"/>
 					<field name="end_time" widget="float_time"/>
 					<field name="time_total" widget="float_time"/>
-					<field name="reason"/>
+					<field name="reason" invisible="1"/>
 					<field name="approval"/>
 					<field name="create_date"/>
-					<field name="create_uid"/>
+					<field name="create_uid" invisible="1"/>
 					<field name="state" widget="statusbar" statusbar_visible="draft,done,cancel" statusbar_colors='{"draft":"blue","done":"blue"}'/>
 				</tree>
 			</field>
