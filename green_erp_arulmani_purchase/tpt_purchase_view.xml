@@ -140,7 +140,7 @@
 			</field>
 		</record>
 		
-		<record id="action_view_tpt_project_section_form" model="ir.actions.act_window">
+<!--  		<record id="action_view_tpt_project_section_form" model="ir.actions.act_window">
             <field name="name">Project Section</field>
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">tpt.project.section</field>
@@ -151,7 +151,7 @@
 		
 		<menuitem action="action_view_tpt_project_section_form"
             id="menu_action_view_tpt_project_section_form"
-            parent="purchase.menu_procurement_management" sequence="26"/>
+            parent="purchase.menu_procurement_management" sequence="26"/> -->
             
 
             
