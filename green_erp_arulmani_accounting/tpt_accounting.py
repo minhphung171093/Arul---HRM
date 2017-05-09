@@ -769,6 +769,15 @@ class stock_picking(osv.osv):
                 #
                 doc_type = ''
                 if line.document_type=='return_do': #TPT-BM-30/06/2016 - FOR RETURN
+                    sql_journal = '''
+                        select id from account_journal where name='Sales Refund Journal' or code='SCNJ'
+                    '''
+                    cr.execute(sql_journal)
+                    journal_ids = [r[0] for r in cr.fetchall()]
+                    if not journal_ids:
+                        raise osv.except_osv(_('Warning!'),_('Please config Journal "Sales Refund Journal"!'))
+                    journal = self.pool.get('account.journal').browse(cr,uid,journal_ids[0])
+                    
                     journal_line.append((0,0,{
                                 'name':line.name, 
                                 'account_id': account,
@@ -788,6 +797,15 @@ class stock_picking(osv.osv):
                         }))
                     doc_type = 'return_do'
                 else:
+                    sql_journal = '''
+                        select id from account_journal where name='Stock Journal' or code='STJ'
+                    '''
+                    cr.execute(sql_journal)
+                    journal_ids = [r[0] for r in cr.fetchall()]
+                    if not journal_ids:
+                        raise osv.except_osv(_('Warning!'),_('Please config Journal "Stock Journal"!'))
+                    journal = self.pool.get('account.journal').browse(cr,uid,journal_ids[0])
+                    
                     journal_line.append((0,0,{
                                 'name':line.name, 
                                 'account_id': account,
@@ -8206,10 +8224,12 @@ class tpt_material_issue(osv.osv):
                 cr.execute(''' update stock_move set date=%s,date_expected=%s where id=%s ''',(line.date_expec,line.date_expec,move_id,))
             date_period = line.date_expec
             sql = '''
-                select id from account_journal
+                select id from account_journal where name='Stock Journal' or code='STJ'
             '''
             cr.execute(sql)
             journal_ids = [r[0] for r in cr.fetchall()]
+            if not journal_ids:
+                raise osv.except_osv(_('Warning!'),_('Please config Journal "Stock Journal"!'))
             sql = '''
                 select id from account_period where '%s' between date_start and date_stop and special is False
             '''%(date_period)
