@@ -2301,6 +2301,10 @@
 							attrs="{'invisible': ['|',('po_document_type', '!=', 'raw'), ('state', '=', 'done')]}"
 							string="Copy VV Raw Material PO" type="object" class="oe_highlight"
 							groups="green_erp_arulmani_purchase.group_vvti_purchase_user" />
+						<button name="bt_load_indent_standard_po"
+							attrs="{'invisible': ['|',('po_document_type', '!=', 'standard'), ('state', '=', 'done')]}"
+							string="Copy VV Standard PO" type="object" class="oe_highlight"
+							groups="green_erp_arulmani_purchase.group_vvti_purchase_user" />
 						<button name="bt_load_indent_capital_po"
 							attrs="{'invisible': ['|',('po_document_type', '!=', 'asset'), ('state', '=', 'done')]}"
 							string="Copy VV Capital PO" type="object" class="oe_highlight"

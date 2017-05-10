@@ -1412,10 +1412,12 @@ class tpt_material_issue(osv.osv):
                 cr.execute(''' update stock_move set date=%s,date_expected=%s where id=%s ''',(line.date_expec,line.date_expec,move_id,))
             date_period = line.date_expec
             sql = '''
-                select id from account_journal
+                select id from account_journal where name='Stock Journal' or code='STJ'
             '''
             cr.execute(sql)
             journal_ids = [r[0] for r in cr.fetchall()]
+            if not journal_ids:
+                raise osv.except_osv(_('Warning!'),_('Please config Journal "Stock Journal"!'))
             sql = '''
                 select id from account_period where '%s' between date_start and date_stop and special is False
             '''%(date_period)

@@ -4650,7 +4650,7 @@ class tpt_request_for_quotation(osv.osv):
                     'type': 'ir.actions.act_window',
                     'target': 'new',
                 }
-        
+    
     def bt_load_indent_raw_material_po(self, cr, uid, ids, context=None):
         res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
                                         'green_erp_arulmani_purchase', 'load_line_from_indent_form_view')
@@ -4662,6 +4662,21 @@ class tpt_request_for_quotation(osv.osv):
                     'res_model': 'load.line.from.indent',
                     'domain': [],
                     'context': {'default_message':'Do you want to copy VV Raw Material PO?'},
+                    'type': 'ir.actions.act_window',
+                    'target': 'new',
+                }
+    
+    def bt_load_indent_standard_po(self, cr, uid, ids, context=None):
+        res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
+                                        'green_erp_arulmani_purchase', 'load_line_from_indent_form_view')
+        return {
+                    'name': 'Indent',
+                    'view_type': 'form',
+                    'view_mode': 'form',
+                    'view_id': res[1],
+                    'res_model': 'load.line.from.indent',
+                    'domain': [],
+                    'context': {'default_message':'Do you want to copy VV Standard PO?'},
                     'type': 'ir.actions.act_window',
                     'target': 'new',
                 }
