@@ -1687,9 +1687,9 @@ class tpt_purchase_quotation(osv.osv):
                         'quotation_cate':False,
                       }
                }
+        rfq_no_line = []
         if rfq_no_id:
             rfq = self.pool.get('tpt.request.for.quotation').browse(cr, uid, rfq_no_id)
-            rfq_no_line = []
             for line in rfq.rfq_line:
                 rfq_no_line.append({
                             'po_indent_id': line.po_indent_id and line.po_indent_id.id or False,
