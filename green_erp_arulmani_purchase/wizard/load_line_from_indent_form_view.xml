@@ -11,7 +11,7 @@
 	                <field name="message"  nolabel="1" />
 	            </h1>
 	            <group>
-	            	<field name="indent_id" domain="[('document_type','=','service')]"  options="{'create': false, 'create_edit': false}"/>
+	            	<field name="indent_id" options="{'create': false, 'create_edit': false}"/>
 	            </group>
 	                <footer>
 	                    <button name="tick_ok" type='object' string="OK" class="oe_highlight"/>
