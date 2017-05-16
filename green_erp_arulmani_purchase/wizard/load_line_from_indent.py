@@ -20,7 +20,7 @@ class load_line_from_indent(osv.osv_memory):
         indent_line = self.pool.get('tpt.request.for.quotation').browse(cr, uid, indent_line_id)
         lines = []
         for line in tick.indent_id.purchase_product_line:
-            if line.state == '++' or line.state == 'rfq_raised' :
+            if line.state == '++':
                 lines.append((0,0,{
                   'po_indent_id': line.pur_product_id and line.pur_product_id.id or False,
                   'description': line.description,
