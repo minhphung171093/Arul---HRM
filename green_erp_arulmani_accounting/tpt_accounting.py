@@ -10788,7 +10788,17 @@ class tpt_cform_invoice(osv.osv):
                     product_id = line.product_id and line.product_id.id 
                     quantity = line.quantity or ''
                     uom_id = line.uos_id and line.uos_id.id    
-                              
+                
+                form_number = False
+                form_date = False
+                form_type = invoice.form_type or ''
+                status = 'pending'
+                if bank.invoice_type=='collected':
+                    form_number = invoice.form_number
+                    form_date = invoice.form_date
+                    form_type = 'cform'
+                    status = 'received'
+                
                 cform_line.append((0,0,{
                     'invoice_no': invoice.vvt_number or '',      
                                
@@ -10798,13 +10808,16 @@ class tpt_cform_invoice(osv.osv):
                     'city' : invoice.partner_id and invoice.partner_id.city or '' ,                 
                     'invoice_id': invoice.id or False,
                     'bill_amount': invoice.amount_total or 0,
-                    'form_type': invoice.form_type or '',
+                    'form_type': form_type,
                     'customer_code':  '['+invoice.partner_id.customer_code+'] '+ invoice.partner_id.name,
                     'product_id': product_id or False,
                     'quantity': quantity or '',
                     'uom_id': uom_id or False,    
                     'gross_amt':invoice.amount_untaxed or 0,
-                    'cst_amt':invoice.amount_tax or 0
+                    'cst_amt':invoice.amount_tax or 0,
+                    'form_number': form_number,
+                    'form_date': form_date,
+                    'status': status,
                 }))
                 
                     
