@@ -496,7 +496,19 @@ class stock_picking_in(osv.osv):
             if picking.tpt_short_close:
                 self.write(cr, uid, [picking.id], {'state': 'short_closed'})
         return res
-    
+    #TPT START BY SSR-ON 25/05/2017 - 27544
+    def short_close(self, cr, uid, ids,  *args):
+        res = super(stock_picking_in, self).draft_force_assign(cr, uid, ids, *args)
+        purchase_line_obj = self.pool.get('purchase.order.line')
+        for picking in self.browse(cr, uid, ids):
+            if picking.tpt_short_close:
+                self.write(cr, uid, [picking.id], {'state': 'short_closed'})
+                sql = '''
+                            update stock_move set state = 'short_closed' where picking_id=%s;                            
+                        '''%(picking.id)
+                cr.execute(sql)
+        return res
+    ##
 stock_picking_in()
 
 class stock_move(osv.osv):

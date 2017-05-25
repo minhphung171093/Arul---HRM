@@ -1014,6 +1014,17 @@ class arul_hr_payroll_executions(osv.osv):
                         total_week_off += 1
         return total_days,total_shift_allowance,total_lop,total_esi,total_week_off #,special_holidays
     
+    #TPT START BY SSR-ON 25/05/2017 - 27547
+    def pf_round_sign(self,cr, uid, ids,amount,context=None):
+        e = amount%2
+        a = amount//1        
+        if(e > 0.44):
+            e = 1
+        else:
+            e = 0
+        e += a
+        return e
+    ##
     def generate_payroll(self, cr, uid, ids, context=None):
         details_line = []
         
@@ -1606,11 +1617,17 @@ class arul_hr_payroll_executions(osv.osv):
                             gs=(gross_sal/100)*pf
                             pf_am=(gs*pf_percentage)/100
 #                             gross_sal = gross_sal - pf_am
+                            #TPT START BY SSR-ON 25/05/2017 - 27547
+                            emp_pf_slab_amt = gs
+                            ##
                         else:
                             pf_am = pf
                             a = (pf_am*pf_percentage)/100
                             pf_am=a
-# #                             
+                            #TPT START BY SSR-ON 25/05/2017 - 27547
+                            emp_pf_slab_amt = pf
+                        pa = round(pf_am,2)    
+                        ##
                         if gross_sal + esi_check >= emp_esi_limit:
                             ## TPT-By BalamuruganPurushothaman - on 20/20/2015 - to skip esi on apr,oct month only - this snippet is added as separately for every emp category
                             if skip_esi_flag is True and line.month not in ('4', '10'): # SKip in only 4-April, 10-October
@@ -1630,8 +1647,11 @@ class arul_hr_payroll_executions(osv.osv):
                         base_amount = net_basic + net_da 
                         #TPT-SSR-ON 02/05/2017 - Ticket Id - 26794
 #                         emp_pf_con_amount = round(base_amount*emp_pf_con/100)                        
-                        emp_pf_con_amount = round(pf_am) 
+#                         emp_pf_con_amount = round(pf_am) 
 # #                         
+                        #TPT START BY SSR-ON 25/05/2017 - 27547
+                        emp_pf_con_amount = self.pf_round_sign(cr, uid, ids, pa, context=None)
+                        ##
                         vpfd_amount = round(base_amount * vpfd / 100) 	
                         total_deduction += (emp_pf_con_amount + emp_esi_con_amount + emp_lwf_amt + vpfd_amount)            
                         net_sala = gross_sal - total_deduction
@@ -2027,11 +2047,17 @@ class arul_hr_payroll_executions(osv.osv):
                         if int(pf_type)==1:
                             gs=(gross_sal/100)*pf
                             pf_am=(gs*pf_percentage)/100
+                            #TPT START BY SSR-ON 25/05/2017 - 27547
+                            emp_pf_slab_amt = gs
+                            ##
                         else:
                             pf_am = pf
                             a = (pf_am*pf_percentage)/100
                             pf_am=a
-# #                             
+                            #TPT START BY SSR-ON 25/05/2017 - 27547
+                            emp_pf_slab_amt = pf
+                        pa = round(pf_am,2)    
+                        ##        
                         if for_esi_base_gross_sal + esi_check >= emp_esi_limit:#S2
                             if skip_esi_flag is True and line.month not in ('4', '10'): # SKip in only April, October
                                 emp_esi_con_amount = math.ceil(total_earning*emp_esi_con/100)
@@ -2050,7 +2076,8 @@ class arul_hr_payroll_executions(osv.osv):
                         #TPT-SSR-ON 02/05/2017 - Ticket Id - 26794
 #                         emp_pf_con_amount = round(base_amount*emp_pf_con/100)
                         emp_pf_con_amount = round(pf_am)
-# #                         
+# #                     
+                        emp_pf_con_amount = self.pf_round_sign(cr, uid, ids, pa, context=None)                             
                         vpfd_amount = round(base_amount * vpfd / 100) 	
                         total_deduction += (emp_pf_con_amount + emp_esi_con_amount + emp_lwf_amt + vpfd_amount)
                         net_sala = gross_sal - total_deduction
@@ -2456,11 +2483,17 @@ class arul_hr_payroll_executions(osv.osv):
                         if int(pf_type) == 1:
                             gs=(gross_sal/100)*pf
                             pf_am=(gs*pf_percentage)/100
+                            #TPT START BY SSR-ON 25/05/2017 - 27547
+                            emp_pf_slab_amt = gs
+                            ##
                         else:
                             pf_am = pf
                             a = (pf_am*pf_percentage)/100
                             pf_am=a
-                        ##    
+                            #TPT START BY SSR-ON 25/05/2017 - 27547
+                            emp_pf_slab_amt = pf
+                        pa = round(pf_am,2)    
+                        ##     
                         if for_esi_base_gross_sal + esi_check >= emp_esi_limit:
                             if skip_esi_flag is True and line.month not in ('4', '10'): # SKip in only April, October
                                 emp_esi_con_amount = math.ceil(total_earning*emp_esi_con/100)
@@ -2479,7 +2512,8 @@ class arul_hr_payroll_executions(osv.osv):
                         #TPT-SSR-ON 02/05/2017 - Ticket Id - 26794
 #                         emp_pf_con_amount = round(base_amount*emp_pf_con/100) #math.ceil(base_amount*emp_pf_con/100)
                         emp_pf_con_amount = round(pf_am)
-# #                         
+# #                     
+                        emp_pf_con_amount = self.pf_round_sign(cr, uid, ids, pa, context=None)    
                         vpfd_amount = round(base_amount * vpfd / 100) 	
                         total_deduction += (emp_pf_con_amount + emp_esi_con_amount + emp_lwf_amt + vpfd_amount)
                         net_sala = gross_sal - total_deduction
@@ -2753,6 +2787,9 @@ class arul_hr_payroll_executions(osv.osv):
                         'emp_pf_con': emp_pf_con_amount,
                         'emp_lwf_amt': emp_lwf_amt,
                         'grade_id':p.employee_sub_category_id and p.employee_sub_category_id.id or False,#TPT-BM-12/01/2016
+                        #TPT START BY SSR-ON 25/05/2017 - 27547
+                        'emp_pf_slab_amt':emp_pf_slab_amt
+                        ##
                       }
                 executions_details_id = executions_details_obj.create(cr,uid,rs)
                 
@@ -2817,6 +2854,9 @@ class arul_hr_payroll_executions_details(osv.osv):
         'emp_esi_con': fields.float('Employee ESI Contribution'),
         'emp_lwf_amt': fields.float('Employee Labor Welfare Fund (LWF) Amt'),
         'grade_id': fields.many2one('hr.employee.sub.category', 'Grade',ondelete='restrict'),#TPT-By BalamuruganPurushothaman -ON 12/01/2016 - FOR NEW PAYSLIP FROM JAN 2016
+        #TPT START BY SSR-ON 25/05/2017 - 27547
+        'emp_pf_slab_amt': fields.float('Employee PF Slab Rate'),
+        ##
     }
     
     def onchange_department_from_id(self, cr, uid, ids,department_id=False, context=None):

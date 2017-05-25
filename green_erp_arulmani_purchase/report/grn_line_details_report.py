@@ -259,7 +259,7 @@ class Parser(report_sxw.rml_parse):
         sql = '''
                       select sp.name as grn_no,sp.id as grn_no_1,sp.date as grn_date,sp.purchase_id as po_no,rp.name supplier, rp.vendor_code supplier_code,
                       pr.name as proj_name,prs.name as proj_sec_name,sp.document_type as doc_type,pi.name as po_indent_no_1,
-                      pi.id as po_indent_no,pp.default_code||'-'||pt.name as product,sm.item_text,sm.description,
+                      pi.id as po_indent_no,pp.default_code||'-'||pp.name_template as product,sm.item_text,sm.description,
                       sm.product_qty as prod_qty,pu.name as product_uom,sm.action_taken as act_take,sm.bin_location,                  
                       sp.state as state,emp.name_related as requisitioner,sm.picking_id as pick_id,sm.action_taken as actn_taken
                       from stock_move sm
@@ -268,7 +268,7 @@ class Parser(report_sxw.rml_parse):
                       inner join tpt_purchase_indent pi on (pi.id = sm.po_indent_id)
                       inner join product_uom pu on sm.product_uom=pu.id 
                       inner join product_product pp on sm.product_id=pp.id 
-                      inner join product_template pt on sm.product_id=pt.id 
+                      --inner join product_template pt on sm.product_id=pt.id 
                       inner join hr_employee emp on pi.requisitioner=emp.id
                       left join tpt_project pr on  pi.project_id = pr.id
                       left join tpt_project_section prs on pi.project_section_id = prs.id  

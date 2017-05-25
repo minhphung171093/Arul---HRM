@@ -4413,14 +4413,16 @@ class arul_hr_employee_leave_details(osv.osv):
             day = vals['day']
         if vals.get('reason', False):
             reason = vals['reason']
-        
+        #TPT START BY SSR-ON 25/05/2017 - 3910
+        leave_type_id = vals.get('check_leave_type_lop_esi')           
         sql = '''
-        INSERT INTO arul_hr_employee_leave_details (employee_id, state, leave_type_id, date_from, date_to, haft_day_leave, type_half, day, reason, create_uid, write_uid ) 
-        VALUES (%s, 'draft', %s, '%s', '%s', %s, '%s', %s, '%s', %s, %s)
+        INSERT INTO arul_hr_employee_leave_details (employee_id, state, leave_type_id, date_from, date_to, haft_day_leave, type_half, day, reason, create_uid, write_uid, check_leave_type_lop_esi) 
+        VALUES (%s, 'draft', %s, '%s', '%s', %s, '%s', %s, '%s', %s, %s, %s)
         RETURNING id
         '''%(vals['employee_id'], vals['leave_type_id'], vals['date_from'], vals['date_to'], vals.get('haft_day_leave', False), 
-             vals.get('type_half', False), day, reason,  uid, uid,)
+             vals.get('type_half', False), day, reason,  uid, uid,leave_type_id)
         cr.execute(sql)
+        ##
         new_id= cr.fetchone()[0]
         #TPT END
         #TPT-BM-ON 24/06/2016 To get days_total count 
@@ -6718,6 +6720,7 @@ class arul_hr_punch_in_out(osv.osv):
                                                                                            })
                                                     
                                             val1['actual_work_shift_id']=shift_id
+                                            val1['state']='done'
                                             ## TPT START - AUTO APPROVE
                                             
                                             ##
@@ -6750,6 +6753,14 @@ class arul_hr_punch_in_out(osv.osv):
                                                         val4.update({'diff_day':True})
                                                         val1.update({'diff_day':True})
                                                     detail_obj4.create(cr, uid, val4)
+                                                    
+                                                    new_val = val1
+                                                    new_val['approval']=False  
+                                                    new_val['employee_category_id'] = employee.employee_category_id.id
+                                                    new_val['type']='punch'
+                                                    print 'PHUNG', new_val
+                                                    new_detail_id = detail_obj2.create(cr, uid,new_val)
+                                                    print 'PHUNG2', new_detail_id
                                                 # Condition added on 22/02/2017    
                                                 else:
                                                     if date_2!=date:
@@ -6784,6 +6795,7 @@ class arul_hr_punch_in_out(osv.osv):
                                                                             'department_id':employee.department_id and employee.department_id.id or False,
                                                                             'designation_id':employee.job_id and employee.job_id.id or False,
                                                                             'punch_in_out_line':[(0,0,val1)]})
+                                                
                                             #END AUTO APPROVE
                                         else:
                                             if date_2!=date:
@@ -6801,7 +6813,9 @@ class arul_hr_punch_in_out(osv.osv):
                                         val1['employee_category_id'] = employee.employee_category_id.id
                                         val1['type']='punch'
                                         # Added by P.VINOTHKUMAR ON 23/02/2017 for incident attendance vs leave
-                                        val1['actual_work_shift_id']=shift_id
+#                                         val1['actual_work_shift_id']=shift_id
+                                        #TPT START BY SSR-ON 25/05/2017 - 3892
+                                        val1['actual_work_shift_id']=False
                                         detail_obj2.create(cr, uid,val1)
                                     temp +=1
                                     test =  L.pop(i+j+1)

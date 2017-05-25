@@ -10796,8 +10796,11 @@ class tpt_cform_invoice(osv.osv):
                 if bank.invoice_type=='collected':
                     form_number = invoice.form_number
                     form_date = invoice.form_date
-                    form_type = 'cform'
-                    status = 'received'
+                    form_type = 'tbc'
+                    status = 'pending'
+                    if form_number or form_date:
+                        form_type = 'cform'
+                        status = 'received'
                 
                 cform_line.append((0,0,{
                     'invoice_no': invoice.vvt_number or '',      
@@ -10820,8 +10823,7 @@ class tpt_cform_invoice(osv.osv):
                     'status': status,
                 }))
                 
-                    
-                
+       
             vals = {'cform_line':cform_line}
         return self.write(cr, uid, ids,vals)
 
@@ -10912,6 +10914,3 @@ class account_account(osv.osv):
      _defaults= {
                   'carry_forward' : True,
                   }
-
-    
-
