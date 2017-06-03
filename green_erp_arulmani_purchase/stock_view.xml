@@ -46,6 +46,10 @@
             	<!--<xpath expr="//button[@name='button_cancel']"  position="replace">
             		<button name="button_cancel" states="assigned,confirmed,draft" string="Cancel Transfer" groups="base.user_root"/>
             	</xpath>-->
+            	
+            	<button name="action_process" states="assigned" type="object" class="oe_highlight" position="attributes">
+            		<attribute name='attrs'>{'invisible': ['|',('tpt_short_close','=',True)]}</attribute>
+            	</button>
             	<xpath expr="//button[@name='button_cancel']" position="before">
             		   <button name='short_close' string="Short Close" type="object" class="oe_highlight" attrs="{'invisible': ['|',('tpt_short_close','=',False),('state','not in','assigned')]}"/>
             	</xpath>

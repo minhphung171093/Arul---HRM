@@ -258,8 +258,11 @@ class general_ledger_statement(osv.osv_memory):
         
         #TPT-Y on 22/09/2015
         def get_opening_balance(o):  
-            date_from = o.date_from            
-            gl_account = o.account_id.id
+            date_from = o.date_from
+            #TPT-SSR on 3/06/2017 - 3907            
+            gl_account = o.account_ids[0]
+            gl_account = gl_account.id
+            #
             is_posted = o.is_posted            
             balance = 0.0  
             credit = 0.0
@@ -378,7 +381,10 @@ class general_ledger_statement(osv.osv_memory):
             res = {}
             date_from = cb.date_from
             date_to = cb.date_to
-            gl_account = cb.account_id.id
+            #TPT-SSR on 3/06/2017 - 3907            
+            gl_account = cb.account_ids[0]
+            gl_account = gl_account.id
+            #
             doc_type = cb.doc_type
             doc_no = cb.doc_no
             narration = cb.narration            
@@ -483,11 +489,20 @@ class general_ledger_statement(osv.osv_memory):
             cr.execute(sql)
             po_id = cr.fetchone()
             return po_id and po_id[0] or ''   
-            
-        def get_gl_acct(o):            
-            gl_account = o.account_id
-            gl_act = ' '+gl_account.code +' '+gl_account.name
+  #TPT-SSR on 3/06/2017 - 3907           
+#         def get_gl_acct(o):            
+#             gl_account = o.account_id
+#             gl_act = ' '+gl_account.code +' '+gl_account.name
+#             return gl_act
+        
+        def get_gl_acct(o):
+            gl_account = o.account_ids[0]
+            gl_account = gl_account.id
+            acc_obj = self.pool.get('account.account')
+            acc = acc_obj.browse(cr,uid,gl_account)
+            gl_act = ' '+acc.code +' '+acc.name
             return gl_act
+        ## 
         #TPT-Y
         def get_employee_id(cb,move_id):
             employee_id = cb.employee_id
@@ -511,6 +526,11 @@ class general_ledger_statement(osv.osv_memory):
         cb_obj = self.pool.get('tpt.general.ledger.from')
         cb = self.browse(cr, uid, ids[0])
         cb_line = []
+        
+        account_id = cb.account_ids
+        if account_id and len(account_id) > 1:  
+            raise osv.except_osv(_('Warning!'),_('Select only one Account Id to show in Screen'))
+        
         
         # TPT START BalamuruganPurushothaman ON 18/02/2016       
         if get_opening_balance(cb)>0:

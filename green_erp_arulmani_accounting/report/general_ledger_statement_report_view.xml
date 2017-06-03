@@ -57,10 +57,10 @@
 	        <field name="model">tpt.general.ledger.from</field>
 	        <field name="arch" type="xml">
 	            <form version='7.0' string="General Ledger Statement" create="false" edit="false" delete="false">
-	            	<header>
+	            	<!-- <header>
 	            		<button name="print_report_xls" string="Print (.xls)" type="object" class="oe_highlight" />
 	            		<button name="print_report_pdf" string="Print (.pdf)" type="object" class="oe_highlight" />
-	            	</header>
+	            	</header>  -->
 	            	<sheet>
 	            		<div class="oe_text_center">
             				<b><field name="name" nolabel="1" class="oe_text_center oe_inline"/></b>
