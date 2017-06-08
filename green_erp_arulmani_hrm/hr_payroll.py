@@ -1025,6 +1025,17 @@ class arul_hr_payroll_executions(osv.osv):
         e += a
         return e
     ##
+    #TPT START BY SSR-ON 07/06/2017
+    def esi_round_sign(self,cr, uid, ids,amount,context=None):
+        e = amount%2
+        a = amount//1        
+        if(e > 0.00):
+            e = 1
+        else:
+            e = 0
+        e += a
+        return e
+    ##
     def generate_payroll(self, cr, uid, ids, context=None):
         details_line = []
         
@@ -1631,7 +1642,11 @@ class arul_hr_payroll_executions(osv.osv):
                         if gross_sal + esi_check >= emp_esi_limit:
                             ## TPT-By BalamuruganPurushothaman - on 20/20/2015 - to skip esi on apr,oct month only - this snippet is added as separately for every emp category
                             if skip_esi_flag is True and line.month not in ('4', '10'): # SKip in only 4-April, 10-October
-                                emp_esi_con_amount = math.ceil(total_earning*emp_esi_con/100)
+#                                 emp_esi_con_amount = math.ceil(total_earning*emp_esi_con/100)
+                                ##TPT START BY SSR-ON 07/06/2017
+                                emp_esi_cont = total_earning*emp_esi_con/100
+                                emp_esi_con_amount = self.esi_round_sign(cr, uid, ids, emp_esi_cont, context=None)
+                                ##
                                 skip_esi_obj.create(cr,uid,{'employee_id':p.id, 'month':line.month, 'year': line.year, 'esi_amt':emp_esi_con_amount,
                             'base_gross': for_esi_base_gross_sal + esi_check, 'is_esi_applied':True 
                             }) 
@@ -1639,7 +1654,11 @@ class arul_hr_payroll_executions(osv.osv):
                                 emp_esi_con_amount = 0
                             ##
                         else:
-                            emp_esi_con_amount = math.ceil(total_earning*emp_esi_con/100)# round=math.ceil
+                            #emp_esi_con_amount = math.ceil(total_earning*emp_esi_con/100)# round=math.ceil
+                            ##TPT START BY SSR-ON 07/06/2017
+                            emp_esi_cont = total_earning*emp_esi_con/100
+                            emp_esi_con_amount = self.esi_round_sign(cr, uid, ids, emp_esi_cont, context=None)
+                            ##
                             skip_esi_obj.create(cr,uid,{'employee_id':p.id, 'month':line.month, 'year': line.year, 'esi_amt':emp_esi_con_amount,
                                 'base_gross': for_esi_base_gross_sal + esi_check, 'is_esi_applied':True 
                                 }) 
@@ -2060,14 +2079,22 @@ class arul_hr_payroll_executions(osv.osv):
                         ##        
                         if for_esi_base_gross_sal + esi_check >= emp_esi_limit:#S2
                             if skip_esi_flag is True and line.month not in ('4', '10'): # SKip in only April, October
-                                emp_esi_con_amount = math.ceil(total_earning*emp_esi_con/100)
+#                                 emp_esi_con_amount = math.ceil(total_earning*emp_esi_con/100)
+                                ##TPT START BY SSR-ON 07/06/2017
+                                emp_esi_cont = total_earning*emp_esi_con/100
+                                emp_esi_con_amount = self.esi_round_sign(cr, uid, ids, emp_esi_cont, context=None)
+                                ##                                
                                 skip_esi_obj.create(cr,uid,{'employee_id':p.id, 'month':line.month, 'year': line.year, 'esi_amt':emp_esi_con_amount,
                             'base_gross': for_esi_base_gross_sal + esi_check, 'is_esi_applied':True 
                             }) 
                             else:
                                 emp_esi_con_amount = 0
                         else:
-                            emp_esi_con_amount = math.ceil(total_earning*emp_esi_con/100)
+#                             emp_esi_con_amount = math.ceil(total_earning*emp_esi_con/100)
+                            ##TPT START BY SSR-ON 07/06/2017
+                            emp_esi_cont = total_earning*emp_esi_con/100
+                            emp_esi_con_amount = self.esi_round_sign(cr, uid, ids, emp_esi_cont, context=None)
+                            ##
                             skip_esi_obj.create(cr,uid,{'employee_id':p.id, 'month':line.month, 'year': line.year, 'esi_amt':emp_esi_con_amount,
                             'base_gross': for_esi_base_gross_sal + esi_check, 'is_esi_applied':True 
                             }) 
@@ -2496,14 +2523,22 @@ class arul_hr_payroll_executions(osv.osv):
                         ##     
                         if for_esi_base_gross_sal + esi_check >= emp_esi_limit:
                             if skip_esi_flag is True and line.month not in ('4', '10'): # SKip in only April, October
-                                emp_esi_con_amount = math.ceil(total_earning*emp_esi_con/100)
+#                                 emp_esi_con_amount = math.ceil(total_earning*emp_esi_con/100)
+                                ##TPT START BY SSR-ON 07/06/2017
+                                emp_esi_cont = total_earning*emp_esi_con/100
+                                emp_esi_con_amount = self.esi_round_sign(cr, uid, ids, emp_esi_cont, context=None)
+                                ##
                                 skip_esi_obj.create(cr,uid,{'employee_id':p.id, 'month':line.month, 'year': line.year, 'esi_amt':emp_esi_con_amount,
                             'base_gross': for_esi_base_gross_sal + esi_check, 'is_esi_applied':True 
                             }) 
                             else:
                                 emp_esi_con_amount = 0
                         else:
-                            emp_esi_con_amount = math.ceil(total_earning*emp_esi_con/100)
+#                             emp_esi_con_amount = math.ceil(total_earning*emp_esi_con/100)
+                            ##TPT START BY SSR-ON 07/06/2017
+                            emp_esi_cont = total_earning*emp_esi_con/100
+                            emp_esi_con_amount = self.esi_round_sign(cr, uid, ids, emp_esi_cont, context=None)
+                            ##
                             skip_esi_obj.create(cr,uid,{'employee_id':p.id, 'month':line.month, 'year': line.year, 'esi_amt':emp_esi_con_amount,
                             'base_gross': for_esi_base_gross_sal + esi_check, 'is_esi_applied':True 
                             }) 

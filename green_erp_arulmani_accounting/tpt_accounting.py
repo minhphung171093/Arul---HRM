@@ -10778,7 +10778,7 @@ class tpt_cform_invoice(osv.osv):
             cr.execute(''' delete from tpt_cform_invoice_line where cform_id in %s ''',(tuple(ids),))
         for bank in self.browse(cr, uid, ids):
             invoice_obj = self.pool.get('account.invoice')
-            invoice_domain = [('type', '=', 'out_invoice'), ('state', '=', 'open'), ('sale_tax_id', 'ilike', 'CST')]
+            invoice_domain = [('type', '=', 'out_invoice'), ('state', 'in' ,('open','paid')), ('sale_tax_id', 'ilike', 'CST')]
             if bank.invoice_type=='to_be_collected':
                 invoice_domain = invoice_domain+[('form_type' ,'=', 'tbc')]
             invoice_ids = invoice_obj.search(cr, uid, invoice_domain)
