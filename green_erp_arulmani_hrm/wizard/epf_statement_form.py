@@ -27,6 +27,15 @@ class epf_statement(osv.osv_memory):
         datas['form'] = self.read(cr, uid, ids)[0]
         datas['form'].update({'active_id':context.get('active_ids',False)})
         return {'type': 'ir.actions.report.xml', 'report_name': 'epf_statement_report', 'datas': datas}
-        
+    #TPT START BY SSR-ON 13/06/2017 - PF Version 1 
+    def print_report_version(self, cr, uid, ids, context=None):
+        if context is None:
+            context = {}
+        datas = {'ids': context.get('active_ids', [])}
+        datas['model'] = 'epf.statement'
+        datas['form'] = self.read(cr, uid, ids)[0]
+        datas['form'].update({'active_id':context.get('active_ids',False)})
+        return {'type': 'ir.actions.report.xml', 'report_name': 'epf_statement_report_version1', 'datas': datas}
+     ##      
 epf_statement()
 

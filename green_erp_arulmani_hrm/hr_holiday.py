@@ -1813,7 +1813,7 @@ class arul_hr_audit_shift_time(osv.osv):
                          planne_work_shift = day_30
                     if a_day == 31:
                          planne_work_shift = day_31
-                         
+                    
                     sql = '''
                              update arul_hr_audit_shift_time set planned_work_shift_id=%s where id = %s
                         '''%(planne_work_shift,new.id)
@@ -11000,7 +11000,7 @@ class tpt_hr_attendance(osv.osv):
     def upload_in_time_data(self, cr, uid, context=None):
         attend_obj = self.pool.get('tpt.hr.attendance') 
         attend_temp_obj = self.pool.get('tpt.hr.temp.attendance') 
-        ast_obj = self.pool.get('arul.hr.audit.shift.time') 
+        ast_obj = self.pool.get('arul.hr.audit.shift.time')
         attend_obj_ids = attend_obj.search(cr, uid, [('is_processed','=',False)]) #, ('punch_type','=','IN')
         for time_entry in attend_obj.browse(cr,uid,attend_obj_ids):
             #===================================================================
@@ -11015,7 +11015,6 @@ class tpt_hr_attendance(osv.osv):
             #print time_entry.employee_id
             #self.logger(_("Create attachment error!")+'\n'+str(time_entry.employee_id), netsvc.LOG_ERROR)
             emp_obj = self.pool.get('hr.employee') 
-            print time_entry.employee_id
             emp_obj_ids = emp_obj.search(cr, uid, [('employee_id','=',time_entry.employee_id)]) 
             emp_root = emp_obj.browse(cr,uid,emp_obj_ids[0])
             #employee_id = emp_root

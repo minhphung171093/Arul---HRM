@@ -44,12 +44,25 @@ class Parser(report_sxw.rml_parse):
             'get_epf_contribution_due': self.get_epf_contribution_due,
             'get_eps_contribution_due': self.get_eps_contribution_due,
             'get_pf_no': self.get_pf_no,
+            #TPT START BY SSR-ON 13/06/2017 - PF Version 1 
+            'get_gross_wages':self.get_gross_wages,
+            'get_uan_no':self.get_uan_no,
+            'get_epf_wages_one':self.get_epf_wages_one,
+            'get_eps_cont_remitted':self.get_eps_cont_remitted,
+            'get_epf_eps_diff':self.get_epf_eps_diff,
+            'get_epf_contribution_due_one':self.get_epf_contribution_due_one,
+            ##
         })
     def get_pf_no(self, employee):
         esi_no = ''
         if employee and employee.statutory_ids:
             esi_no = employee.statutory_ids[0].name
-        return esi_no     
+        return esi_no  
+    def get_uan_no(self, employee):
+        uan_no = ''
+        if employee and employee.statutory_ids:
+            uan_no = employee.statutory_ids[0].uan
+        return uan_no    
     def get_month(self):
         wizard_data = self.localcontext['data']['form']
         return self.get_month_name(wizard_data['month'])
@@ -91,6 +104,53 @@ class Parser(report_sxw.rml_parse):
             elif line.earning_parameters_id.code == 'DA':
                 epf_wages += line.float
         return round(epf_wages)
+    #TPT START BY SSR-ON 13/06/2017 - PF Version 1 
+    def get_epf_wages_one(self, earning):
+        epf_wages = 0
+        if(earning>=15000):
+            epf_wages=15000
+        else:
+            epf_wages=earning 
+        return round(epf_wages)
+        
+    def get_eps_cont_remitted(self, earning):
+        eps_wages = 0
+        if(earning>=15000):
+            epf_wages=15000
+            cont = (epf_wages/100)*8.33
+        else:
+            epf_wages=earning 
+            cont = (epf_wages/100)*8.33
+        return round(cont)
+    
+    def get_epf_eps_diff(self,pf,earning_slab):
+        eps_wages = 0        
+        if(earning_slab>=15000):
+            epf_wages=15000
+            cont = (epf_wages/100)*8.33
+        else:
+            epf_wages=earning_slab 
+            cont = (epf_wages/100)*8.33
+            
+        diff=pf-cont
+        return round(diff)
+    
+    def get_gross_wages(self, earning):
+        gross_salary = 0
+        for line in earning:
+            if line.earning_parameters_id.code == 'GROSS_SALARY':
+                gross_salary += line.float
+        return round(gross_salary)
+    
+    def get_epf_contribution_due_one(self,pf, deduction):
+        pf_contribution_due = 0.0
+        vpf_contribution_due = 0.0
+        pf_contribution_due = pf
+        for line in deduction:
+            if line.deduction_parameters_id.code == 'VPF.D':
+                vpf_contribution_due += line.float
+        return pf_contribution_due + vpf_contribution_due
+    ##
         
     def get_epf_contribution_due(self, deduction):
         epf_contribution_due = 0.0
