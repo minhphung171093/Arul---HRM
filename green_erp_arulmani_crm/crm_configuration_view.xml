@@ -165,7 +165,9 @@
                         <!-- <field name="pan" required="1"/>  -->
                         <field name="pan_tin" required="1"/>
                         <field name="cst" required="1"/> <!-- Enabled By TPT -->
-                        <field name="tin" required="1"/>                        
+                        <field name="tin" required="1"/> 
+                        <field name="gstin"/>
+                        <field name="arn" />                                                
                         <field name="service_reg_no" />                                            
                         <field name="excise_reg_no" />
                         <field name="credit_limit_group_id"  domain="[('history_id', '=', False)]"  options="{'create': false, 'create_edit': false}"/>
