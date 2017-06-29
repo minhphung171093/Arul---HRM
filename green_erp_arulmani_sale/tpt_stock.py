@@ -1505,6 +1505,9 @@ class account_invoice(osv.osv):
         
         #TPT - By BalamuruganPurushothaman on 28/02/2015- The following are used for Domestic Invoice Print
         'booked_to': fields.char('Booked To', size = 1024, readonly=True, states={'draft':[('readonly',False)]}),
+        'place_of_supply': fields.char('Place Of Supply', size = 1024, readonly=True, states={'draft':[('readonly',False)]}),
+        'place_of_delivery': fields.char('Place Of Delivery', size = 1024, readonly=True, states={'draft':[('readonly',False)]}),
+        'booked_to': fields.char('Booked To', size = 1024, readonly=True, states={'draft':[('readonly',False)]}),
         'lr_no': fields.char('LR Number', size = 1024, readonly=True, states={'draft':[('readonly',False)]}),
         'rem_date':fields.datetime('Date & Time of Rem.Of Goods', readonly=True, states={'draft':[('readonly',False)]}),
         'inv_date_as_char':fields.char('Date & Time of Invoice',readonly=True, states={'draft':[('readonly',False)]}),
@@ -1752,7 +1755,17 @@ class account_invoice(osv.osv):
                return {
                 'type': 'ir.actions.report.xml',
                 'report_name': 'tpt_domestic_account_invoice_draft',
-            }    
+            }
+               
+    def invoice_gst_print(self, cr, uid, ids, context=None):
+        '''
+        This function prints the invoice and mark it as sent, so that we can see more easily the next step of the workflow
+        '''
+        assert len(ids) == 1, 'This option should only be used for a single id at a time.'
+        return {
+            'type': 'ir.actions.report.xml',
+            'report_name': 'tpt_domestic_account_invoice_gst',
+        }
     
     def write(self, cr, uid, ids, vals, context=None):
         for id in ids:
@@ -1787,7 +1800,7 @@ class account_invoice_line(osv.osv):
         subtotal = 0.0
         res = {}
         for line in self.browse(cr,uid,ids,context=context):
-            subtotal = (line.quantity * line.price_unit) + (line.quantity * line.price_unit) * (line.invoice_id.excise_duty_id and line.invoice_id.excise_duty_id.amount/100 or 0)          
+            subtotal = (line.quantity * line.price_unit)# + (line.quantity * line.price_unit) * (line.invoice_id.excise_duty_id and line.invoice_id.excise_duty_id.amount/100 or 0)          
             res[line.id] = subtotal
         return res
     def basic_amt_calc(self, cr, uid, ids, field_name, args, context=None):

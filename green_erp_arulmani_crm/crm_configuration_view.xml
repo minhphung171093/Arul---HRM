@@ -38,6 +38,7 @@
                             <field name="factory_zip" placeholder="ZIP" style="width: 34%%"/>  
                         </div>
                         <field name="tin_no"/>
+                        <field name="gstin"/>
                             <field name="cst_no"/>
                             <field name="ex_reg_no"/>
                             <field name="service_reg_no"/>
@@ -167,7 +168,8 @@
                         <field name="cst" required="1"/> <!-- Enabled By TPT -->
                         <field name="tin" required="1"/> 
                         <field name="gstin"/>
-                        <field name="arn" />                                                
+                        <field name="arn"/>
+                        <field name="state_code"/>                                                
                         <field name="service_reg_no" />                                            
                         <field name="excise_reg_no" />
                         <field name="credit_limit_group_id"  domain="[('history_id', '=', False)]"  options="{'create': false, 'create_edit': false}"/>

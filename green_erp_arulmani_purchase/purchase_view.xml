@@ -1053,12 +1053,15 @@
 				<xpath
 					expr="//page[@string='PO Line']/group/field[@name='amount_untaxed']"
 					position="after">
-					<field name="p_f_charge" widget="monetary" />
-					<field name="excise_duty" widget="monetary" />
+					<field name="p_f_charge" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+					<field name="excise_duty" invisible="1" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+					<field name="amount_total_cgst_tax" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+					<field name="amount_total_sgst_tax" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+					<field name="amount_total_igst_tax" widget="monetary" options="{'currency_field': 'currency_id'}"/>
 				</xpath>
 				<xpath expr="//page[@string='PO Line']/group/field[@name='amount_tax']"
 					position="after">
-					<field name="fright" widget="monetary" />
+					<field name="fright" widget="monetary" options="{'currency_field': 'currency_id'}"/>
 				</xpath>
 				<xpath
 					expr="//page[@string='PO Line']/field/tree/field[@name='price_unit']"
@@ -1067,12 +1070,15 @@
 					<field name="discount" />
 					<field name="p_f" />
 					<field name="p_f_type" />
-					<field name="ed" />
-					<field name="ed_type" />
+					<field name="ed" invisible="1"/>
+					<field name="ed_type" invisible="1"/>
 				</xpath>
 				<xpath
 					expr="//page[@string='PO Line']/field/tree/field[@name='taxes_id']"
 					position="after">
+					<field name="tax_cgst_amount" invisible="1"/>
+					<field name="tax_sgst_amount" invisible="1"/>
+					<field name="tax_igst_amount" invisible="1"/>
 					<field name="fright" />
 					<field name="fright_type" />
 					<field name="short_qty" />
@@ -1106,7 +1112,7 @@
 
 				<xpath expr="//field[@name='amount_total']" position="after">
 					<field name="amount_total_inr" readonly="1"
-						class="oe_subtotal_footer_separator" widget="monetary"
+						class="oe_subtotal_footer_separator" widget="monetary" options="{'currency_field': 'currency_id'}"
 						attrs="{'invisible': [('amount_total','=','amount_total_inr')]}" />
 				</xpath>
 
@@ -1337,6 +1343,7 @@
 				</xpath>
 
 				<xpath expr="//field[@name='default_code']" position="after">
+					<field name="hsn_code" />
 					<field name="old_no" attrs="{'invisible': [('cate_name','=','finish')]}" />
 					<field name="bin_location" />
 				</xpath>
@@ -1512,10 +1519,13 @@
 										<field name="disc" />
 										<field name="p_f" />
 										<field name="p_f_type" />
-										<field name="e_d" />
-										<field name="e_d_type" />
-										<field name="tax_id" domain="[('type_tax_use','=','purchase')]"
+										<field name="e_d" invisible="1"/>
+										<field name="e_d_type" invisible="1"/>
+										<field name="tax_id" domain="[('type_tax_use','=','purchase'),('parent_id','=',False)]"
 											options="{'create': false, 'create_edit': false}" />
+										<field name="tax_cgst_amount" invisible="1"/>
+										<field name="tax_sgst_amount" invisible="1"/>
+										<field name="tax_igst_amount" invisible="1"/>
 										<field name="order_charge" />
 										<field name="fright" />
 										<field name="fright_type" />
@@ -1535,15 +1545,18 @@
 							<!-- TPT END -->
 							<field name="amount_line" />
 							<field name="amount_basic" />
+							<field name="amount_total_cgst_tax" />
 							<field name="amount_p_f" />
-							<field name="amount_ed" />
-							<field name="amount_total_tax" />
+							<field name="amount_total_sgst_tax" />
 							<field name="amount_fright" />
+							<field name="amount_total_igst_tax" />
 							<field name="amount_gross" />
+							<field name="amount_total_tax" />
 							<field name="amount_total_inr"
 								attrs="{'invisible': [('amount_gross','=','amount_total_inr')]}" />
 							<field name="amount_net" />
 							<field name="amount_unit_net" />
+							<field name="amount_ed" invisible="1"/>
 						</group>
 					</sheet>
 				</form>

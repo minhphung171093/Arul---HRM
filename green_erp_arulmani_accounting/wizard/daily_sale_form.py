@@ -327,7 +327,7 @@ class daily_sale_form(osv.osv_memory):
                 'price_unit':line.price_unit or '',
                 'uom':line.uos_id and line.uos_id.name or '',
                 'basic_price':line.quantity*line.price_unit or 0.00,
-                'excise_duty':round(line.quantity*line.price_unit*(line.invoice_id.excise_duty_id and line.invoice_id.excise_duty_id.amount or 0.0)/100,2),
+                'excise_duty':round(line.quantity*line.price_unit/100,2),#round(line.quantity*line.price_unit*(line.invoice_id.excise_duty_id and line.invoice_id.excise_duty_id.amount or 0.0)/100,2),
                 'cst_tax':get_cst_tax(line.invoice_id.sale_tax_id, line.invoice_id.amount_untaxed) or 0.00,
                 'vat_tax':get_vat_tax(line.invoice_id.sale_tax_id, line.invoice_id.amount_untaxed) or 0.00,
                 'tcs_tax':get_tcs_tax(line.invoice_id.sale_tax_id, line.invoice_id.amount_untaxed) or 0.00,

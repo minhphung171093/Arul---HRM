@@ -204,6 +204,7 @@
             	</xpath>
             	<xpath expr="//button[@name='invoice_print' and @string='Print Invoice']" position="replace">
             		<button name='invoice_print' string="Print Invoice" type="object" groups="green_erp_arulmani_sale.group_vvti_sale_user"/>
+            		<button name='invoice_gst_print' string="Print Invoice (GST)" type="object" groups="green_erp_arulmani_sale.group_vvti_sale_user"/>
             	</xpath>
             	<xpath expr="//page[@string='Other Info']/group[@col='4']/group/field[@name='name']" position="replace">
 				</xpath>  
@@ -232,7 +233,7 @@
 				<xpath expr="//field[@name='fiscal_position']" position="replace">
 					<field name="fiscal_position" widget="selection" invisible = "1"/>
 					<field name="type" string = "Document Type" readonly = "0"/>
-					<field name="excise_duty_id" readonly='1' options="{'create': false, 'create_edit': false}" domain="[('type_tax_use','=','excise_duty')]"/>
+					<field name="excise_duty_id" invisible="1" readonly='1' options="{'create': false, 'create_edit': false}" domain="[('type_tax_use','=','excise_duty')]"/>
 					<field name="doc_status" readonly='1'/>
 					<field name="pre_carriage_by" />
 					<!--  
@@ -247,6 +248,8 @@
 					<group attrs="{'invisible': [('invoice_type', '=', 'export') ] }" colspan="2" >
 					
 					<field name="booked_to" />
+					<field name="place_of_supply" />
+					<field name="place_of_delivery" />
 					<!-- <field name="rem_date" /> -->
 					<field name="lr_no" />	
 					<field name="inv_date_as_char" />
@@ -338,7 +341,7 @@
 				
 				<xpath expr="//form/sheet/notebook/page[@string='Invoice Lines']/field/tree/field[@name='price_subtotal']"  position="replace">
 					<field name="amount_basic"/>
-					<field name="amount_ed"/>
+					<field name="amount_ed" invisible="1"/>
 					<field name="price_subtotal" string ="SubTotal"/>
 					<field name="freight" readonly='0'/>
 					<field name="insurance" readonly='0'/>

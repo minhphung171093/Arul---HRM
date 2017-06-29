@@ -195,7 +195,7 @@
 				<xpath expr="//field[@name='date_invoice']" position="after">
 					<field name='bill_number'/>
 					<field name='bill_date'/>
-					<field name='flag_bt_ed' invisible = '1'/>
+					<field name='flag_bt_ed' invisible='1'/>
 				</xpath>
 				<xpath expr="//button[@name='invoice_open']" position="after">
 					 <button name="bt_post_ed" type="object" string="Post ED" attrs="{'invisible':['|', ('flag_bt_ed','=',False), ('state','in',['draft','cancel'])]}" groups="green_erp_arulmani_accounting.group_vvti_accounting_user"/>
@@ -227,8 +227,11 @@
 				</xpath>
 				<xpath expr="//page[@string='Invoice']/group/field[@name='amount_untaxed']" position="after">
 					<field name="p_f_charge" widget="monetary" options="{'currency_field': 'currency_id'}"/>
-					<field name="excise_duty" widget="monetary" options="{'currency_field': 'currency_id'}"/>
-					<field name="aed" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+					<field name="excise_duty" invisible='1' widget="monetary" options="{'currency_field': 'currency_id'}"/>
+					<field name="aed" invisible='1' widget="monetary" options="{'currency_field': 'currency_id'}"/>
+					<field name="amount_total_cgst_tax" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+					<field name="amount_total_sgst_tax" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+					<field name="amount_total_igst_tax" widget="monetary" options="{'currency_field': 'currency_id'}"/>
 				</xpath>
 				<xpath expr="//page[@string='Invoice']/group/field[@name='amount_tax']" position="after">
 					<field name="fright" widget="monetary" options="{'currency_field': 'currency_id'}"/>
@@ -343,6 +346,16 @@
 					<field name='bill_number'/>
 					<field name='bill_date'/>
 				</xpath>
+				<xpath expr="//form/sheet/notebook/page[@string='Invoice Lines']/field/tree/field[@name='invoice_line_tax_id']"  position="after">
+					<field name='tax_cgst_amount' invisible="1"/>
+					<field name='tax_sgst_amount' invisible="1"/>
+					<field name='tax_igst_amount' invisible="1"/>
+				</xpath>
+				<xpath expr="//field[@name='amount_untaxed']" position="after">
+					<field name="amount_total_cgst_tax" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+					<field name="amount_total_sgst_tax" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+					<field name="amount_total_igst_tax" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+				</xpath>
 			</field>
 		</record>
 		
@@ -378,11 +391,14 @@
 					<field name="disc"/>
 					<field name="p_f"/>
 					<field name="p_f_type"/>
-					<field name="ed"/>
-					<field name="ed_type"/>
+					<field name="ed" invisible="1"/>
+					<field name="ed_type" invisible="1"/>
 				</xpath> 
 				<xpath expr="//page[@string='Invoice']/field/tree/field[@name='invoice_line_tax_id']" position="after">
-					<field name="aed_id_1" />
+					<field name="tax_cgst_amount" invisible="1"/>
+					<field name="tax_sgst_amount" invisible="1"/>
+					<field name="tax_igst_amount" invisible="1"/>
+					<field name="aed_id_1" invisible="1"/>
 					<field name="fright"/>
 					<field name="fright_type"/>
 					<field name="line_net"/>
@@ -525,15 +541,17 @@
                                     <field name="tds_id" options="{'create': false, 'create_edit': false}"/>
                                     <field name="p_f"/>
                                     <field name="p_f_type" invisible = '1'/>
-                                    <field name="ed"/>
-                                    <field name="ed_type"/>
+                                    <field name="ed" invisible="1"/>
+                                    <field name="ed_type" invisible="1"/>
                                     <!--<field name="tax_id"/> -->
                                       
                                     <field name="tax_id" on_change = "onchange_tax_id(tax_id)" context="{'type':parent.type}"
                                         domain="[('parent_id','=',False),('company_id', '=', parent.company_id)]" options="{'create': false, 'create_edit': false}"/>
-                                    
                                     <field name="invoice_line_tax_id" string = 'tax many2many' widget="many2many_tags" context="{'type':parent.type}"
                                         domain="[('parent_id','=',False),('company_id', '=', parent.company_id)]" invisible = '1'/>
+                                    <field name="tax_cgst_amount" invisible="1"/>
+                                    <field name="tax_sgst_amount" invisible="1"/>
+                                    <field name="tax_igst_amount" invisible="1"/>
                                     <!-- TPT-BM-ON 04/06/2016 --> 
                                     <field name="tax_service_credit" on_change = "onchange_tax_credit(tax_id, tax_service_credit)" options="{'create': false, 'create_edit': false}"/>
                                     <!-- TPT END -->
@@ -547,7 +565,10 @@
                             <group class="oe_subtotal_footer oe_right">
                                 <field name="amount_untaxed" widget="monetary" options="{'currency_field': 'currency_id'}"/>
                                 <field name="p_f_charge" widget="monetary"/>
-								<field name="excise_duty" widget="monetary"/>
+								<field name="excise_duty" invisible='1' widget="monetary"/>
+								<field name="amount_total_cgst_tax" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                <field name="amount_total_sgst_tax" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                <field name="amount_total_igst_tax" widget="monetary" options="{'currency_field': 'currency_id'}"/>
                                 <div>
                                     <label for="amount_tax"/>
                                     <button name="button_reset_taxes" states="draft,proforma2"
@@ -767,12 +788,15 @@
 	                                    <field name="tds_id" options="{'create': false, 'create_edit': false}"/>
 	                                    <field name="p_f"/>
 	                                    <field name="p_f_type"/>
-	                                    <field name="ed"/>
-	                                    <field name="ed_type"/>
+	                                    <field name="ed" invisible="1"/>
+	                                    <field name="ed_type" invisible="1"/>
 	                                    <field name="tax_id" on_change = "onchange_tax_id(tax_id)" context="{'type':parent.type}"
                                         domain="[('parent_id','=',False),('company_id', '=', parent.company_id)]" options="{'create': false, 'create_edit': false}"/>
                                     <field name="invoice_line_tax_id" string = 'Taxes' widget="many2many_tags" context="{'type':parent.type}"
                                         domain="[('parent_id','=',False),('company_id', '=', parent.company_id)]" invisible = '1'/>
+                                    <field name="tax_cgst_amount" invisible="1"/>
+                                    <field name="tax_sgst_amount" invisible="1"/>
+                                    <field name="tax_igst_amount" invisible="1"/>
                                     <field name="tax_service_credit" on_change = "onchange_tax_credit(tax_id, tax_service_credit)" options="{'create': false, 'create_edit': false}"/>
                                     <!-- 
                                     <field name="tax_credit" on_change="onchange_tax_credit(tax_id,tax_credit)" options="{'create': false, 'create_edit': false}"/>
@@ -788,7 +812,10 @@
                             <group class="oe_subtotal_footer oe_right">
                                 <field name="amount_untaxed" widget="monetary" options="{'currency_field': 'currency_id'}"/>
                                 <field name="p_f_charge" widget="monetary"/>
-								<field name="excise_duty" widget="monetary"/>
+								<field name="excise_duty" invisible='1' widget="monetary"/>
+								<field name="amount_total_cgst_tax" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                <field name="amount_total_sgst_tax" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                <field name="amount_total_igst_tax" widget="monetary" options="{'currency_field': 'currency_id'}"/>
                                 <div>
                                     <label for="amount_tax"/>
                                     <button name="button_reset_taxes" states="draft,proforma2"
@@ -1025,6 +1052,9 @@
                                         domain="[('parent_id','=',False),('company_id', '=', parent.company_id)]" options="{'create': false, 'create_edit': false}"/>
                                     	<field name="invoice_line_tax_id" string = 'Taxes' widget="many2many_tags" context="{'type':parent.type}"
                                         domain="[('parent_id','=',False),('company_id', '=', parent.company_id)]" invisible = '1'/>
+                                        <field name="tax_cgst_amount" invisible="1"/>
+                                        <field name="tax_sgst_amount" invisible="1"/>
+                                        <field name="tax_igst_amount" invisible="1"/>
 	                                    <field name="tax_service_credit" on_change = "onchange_tax_credit(tax_id, tax_service_credit)" 
 	                                    context="{'type':parent.type}" domain="[('parent_id','=',False),('company_id', '=', parent.company_id)]" options="{'create': false, 'create_edit': false}"/>
 	                                    <field name="tpt_tax_amt"/>
@@ -1034,6 +1064,9 @@
                             </field>
                             <group class="oe_subtotal_footer oe_right">
                                 <field name="amount_untaxed" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                <field name="amount_total_cgst_tax" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                <field name="amount_total_sgst_tax" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                <field name="amount_total_igst_tax" widget="monetary" options="{'currency_field': 'currency_id'}"/>
                                 <div>
                                     <label for="amount_tax"/>
                                     <button name="button_reset_taxes" states="draft,proforma2"
@@ -1272,6 +1305,9 @@
                                         domain="[('parent_id','=',False),('company_id', '=', parent.company_id)]" options="{'create': false, 'create_edit': false}"/>
                                     <field name="invoice_line_tax_id" string = 'Taxes' widget="many2many_tags" context="{'type':parent.type}"
                                         domain="[('parent_id','=',False),('company_id', '=', parent.company_id)]" invisible = '1'/>
+                                    <field name="tax_cgst_amount" invisible="1"/>
+                                    <field name="tax_sgst_amount" invisible="1"/>
+                                    <field name="tax_igst_amount" invisible="1"/>
                                     <field name="tax_service_credit" on_change = "onchange_tax_credit(tax_id, tax_service_credit)" 
                                     context="{'type':parent.type}" domain="[('parent_id','=',False),('company_id', '=', parent.company_id)]"
                                     options="{'create': false, 'create_edit': false}"/>
@@ -1282,6 +1318,9 @@
                             </field>
                             <group class="oe_subtotal_footer oe_right">
                                 <field name="amount_untaxed" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                <field name="amount_total_cgst_tax" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                <field name="amount_total_sgst_tax" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                <field name="amount_total_igst_tax" widget="monetary" options="{'currency_field': 'currency_id'}"/>
                                 <div>
                                     <label for="amount_tax"/>
                                     <button name="button_reset_taxes" states="draft,proforma2"
