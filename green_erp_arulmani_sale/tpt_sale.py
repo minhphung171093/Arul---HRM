@@ -87,24 +87,49 @@ class sale_order(osv.osv):
     
     def _amount_all(self, cr, uid, ids, field_name, arg, context=None):
         res = {}
+        order_line_obj = self.pool.get('sale.order.line')
         for line in self.browse(cr,uid,ids,context=context):
             res[line.id] = {
                 'amount_untaxed': 0.0,
+                'amount_total_cgst_tax': 0.0,
+                'amount_total_sgst_tax': 0.0,
+                'amount_total_igst_tax': 0.0,
                 'amount_tax': 0.0,
                 'amount_total': 0.0,
             }
             val1 = 0.0
+            amount_total_cgst_tax = 0.0
+            amount_total_sgst_tax = 0.0
+            amount_total_igst_tax = 0.0
+            total_tax = 0.0
             val2 = 0.0
             val3 = 0.0
             freight = 0.0
             for orderline in line.order_line:
                 freight = freight + (orderline.product_uom_qty * orderline.freight)
+                
+                line_value = order_line_obj._get_tax_gst_amount(cr, uid, [orderline.id], None, None, None)[orderline.id]
+                
+                total_tax += line_value['tax_cgst_amount']+line_value['tax_sgst_amount']+line_value['tax_igst_amount']#(basic + p_f + ed)*(quotation.tax_id and quotation.tax_id.amount or 0) / 100
+                amount_total_cgst_tax += line_value['tax_cgst_amount']
+                amount_total_sgst_tax += line_value['tax_sgst_amount']
+                amount_total_igst_tax += line_value['tax_igst_amount']
+                
+#                 total_tax += orderline.tax_cgst_amount+orderline.tax_sgst_amount+orderline.tax_igst_amount
+#                 amount_total_cgst_tax += orderline.tax_cgst_amount
+#                 amount_total_sgst_tax += orderline.tax_sgst_amount
+#                 amount_total_igst_tax += orderline.tax_igst_amount
+                
                 val1 = val1 + orderline.price_subtotal
                 res[line.id]['amount_untaxed'] = round(val1)
                 val2 = val1 * line.sale_tax_id.amount / 100
-                res[line.id]['amount_tax'] = round(val2)
+                
                 val3 = val1 + val2 + freight
                 res[line.id]['amount_total'] = round(val3)
+            res[line.id]['amount_total_cgst_tax'] = amount_total_cgst_tax
+            res[line.id]['amount_total_sgst_tax'] = amount_total_sgst_tax
+            res[line.id]['amount_total_igst_tax'] = amount_total_igst_tax
+            res[line.id]['amount_tax'] = round(total_tax)
         return res
     
     def _get_order(self, cr, uid, ids, context=None):
@@ -135,7 +160,7 @@ class sale_order(osv.osv):
                                             ('cancelled','Cancelled')],'Document Status', readonly = True),
         'incoterms_id':fields.many2one('stock.incoterms','Incoterms',required = True,states={'progress':[('readonly',True)],'done':[('readonly',True)]}),
         'distribution_channel':fields.many2one('crm.case.channel','Distribution Channel',required = True,states={'progress':[('readonly',True)],'done':[('readonly',True)]}),
-        'excise_duty_id': fields.many2one('account.tax', 'Ex.Duty', domain="[('type_tax_use','=','excise_duty')]", required = True,states={'progress':[('readonly',True)],'done':[('readonly',True)]}),
+        'excise_duty_id': fields.many2one('account.tax', 'Ex.Duty', domain="[('type_tax_use','=','excise_duty')]", required = False,states={'progress':[('readonly',True)],'done':[('readonly',True)]}),
         'sale_tax_id': fields.many2one('account.tax', 'Sale Tax', domain="[('type_tax_use','=','sale')]", required = True,states={'progress':[('readonly',True)],'done':[('readonly',True)]}), 
         'invoice_address': fields.char('Invoice Address', size = 1024,states={'progress':[('readonly',True)],'done':[('readonly',True)]}),
         'street2': fields.char('', size = 1024,states={'progress':[('readonly',True)],'done':[('readonly',True)]}),
@@ -151,6 +176,24 @@ class sale_order(osv.osv):
             },
             multi='sums', help="The amount without tax.", track_visibility='always'),
         'amount_tax': fields.function(_amount_all, digits_compute=dp.get_precision('Account'), string='Taxes',
+            store={
+                'sale.order': (lambda self, cr, uid, ids, c={}: ids, ['order_line','sale_tax_id'], 10),
+                'sale.order.line': (_get_order, ['price_unit', 'tax_id', 'discount', 'product_uom_qty'], 10),
+            },
+            multi='sums', help="The tax amount."),
+        'amount_total_cgst_tax': fields.function(_amount_all, digits_compute=dp.get_precision('Account'), string='Total CGSTAmt',
+            store={
+                'sale.order': (lambda self, cr, uid, ids, c={}: ids, ['order_line','sale_tax_id'], 10),
+                'sale.order.line': (_get_order, ['price_unit', 'tax_id', 'discount', 'product_uom_qty'], 10),
+            },
+            multi='sums', help="The tax amount."),
+        'amount_total_sgst_tax': fields.function(_amount_all, digits_compute=dp.get_precision('Account'), string='Total SGSTAmt',
+            store={
+                'sale.order': (lambda self, cr, uid, ids, c={}: ids, ['order_line','sale_tax_id'], 10),
+                'sale.order.line': (_get_order, ['price_unit', 'tax_id', 'discount', 'product_uom_qty'], 10),
+            },
+            multi='sums', help="The tax amount."),
+        'amount_total_igst_tax': fields.function(_amount_all, digits_compute=dp.get_precision('Account'), string='Total IGSTAmt',
             store={
                 'sale.order': (lambda self, cr, uid, ids, c={}: ids, ['order_line','sale_tax_id'], 10),
                 'sale.order.line': (_get_order, ['price_unit', 'tax_id', 'discount', 'product_uom_qty'], 10),
@@ -1220,7 +1263,7 @@ class sale_order_line(osv.osv):
         subtotal = 0.0
         res = {}
         for line in self.browse(cr,uid,ids,context=context):
-            subtotal = (line.product_uom_qty * line.price_unit) + (line.product_uom_qty * line.price_unit) * (line.order_id.excise_duty_id.amount/100)
+            subtotal = (line.product_uom_qty * line.price_unit)# + (line.product_uom_qty * line.price_unit) * (line.order_id.excise_duty_id.amount/100)
             res[line.id] = subtotal
         return res
     def basic_amt_calc(self, cr, uid, ids, field_name, args, context=None):
@@ -1238,9 +1281,39 @@ class sale_order_line(osv.osv):
             res[line.id] = {
                'amount_ed' : 0.0,
                }
-            subtotal = (line.product_uom_qty * line.price_unit) * (line.order_id.excise_duty_id.amount/100)
+            subtotal = (line.product_uom_qty * line.price_unit) * (line.order_id.excise_duty_id and line.order_id.excise_duty_id.amount/100 or 0)
             res[line.id]['amount_ed'] = subtotal
-        return res  
+        return res
+    
+    def _get_tax_gst_amount(self, cr, uid, ids, field_name, args, context=None):
+        res = {}
+        for line in self.browse(cr,uid,ids,context=context):
+            tax_cgst_amount = 0.0
+            tax_sgst_amount = 0.0
+            tax_igst_amount = 0.0
+            res[line.id] = {
+                'tax_cgst_amount': 0.0,
+                'tax_sgst_amount': 0.0,
+                'tax_igst_amount': 0.0,
+            }
+            
+            if line.order_id.sale_tax_id:
+                amount_untaxed = line.price_subtotal
+                if line.order_id.sale_tax_id.child_depend:
+                    for tax_child in line.order_id.sale_tax_id.child_ids:
+                        if 'CGST' in tax_child.description.upper():
+                            tax_cgst_amount += (amount_untaxed)*(tax_child.amount or 0) / 100
+                        if 'SGST' in tax_child.description.upper():
+                            tax_sgst_amount += (amount_untaxed)*(tax_child.amount or 0) / 100
+                else:
+                    if 'IGST' in line.order_id.sale_tax_id.description.upper():
+                        tax_igst_amount += (amount_untaxed)*(line.order_id.sale_tax_id.amount or 0) / 100
+                
+            res[line.id]['tax_cgst_amount'] = tax_cgst_amount
+            res[line.id]['tax_sgst_amount'] = tax_sgst_amount
+            res[line.id]['tax_igst_amount'] = tax_igst_amount
+        return res
+      
     _columns = {
         'product_id': fields.many2one('product.product', 'Product', required = True),
         'product_type':fields.selection([('rutile','Rutile'),('anatase','Anatase')],'Prod Type'),
@@ -1252,7 +1325,9 @@ class sale_order_line(osv.osv):
         'product_uom_qty': fields.float('Qty', digits=(16,3), required=True, readonly=True, states={'draft': [('readonly', False)]}),
         'amount_basic': fields.function(basic_amt_calc, store = True, multi='deltas3' ,string='Basic'),
         'amount_ed': fields.function(ed_amt_calc, store = True, multi='deltas4' ,string='ED'),
-        
+        'tax_cgst_amount': fields.function(_get_tax_gst_amount, store = True, multi='gst_tax' ,digits=(16,3),string='CGSTAmt'),
+        'tax_sgst_amount': fields.function(_get_tax_gst_amount, store = True, multi='gst_tax' ,digits=(16,3),string='SGSTAmt'),
+        'tax_igst_amount': fields.function(_get_tax_gst_amount, store = True, multi='gst_tax' ,digits=(16,3),string='IGSTAmt'),
     }
     _defaults ={
       'product_uom_qty':0,
@@ -1428,22 +1503,43 @@ class tpt_blanket_order(osv.osv):
     
     def amount_all_blanket_orderline(self, cr, uid, ids, field_name, args, context=None):
         res = {}
+        blanket_line_obj = self.pool.get('tpt.blank.order.line')
         for line in self.browse(cr,uid,ids,context=context):
             res[line.id] = {
                 'amount_untaxed': 0.0,
+                'amount_total_cgst_tax': 0.0,
+                'amount_total_sgst_tax': 0.0,
+                'amount_total_igst_tax': 0.0,
                 'amount_tax': 0.0,
                 'amount_total': 0.0,
             }
             val1 = 0.0
+            amount_total_cgst_tax = 0.0
+            amount_total_sgst_tax = 0.0
+            amount_total_igst_tax = 0.0
+            total_tax = 0.0
             val2 = 0.0
             val3 = 0.0
             freight = 0.0
             for orderline in line.blank_order_line:
                 freight = freight + (orderline.product_uom_qty * orderline.freight)
                 val1 += orderline.sub_total
+#                 total_tax += orderline.tax_cgst_amount+orderline.tax_sgst_amount+orderline.tax_igst_amount
+#                 amount_total_cgst_tax += orderline.tax_cgst_amount
+#                 amount_total_sgst_tax += orderline.tax_sgst_amount
+#                 amount_total_igst_tax += orderline.tax_igst_amount
+                line_value = blanket_line_obj._get_tax_gst_amount(cr, uid, [orderline.id], None, None, None)[orderline.id]
+                
+                total_tax = line_value['tax_cgst_amount']+line_value['tax_sgst_amount']+line_value['tax_igst_amount']#(basic + p_f + ed)*(quotation.tax_id and quotation.tax_id.amount or 0) / 100
+                amount_total_cgst_tax += line_value['tax_cgst_amount']
+                amount_total_sgst_tax += line_value['tax_sgst_amount']
+                amount_total_igst_tax += line_value['tax_igst_amount']
             res[line.id]['amount_untaxed'] = round(val1)
             val2 = val1 * line.sale_tax_id.amount / 100
-            res[line.id]['amount_tax'] = round(val2)
+            res[line.id]['amount_total_cgst_tax'] = amount_total_cgst_tax
+            res[line.id]['amount_total_sgst_tax'] = amount_total_sgst_tax
+            res[line.id]['amount_total_igst_tax'] = amount_total_igst_tax
+            res[line.id]['amount_tax'] = round(total_tax)
             val3 = val1 + val2 + freight
             res[line.id]['amount_total'] = round(val3)
         return res
@@ -1470,7 +1566,7 @@ class tpt_blanket_order(osv.osv):
         'po_date': fields.date('PO Date', required = True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}),
         'po_number': fields.char('PO Number', size = 1024, states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}),
         'quotaion_no': fields.char('Quotation No', size = 1024, states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}),
-        'excise_duty_id': fields.many2one('account.tax', 'Excise Duty', domain="[('type_tax_use','=','excise_duty')]", required = True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}),
+        'excise_duty_id': fields.many2one('account.tax', 'Excise Duty', domain="[('type_tax_use','=','excise_duty')]", required = False, states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}),
         'sale_tax_id': fields.many2one('account.tax', 'Sale Tax', domain="[('type_tax_use','=','sale')]", required = True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}), 
         'incoterm_id': fields.many2one('stock.incoterms', 'Incoterms', required = True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}),
         'reason': fields.text('Reason', states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}),
@@ -1486,6 +1582,21 @@ class tpt_blanket_order(osv.osv):
                 'tpt.blank.order.line': (_get_order, ['price_unit', 'sub_total', 'product_uom_qty', 'freight'], 10),}, 
             states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}),
         'amount_tax': fields.function(amount_all_blanket_orderline, multi='sums',string='Taxes',
+                                      store={
+                'tpt.blanket.order': (lambda self, cr, uid, ids, c={}: ids, ['blank_order_line', 'sale_tax_id','excise_duty_id'], 10),
+                'tpt.blank.order.line': (_get_order, ['price_unit', 'sub_total', 'product_uom_qty', 'freight'], 10), }, 
+            states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}),
+        'amount_total_cgst_tax': fields.function(amount_all_blanket_orderline, multi='sums',string='Total CGSTAmt',
+                                      store={
+                'tpt.blanket.order': (lambda self, cr, uid, ids, c={}: ids, ['blank_order_line', 'sale_tax_id','excise_duty_id'], 10),
+                'tpt.blank.order.line': (_get_order, ['price_unit', 'sub_total', 'product_uom_qty', 'freight'], 10), }, 
+            states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}),
+        'amount_total_sgst_tax': fields.function(amount_all_blanket_orderline, multi='sums',string='Total SGSTAmt',
+                                      store={
+                'tpt.blanket.order': (lambda self, cr, uid, ids, c={}: ids, ['blank_order_line', 'sale_tax_id','excise_duty_id'], 10),
+                'tpt.blank.order.line': (_get_order, ['price_unit', 'sub_total', 'product_uom_qty', 'freight'], 10), }, 
+            states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}),
+        'amount_total_igst_tax': fields.function(amount_all_blanket_orderline, multi='sums',string='Total IGSTAmt',
                                       store={
                 'tpt.blanket.order': (lambda self, cr, uid, ids, c={}: ids, ['blank_order_line', 'sale_tax_id','excise_duty_id'], 10),
                 'tpt.blank.order.line': (_get_order, ['price_unit', 'sub_total', 'product_uom_qty', 'freight'], 10), }, 
@@ -1823,7 +1934,7 @@ class tpt_blank_order_line(osv.osv):
             res[line.id] = {
                'sub_total' : 0.0,
                }
-            subtotal = (line.product_uom_qty * line.price_unit) + (line.product_uom_qty * line.price_unit) * (line.blanket_order_id.excise_duty_id.amount/100)
+            subtotal = (line.product_uom_qty * line.price_unit)# + (line.product_uom_qty * line.price_unit) * (line.blanket_order_id.excise_duty_id.amount/100)
             res[line.id]['sub_total'] = subtotal
         return res
     def basic_amt_calc(self, cr, uid, ids, field_name, args, context=None):
@@ -1841,8 +1952,37 @@ class tpt_blank_order_line(osv.osv):
             res[line.id] = {
                'amount_ed' : 0.0,
                }
-            ed = (line.product_uom_qty * line.price_unit) * (line.blanket_order_id.excise_duty_id.amount/100)
+            ed = (line.product_uom_qty * line.price_unit) * (line.blanket_order_id.excise_duty_id and line.blanket_order_id.excise_duty_id.amount/100 or 0)
             res[line.id]['amount_ed'] = ed
+        return res
+    
+    def _get_tax_gst_amount(self, cr, uid, ids, field_name, args, context=None):
+        res = {}
+        for line in self.browse(cr,uid,ids,context=context):
+            tax_cgst_amount = 0.0
+            tax_sgst_amount = 0.0
+            tax_igst_amount = 0.0
+            res[line.id] = {
+                'tax_cgst_amount': 0.0,
+                'tax_sgst_amount': 0.0,
+                'tax_igst_amount': 0.0,
+            }
+            
+            if line.blanket_order_id.sale_tax_id:
+                amount_untaxed = line.sub_total
+                if line.blanket_order_id.sale_tax_id.child_depend:
+                    for tax_child in line.blanket_order_id.sale_tax_id.child_ids:
+                        if 'CGST' in tax_child.description.upper():
+                            tax_cgst_amount += (amount_untaxed)*(tax_child.amount or 0) / 100
+                        if 'SGST' in tax_child.description.upper():
+                            tax_sgst_amount += (amount_untaxed)*(tax_child.amount or 0) / 100
+                else:
+                    if 'IGST' in line.blanket_order_id.sale_tax_id.description.upper():
+                        tax_igst_amount += (amount_untaxed)*(line.blanket_order_id.sale_tax_id.amount or 0) / 100
+                
+            res[line.id]['tax_cgst_amount'] = tax_cgst_amount
+            res[line.id]['tax_sgst_amount'] = tax_sgst_amount
+            res[line.id]['tax_igst_amount'] = tax_igst_amount
         return res
     
     _columns = {
@@ -1868,7 +2008,9 @@ class tpt_blank_order_line(osv.osv):
                 
         'is_fsh_tio2': fields.boolean('Is TiO2 or FSH'),
         'dispatch_date':fields.date('Scheduled Dispatch Date'),
-
+        'tax_cgst_amount': fields.function(_get_tax_gst_amount, store = True, multi='gst_tax' ,digits=(16,3),string='CGSTAmt'),
+        'tax_sgst_amount': fields.function(_get_tax_gst_amount, store = True, multi='gst_tax' ,digits=(16,3),string='SGSTAmt'),
+        'tax_igst_amount': fields.function(_get_tax_gst_amount, store = True, multi='gst_tax' ,digits=(16,3),string='IGSTAmt'),
                 }
     _defaults = {
         'expected_date': time.strftime('%Y-%m-%d'),

@@ -62,7 +62,33 @@ class Parser(report_sxw.rml_parse):
             'get_cst_lb':self.get_cst_lb,
             'get_s3':self.get_s3,
             'get_sub_ed':self.get_sub_ed,
+            'get_cgst_tax': self.get_cgst_tax,
+            'get_sgst_tax': self.get_sgst_tax,
+            'get_igst_tax': self.get_igst_tax,
         })
+        
+    def get_cgst_tax(self, tax):
+        tax_amount = 0
+        if tax and tax.child_depend:
+            for tax_child in tax.child_ids:
+                if 'CGST' in tax_child.description.upper():
+                    tax_amount += tax_child.amount
+        return tax_amount
+    
+    def get_sgst_tax(self, tax):
+        tax_amount = 0
+        if tax and tax.child_depend:
+            for tax_child in tax.child_ids:
+                if 'SGST' in tax_child.description.upper():
+                    tax_amount += tax_child.amount
+        return tax_amount
+    
+    def get_igst_tax(self, tax):
+        tax_amount = 0
+        if 'IGST' in tax.description.upper():#if tax and not tax.child_depend and gst_code in ['IGST']:
+            tax_amount += tax.amount
+        return tax_amount
+        
     def get_sub_ed(self, line):        
         amt = 0.0
         amt = line.amount_ed + line.price_subtotal     

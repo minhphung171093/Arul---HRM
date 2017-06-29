@@ -52,14 +52,14 @@
                 	<field name="quotaion_no" attrs="{'invisible': [('document_type','=','return')]}"/>
                 	<field name="distribution_channel" readonly='1' options="{'create': false, 'create_edit': false}" 
                 	attrs="{'invisible': [('document_type','=','return')]}"/>
-                	<field name="sale_tax_id" readonly='1' options="{'create': false, 'create_edit': false}"
+                	<field name="sale_tax_id" readonly='1' domain="[('parent_id','=',False)]" options="{'create': false, 'create_edit': false}"
                 	attrs="{'invisible': [('document_type','=','return')]}"/>
                 	<field name="document_status" attrs="{'invisible': [('document_type','=','return')]}"/>
                 	 <field name="reason" readonly='1' attrs="{'invisible': [('document_type','=','return')]}"/>
                 	 <field name="flag_t" invisible="1" />
                 	 <field name="flag_p" invisible="1" />
                 	 <field name="tpt_currency_id" invisible="1" attrs="{'invisible': [('document_type','=','return')]}"/>
-                	 <field name="excise_duty_id" readonly='1' options="{'create': false, 'create_edit': false}"
+                	 <field name="excise_duty_id" invisible="1" readonly='1' options="{'create': false, 'create_edit': false}"
                 	 attrs="{'invisible': [('document_type','=','return')]}"/>
                 	 
 				</xpath>
@@ -124,7 +124,10 @@
 				
 				<xpath expr="//form/sheet/notebook/page[@string='Order Lines']/field/tree/field[@name='price_subtotal']"  position="before">
 					<field name="amount_basic"/>
-					<field name="amount_ed"/>			
+					<field name="amount_ed" invisible="1"/>
+					<field name="tax_cgst_amount" invisible="1"/>
+					<field name="tax_sgst_amount" invisible="1"/>
+					<field name="tax_igst_amount" invisible="1"/>			
 				</xpath>
 				<xpath expr="//form/sheet/notebook/page[@string='Order Lines']/field/tree/field[@name='price_subtotal']"  position="after">
 					<field name="freight" />
@@ -175,6 +178,11 @@
 							</tree>
 						</field>
 					</page>
+				</xpath>
+				<xpath expr="//field[@name='amount_tax']"  position="before">
+					<field name="amount_total_cgst_tax" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+					<field name="amount_total_sgst_tax" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+					<field name="amount_total_igst_tax" widget="monetary" options="{'currency_field': 'currency_id'}"/>
 				</xpath>
 				
 	       	</field>
@@ -282,7 +290,7 @@
                     	<field name="currency_id" readonly='1' options="{'create': false, 'create_edit': false}"/>
                     	<field name="incoterm_id" readonly='1' options="{'create': false, 'create_edit': false}"/>
                     	<field name="payment_term_id" options="{'create': false, 'create_edit': false}"/>
-                    	<field name="excise_duty_id" domain="[('type_tax_use','=','excise_duty')]" options="{'create': false, 'create_edit': false}"/>
+                    	<field name="excise_duty_id" invisible="1" domain="[('type_tax_use','=','excise_duty')]" options="{'create': false, 'create_edit': false}"/>
                     	</group>
                       
 						<group>
@@ -291,7 +299,7 @@
 						<field name="po_number" />						
 						<field name="quotaion_no" invisible='1'/>
 						<field name="channel" readonly='1' options="{'create': false, 'create_edit': false}"/>
-						<field name="sale_tax_id" domain="[('type_tax_use','=','sale')]" options="{'create': false, 'create_edit': false}"/>
+						<field name="sale_tax_id" domain="[('type_tax_use','=','sale'),('parent_id','=',False)]" options="{'create': false, 'create_edit': false}"/>
 						<field name="order_type" />
 						<field name="reason" /> 
 						<field name="amendment_reason" attrs="{'invisible':[('amendment_flag','=',False)], 'required':[('amendment_flag','=',True)]}"/> 
@@ -318,7 +326,10 @@
 										<field name="uom_po_id" options="{'create': false, 'create_edit': false}" readonly='1'/>
 										<field name="price_unit" />
 										<field name="amount_basic"/>
-										<field name="amount_ed"/>
+										<field name="amount_ed" invisible="1"/>
+										<field name="tax_cgst_amount" invisible="1"/>
+										<field name="tax_sgst_amount" invisible="1"/>
+										<field name="tax_igst_amount" invisible="1"/>
 										<field name="sub_total"/> 
 										<!--    -->
 										<!-- <field name="tpt_name_consignee_id" domain="[('tpt_consignee_header_id','=',parent.customer_id)]"
@@ -342,6 +353,9 @@
 								</field>
 								<group class="oe_subtotal_footer oe_right" colspan="2" name="sale_total">
                                 	<field name="amount_untaxed" widget="monetary" />
+                                	<field name="amount_total_cgst_tax" widget="monetary" />
+                                	<field name="amount_total_sgst_tax" widget="monetary" />
+                                	<field name="amount_total_igst_tax" widget="monetary" />
                                 	<field name="amount_tax" widget="monetary" />     
                                 		<div class="oe_subtotal_footer_separator oe_inline">
                                      		<label for="amount_total"/>  

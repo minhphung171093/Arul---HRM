@@ -47,6 +47,7 @@ class res_company(osv.osv):
                 'factory_country_id': fields.many2one('res.country', 'Country'), 
                 
                 'tin_no': fields.char('TIN', size=128),
+                'gstin': fields.char('GSTIN',size=128),
                 'cst_no': fields.char('CST', size=128),
                 'ex_reg_no': fields.char('Excise Reg. No', size=128),
                 'service_reg_no': fields.char('Service Tax Reg. No', size=128),
@@ -403,6 +404,7 @@ class res_partner(osv.osv):
         'excise_reg_no': fields.char('Ex.RegNo.',size=128),
         'tin': fields.char('TIN',size=11),
         'gstin': fields.char('GSTIN',size=128),
+        'state_code': fields.char('State Code',size=128),
         'arn': fields.char('ARN',size=128),
         'street3': fields.char('Street3',size=128),       
         'lst': fields.char('LST',size=128),

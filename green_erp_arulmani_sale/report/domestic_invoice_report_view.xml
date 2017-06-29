@@ -74,7 +74,30 @@
 			model="account.invoice" 
 			name="tpt_domestic_account_invoice_draft"
 	        string="Print Domestic Invoice"
-	        rml="green_erp_arulmani_sale/report/domestic_invoice_report_draft.odt"/> 	
+	        rml="green_erp_arulmani_sale/report/domestic_invoice_report_draft.odt"/>
+	        
+        <record id="tpt_domestic_account_invoice_gst" model="ir.actions.report.xml">
+	        <field name="name">tpt.domestic.account.invoice</field>
+	        <field name="type">ir.actions.report.xml</field>
+	        <field name="model">account.invoice</field>
+	        <field name="report_name">Account Invoice gst</field>
+	        <field name="report_type">aeroo</field>
+	        <field name="in_format">oo-odt</field>
+	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-pdf'),('compatible_types','=','oo-odt')]"/>
+	        <field name="parser_loc">green_erp_arulmani_sale/report/domestic_invoice_report.py</field>
+	        <field name="report_rml">green_erp_arulmani_sale/report/domestic_invoice_gst_report.odt</field>
+	        <field name="parser_state">loc</field>
+	        <field name="tml_source">file</field>
+	        <field name="attachment_use" eval="0"/>
+    	</record> 
+    	<report 
+			auto="False" 
+			menu="False"
+			id="tpt_domestic_account_invoice_gst" 
+			model="account.invoice" 
+			name="tpt_domestic_account_invoice_gst"
+	        string="Print Domestic Invoice (GST)"
+	        rml="green_erp_arulmani_sale/report/domestic_invoice_gst_report.odt"/> 	
 	         		        
 	</data>
 </openerp>

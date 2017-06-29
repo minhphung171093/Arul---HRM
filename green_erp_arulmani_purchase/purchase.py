@@ -1062,6 +1062,7 @@ class product_product(osv.osv):
         'mrp_control':fields.boolean('MRP Control Type'),
         'tpt_description':fields.text('Description', size = 256),
         'bin_location':fields.char('Bin Location', size = 1024),
+        'hsn_code':fields.char('HSN Code', size = 1024),
         'old_no':fields.char('Old Material No.', size = 1024),
         'tpt_mater_type':fields.selection([('mechan','Mechanical'),
                                            ('store','Store'),
@@ -1404,6 +1405,7 @@ class tpt_purchase_quotation(osv.osv):
     _order = 'name desc'
     def amount_all_quotation_line(self, cr, uid, ids, field_name, args, context=None):
         res = {}
+        quotation_obj = self.pool.get('tpt.purchase.quotation.line')
         for line in self.browse(cr,uid,ids,context=context):
             res[line.id] = {
                 'amount_line': 0.0,
@@ -1411,6 +1413,9 @@ class tpt_purchase_quotation(osv.osv):
                 'amount_p_f': 0.0,
                 'amount_ed': 0.0,
                 'amount_total_tax': 0.0,
+                'amount_total_cgst_tax': 0.0,
+                'amount_total_sgst_tax': 0.0,
+                'amount_total_igst_tax': 0.0,
                 'amount_fright': 0.0,
                 'amount_gross': 0.0,
                 'amount_net': 0.0,
@@ -1422,6 +1427,9 @@ class tpt_purchase_quotation(osv.osv):
             amount_p_f=0.0
             amount_ed=0.0
             amount_total_tax=0.0
+            amount_total_cgst_tax=0.0
+            amount_total_sgst_tax=0.0
+            amount_total_igst_tax=0.0
             amount_fright=0.0
             amount_gross=0.0
             amount_net=0.0
@@ -1462,7 +1470,13 @@ class tpt_purchase_quotation(osv.osv):
                 else:
                     ed = quotation.e_d
                 amount_ed += ed
-                total_tax = (basic + p_f + ed)*(quotation.tax_id and quotation.tax_id.amount or 0) / 100
+                
+                line_value = quotation_obj._get_tax_gst_amount(cr, uid, [quotation.id], None, None, None)[quotation.id]
+                
+                total_tax = line_value['tax_cgst_amount']+line_value['tax_sgst_amount']+line_value['tax_igst_amount']#(basic + p_f + ed)*(quotation.tax_id and quotation.tax_id.amount or 0) / 100
+                amount_total_cgst_tax += line_value['tax_cgst_amount']
+                amount_total_sgst_tax += line_value['tax_sgst_amount']
+                amount_total_igst_tax += line_value['tax_igst_amount']
                 amount_total_tax += total_tax
                 if quotation.fright_type == '1' :
                     fright = (basic + p_f + ed + total_tax) * quotation.fright/100
@@ -1495,6 +1509,9 @@ class tpt_purchase_quotation(osv.osv):
             res[line.id]['amount_p_f'] = amount_p_f
             res[line.id]['amount_ed'] = amount_ed
             res[line.id]['amount_total_tax'] = amount_total_tax
+            res[line.id]['amount_total_cgst_tax'] = amount_total_cgst_tax
+            res[line.id]['amount_total_sgst_tax'] = amount_total_sgst_tax
+            res[line.id]['amount_total_igst_tax'] = amount_total_igst_tax
             res[line.id]['amount_fright'] = amount_fright
             res[line.id]['amount_gross'] = amount_gross
             res[line.id]['amount_net'] = amount_net
@@ -1550,7 +1567,25 @@ class tpt_purchase_quotation(osv.osv):
                 'tpt.purchase.quotation.line': (_get_order, ['product_uom_qty', 'uom_id', 'price_unit','disc','p_f','p_f_type',   
                                                                 'e_d', 'e_d_type','tax_id','fright','fright_type'], 10),}, 
             states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'amount_total_tax': fields.function(amount_all_quotation_line, multi='sums',string='Total Tax(CST/VAT)',digits=(16,3),
+        'amount_total_tax': fields.function(amount_all_quotation_line, multi='sums',string='Total Tax Amount',digits=(16,3),
+                                      store={
+                'tpt.purchase.quotation': (lambda self, cr, uid, ids, c={}: ids, ['purchase_quotation_line'], 10),
+                'tpt.purchase.quotation.line': (_get_order, ['product_uom_qty', 'uom_id', 'price_unit','disc','p_f','p_f_type',   
+                                                                'e_d', 'e_d_type','tax_id','fright','fright_type'], 10), }, 
+            states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'amount_total_cgst_tax': fields.function(amount_all_quotation_line, multi='sums',string='Total CGSTAmt',digits=(16,3),
+                                      store={
+                'tpt.purchase.quotation': (lambda self, cr, uid, ids, c={}: ids, ['purchase_quotation_line'], 10),
+                'tpt.purchase.quotation.line': (_get_order, ['product_uom_qty', 'uom_id', 'price_unit','disc','p_f','p_f_type',   
+                                                                'e_d', 'e_d_type','tax_id','fright','fright_type'], 10), }, 
+            states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'amount_total_sgst_tax': fields.function(amount_all_quotation_line, multi='sums',string='Total SGSTAmt',digits=(16,3),
+                                      store={
+                'tpt.purchase.quotation': (lambda self, cr, uid, ids, c={}: ids, ['purchase_quotation_line'], 10),
+                'tpt.purchase.quotation.line': (_get_order, ['product_uom_qty', 'uom_id', 'price_unit','disc','p_f','p_f_type',   
+                                                                'e_d', 'e_d_type','tax_id','fright','fright_type'], 10), }, 
+            states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'amount_total_igst_tax': fields.function(amount_all_quotation_line, multi='sums',string='Total IGSTAmt',digits=(16,3),
                                       store={
                 'tpt.purchase.quotation': (lambda self, cr, uid, ids, c={}: ids, ['purchase_quotation_line'], 10),
                 'tpt.purchase.quotation.line': (_get_order, ['product_uom_qty', 'uom_id', 'price_unit','disc','p_f','p_f_type',   
@@ -1955,6 +1990,49 @@ class tpt_purchase_quotation_line(osv.osv):
             res[line.id]['line_net'] = line_net
         return res
     
+    def _get_tax_gst_amount(self, cr, uid, ids, field_name, args, context=None):
+        res = {}
+        for line in self.browse(cr,uid,ids,context=context):
+            tax_cgst_amount = 0.0
+            tax_sgst_amount = 0.0
+            tax_igst_amount = 0.0
+            res[line.id] = {
+                'tax_cgst_amount': 0.0,
+                'tax_sgst_amount': 0.0,
+                'tax_igst_amount': 0.0,
+            }
+            if line.tax_id:
+                basic = (line.product_uom_qty * line.price_unit) - ( (line.product_uom_qty * line.price_unit)*line.disc/100)
+                if line.p_f_type == '1' :
+                    p_f = basic * line.p_f/100
+                elif line.p_f_type == '2' :
+                    p_f = line.p_f
+                elif line.p_f_type == '3' :
+                    p_f = line.p_f * line.product_uom_qty
+                else:
+                    p_f = line.p_f
+                if line.e_d_type == '1' :
+                    ed = (basic + p_f) * line.e_d/100
+                elif line.e_d_type == '2' :
+                    ed = line.e_d
+                elif line.e_d_type == '3':
+                    ed = line.e_d *  line.product_uom_qty
+                else:
+                    ed = line.e_d
+                if line.tax_id.child_depend:
+                    for tax_child in line.tax_id.child_ids:
+                        if 'CGST' in tax_child.description.upper():
+                            tax_cgst_amount = (basic + p_f + ed)*(tax_child.amount or 0) / 100
+                        if 'SGST' in tax_child.description.upper():
+                            tax_sgst_amount = (basic + p_f + ed)*(tax_child.amount or 0) / 100
+                else:
+                    if 'IGST' in line.tax_id.description.upper():
+                        tax_igst_amount = (basic + p_f + ed)*(line.tax_id.amount or 0) / 100
+            res[line.id]['tax_cgst_amount'] = tax_cgst_amount
+            res[line.id]['tax_sgst_amount'] = tax_sgst_amount
+            res[line.id]['tax_igst_amount'] = tax_igst_amount
+        return res
+    
     _columns = {
         'purchase_quotation_id':fields.many2one('tpt.purchase.quotation','Purchase Quotitation', ondelete = 'cascade'),
         'po_indent_id':fields.many2one('tpt.purchase.indent','Indent No', readonly = True),
@@ -1968,6 +2046,9 @@ class tpt_purchase_quotation_line(osv.osv):
         'e_d': fields.float('ED',digits=(16,3)),
         'e_d_type':fields.selection([('1','%'),('2','Rs'),('3','Per Qty')],('ED Type')),
         'tax_id': fields.many2one('account.tax', 'Taxes',required = True),
+        'tax_cgst_amount': fields.function(_get_tax_gst_amount, store = True, multi='gst_tax' ,digits=(16,3),string='CGSTAmt'),
+        'tax_sgst_amount': fields.function(_get_tax_gst_amount, store = True, multi='gst_tax' ,digits=(16,3),string='SGSTAmt'),
+        'tax_igst_amount': fields.function(_get_tax_gst_amount, store = True, multi='gst_tax' ,digits=(16,3),string='IGSTAmt'),
         'fright': fields.float('Frt',digits=(16,3)),
         'fright_type':fields.selection([('1','%'),('2','Rs'),('3','Per Qty')],('Frt Type')),
         'line_net': fields.function(line_net_line, store = True, multi='deltas' ,digits=(16,3),string='SubTotal'),
@@ -2284,11 +2365,15 @@ class purchase_order(osv.osv):
     
     def amount_all_po_line(self, cr, uid, ids, field_name, args, context=None):
         res = {}
+        po_line_obj = self.pool.get('purchase.order.line')
         for line in self.browse(cr,uid,ids,context=context):
             res[line.id] = {
                 'amount_untaxed': 0.0,
                 'p_f_charge': 0.0,
                 'excise_duty': 0.0,
+                'amount_total_cgst_tax': 0.0,
+                'amount_total_sgst_tax': 0.0,
+                'amount_total_igst_tax': 0.0,
                 'amount_tax': 0.0,
                 'fright': 0.0,
                 'amount_total_inr': 0.0,
@@ -2297,6 +2382,9 @@ class purchase_order(osv.osv):
             p_f_charge=0.0
             excise_duty=0.0
             amount_total_tax=0.0
+            amount_total_cgst_tax = 0.0
+            amount_total_sgst_tax = 0.0
+            amount_total_igst_tax = 0.0
             total_tax = 0.0
             amount_fright=0.0
             qty = 0.0
@@ -2349,12 +2437,27 @@ class purchase_order(osv.osv):
 #                 amount_total_tax += basic*tax
                 #TPT-COMMENTED & ADDED BY BalamuruganPurushothaman ON 07/04/2015 - TO BLOCK FREIGHT AMT TO BE ADDED IN TAX CALCULATION
                 #amount_total_tax = (basic + p_f + ed + fright )*(tax) #Trong them + frieght vao ham tinh Tax
-                amount_total_tax = (basic + p_f + ed)*(tax) #TPT-HERE fright IS REMOVED
-                total_tax += amount_total_tax
+#                 amount_total_tax = (basic + p_f + ed)*(tax) #TPT-HERE fright IS REMOVED
+#                 total_tax += amount_total_tax
+                line_value = po_line_obj._get_tax_gst_amount(cr, uid, [po.id], None, None, None)[po.id]
+                
+                total_tax += line_value['tax_cgst_amount']+line_value['tax_sgst_amount']+line_value['tax_igst_amount']#(basic + p_f + ed)*(quotation.tax_id and quotation.tax_id.amount or 0) / 100
+                amount_total_cgst_tax += line_value['tax_cgst_amount']
+                amount_total_sgst_tax += line_value['tax_sgst_amount']
+                amount_total_igst_tax += line_value['tax_igst_amount']
+                
+#                 total_tax = po.tax_cgst_amount+po.tax_sgst_amount+po.tax_igst_amount
+#                 amount_total_cgst_tax += po.tax_cgst_amount
+#                 amount_total_sgst_tax += po.tax_sgst_amount
+#                 amount_total_igst_tax += po.tax_igst_amount
+#                 amount_total_tax += total_tax
                 
             res[line.id]['amount_untaxed'] = amount_untaxed
             res[line.id]['p_f_charge'] = p_f_charge
             res[line.id]['excise_duty'] = excise_duty
+            res[line.id]['amount_total_cgst_tax'] = amount_total_cgst_tax
+            res[line.id]['amount_total_sgst_tax'] = amount_total_sgst_tax
+            res[line.id]['amount_total_igst_tax'] = amount_total_igst_tax
             res[line.id]['amount_tax'] = total_tax
             res[line.id]['fright'] = amount_fright
             res[line.id]['amount_total'] = amount_untaxed+p_f_charge+excise_duty+total_tax+amount_fright
@@ -2415,6 +2518,24 @@ class purchase_order(osv.osv):
                                                                 'ed', 'ed_type','taxes_id','fright','fright_type'], 10)}), 
                 
         'amount_tax': fields.function(amount_all_po_line, string='Taxes',
+            store={
+                'purchase.order': (lambda self, cr, uid, ids, c={}: ids, ['order_line'], 10),   
+            'purchase.order.line': (_get_order, ['product_qty', 'product_uom', 'price_unit','discount','p_f','p_f_type',   
+                                                                'ed', 'ed_type','taxes_id','fright','fright_type'], 10) 
+            }, multi="sums", help="The tax amount"),
+        'amount_total_cgst_tax': fields.function(amount_all_po_line, string='Total CGSTAmt',
+            store={
+                'purchase.order': (lambda self, cr, uid, ids, c={}: ids, ['order_line'], 10),   
+            'purchase.order.line': (_get_order, ['product_qty', 'product_uom', 'price_unit','discount','p_f','p_f_type',   
+                                                                'ed', 'ed_type','taxes_id','fright','fright_type'], 10) 
+            }, multi="sums", help="The tax amount"),
+        'amount_total_sgst_tax': fields.function(amount_all_po_line, string='Total SGSTAmt',
+            store={
+                'purchase.order': (lambda self, cr, uid, ids, c={}: ids, ['order_line'], 10),   
+            'purchase.order.line': (_get_order, ['product_qty', 'product_uom', 'price_unit','discount','p_f','p_f_type',   
+                                                                'ed', 'ed_type','taxes_id','fright','fright_type'], 10) 
+            }, multi="sums", help="The tax amount"),
+        'amount_total_igst_tax': fields.function(amount_all_po_line, string='Total IGSTAmt',
             store={
                 'purchase.order': (lambda self, cr, uid, ids, c={}: ids, ['order_line'], 10),   
             'purchase.order.line': (_get_order, ['product_qty', 'product_uom', 'price_unit','discount','p_f','p_f_type',   
@@ -3426,6 +3547,53 @@ class purchase_order_line(osv.osv):
     #                 count = move['count']
     #                 return count or 0.000  
     #===========================================================================
+    
+    def _get_tax_gst_amount(self, cr, uid, ids, field_name, args, context=None):
+        res = {}
+        for line in self.browse(cr,uid,ids,context=context):
+            tax_cgst_amount = 0.0
+            tax_sgst_amount = 0.0
+            tax_igst_amount = 0.0
+            res[line.id] = {
+                'tax_cgst_amount': 0.0,
+                'tax_sgst_amount': 0.0,
+                'tax_igst_amount': 0.0,
+            }
+            if line.taxes_id:
+                
+                basic = (line.product_qty * line.price_unit) - ( (line.product_qty * line.price_unit)*line.discount/100)
+                if line.p_f_type == '1' :
+                    p_f = basic * line.p_f/100
+                elif line.p_f_type == '2' :
+                    p_f = line.p_f
+                elif line.p_f_type == '3':
+                    p_f = line.p_f * line.product_qty
+                else:
+                    p_f = line.p_f
+                if line.ed_type == '1' :
+                    ed = (basic + p_f) * line.ed/100
+                elif line.ed_type == '2' :
+                    ed = line.ed
+                elif line.ed_type == '3' :
+                    ed = line.ed *  line.product_qty
+                else:
+                    ed = line.ed
+                
+                for tax in line.taxes_id:
+                    if tax.child_depend:
+                        for tax_child in tax.child_ids:
+                            if 'CGST' in tax_child.description.upper():
+                                tax_cgst_amount += (basic + p_f + ed)*(tax_child.amount or 0) / 100
+                            if 'SGST' in tax_child.description.upper():
+                                tax_sgst_amount += (basic + p_f + ed)*(tax_child.amount or 0) / 100
+                    else:
+                        if 'IGST' in tax.description.upper():
+                            tax_igst_amount += (basic + p_f + ed)*(tax.amount or 0) / 100
+            res[line.id]['tax_cgst_amount'] = tax_cgst_amount
+            res[line.id]['tax_sgst_amount'] = tax_sgst_amount
+            res[line.id]['tax_igst_amount'] = tax_igst_amount
+        return res
+    
     _columns = {
 #                 'purchase_tax_id': fields.many2one('account.tax', 'Taxes', domain="[('type_tax_use','=','purchase')]", required = True), 
                 
@@ -3440,7 +3608,10 @@ class purchase_order_line(osv.osv):
                 'p_f_type':fields.selection([('1','%'),('2','Rs'),('3','Per Qty')],('P&F Type'), track_visibility='onchange',states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}),
                 'ed': fields.float('ED', track_visibility='onchange',states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}),  
                 'ed_type':fields.selection([('1','%'),('2','Rs'),('3','Per Qty')],('ED Type'), track_visibility='onchange',states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}),  
-                'taxes_id': fields.many2many('account.tax', 'purchase_order_taxe', 'ord_id', 'tax_id', 'Taxes', track_visibility='onchange',states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}),  
+                'taxes_id': fields.many2many('account.tax', 'purchase_order_taxe', 'ord_id', 'tax_id', 'Taxes', track_visibility='onchange',states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}),
+                'tax_cgst_amount': fields.function(_get_tax_gst_amount, store = True, multi='gst_tax' ,digits=(16,3),string='CGSTAmt'),
+                'tax_sgst_amount': fields.function(_get_tax_gst_amount, store = True, multi='gst_tax' ,digits=(16,3),string='SGSTAmt'),
+                'tax_igst_amount': fields.function(_get_tax_gst_amount, store = True, multi='gst_tax' ,digits=(16,3),string='IGSTAmt'),  
                 'fright': fields.float('Frt', track_visibility='onchange',states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}),  
                 'fright_type':fields.selection([('1','%'),('2','Rs'), ('3','Per Qty')],('Frt Type'), track_visibility='onchange',states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}),  
                 'line_no': fields.integer('Sl.No', readonly = True),

@@ -779,11 +779,15 @@ class account_invoice(osv.osv):
     
     def amount_all_supplier_invoice_line(self, cr, uid, ids, field_name, args, context=None):
         res = {}
+        invoice_line_obj = self.pool.get('account.invoice.line')
         for line in self.browse(cr,uid,ids,context=context):
             res[line.id] = {
                 'amount_untaxed': 0.0,
                 'p_f_charge': 0.0,
                 'excise_duty': 0.0,
+                'amount_total_cgst_tax': 0.0,
+                'amount_total_sgst_tax': 0.0,
+                'amount_total_igst_tax': 0.0,
                 'amount_tax': 0.0,
                 'fright': 0.0,
                 'amount_total': 0.0,
@@ -808,6 +812,10 @@ class account_invoice(osv.osv):
                 freight = 0.0
                 ins = 0.0
                 others = 0.0
+                amount_total_cgst_tax = 0.0
+                amount_total_sgst_tax = 0.0
+                amount_total_igst_tax = 0.0
+                total_tax = 0.0
                 voucher_rate = 1
                 if context is None:
                     context = {}
@@ -852,7 +860,17 @@ class account_invoice(osv.osv):
                     val2_line = val2_line
                     val2 += val2_line
                     #val2 = round(val2)
-   
+#                     total_tax += invoiceline.tax_cgst_amount+invoiceline.tax_sgst_amount+invoiceline.tax_igst_amount
+#                     amount_total_cgst_tax += invoiceline.tax_cgst_amount
+#                     amount_total_sgst_tax += invoiceline.tax_sgst_amount
+#                     amount_total_igst_tax += invoiceline.tax_igst_amount
+                    line_value = invoice_line_obj._get_tax_gst_amount(cr, uid, [invoiceline.id], None, None, None)[invoiceline.id]
+                
+                    total_tax += line_value['tax_cgst_amount']+line_value['tax_sgst_amount']+line_value['tax_igst_amount']#(basic + p_f + ed)*(quotation.tax_id and quotation.tax_id.amount or 0) / 100
+                    amount_total_cgst_tax += line_value['tax_cgst_amount']
+                    amount_total_sgst_tax += line_value['tax_sgst_amount']
+                    amount_total_igst_tax += line_value['tax_igst_amount']
+                    
                 ##FOR END
                 if line.invoice_type=='export':
                    freight = round(freight,2)
@@ -861,20 +879,24 @@ class account_invoice(osv.osv):
                    
                    
                    res[line.id]['amount_untaxed'] = round(val1,2)
-                   res[line.id]['amount_tax'] = round(val2,2)
-                   res[line.id]['amount_total'] = round(val1+val2+freight+ins+others,2)
-                   res[line.id]['amount_total_inr'] = round((val1+val2+freight+ins+others) / voucher_rate,2)
+                   res[line.id]['amount_tax'] = round(total_tax,2)
+                   res[line.id]['amount_total'] = round(val1+total_tax+freight+ins+others,2)
+                   res[line.id]['amount_total_inr'] = round((val1+total_tax+freight+ins+others) / voucher_rate,2)
                     
                 else:
                    freight = round(freight)
                    ins = round(ins)                 
                    val1 = round(val1)
-                   val2 = round(val2)
+                   val2 = round(total_tax)
                     
                    res[line.id]['amount_untaxed'] = round(val1)
                    res[line.id]['amount_tax'] = round(val2)
                    res[line.id]['amount_total'] = round(val1+val2+freight+ins)
                    res[line.id]['amount_total_inr'] = round((val1+val2+freight+ins) / voucher_rate)
+                
+                res[line.id]['amount_total_cgst_tax'] = round(amount_total_cgst_tax,2)
+                res[line.id]['amount_total_sgst_tax'] = round(amount_total_sgst_tax,2)
+                res[line.id]['amount_total_igst_tax'] = round(amount_total_igst_tax,2)
                 
                 for taxline in line.tax_line:
                     sql='''
@@ -888,6 +910,9 @@ class account_invoice(osv.osv):
                     p_f_charge=0.0
                     excise_duty=0.0
                     amount_total_tax=0.0
+                    amount_total_cgst_tax = 0.0
+                    amount_total_sgst_tax = 0.0
+                    amount_total_igst_tax = 0.0
                     total_tax = 0.0
                     total_fright=0.0
                     qty = 0.0
@@ -953,7 +978,17 @@ class account_invoice(osv.osv):
                             tax += tax_amount/100
                         amount_total_tax = (basic + p_f + ed + po.aed_id_1)*(tax)
 #                         amount_total_tax = round(amount_total_tax)
-                        total_tax += round(amount_total_tax,2)
+#                         total_tax += round(amount_total_tax,2)
+                        line_value = invoice_line_obj._get_tax_gst_amount(cr, uid, [po.id], None, None, None)[po.id]
+                
+                        total_tax += line_value['tax_cgst_amount']+line_value['tax_sgst_amount']+line_value['tax_igst_amount']#(basic + p_f + ed)*(quotation.tax_id and quotation.tax_id.amount or 0) / 100
+                        amount_total_cgst_tax += line_value['tax_cgst_amount']
+                        amount_total_sgst_tax += line_value['tax_sgst_amount']
+                        amount_total_igst_tax += line_value['tax_igst_amount']
+#                         total_tax = po.tax_cgst_amount+po.tax_sgst_amount+po.tax_igst_amount
+#                         amount_total_cgst_tax += po.tax_cgst_amount
+#                         amount_total_sgst_tax += po.tax_sgst_amount
+#                         amount_total_igst_tax += po.tax_igst_amount
 #                         total_tax = round(total_tax)
                         if po.tax_service_credit:
                             tax_credit_service = po.tax_service_credit.amount/100
@@ -996,6 +1031,9 @@ class account_invoice(osv.osv):
                     res[line.id]['amount_untaxed'] = round(amount_untaxed,2)
                     res[line.id]['p_f_charge'] = round(p_f_charge,2)
                     res[line.id]['excise_duty'] = round(excise_duty,2)
+                    res[line.id]['amount_total_cgst_tax'] = round(amount_total_cgst_tax,2)
+                    res[line.id]['amount_total_sgst_tax'] = round(amount_total_sgst_tax,2)
+                    res[line.id]['amount_total_igst_tax'] = round(amount_total_igst_tax,2)
                     res[line.id]['amount_tax'] = round(total_tax,2)
                     res[line.id]['amount_tax_credit'] = round(total_tax_credit_service,2)
                     res[line.id]['fright'] = round(total_fright,2)
@@ -1009,6 +1047,9 @@ class account_invoice(osv.osv):
                     p_f_charge=0.0
                     excise_duty=0.0
                     amount_total_tax=0.0
+                    amount_total_cgst_tax = 0.0
+                    amount_total_sgst_tax = 0.0
+                    amount_total_igst_tax = 0.0
                     total_tax = 0.0
                     total_fright=0.0
                     qty = 0.0
@@ -1069,7 +1110,17 @@ class account_invoice(osv.osv):
                             tax += tax_amount/100
                         amount_total_tax = (basic + p_f + ed)*(tax)
 #                         amount_total_tax = round(amount_total_tax)
-                        total_tax += round(amount_total_tax,2)#TPT BM - on 04/05/2016
+#                         total_tax += round(amount_total_tax,2)#TPT BM - on 04/05/2016
+                        line_value = invoice_line_obj._get_tax_gst_amount(cr, uid, [po.id], None, None, None)[po.id]
+                
+                        total_tax += line_value['tax_cgst_amount']+line_value['tax_sgst_amount']+line_value['tax_igst_amount']#(basic + p_f + ed)*(quotation.tax_id and quotation.tax_id.amount or 0) / 100
+                        amount_total_cgst_tax += line_value['tax_cgst_amount']
+                        amount_total_sgst_tax += line_value['tax_sgst_amount']
+                        amount_total_igst_tax += line_value['tax_igst_amount']
+#                         total_tax = po.tax_cgst_amount+po.tax_sgst_amount+po.tax_igst_amount
+#                         amount_total_cgst_tax += po.tax_cgst_amount
+#                         amount_total_sgst_tax += po.tax_sgst_amount
+#                         amount_total_igst_tax += po.tax_igst_amount
 #                         total_tax = round(total_tax)
                         ##TPT-BalamuruganPurushothaman ON 06/06/2106 - for tax credit field under service invoice withour po screen
                         if po.tax_service_credit:
@@ -1112,6 +1163,9 @@ class account_invoice(osv.osv):
                     res[line.id]['amount_untaxed'] = round(amount_untaxed,2)
                     res[line.id]['p_f_charge'] = round(p_f_charge,2)
                     res[line.id]['excise_duty'] = round(excise_duty,2)
+                    res[line.id]['amount_total_cgst_tax'] = round(amount_total_cgst_tax,2)
+                    res[line.id]['amount_total_sgst_tax'] = round(amount_total_sgst_tax,2)
+                    res[line.id]['amount_total_igst_tax'] = round(amount_total_igst_tax,2)
                     res[line.id]['amount_tax'] = round(total_tax,2)
                     res[line.id]['amount_tax_credit'] = round(total_tax_credit_service,2)
                     res[line.id]['fright'] = round(total_fright,2)
@@ -1205,6 +1259,21 @@ class account_invoice(osv.osv):
                                                                 'ed', 'ed_type','invoice_line_tax_id','fright','fright_type', 'tds_id','aed_id_1'], 10)}),
                  
         'amount_tax': fields.function(amount_all_supplier_invoice_line, multi='sums', string='Taxes',
+            store={
+                'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 10),   
+                'account.invoice.line': (_get_invoice_line, ['quantity', 'uos_id', 'price_unit','discount','p_f','p_f_type',   
+                                                                'ed', 'ed_type','invoice_line_tax_id','fright','fright_type', 'tds_id','aed_id_1'], 10)}),
+        'amount_total_cgst_tax': fields.function(amount_all_supplier_invoice_line, multi='sums', string='Total CGSTAmt',
+            store={
+                'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 10),   
+                'account.invoice.line': (_get_invoice_line, ['quantity', 'uos_id', 'price_unit','discount','p_f','p_f_type',   
+                                                                'ed', 'ed_type','invoice_line_tax_id','fright','fright_type', 'tds_id','aed_id_1'], 10)}),
+        'amount_total_sgst_tax': fields.function(amount_all_supplier_invoice_line, multi='sums', string='Total SGSTAmt',
+            store={
+                'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 10),   
+                'account.invoice.line': (_get_invoice_line, ['quantity', 'uos_id', 'price_unit','discount','p_f','p_f_type',   
+                                                                'ed', 'ed_type','invoice_line_tax_id','fright','fright_type', 'tds_id','aed_id_1'], 10)}),
+        'amount_total_igst_tax': fields.function(amount_all_supplier_invoice_line, multi='sums', string='Total IGSTAmt',
             store={
                 'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 10),   
                 'account.invoice.line': (_get_invoice_line, ['quantity', 'uos_id', 'price_unit','discount','p_f','p_f_type',   
@@ -1626,7 +1695,89 @@ class account_invoice_line(osv.osv):
                     
                 res[line.id]['krishi_kalyan'] = tax_debit_amount
 #                 res[line.id]['line_net'] = tax_tds_amount
-        return res 
+        return res
+    
+    def _get_tax_gst_amount(self, cr, uid, ids, field_name, args, context=None):
+        res = {}
+        for line in self.browse(cr,uid,ids,context=context):
+            tax_cgst_amount = 0.0
+            tax_sgst_amount = 0.0
+            tax_igst_amount = 0.0
+            res[line.id] = {
+                'tax_cgst_amount': 0.0,
+                'tax_sgst_amount': 0.0,
+                'tax_igst_amount': 0.0,
+            }
+            
+            if line.invoice_id.type == 'out_invoice':
+                if line.invoice_id.sale_tax_id:
+                    freight_line = line.quantity * line.freight
+                    amount_untaxed = line.price_subtotal
+                    if line.invoice_id.sale_tax_id.child_depend:
+                        for tax_child in line.invoice_id.sale_tax_id.child_ids:
+                            if 'CGST' in tax_child.description.upper():
+                                tax_cgst_amount += (amount_untaxed)*(tax_child.amount or 0) / 100
+                            if 'SGST' in tax_child.description.upper():
+                                tax_sgst_amount += (amount_untaxed)*(tax_child.amount or 0) / 100
+                    else:
+                        if 'IGST' in line.invoice_id.sale_tax_id.description.upper():
+                            tax_igst_amount += (amount_untaxed)*(line.invoice_id.sale_tax_id.amount or 0) / 100
+                
+            else: # IN_INVOICE
+                basic = (line.quantity * line.price_unit) - ( (line.quantity * line.price_unit)*line.disc/100)
+                basic = round(basic,2)
+                if line.p_f_type == '1' :
+                    p_f = basic * line.p_f/100
+                    p_f = round(p_f,2)
+                elif line.p_f_type == '2' :
+                    p_f = line.p_f
+                    p_f = round(p_f,2)
+                elif line.p_f_type == '3' :
+                    p_f = line.p_f * line.quantity
+                    p_f = round(p_f,2)
+                else:
+                    p_f = line.p_f
+                    p_f = round(p_f,2)
+                if line.ed_type == '1' :
+                    ed = (basic + p_f) * line.ed/100
+                    ed = round(ed,2)
+                elif line.ed_type == '2' :
+                    ed = line.ed
+                    ed = round(ed,2)
+                elif line.ed_type == '3' :
+                    ed = line.ed *  line.quantity
+                    ed = round(ed,2)
+                else:
+                    ed = line.ed
+                    ed = round(ed,2)
+                if line.invoice_id.purchase_id:
+                    for tax in line.invoice_line_tax_id:
+                        if tax.child_depend:
+                            for tax_child in tax.child_ids:
+                                if 'CGST' in tax_child.description.upper():
+                                    tax_cgst_amount += (basic + p_f + ed + line.aed_id_1)*(tax_child.amount or 0) / 100
+                                if 'SGST' in tax_child.description.upper():
+                                    tax_sgst_amount += (basic + p_f + ed + line.aed_id_1)*(tax_child.amount or 0) / 100
+                        else:
+                            if 'IGST' in tax.description.upper():
+                                tax_igst_amount += (basic + p_f + ed + line.aed_id_1)*(tax.amount or 0) / 100
+                else:
+                    for tax in line.invoice_line_tax_id:
+                        if tax.child_depend:
+                            for tax_child in tax.child_ids:
+                                if 'CGST' in tax_child.description.upper():
+                                    tax_cgst_amount += (basic + p_f + ed)*(tax_child.amount or 0) / 100
+                                if 'SGST' in tax_child.description.upper():
+                                    tax_sgst_amount += (basic + p_f + ed)*(tax_child.amount or 0) / 100
+                        else:
+                            if 'IGST' in tax.description.upper():
+                                tax_igst_amount += (basic + p_f + ed)*(tax.amount or 0) / 100
+                
+            res[line.id]['tax_cgst_amount'] = tax_cgst_amount
+            res[line.id]['tax_sgst_amount'] = tax_sgst_amount
+            res[line.id]['tax_igst_amount'] = tax_igst_amount
+        return res
+     
     _columns = {
         'invoice_line_tax_id': fields.many2many('account.tax', 'account_invoice_line_tax', 'invoice_line_id', 'tax_id', 'Taxes', domain=[('parent_id','=',False)]),
         'gl_code_id': fields.many2one('account.account', 'GL Code'),
@@ -1652,7 +1803,9 @@ class account_invoice_line(osv.osv):
         'tpt_tax_amt':fields.function(tax_supplier_invo, type='float', store = True, multi='taxamt' ,string='Tax Amt.'),
         'krishi_kalyan':fields.function(krishi_supplier_invo, type='float', store = True, multi='taxamt2' ,string='Krishi kalyan'),#TPT-BM-04/06/2016
         #'third_party_id': fields.many2one('tpt.third.service.entry', 'Service Entry'),
-        
+        'tax_cgst_amount': fields.function(_get_tax_gst_amount, store = True, multi='gst_tax' ,digits=(16,3),string='CGSTAmt'),
+        'tax_sgst_amount': fields.function(_get_tax_gst_amount, store = True, multi='gst_tax' ,digits=(16,3),string='SGSTAmt'),
+        'tax_igst_amount': fields.function(_get_tax_gst_amount, store = True, multi='gst_tax' ,digits=(16,3),string='IGSTAmt'),  
     }
     _defaults = {
         'name': '/',
