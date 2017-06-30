@@ -1029,7 +1029,7 @@ class arul_hr_payroll_executions(osv.osv):
     def esi_round_sign(self,cr, uid, ids,amount,context=None):
         e = amount%2
         a = amount//1        
-        if(e > 0.00):
+        if(e > 0.001):
             e = 1
         else:
             e = 0
