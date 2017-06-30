@@ -877,7 +877,10 @@ class account_invoice(osv.osv):
                    ins = round(ins,2)
                    others = round(others,2)
                    
-                   
+                   amount_total_cgst_tax = round(amount_total_cgst_tax)
+                   amount_total_sgst_tax = round(amount_total_sgst_tax)
+                   amount_total_igst_tax = round(amount_total_igst_tax)
+                   total_tax = amount_total_cgst_tax+amount_total_sgst_tax+amount_total_igst_tax
                    res[line.id]['amount_untaxed'] = round(val1,2)
                    res[line.id]['amount_tax'] = round(total_tax,2)
                    res[line.id]['amount_total'] = round(val1+total_tax+freight+ins+others,2)
@@ -887,8 +890,14 @@ class account_invoice(osv.osv):
                    freight = round(freight)
                    ins = round(ins)                 
                    val1 = round(val1)
-                   val2 = round(total_tax)
-                    
+#                    val2 = round(total_tax)
+                   
+                   amount_total_cgst_tax = round(amount_total_cgst_tax)
+                   amount_total_sgst_tax = round(amount_total_sgst_tax)
+                   amount_total_igst_tax = round(amount_total_igst_tax)
+                   total_tax = amount_total_cgst_tax+amount_total_sgst_tax+amount_total_igst_tax
+                   val2 = total_tax
+                   
                    res[line.id]['amount_untaxed'] = round(val1)
                    res[line.id]['amount_tax'] = round(val2)
                    res[line.id]['amount_total'] = round(val1+val2+freight+ins)
@@ -1028,6 +1037,11 @@ class account_invoice(osv.osv):
                     else:
                         deducte = 0
                     
+                    amount_total_cgst_tax = round(amount_total_cgst_tax)
+                    amount_total_sgst_tax = round(amount_total_sgst_tax)
+                    amount_total_igst_tax = round(amount_total_igst_tax)
+                    total_tax = amount_total_cgst_tax+amount_total_sgst_tax+amount_total_igst_tax
+                    
                     res[line.id]['amount_untaxed'] = round(amount_untaxed,2)
                     res[line.id]['p_f_charge'] = round(p_f_charge,2)
                     res[line.id]['excise_duty'] = round(excise_duty,2)
@@ -1159,7 +1173,12 @@ class account_invoice(osv.osv):
                         deducte = -(deducte)
                     else:
                         deducte = 0
-
+                    
+                    amount_total_cgst_tax = round(amount_total_cgst_tax)
+                    amount_total_sgst_tax = round(amount_total_sgst_tax)
+                    amount_total_igst_tax = round(amount_total_igst_tax)
+                    total_tax = amount_total_cgst_tax+amount_total_sgst_tax+amount_total_igst_tax
+                    
                     res[line.id]['amount_untaxed'] = round(amount_untaxed,2)
                     res[line.id]['p_f_charge'] = round(p_f_charge,2)
                     res[line.id]['excise_duty'] = round(excise_duty,2)

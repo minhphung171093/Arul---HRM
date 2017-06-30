@@ -1499,6 +1499,10 @@ class tpt_purchase_quotation(osv.osv):
                     amount_net = amount_basic + amount_p_f + amount_fright + amount_total_tax
                 else:
                     amount_net = amount_basic + amount_p_f + amount_fright
+            amount_total_cgst_tax = round(amount_total_cgst_tax)
+            amount_total_sgst_tax = round(amount_total_sgst_tax)
+            amount_total_igst_tax = round(amount_total_igst_tax)
+            amount_total_tax = amount_total_cgst_tax+amount_total_sgst_tax+amount_total_igst_tax
             amount_line += amount_basic
             amount_gross = amount_line + amount_p_f + amount_ed + amount_total_tax + amount_fright
             amount_net = amount_net
@@ -2022,12 +2026,12 @@ class tpt_purchase_quotation_line(osv.osv):
                 if line.tax_id.child_depend:
                     for tax_child in line.tax_id.child_ids:
                         if 'CGST' in tax_child.description.upper():
-                            tax_cgst_amount = (basic + p_f + ed)*(tax_child.amount or 0) / 100
+                            tax_cgst_amount = (basic)*(tax_child.amount or 0) / 100
                         if 'SGST' in tax_child.description.upper():
-                            tax_sgst_amount = (basic + p_f + ed)*(tax_child.amount or 0) / 100
+                            tax_sgst_amount = (basic)*(tax_child.amount or 0) / 100
                 else:
                     if 'IGST' in line.tax_id.description.upper():
-                        tax_igst_amount = (basic + p_f + ed)*(line.tax_id.amount or 0) / 100
+                        tax_igst_amount = (basic)*(line.tax_id.amount or 0) / 100
             res[line.id]['tax_cgst_amount'] = tax_cgst_amount
             res[line.id]['tax_sgst_amount'] = tax_sgst_amount
             res[line.id]['tax_igst_amount'] = tax_igst_amount
@@ -2451,7 +2455,10 @@ class purchase_order(osv.osv):
 #                 amount_total_sgst_tax += po.tax_sgst_amount
 #                 amount_total_igst_tax += po.tax_igst_amount
 #                 amount_total_tax += total_tax
-                
+            amount_total_cgst_tax = round(amount_total_cgst_tax)
+            amount_total_sgst_tax = round(amount_total_sgst_tax)
+            amount_total_igst_tax = round(amount_total_igst_tax)
+            total_tax = amount_total_cgst_tax+amount_total_sgst_tax+amount_total_igst_tax
             res[line.id]['amount_untaxed'] = amount_untaxed
             res[line.id]['p_f_charge'] = p_f_charge
             res[line.id]['excise_duty'] = excise_duty
@@ -2460,7 +2467,7 @@ class purchase_order(osv.osv):
             res[line.id]['amount_total_igst_tax'] = amount_total_igst_tax
             res[line.id]['amount_tax'] = total_tax
             res[line.id]['fright'] = amount_fright
-            res[line.id]['amount_total'] = amount_untaxed+p_f_charge+excise_duty+total_tax+amount_fright
+            res[line.id]['amount_total'] = amount_untaxed+p_f_charge+total_tax+amount_fright
             res[line.id]['amount_total_inr'] = (amount_untaxed+p_f_charge+excise_duty+total_tax+amount_fright)/voucher_rate
         return res
     
@@ -3583,12 +3590,12 @@ class purchase_order_line(osv.osv):
                     if tax.child_depend:
                         for tax_child in tax.child_ids:
                             if 'CGST' in tax_child.description.upper():
-                                tax_cgst_amount += (basic + p_f + ed)*(tax_child.amount or 0) / 100
+                                tax_cgst_amount += (basic)*(tax_child.amount or 0) / 100
                             if 'SGST' in tax_child.description.upper():
-                                tax_sgst_amount += (basic + p_f + ed)*(tax_child.amount or 0) / 100
+                                tax_sgst_amount += (basic)*(tax_child.amount or 0) / 100
                     else:
                         if 'IGST' in tax.description.upper():
-                            tax_igst_amount += (basic + p_f + ed)*(tax.amount or 0) / 100
+                            tax_igst_amount += (basic)*(tax.amount or 0) / 100
             res[line.id]['tax_cgst_amount'] = tax_cgst_amount
             res[line.id]['tax_sgst_amount'] = tax_sgst_amount
             res[line.id]['tax_igst_amount'] = tax_igst_amount

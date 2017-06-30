@@ -124,12 +124,17 @@ class sale_order(osv.osv):
                 res[line.id]['amount_untaxed'] = round(val1)
                 val2 = val1 * line.sale_tax_id.amount / 100
                 
-                val3 = val1 + val2 + freight
-                res[line.id]['amount_total'] = round(val3)
+                
+            amount_total_cgst_tax = round(amount_total_cgst_tax)
+            amount_total_sgst_tax = round(amount_total_sgst_tax)
+            amount_total_igst_tax = round(amount_total_igst_tax)
+            total_tax = amount_total_cgst_tax+amount_total_sgst_tax+amount_total_igst_tax
             res[line.id]['amount_total_cgst_tax'] = amount_total_cgst_tax
             res[line.id]['amount_total_sgst_tax'] = amount_total_sgst_tax
             res[line.id]['amount_total_igst_tax'] = amount_total_igst_tax
-            res[line.id]['amount_tax'] = round(total_tax)
+            res[line.id]['amount_tax'] = total_tax
+            val3 = val1 + total_tax + freight
+            res[line.id]['amount_total'] = round(val3)
         return res
     
     def _get_order(self, cr, uid, ids, context=None):
@@ -1534,13 +1539,17 @@ class tpt_blanket_order(osv.osv):
                 amount_total_cgst_tax += line_value['tax_cgst_amount']
                 amount_total_sgst_tax += line_value['tax_sgst_amount']
                 amount_total_igst_tax += line_value['tax_igst_amount']
+            amount_total_cgst_tax = round(amount_total_cgst_tax)
+            amount_total_sgst_tax = round(amount_total_sgst_tax)
+            amount_total_igst_tax = round(amount_total_igst_tax)
+            total_tax = amount_total_cgst_tax+amount_total_sgst_tax+amount_total_igst_tax
             res[line.id]['amount_untaxed'] = round(val1)
             val2 = val1 * line.sale_tax_id.amount / 100
             res[line.id]['amount_total_cgst_tax'] = amount_total_cgst_tax
             res[line.id]['amount_total_sgst_tax'] = amount_total_sgst_tax
             res[line.id]['amount_total_igst_tax'] = amount_total_igst_tax
-            res[line.id]['amount_tax'] = round(total_tax)
-            val3 = val1 + val2 + freight
+            res[line.id]['amount_tax'] = total_tax
+            val3 = val1 + total_tax + freight
             res[line.id]['amount_total'] = round(val3)
         return res
     
