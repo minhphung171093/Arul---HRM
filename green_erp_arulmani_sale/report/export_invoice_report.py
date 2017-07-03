@@ -56,10 +56,17 @@ class Parser(report_sxw.rml_parse):
         lnt = 0
         if desc:
             lnt = len(desc)
-            spaces = 400 - lnt
-            #print "bfr", desc
-            desc = desc.ljust(spaces)
-            #print "aftr", desc
+            if lnt > 0 and lnt <= 29:
+              for i in range(6):
+                desc += "-"+"\n"
+            elif lnt >= 30 and lnt <= 59:
+                for i in range(5):
+                    desc += "-"+"\n"
+            elif lnt >= 60 and lnt <= 89:
+                for i in range(4):
+                    desc += "-"+"\n"
+                   
+            
             return desc
     
     def get_amt2(self, amt):

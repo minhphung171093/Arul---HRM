@@ -1765,13 +1765,13 @@ class account_invoice(osv.osv):
         #TPT-BM - 01/07/2017 - EXPORT INVOICE PRINT CHANGES FOR GST
         invoice_ids = self.browse(cr, uid, ids[0])
         if invoice_ids.invoice_type == 'export':
-            if invoice_ids.state == 'draft':
-                return {
-                'type': 'ir.actions.report.xml',
-                'report_name': 'tpt_export_gst_account_invoice_draft',
-                } 
-            else:
-                return {
+            #---------------------------------- if invoice_ids.state == 'draft':
+                #------------------------------------------------------ return {
+                #------------------------------ 'type': 'ir.actions.report.xml',
+                #-------- 'report_name': 'tpt_export_gst_account_invoice_draft',
+                #------------------------------------------------------------- }
+            #------------------------------------------------------------- else:
+            return {
                 'type': 'ir.actions.report.xml',
                 'report_name': 'tpt_export_gst_account_invoice',
                 } 
