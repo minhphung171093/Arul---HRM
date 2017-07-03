@@ -45,7 +45,6 @@ class res_company(osv.osv):
                 'factory_city': fields.char('City', size=128),
                 'factory_state_id': fields.many2one("res.country.state", 'State'),
                 'factory_country_id': fields.many2one('res.country', 'Country'), 
-                
                 'tin_no': fields.char('TIN', size=128),
                 'gstin': fields.char('GSTIN',size=128),
                 'cst_no': fields.char('CST', size=128),

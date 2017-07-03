@@ -816,6 +816,7 @@ class account_invoice(osv.osv):
                 amount_total_sgst_tax = 0.0
                 amount_total_igst_tax = 0.0
                 total_tax = 0.0
+                sub_total = freight_line = 0.00
                 voucher_rate = 1
                 if context is None:
                     context = {}
@@ -835,7 +836,8 @@ class account_invoice(osv.osv):
                 if currency != 'INR':
                     voucher_rate = self.pool.get('res.currency').read(cr, uid, currency_id, ['rate'], context=ctx)['rate']
                 for invoiceline in line.invoice_line:           
-                    #raise osv.except_osv(_('Warning! Q'),_(invoiceline.freight))             
+                    #raise osv.except_osv(_('Warning! Q'),_(invoiceline.freight))    
+                    sub_total =  invoiceline.quantity * invoiceline.price_unit        
                     freight_line = invoiceline.quantity * invoiceline.freight #TPT
                     freight_line =freight_line
                     freight += freight_line
@@ -906,6 +908,10 @@ class account_invoice(osv.osv):
                 res[line.id]['amount_total_cgst_tax'] = round(amount_total_cgst_tax,2)
                 res[line.id]['amount_total_sgst_tax'] = round(amount_total_sgst_tax,2)
                 res[line.id]['amount_total_igst_tax'] = round(amount_total_igst_tax,2)
+                if line.invoice_type=='export':
+                    res[line.id]['amount_untaxed'] = round(sub_total, 2)
+                else:
+                    res[line.id]['amount_untaxed'] = round(sub_total + freight_line, 2)
                 
                 for taxline in line.tax_line:
                     sql='''
@@ -1732,6 +1738,7 @@ class account_invoice_line(osv.osv):
                 if line.invoice_id.sale_tax_id:
                     freight_line = line.quantity * line.freight
                     amount_untaxed = line.price_subtotal
+                    amount_untaxed += freight_line #TPT-BM-01/07/2017-GST 
                     if line.invoice_id.sale_tax_id.child_depend:
                         for tax_child in line.invoice_id.sale_tax_id.child_ids:
                             if 'CGST' in tax_child.description.upper():

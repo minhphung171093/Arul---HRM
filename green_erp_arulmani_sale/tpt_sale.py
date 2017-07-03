@@ -121,6 +121,7 @@ class sale_order(osv.osv):
 #                 amount_total_igst_tax += orderline.tax_igst_amount
                 
                 val1 = val1 + orderline.price_subtotal
+                val1 += freight #TPT-BM-01/07/2017-GST
                 res[line.id]['amount_untaxed'] = round(val1)
                 val2 = val1 * line.sale_tax_id.amount / 100
                 
@@ -133,7 +134,8 @@ class sale_order(osv.osv):
             res[line.id]['amount_total_sgst_tax'] = amount_total_sgst_tax
             res[line.id]['amount_total_igst_tax'] = amount_total_igst_tax
             res[line.id]['amount_tax'] = total_tax
-            val3 = val1 + total_tax + freight
+            #val3 = val1 + total_tax + freight
+            val3 = val1 + total_tax 
             res[line.id]['amount_total'] = round(val3)
         return res
     
@@ -1304,6 +1306,7 @@ class sale_order_line(osv.osv):
             
             if line.order_id.sale_tax_id:
                 amount_untaxed = line.price_subtotal
+                amount_untaxed += (line.product_uom_qty * line.freight) #TPT-BM-01/07/2017 - GST
                 if line.order_id.sale_tax_id.child_depend:
                     for tax_child in line.order_id.sale_tax_id.child_ids:
                         if 'CGST' in tax_child.description.upper():
@@ -1539,17 +1542,19 @@ class tpt_blanket_order(osv.osv):
                 amount_total_cgst_tax += line_value['tax_cgst_amount']
                 amount_total_sgst_tax += line_value['tax_sgst_amount']
                 amount_total_igst_tax += line_value['tax_igst_amount']
+            val1 += freight
             amount_total_cgst_tax = round(amount_total_cgst_tax)
             amount_total_sgst_tax = round(amount_total_sgst_tax)
             amount_total_igst_tax = round(amount_total_igst_tax)
             total_tax = amount_total_cgst_tax+amount_total_sgst_tax+amount_total_igst_tax
-            res[line.id]['amount_untaxed'] = round(val1)
+            res[line.id]['amount_untaxed'] = round(val1) #TPT-BM-Freight is addeded - This is Taxable Amount
             val2 = val1 * line.sale_tax_id.amount / 100
             res[line.id]['amount_total_cgst_tax'] = amount_total_cgst_tax
             res[line.id]['amount_total_sgst_tax'] = amount_total_sgst_tax
             res[line.id]['amount_total_igst_tax'] = amount_total_igst_tax
             res[line.id]['amount_tax'] = total_tax
-            val3 = val1 + total_tax + freight
+            #val3 = val1 + total_tax + freight
+            val3 = val1 + total_tax # GST-Freight Removed
             res[line.id]['amount_total'] = round(val3)
         return res
     
@@ -1979,6 +1984,7 @@ class tpt_blank_order_line(osv.osv):
             
             if line.blanket_order_id.sale_tax_id:
                 amount_untaxed = line.sub_total
+                amount_untaxed += (line.product_uom_qty * line.freight) #TPT-BM-01/07/2017 - For GST Freight Should be Included
                 if line.blanket_order_id.sale_tax_id.child_depend:
                     for tax_child in line.blanket_order_id.sale_tax_id.child_ids:
                         if 'CGST' in tax_child.description.upper():

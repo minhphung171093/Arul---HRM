@@ -1691,7 +1691,7 @@ class account_invoice(osv.osv):
                     vals['vvt_number'] = self.pool.get('ir.sequence').get(cr, uid, 'account.return.customer.invoice') or '/'
             
         return super(account_invoice, self).create(cr, uid, vals, context=context)
-    
+        
     def invoice_print(self, cr, uid, ids, context=None):
         '''
         This function prints the invoice and mark it as sent, so that we can see more easily the next step of the workflow
@@ -1762,10 +1762,21 @@ class account_invoice(osv.osv):
         This function prints the invoice and mark it as sent, so that we can see more easily the next step of the workflow
         '''
         assert len(ids) == 1, 'This option should only be used for a single id at a time.'
-        return {
-            'type': 'ir.actions.report.xml',
-            'report_name': 'tpt_domestic_account_invoice_gst',
-        }
+        #TPT-BM - 01/07/2017 - EXPORT INVOICE PRINT CHANGES FOR GST
+        invoice_ids = self.browse(cr, uid, ids[0])
+        if invoice_ids.invoice_type == 'export':
+            #===================================================================
+            # return {
+            #     'type': 'ir.actions.report.xml',
+            #     'report_name': 'tpt_export_gst_account_invoice',
+            #     } 
+            #===================================================================
+            return True
+        else:
+            return {
+                'type': 'ir.actions.report.xml',
+                'report_name': 'tpt_domestic_account_invoice_gst',
+            }
     
     def write(self, cr, uid, ids, vals, context=None):
         for id in ids:

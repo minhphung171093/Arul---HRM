@@ -13,6 +13,7 @@ import random
 from green_erp_arulmani_sale.report import amount_to_text_en
 DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
 DATE_FORMAT = "%Y-%m-%d"
+import locale
 
 from openerp.tools import DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_DATETIME_FORMAT, float_compare
 from datetime import datetime, timedelta
@@ -41,9 +42,39 @@ class Parser(report_sxw.rml_parse):
             'get_freight_lb':self.get_freight_lb, 
             'get_ins_lb':self.get_ins_lb,
             'get_other_lb':self.get_other_lb,
+            'get_amt2':self.get_amt2,
+            'get_frt_ins_oc':self.get_frt_ins_oc,
+            'get_s3':self.get_s3,
+            'get_s1_s2':self.get_s1_s2,
+            'get_s3_city_zip':self.get_s3_city_zip,
+            'get_state_country':self.get_state_country,
+            'get_total_amount': self.get_total_amount
             
         })
+    def get_amt2(self, amt):
+        locale.setlocale(locale.LC_NUMERIC, "en_IN")
+        inr_comma_format = locale.format("%.2f", amt, grouping=True)
+        return inr_comma_format
     
+    def get_frt_ins_oc(self, amt, qty, frt):   
+        res = {'frt':0.0, 'ins':0.0, 'oc':0.0}     
+        
+        
+        if amt>0:
+            frt_ins = format(amt / 1000, '.5f')
+            frt_ins = frt_ins+'/KG'
+        #=======================================================================
+        # elif frt>0:
+        #     frt_ins = frt_ins+'/KG'
+        #=======================================================================
+        else:
+            frt_ins = ''
+        
+        res = {'frt': frt_ins, 
+               'ins': frt_ins, 
+               'oc': frt_ins
+               }     
+        return res
     def get_date(self, date=False):
         if not date:
             date = time.strftime(DATE_FORMAT)
@@ -61,18 +92,23 @@ class Parser(report_sxw.rml_parse):
             val1 = val1 + line.price_unit + line.freight/line.quantity + insurance
         return round(val1, 2)
     
-    def get_total_amount(self, invoice_line, insurance):
-        val2 = 0.0
-        for line in invoice_line:
-            val2 = val2 + line.price_subtotal + line.freight + insurance*line.quantity
-        return round(val2, 0)
+    #===========================================================================
+    # def get_total_amount(self, invoice_line, insurance):
+    #     val2 = 0.0
+    #     for line in invoice_line:
+    #         val2 = val2 + line.price_subtotal + line.freight + insurance*line.quantity
+    #     return round(val2, 0)
+    #===========================================================================
     
-    def amount_to_text(self, nbr, lang='en', currency=False):
-        if lang == 'vn':
-            return  amount_to_text_en.amount_to_text(nbr, lang)
-        else:
-            a= currency
-            return amount_to_text_en.amount_to_text(nbr, lang, 'usd') 
+    def amount_to_text(self, nbr, currency):
+        lang='en'
+        if currency.name!='INR':
+            return amount_to_text_en.amount_to_text(nbr, lang, currency.name).upper() 
+        if currency.name=='INR':
+            text = Number2Words().convertNumberToWords(nbr).upper()
+            if text and len(text)>3 and text[:3]==' ':
+                text = text[3:]
+            return text 
         
     def get_pre(self, pre_carriage_by):
         pre = ''
@@ -130,12 +166,7 @@ class Parser(report_sxw.rml_parse):
         mt_freight = freight / qty   
         kgs_freight =  mt_freight / 1000           
         return round(kgs_freight,2)
-    def get_total_kgs(self, invoice_line, insurance):
-        val1 = 0.0
-        for line in invoice_line:
-            #mt_freight = freight / qty 
-            val1 = val1 + (line.price_unit/1000) + (line.freight/line.quantity)/1000 + insurance
-        return round(val1, 2)
+    
     def get_buyer(self, obj):
         buyer = ''
         if obj.partner_id and obj.cons_loca and obj.partner_id.id != obj.cons_loca.id:
@@ -171,3 +202,50 @@ class Parser(report_sxw.rml_parse):
                 #raise osv.except_osv(_('Warning!%s'),_(a))
                 if a==obj.id:                                                               
                     return  'OPATIN' + u"\u2122" +' R001'
+                
+    def get_s1_s2(self,partner):
+        if partner.street2:
+            return partner.street+", "+partner.street2
+        else:
+            return partner.street
+    def get_s3_city_zip(self,partner):
+        if partner.street3 and partner.city and partner.zip:
+            return partner.street3+", "+partner.city+", "+partner.zip
+        elif partner.street3 and partner.city and not partner.zip:
+            return partner.street3+", "+partner.city
+        elif not partner.street3 and partner.city and partner.zip:
+            return partner.city+", "+partner.zip
+        elif partner.street3 and not partner.city and partner.zip:
+            return partner.street3+", "+partner.zip
+        elif partner.street3 and not partner.city and not partner.zip:
+            return partner.street3
+        elif not partner.street3 and partner.city and not partner.zip:
+            return partner.city
+        elif not partner.street3 and not partner.city and partner.zip:
+            return partner.zip
+    def get_state_country(self,partner):
+        if partner.state_id:
+            if partner.state_id.name:
+                if partner.state_id.name:
+                    if (partner.state_id.name).replace(" ", ""):
+                        return partner.state_id.name+", "+partner.country_id.name
+                    else:
+                        return partner.country_id.name
+    def get_s3(self,partner):
+        if partner.street3 and partner.city:
+            return partner.street3+", "+partner.city
+        else:
+            return partner.city
+    def get_total_amount(self, invoice_line):
+        val2 = 0.0
+        for line in invoice_line:
+            val2 = val2 + line.price_subtotal + line.quantity*line.freight + line.insurance*(line.quantity) 
+        return round(val2, 2)
+    def get_total_kgs(self, invoice_line):
+        val1 = 0.0
+        for line in invoice_line:
+            #mt_freight = freight / qty 
+            #raise osv.except_osv(_('Warning!'),_((line.freight)/1000) )
+            val1 = val1 + round((line.price_unit/1000),5) + round(line.freight/1000,5) +  round(line.insurance/1000,5)
+        val1 = format(val1, '.5f')  
+        return val1
