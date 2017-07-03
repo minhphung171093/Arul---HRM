@@ -54,19 +54,36 @@ class Parser(report_sxw.rml_parse):
         })
     def get_desc(self, desc):
         lnt = 0
+        var = 0
         if desc:
             lnt = len(desc)
             if lnt > 0 and lnt <= 29:
-              for i in range(6):
-                desc += "-"+"\n"
+                var = 11
             elif lnt >= 30 and lnt <= 59:
-                for i in range(5):
-                    desc += "-"+"\n"
+                var = 10
             elif lnt >= 60 and lnt <= 89:
-                for i in range(4):
-                    desc += "-"+"\n"
-                   
-            
+                var = 9
+            elif lnt >= 90 and lnt <= 119:
+                var = 8   
+            elif lnt >= 120 and lnt <= 149:
+                var = 7 
+            elif lnt >= 150 and lnt <= 179:
+                var = 6
+            elif lnt >= 180 and lnt <= 209:
+                var = 5
+            elif lnt >= 210 and lnt <= 239:
+                var = 4
+            elif lnt >= 240 and lnt <= 269:
+                var = 3
+            elif lnt >= 270 and lnt <= 299:
+                var = 2
+            elif lnt >= 300 and lnt <= 329:
+                var = 1
+            elif lnt >= 330 and lnt <= 369:
+                var = 0
+                
+            for i in range(var):
+                desc += ""+"\n"        
             return desc
     
     def get_amt2(self, amt):
