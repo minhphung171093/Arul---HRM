@@ -48,9 +48,20 @@ class Parser(report_sxw.rml_parse):
             'get_s1_s2':self.get_s1_s2,
             'get_s3_city_zip':self.get_s3_city_zip,
             'get_state_country':self.get_state_country,
-            'get_total_amount': self.get_total_amount
+            'get_total_amount': self.get_total_amount,
+            'get_desc': self.get_desc
             
         })
+    def get_desc(self, desc):
+        lnt = 0
+        if desc:
+            lnt = len(desc)
+            spaces = 400 - lnt
+            #print "bfr", desc
+            desc = desc.ljust(spaces)
+            #print "aftr", desc
+            return desc
+    
     def get_amt2(self, amt):
         locale.setlocale(locale.LC_NUMERIC, "en_IN")
         inr_comma_format = locale.format("%.2f", amt, grouping=True)
@@ -58,15 +69,9 @@ class Parser(report_sxw.rml_parse):
     
     def get_frt_ins_oc(self, amt, qty, frt):   
         res = {'frt':0.0, 'ins':0.0, 'oc':0.0}     
-        
-        
-        if amt>0:
+        if frt>0:
             frt_ins = format(amt / 1000, '.5f')
             frt_ins = frt_ins+'/KG'
-        #=======================================================================
-        # elif frt>0:
-        #     frt_ins = frt_ins+'/KG'
-        #=======================================================================
         else:
             frt_ins = ''
         
