@@ -11479,6 +11479,7 @@ class tpt_time_data_move(osv.osv):
         #time_obj = self.pool.get('tpt.time.data.move')
         sql = '''
             select employee_code, date, punch_type, id from hr_attendance where is_moved='f'
+            order by date
         '''
         cr.execute(sql)
         time_ids = cr.fetchall()
@@ -11486,6 +11487,7 @@ class tpt_time_data_move(osv.osv):
         attn_obj = self.pool.get('tpt.hr.attendance')
         vals = []
         ntm_ids = ''
+        #print "IDS: ", time_ids
         for time in time_ids:
             vals = {'employee_id':time[0],
                     'work_date':time[1],
@@ -11496,6 +11498,7 @@ class tpt_time_data_move(osv.osv):
             else:
                 ntm_ids = ntm_ids +', '+ str(time[3])
             attn_obj.create(cr, uid, vals)
+            print "VALS: ",vals
         ntm_ids = str(ntm_ids).replace("[", "")
         ntm_ids = ntm_ids.replace("]", "")
         if len(ntm_ids)>=1:
