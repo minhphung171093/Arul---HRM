@@ -49,7 +49,8 @@ class Parser(report_sxw.rml_parse):
             'get_s3_city_zip':self.get_s3_city_zip,
             'get_state_country':self.get_state_country,
             'get_total_amount': self.get_total_amount,
-            'get_desc': self.get_desc
+            'get_desc': self.get_desc,
+            'get_amt5': self.get_amt5
             
         })
     def get_desc(self, desc):
@@ -89,6 +90,10 @@ class Parser(report_sxw.rml_parse):
     def get_amt2(self, amt):
         locale.setlocale(locale.LC_NUMERIC, "en_IN")
         inr_comma_format = locale.format("%.2f", amt, grouping=True)
+        return inr_comma_format
+    def get_amt5(self, amt):
+        locale.setlocale(locale.LC_NUMERIC, "en_IN")
+        inr_comma_format = locale.format("%.5f", amt, grouping=True)
         return inr_comma_format
     
     def get_frt_ins_oc(self, amt, qty, frt):   
@@ -183,7 +188,7 @@ class Parser(report_sxw.rml_parse):
         kgs_qty = 0
         kgs_qty = qty * 1000
         #raise osv.except_osv(_('Warning! %s'),_(round(kgs_qty,10)))
-        return round(kgs_qty)
+        return self.get_amt2(round(kgs_qty))
     def get_rate_kgs(self, rate):        
         kgs_rate = 0.00
         kgs_rate = rate / 1000   
