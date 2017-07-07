@@ -1508,9 +1508,9 @@ class tpt_purchase_quotation(osv.osv):
                     amount_net = amount_basic + amount_p_f + amount_fright + amount_total_tax
                 else:
                     amount_net = amount_basic + amount_p_f + amount_fright
-            amount_total_cgst_tax = round(amount_total_cgst_tax)
-            amount_total_sgst_tax = round(amount_total_sgst_tax)
-            amount_total_igst_tax = round(amount_total_igst_tax)
+            amount_total_cgst_tax = round(amount_total_cgst_tax, 2) #TPT-BM-07/07/2017 - GST NOT ROUNDED AS PER USER REQUEST
+            amount_total_sgst_tax = round(amount_total_sgst_tax, 2)
+            amount_total_igst_tax = round(amount_total_igst_tax, 2)
             amount_total_tax = amount_total_cgst_tax+amount_total_sgst_tax+amount_total_igst_tax + amount_total_oldtax
             if is_non_gst:
                 amount_total_tax = total_nongst_tax
@@ -2476,9 +2476,9 @@ class purchase_order(osv.osv):
 #                 amount_total_sgst_tax += po.tax_sgst_amount
 #                 amount_total_igst_tax += po.tax_igst_amount
 #                 amount_total_tax += total_tax
-            amount_total_cgst_tax = round(amount_total_cgst_tax)
-            amount_total_sgst_tax = round(amount_total_sgst_tax)
-            amount_total_igst_tax = round(amount_total_igst_tax)
+            amount_total_cgst_tax = round(amount_total_cgst_tax, 2)
+            amount_total_sgst_tax = round(amount_total_sgst_tax, 2)
+            amount_total_igst_tax = round(amount_total_igst_tax, 2)
             total_tax = amount_total_cgst_tax+amount_total_sgst_tax+amount_total_igst_tax
             if is_non_gst:
                 total_tax = total_nongst_tax

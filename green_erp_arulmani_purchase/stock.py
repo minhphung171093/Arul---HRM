@@ -1045,9 +1045,9 @@ class account_invoice(osv.osv):
                     else:
                         deducte = 0
                     
-                    amount_total_cgst_tax = round(amount_total_cgst_tax)
-                    amount_total_sgst_tax = round(amount_total_sgst_tax)
-                    amount_total_igst_tax = round(amount_total_igst_tax)
+                    amount_total_cgst_tax = round(amount_total_cgst_tax, 2) # TPT-BM-GST - 07/07/2017 NOT FULL ROUND IN PURCHASE CYCLE AS PER USER REQUEST
+                    amount_total_sgst_tax = round(amount_total_sgst_tax, 2)
+                    amount_total_igst_tax = round(amount_total_igst_tax, 2)
                     total_tax = amount_total_cgst_tax+amount_total_sgst_tax+amount_total_igst_tax
                     if amount_total_cgst_tax == 0 and amount_total_igst_tax == 0:
                         total_tax = amount_total_tax
