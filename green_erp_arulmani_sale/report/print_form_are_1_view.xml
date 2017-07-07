@@ -50,6 +50,34 @@
 			name="form_are_1_report_back"
 	        string="Print Form A.R.E - 1 Back"
 	        groups="green_erp_arulmani_sale.group_vvti_sale_user"
-	        rml="green_erp_arulmani_sale/report/print_form_are_1_back.odt"/> 	        
+	        rml="green_erp_arulmani_sale/report/print_form_are_1_back.odt"/> 	 
+	        
+	        
+	   <record id="form_are_1_report_gst" model="ir.actions.report.xml">
+	        <field name="name">form.are.1.report</field>
+	        <field name="type">ir.actions.report.xml</field>
+	        <field name="model">tpt.form.are.1</field>
+	        <field name="report_name">Print Form A.R.E - 1 GST</field>
+	        <field name="report_type">aeroo</field>
+	        <field name="in_format">oo-odt</field>
+	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-pdf'),('compatible_types','=','oo-odt')]"/>
+	        <field name="parser_loc">green_erp_arulmani_sale/report/print_form_are_1.py</field>
+	        <field name="report_rml">green_erp_arulmani_sale/report/print_form_are_1gst.odt</field>
+	        <field name="parser_state">loc</field>
+	        <field name="tml_source">file</field>
+	        <field name="attachment_use" eval="0"/>
+    	</record> 
+    	   
+    	<report 
+			auto="False" 
+			menu="True"
+			id="form_are_1_report_gst" 
+			model="tpt.form.are.1" 
+			name="form_are_1_report_gst"
+	        string="Print A.R.E-1 GST"
+	        groups="green_erp_arulmani_sale.group_vvti_sale_user"
+	        rml="green_erp_arulmani_sale/report/print_form_are_1gst.odt"/> 
+	        
+	               
 	</data>
 </openerp>

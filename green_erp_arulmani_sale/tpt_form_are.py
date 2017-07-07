@@ -36,6 +36,7 @@ class tpt_form_are_1(osv.osv):
         'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancelled'),('done', 'Approved')],'Status', readonly=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         
         'excise_duty_id': fields.many2one('account.tax', 'Ex.Duty', domain="[('type_tax_use','=','excise_duty')]", ),
+        'tax_id': fields.many2one('account.tax', 'GST', domain="[('type_tax_use','=','sale')]", ),
         'ed_amount': fields.float('ED Amt', ),
         'amount_usd': fields.float('Amt in USD', ),
         'amount_inr': fields.float('Amt in INR', ),
@@ -104,6 +105,28 @@ class tpt_form_are_1(osv.osv):
         return {
                 'type': 'ir.actions.report.xml',
                 'report_name': 'form_are_1_report',
+            }
+    def print_are1_gst(self, cr, uid, ids, context=None):
+        '''
+        This function prints the invoice and mark it as sent, so that we can see more easily the next step of the workflow
+        '''
+        assert len(ids) == 1, 'This option should only be used for a single id at a time.'
+        self.write(cr, uid, ids, {'sent': True}, context=context)
+        
+        are1_ids = self.browse(cr, uid, ids[0])
+        if are1_ids.is_original is False and are1_ids.is_duplicate is False and are1_ids.is_triplicate is False and are1_ids.is_quadruplicate is False and are1_ids.is_extra is False:
+            raise osv.except_osv(_('Warning!'),
+                _('Please Select any one of the following: -Original Copy\n -Duplicate Copy\n -Triplicate Copy\n -Quadruplicate Copy\n -Extra Copy'))
+        
+        datas = {
+             'ids': ids,
+             'model': 'tpt.form.are.1',
+             'form': self.read(cr, uid, ids[0], context=context)
+        }
+        
+        return {
+                'type': 'ir.actions.report.xml',
+                'report_name': 'form_are_1_report_gst',
             }
     #TPT START - By SSR - ON 16/02/2017 - Ticket - 3808        
     def print_are1_back(self, cr, uid, ids, context=None):
