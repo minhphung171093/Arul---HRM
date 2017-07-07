@@ -991,7 +991,7 @@ class account_invoice(osv.osv):
                         tax_amounts = [r.amount for r in po.invoice_line_tax_id]
                         for tax_amount in tax_amounts:
                             tax += tax_amount/100
-                        amount_total_tax = (basic + p_f + ed + po.aed_id_1)*(tax)
+                        amount_total_tax += (basic + p_f + ed + po.aed_id_1)*(tax)
 #                         amount_total_tax = round(amount_total_tax)
 #                         total_tax += round(amount_total_tax,2)
                         line_value = invoice_line_obj._get_tax_gst_amount(cr, uid, [po.id], None, None, None)[po.id]
@@ -1047,6 +1047,9 @@ class account_invoice(osv.osv):
                     amount_total_sgst_tax = round(amount_total_sgst_tax)
                     amount_total_igst_tax = round(amount_total_igst_tax)
                     total_tax = amount_total_cgst_tax+amount_total_sgst_tax+amount_total_igst_tax
+                    if amount_total_cgst_tax == 0 and amount_total_igst_tax == 0:
+                        total_tax = amount_total_tax
+                        print "-->:", amount_total_tax
                     
                     res[line.id]['amount_untaxed'] = round(amount_untaxed,2)
                     res[line.id]['p_f_charge'] = round(p_f_charge,2)

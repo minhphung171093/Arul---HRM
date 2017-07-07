@@ -1430,12 +1430,16 @@ class tpt_purchase_quotation(osv.osv):
             amount_total_cgst_tax=0.0
             amount_total_sgst_tax=0.0
             amount_total_igst_tax=0.0
+            amount_total_oldtax = 0.0 #For GST Rollback
+            total_nongst_tax = 0.0
+            is_non_gst = False
             amount_fright=0.0
             amount_gross=0.0
             amount_net=0.0
             amount_unit_net=0.0
             qty = 0.0
             amount_total_inr = 0.0
+            total_tax_old = 0.0
             voucher_rate = 1
             if context is None:
                 context = {}
@@ -1477,6 +1481,11 @@ class tpt_purchase_quotation(osv.osv):
                 amount_total_cgst_tax += line_value['tax_cgst_amount']
                 amount_total_sgst_tax += line_value['tax_sgst_amount']
                 amount_total_igst_tax += line_value['tax_igst_amount']
+                
+                #amount_total_oldtax += line_value['tax_amount']#GST Rollback
+                if 'GST' not in quotation.tax_id.description:
+                    total_nongst_tax += (basic + p_f + ed)*(quotation.tax_id and quotation.tax_id.amount or 0) / 100
+                    is_non_gst = True
                 amount_total_tax += total_tax
                 if quotation.fright_type == '1' :
                     fright = (basic + p_f + ed + total_tax) * quotation.fright/100
@@ -1502,7 +1511,9 @@ class tpt_purchase_quotation(osv.osv):
             amount_total_cgst_tax = round(amount_total_cgst_tax)
             amount_total_sgst_tax = round(amount_total_sgst_tax)
             amount_total_igst_tax = round(amount_total_igst_tax)
-            amount_total_tax = amount_total_cgst_tax+amount_total_sgst_tax+amount_total_igst_tax
+            amount_total_tax = amount_total_cgst_tax+amount_total_sgst_tax+amount_total_igst_tax + amount_total_oldtax
+            if is_non_gst:
+                amount_total_tax = total_nongst_tax
             amount_line += amount_basic
             amount_gross = amount_line + amount_p_f + amount_ed + amount_total_tax + amount_fright
             amount_net = amount_net
@@ -2000,10 +2011,12 @@ class tpt_purchase_quotation_line(osv.osv):
             tax_cgst_amount = 0.0
             tax_sgst_amount = 0.0
             tax_igst_amount = 0.0
+            tax_amount = 0.0
             res[line.id] = {
                 'tax_cgst_amount': 0.0,
                 'tax_sgst_amount': 0.0,
                 'tax_igst_amount': 0.0,
+                'tax_amount': 0.0,
             }
             if line.tax_id:
                 basic = (line.product_uom_qty * line.price_unit) - ( (line.product_uom_qty * line.price_unit)*line.disc/100)
@@ -2032,9 +2045,12 @@ class tpt_purchase_quotation_line(osv.osv):
                 else:
                     if 'IGST' in line.tax_id.description.upper():
                         tax_igst_amount = (basic)*(line.tax_id.amount or 0) / 100
+                    else:
+                        tax_amount = (basic)*(line.tax_id.amount or 0) / 100
             res[line.id]['tax_cgst_amount'] = tax_cgst_amount
             res[line.id]['tax_sgst_amount'] = tax_sgst_amount
             res[line.id]['tax_igst_amount'] = tax_igst_amount
+            res[line.id]['tax_amount'] = tax_amount
         return res
     
     _columns = {
@@ -2053,6 +2069,7 @@ class tpt_purchase_quotation_line(osv.osv):
         'tax_cgst_amount': fields.function(_get_tax_gst_amount, store = True, multi='gst_tax' ,digits=(16,3),string='CGSTAmt'),
         'tax_sgst_amount': fields.function(_get_tax_gst_amount, store = True, multi='gst_tax' ,digits=(16,3),string='SGSTAmt'),
         'tax_igst_amount': fields.function(_get_tax_gst_amount, store = True, multi='gst_tax' ,digits=(16,3),string='IGSTAmt'),
+        'tax_amount': fields.function(_get_tax_gst_amount, store = True, multi='gst_tax' ,digits=(16,3),string='Old Tax'),
         'fright': fields.float('Frt',digits=(16,3)),
         'fright_type':fields.selection([('1','%'),('2','Rs'),('3','Per Qty')],('Frt Type')),
         'line_net': fields.function(line_net_line, store = True, multi='deltas' ,digits=(16,3),string='SubTotal'),
@@ -2392,6 +2409,8 @@ class purchase_order(osv.osv):
             total_tax = 0.0
             amount_fright=0.0
             qty = 0.0
+            total_nongst_tax = 0.0
+            is_non_gst = False
             voucher_rate = 1
             if context is None:
                 context = {}
@@ -2449,7 +2468,9 @@ class purchase_order(osv.osv):
                 amount_total_cgst_tax += line_value['tax_cgst_amount']
                 amount_total_sgst_tax += line_value['tax_sgst_amount']
                 amount_total_igst_tax += line_value['tax_igst_amount']
-                
+                if amount_total_cgst_tax == 0 and  amount_total_igst_tax == 0:
+                    total_nongst_tax += (basic + p_f + ed)*(tax)
+                    is_non_gst = True
 #                 total_tax = po.tax_cgst_amount+po.tax_sgst_amount+po.tax_igst_amount
 #                 amount_total_cgst_tax += po.tax_cgst_amount
 #                 amount_total_sgst_tax += po.tax_sgst_amount
@@ -2459,6 +2480,9 @@ class purchase_order(osv.osv):
             amount_total_sgst_tax = round(amount_total_sgst_tax)
             amount_total_igst_tax = round(amount_total_igst_tax)
             total_tax = amount_total_cgst_tax+amount_total_sgst_tax+amount_total_igst_tax
+            if is_non_gst:
+                total_tax = total_nongst_tax
+                
             res[line.id]['amount_untaxed'] = amount_untaxed
             res[line.id]['p_f_charge'] = p_f_charge
             res[line.id]['excise_duty'] = excise_duty

@@ -12,6 +12,7 @@ class daily_inout(osv.osv_memory):
     
     _columns = {
             'workdate': fields.date('Work Date', required = True),
+            'is_ast': fields.boolean('Load All Entries'),
             
     }
     

@@ -1771,7 +1771,7 @@ class account_invoice(osv.osv):
                 iml = invoice_line_obj.move_line_pf(cr, uid, inv.id)
 #                 iml += invoice_line_obj.move_line_fright(cr, uid, inv.id) 
 #                 iml += invoice_line_obj.move_line_amount_tax(cr, uid, inv.id)
-#                 iml += invoice_line_obj.move_line_excise_duty(cr, uid, inv.id)
+                iml += invoice_line_obj.move_line_excise_duty(cr, uid, inv.id) # <!-- TPT-BM-GST-ROLLBACK -->
                 iml += invoice_line_obj.move_line_aed(cr, uid, inv.id)
                 name = inv['name'] or inv['supplier_invoice_number'] or '/'
                 if inv.purchase_id:

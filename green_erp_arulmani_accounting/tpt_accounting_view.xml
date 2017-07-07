@@ -227,7 +227,7 @@
 				</xpath>
 				<xpath expr="//page[@string='Invoice']/group/field[@name='amount_untaxed']" position="after">
 					<field name="p_f_charge" widget="monetary" options="{'currency_field': 'currency_id'}"/>
-					<field name="excise_duty" invisible='1' widget="monetary" options="{'currency_field': 'currency_id'}"/>
+					<field name="excise_duty" invisible='0' widget="monetary" options="{'currency_field': 'currency_id'}"/>
 					<field name="aed" invisible='1' widget="monetary" options="{'currency_field': 'currency_id'}"/>
 					<field name="amount_total_cgst_tax" widget="monetary" options="{'currency_field': 'currency_id'}"/>
 					<field name="amount_total_sgst_tax" widget="monetary" options="{'currency_field': 'currency_id'}"/>
@@ -391,8 +391,8 @@
 					<field name="disc"/>
 					<field name="p_f"/>
 					<field name="p_f_type"/>
-					<field name="ed" invisible="1"/>
-					<field name="ed_type" invisible="1"/>
+					<field name="ed" invisible="0"/> <!-- TPT-BM-GST-ROLLBACK -->
+					<field name="ed_type" invisible="0"/> <!-- TPT-BM-GST-ROLLBACK -->
 				</xpath> 
 				<xpath expr="//page[@string='Invoice']/field/tree/field[@name='invoice_line_tax_id']" position="after">
 					<field name="tax_cgst_amount" invisible="1"/>
@@ -541,8 +541,8 @@
                                     <field name="tds_id" options="{'create': false, 'create_edit': false}"/>
                                     <field name="p_f"/>
                                     <field name="p_f_type" invisible = '1'/>
-                                    <field name="ed" invisible="1"/>
-                                    <field name="ed_type" invisible="1"/>
+                                    <field name="ed" invisible="0"/>
+                                    <field name="ed_type" invisible="0"/>
                                     <!--<field name="tax_id"/> -->
                                       
                                     <field name="tax_id" on_change = "onchange_tax_id(tax_id)" context="{'type':parent.type}"
@@ -788,8 +788,8 @@
 	                                    <field name="tds_id" options="{'create': false, 'create_edit': false}"/>
 	                                    <field name="p_f"/>
 	                                    <field name="p_f_type"/>
-	                                    <field name="ed" invisible="1"/>
-	                                    <field name="ed_type" invisible="1"/>
+	                                    <field name="ed" invisible="0"/> <!-- TPT-BM-GST-ROLLBACK -->
+	                                    <field name="ed_type" invisible="0"/> <!-- TPT-BM-GST-ROLLBACK -->
 	                                    <field name="tax_id" on_change = "onchange_tax_id(tax_id)" context="{'type':parent.type}"
                                         domain="[('parent_id','=',False),('company_id', '=', parent.company_id)]" options="{'create': false, 'create_edit': false}"/>
                                     <field name="invoice_line_tax_id" string = 'Taxes' widget="many2many_tags" context="{'type':parent.type}"
@@ -812,7 +812,7 @@
                             <group class="oe_subtotal_footer oe_right">
                                 <field name="amount_untaxed" widget="monetary" options="{'currency_field': 'currency_id'}"/>
                                 <field name="p_f_charge" widget="monetary"/>
-								<field name="excise_duty" invisible='1' widget="monetary"/>
+								<field name="excise_duty" invisible='0' widget="monetary"/> <!-- TPT-BM-GST-ROLLBACK -->
 								<field name="amount_total_cgst_tax" widget="monetary" options="{'currency_field': 'currency_id'}"/>
                                 <field name="amount_total_sgst_tax" widget="monetary" options="{'currency_field': 'currency_id'}"/>
                                 <field name="amount_total_igst_tax" widget="monetary" options="{'currency_field': 'currency_id'}"/>

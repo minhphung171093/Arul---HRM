@@ -10966,7 +10966,8 @@ class tpt_hr_attendance(osv.osv):
               #'employee_id': fields.many2one('hr.employee','Employee ID'),  
               'employee_id': fields.char('Employee ID'),    
               'work_date': fields.datetime('Work Date'),
-              'punch_type': fields.char('Punch Type'),
+              #'punch_type': fields.char('Punch Type'),
+              'punch_type':fields.selection([('in', 'IN'),('out', 'OUT')],'Punch Type'),
               'is_processed': fields.boolean('Is Processed'),  
               
               } 
@@ -11037,24 +11038,29 @@ class tpt_hr_attendance(osv.osv):
             
             if punch_type=='in':
                 in_time = float(hour)+float(min)/60+float(sec)/3600
-                attend_temp_obj.create(cr, uid, {
-                                 'employee_id': emp_root.id,
-                                 'work_date': work_date_format,                             
-                                 'in_time': in_time,
-                                 'out_time': 0,
-                                  })
-                attend_obj.write(cr, uid, time_entry.id, {'is_processed':'t'})
-                #AST Creation
-                ast_obj.create(cr, uid, {
-                                 'employee_id': emp_root.id,
-                                 'punch_in_date':work_date_format,
-                                 'work_date': work_date_format,
-                                 'ref_in_time': in_time,
-                                 'in_time': in_time,
-                                 'out_time': 0,
-                                 'employee_category_id':emp_root.employee_category_id.id,
-                                 'type':'punch',
-                                  })
+                ##HANDLE HERE
+                in_time1 = float(hour)+float(min)/60
+                ast_ids = ast_obj.search(cr, uid, [('employee_id','=',emp_root.id), ('work_date','=',work_date_format), ('in_time','=',in_time1)]) 
+                ##
+                if not ast_ids:
+                    attend_temp_obj.create(cr, uid, {
+                                     'employee_id': emp_root.id,
+                                     'work_date': work_date_format,                             
+                                     'in_time': in_time,
+                                     'out_time': 0,
+                                      })
+                    attend_obj.write(cr, uid, time_entry.id, {'is_processed':'t'})
+                    #AST Creation
+                    ast_obj.create(cr, uid, {
+                                     'employee_id': emp_root.id,
+                                     'punch_in_date':work_date_format,
+                                     'work_date': work_date_format,
+                                     'ref_in_time': in_time,
+                                     'in_time': in_time,
+                                     'out_time': 0,
+                                     'employee_category_id':emp_root.employee_category_id.id,
+                                     'type':'punch',
+                                      })
             if punch_type=='out':
                 out_time = float(hour)+float(min)/60+float(sec)/3600
                 #===============================================================
@@ -11084,26 +11090,20 @@ class tpt_hr_attendance(osv.osv):
                 prev_day_ast_ids = ast_obj.search(cr, uid, [('employee_id','=',emp_root.id), ('work_date','=',perv_work_date),('in_time','>',0), ('out_time','=',0)])  
                 if ast_ids:
                     exist_ast_obj = ast_obj.browse(cr,uid,ast_ids[0])
+                    
                     exist_in_time = exist_ast_obj.in_time
                     punch_in_date = exist_ast_obj.work_date
-                    ast_id = exist_ast_obj.id
-                    ast_obj.write(cr, uid, [exist_ast_obj.id], {
-                                 #'employee_id': emp_root.id,
-                                 'punch_out_date':work_date_format,
-                                 'ref_out_time': out_time,
-                                 'out_time': out_time,
-                                  }) 
-                    ### 
-                        
-                    self.auto_approve_to_attendance(cr, uid, emp_root, work_date_format, exist_in_time, out_time, shift_id, 
-                                                          punch_in_date, ast_id)
-                   
-                    #===========================================================
-                    # attend_temp_obj.write(cr, uid, [exist_emp_obj.id], {
-                    #              'is_auto_approved': True,
-                    #               })    
-                    #===========================================================
-                    attend_obj.write(cr, uid, time_entry.id, {'is_processed':'t'})
+                    if exist_ast_obj.out_time == 0: # TPT-BM-05/07/2017 - IF ADDED TO AVOID DUPLICATE ATTENDANCE 
+                        ast_id = exist_ast_obj.id
+                        ast_obj.write(cr, uid, [exist_ast_obj.id], {
+                                     #'employee_id': emp_root.id,
+                                     'punch_out_date':work_date_format,
+                                     'ref_out_time': out_time,
+                                     'out_time': out_time,
+                                      }) 
+                        self.auto_approve_to_attendance(cr, uid, emp_root, work_date_format, exist_in_time, out_time, shift_id, 
+                                                              punch_in_date, ast_id)
+                        attend_obj.write(cr, uid, time_entry.id, {'is_processed':'t'})
                                            
                 elif prev_day_ast_ids:
                     exist_ast_obj = ast_obj.browse(cr,uid,prev_day_ast_ids[0])
@@ -11290,6 +11290,7 @@ class tpt_hr_attendance(osv.osv):
             work_shift_id=k[9]
             
         if shift_count==1  and shift_id:
+            work_date_format = punch_in_date if c_shift > 0 else work_date_format #TPT-BM- 05/07/2017 - Work Date as Punch In Date for C-SHIFT
             punch_io_values={'employee_id':emp_root.id,'planned_work_shift_id':shift_id,'actual_work_shift_id':work_shift_id,'work_date':work_date_format,
                             'in_time':in_time,'out_time':out_time,'work_shift_code':work_shift_code, 
                             'a_shift_count1':a_shift,
@@ -11303,6 +11304,7 @@ class tpt_hr_attendance(osv.osv):
             if employee_ids: 
                 punch_io_values.update({'punch_in_out_id':employee_ids[0]}) 
                 punch_io_obj.create(cr,uid,punch_io_values)
+                ############DONE ATTENDANCE LOGIC ############
                 ## C.OFF LOGIC
                 sql=''' SELECT work_date FROM arul_hr_punch_in_out_time WHERE TO_CHAR(work_date,'YYYY-MM-DD') = ('%s') and employee_id=%s '''%(work_date_format,emp_root.id)
                 cr.execute(sql)                
@@ -11472,7 +11474,7 @@ class tpt_time_data_move(osv.osv):
                 from_cursor.execute(sql)
                 from_conn.commit()
             
-                print "TIME DATA MOVED"
+                #print "TIME DATA MOVED"
             return True
     ##TPT-BM-29/11/2016
     def upload_batronix_time_data(self, cr, uid, context=None):
@@ -11488,26 +11490,40 @@ class tpt_time_data_move(osv.osv):
         vals = []
         ntm_ids = ''
         #print "IDS: ", time_ids
-        for time in time_ids:
-            vals = {'employee_id':time[0],
-                    'work_date':time[1],
-                    'punch_type':time[2],     
+        tm_obj = self.pool.get('hr.attendance')
+        tm_obj_ids = tm_obj.search(cr, uid, [('is_moved','=',False)])
+        for tm in tm_obj.browse(cr, uid, tm_obj_ids):
+            vals = {'employee_id':tm.employee_code,
+                    'work_date': tm.date,
+                    'punch_type': tm.punch_type,     
                     }
-            if ntm_ids=='':
-                ntm_ids = ntm_ids + str(time[3])
-            else:
-                ntm_ids = ntm_ids +', '+ str(time[3])
             attn_obj.create(cr, uid, vals)
-            print "VALS: ",vals
-        ntm_ids = str(ntm_ids).replace("[", "")
-        ntm_ids = ntm_ids.replace("]", "")
-        if len(ntm_ids)>=1:
-            sql = '''
-            update hr_attendance set is_moved='t' where id in (%s)
-            '''%ntm_ids
-            cr.execute(sql)
-            print "TIME DATA MOVED"
-            return True
+            vals2 = {'is_moved': True}
+            tm.write({'is_moved': True})
+        print "DATA MOVED"    
+        return True
+        #=======================================================================
+        # for time in time_ids:
+        #     vals = {'employee_id':time[0],
+        #             'work_date':time[1],
+        #             'punch_type':time[2],     
+        #             }
+        #     if ntm_ids=='':
+        #         ntm_ids = ntm_ids + str(time[3])
+        #     else:
+        #         ntm_ids = ntm_ids +', '+ str(time[3])
+        #     attn_obj.create(cr, uid, vals)
+        #     #print "VALS: ",vals
+        # ntm_ids = str(ntm_ids).replace("[", "")
+        # ntm_ids = ntm_ids.replace("]", "")
+        # if len(ntm_ids)>=1:
+        #     sql = '''
+        #     update hr_attendance set is_moved='t' where id in (%s)
+        #     '''%ntm_ids
+        #     cr.execute(sql)
+        #     print "TIME DATA MOVED"
+        #     return True
+        #=======================================================================
     ##
     def upload_employee(self, cr, uid, context=None):
         "This uploads/creates employee in New Time Machine DB from OpenERP Server, when its called based on Auto Synchronization Process"
