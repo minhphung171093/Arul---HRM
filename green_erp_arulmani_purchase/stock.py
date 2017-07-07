@@ -1033,6 +1033,8 @@ class account_invoice(osv.osv):
                             tds_amount += po.quantity * po.price_unit * po.tds_id.amount/100
                             tds_amount = round(tds_amount,2)
                     
+                    if amount_total_cgst_tax == 0 and amount_total_igst_tax == 0:
+                        total_tax = amount_total_tax
                     total_round_2 = round(amount_untaxed,2) + round(p_f_charge,2) + round(excise_duty,2) + round(total_tax,2) + round(total_fright,2) + round(aed,2) - round(total_tax_credit_service,2) - round(tds_amount,2)
                     total_round = round(round(amount_untaxed,2) + round(p_f_charge,2) + round(excise_duty,2) + round(total_tax,2) + round(total_fright,2) + round(aed,2) - round(total_tax_credit_service,2) - round(tds_amount,2))
                     deducte = total_round_2 - total_round
