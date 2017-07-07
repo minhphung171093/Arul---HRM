@@ -84,7 +84,8 @@ class Parser(report_sxw.rml_parse):
     
     def get_InOut(self, shift_type):
         wizard_data = self.localcontext['data']['form']
-        workdate=wizard_data['workdate']    
+        workdate = wizard_data['workdate']    
+        is_ast = wizard_data['is_ast']   
 #         sql = '''
 #           select emp.employee_id, emp.name_related employeename, COALESCE(ast.ref_in_time,0.0) as ref_in_time, 
 #           COALESCE(ast.ref_out_time,0.0) as ref_out_time
@@ -95,21 +96,35 @@ class Parser(report_sxw.rml_parse):
 #          code='%s') and work_date='%s'
 #          order by emp.employee_id
 #         '''%(shift_type, shift_type, workdate)     
-        
-        sql = '''
-         select  emp.employee_id, emp.name_related employeename, COALESCE(piot.in_time,0.0) as 
-         ref_in_time, 
-         COALESCE(piot.out_time,0.0) as ref_out_time,ws.code
-         from arul_hr_punch_in_out_time piot
-         inner join hr_employee emp on piot.employee_id=emp.id
-         inner join arul_hr_capture_work_shift ws on ws.id=piot.actual_work_shift_id
-         where piot.work_date='%s' and ws.code='%s'
-         order by emp.employee_id
-        '''%(workdate, shift_type) 
-                  
-        self.cr.execute(sql)
-        shifts_ids = self.cr.dictfetchall()
-        
+        #TPT-BM-TIME MACHINE REPORT - 07/07/2017
+        if is_ast is False:
+            sql = '''
+             select  emp.employee_id, emp.name_related employeename, COALESCE(piot.in_time,0.0) as 
+             ref_in_time, 
+             COALESCE(piot.out_time,0.0) as ref_out_time,ws.code
+             from arul_hr_punch_in_out_time piot
+             inner join hr_employee emp on piot.employee_id=emp.id
+             inner join arul_hr_capture_work_shift ws on ws.id=piot.actual_work_shift_id
+             where piot.work_date='%s' and ws.code='%s'
+             order by emp.employee_id
+            '''%(workdate, shift_type) 
+                      
+            self.cr.execute(sql)
+            shifts_ids = self.cr.dictfetchall()
+        else:
+            sql = '''
+             select  emp.employee_id, emp.name_related employeename, COALESCE(piot.in_time,0.0) as 
+             ref_in_time, 
+             COALESCE(piot.out_time,0.0) as ref_out_time,ws.code
+             from arul_hr_audit_shift_time piot
+             inner join hr_employee emp on piot.employee_id=emp.id
+             inner join arul_hr_capture_work_shift ws on ws.id=piot.actual_work_shift_id
+             where piot.work_date='%s' and ws.code='%s'
+             order by emp.employee_id
+            '''%(workdate, shift_type) 
+                      
+            self.cr.execute(sql)
+            shifts_ids = self.cr.dictfetchall()
         res = []
         s_no = 1
         shift_count = 0

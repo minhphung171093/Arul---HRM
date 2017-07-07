@@ -17,7 +17,7 @@ class daily_inout(osv.osv_memory):
     }
     
     _defaults = {
-       
+       'is_ast' : True
         }
     
     def print_report(self, cr, uid, ids, context=None):
