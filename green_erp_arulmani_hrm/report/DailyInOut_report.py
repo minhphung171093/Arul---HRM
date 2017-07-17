@@ -125,6 +125,22 @@ class Parser(report_sxw.rml_parse):
                       
             self.cr.execute(sql)
             shifts_ids = self.cr.dictfetchall()
+            ##
+            sql = '''
+             select  emp.employee_id, emp.name_related employeename, COALESCE(piot.in_time,0.0) as 
+             ref_in_time, 
+             COALESCE(piot.out_time,0.0) as ref_out_time,ws.code
+             from arul_hr_audit_shift_time piot
+             inner join hr_employee emp on piot.employee_id=emp.id
+             inner join arul_hr_capture_work_shift ws on ws.id=piot.planned_work_shift_id
+             where piot.work_date='%s' and ws.code='%s' and actual_work_shift_id is null
+             order by emp.employee_id
+            '''%(workdate, shift_type)
+            self.cr.execute(sql)
+            shifts_ids2 = self.cr.dictfetchall()
+            #shifts_ids.append(shifts_ids2)
+            shifts_ids += shifts_ids2
+            ##
         res = []
         s_no = 1
         shift_count = 0
