@@ -193,7 +193,8 @@ class Parser(report_sxw.rml_parse):
         kgs_rate = 0.00
         kgs_rate = rate / 1000   
         #raise osv.except_osv(_('Warning! %s'),_(kgs_rate))    
-        return round(kgs_rate,2)
+        #return round(kgs_rate,2)
+        return kgs_rate
     def get_freight(self, freight,qty):        
         mt_freight = 0.00
         kgs_freight = 0.00
