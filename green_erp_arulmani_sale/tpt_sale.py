@@ -3177,7 +3177,7 @@ class tpt_batch_allotment_line(osv.osv):
         if 'product_uom_qty' in vals and 'sys_batch' in vals:
             batch = self.pool.get('stock.production.lot').browse(cr, uid, vals['sys_batch'])
             if round(batch.stock_available, 3) < round(vals['product_uom_qty'],3):
-                raise osv.except_osv(_('Warning!'),_('Allotted Quantity must be less than available stock Quantity!'))
+                raise osv.except_osv(_('Warning!'),_('Allotted Quantity must be less than available stock Quantity! %s')%batch.name)
         return super(tpt_batch_allotment_line, self).create(cr, uid, vals, context)
     
     def write(self, cr, uid, ids, vals, context=None):
@@ -3188,7 +3188,7 @@ class tpt_batch_allotment_line(osv.osv):
             batch = self.pool.get('stock.production.lot').browse(cr, uid, vals['sys_batch'])
             #if batch.stock_available < vals['product_uom_qty']:
             if round(batch.stock_available, 3) < round(vals['product_uom_qty'],3):
-                raise osv.except_osv(_('Warning!'),_('Allotted quantity should not be greater than Available Quantity!'))
+                raise osv.except_osv(_('Warning!'),_('Allotted quantity should not be greater than Available Quantity!%s')%batch.name)
         return super(tpt_batch_allotment_line, self).write(cr, uid,ids, vals, context)
     
     def onchange_sys_batch(self, cr, uid, ids,sys_batch=False,qty=False,batch_allotment_line=False,context=None):
