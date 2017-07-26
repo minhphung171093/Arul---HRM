@@ -4414,14 +4414,26 @@ class arul_hr_employee_leave_details(osv.osv):
         if vals.get('reason', False):
             reason = vals['reason']
         #TPT START BY SSR-ON 25/05/2017 - 3910
-        leave_type_id = vals.get('check_leave_type_lop_esi')           
-        sql = '''
-        INSERT INTO arul_hr_employee_leave_details (employee_id, state, leave_type_id, date_from, date_to, haft_day_leave, type_half, day, reason, create_uid, write_uid, check_leave_type_lop_esi) 
-        VALUES (%s, 'draft', %s, '%s', '%s', %s, '%s', %s, '%s', %s, %s, %s)
-        RETURNING id
-        '''%(vals['employee_id'], vals['leave_type_id'], vals['date_from'], vals['date_to'], vals.get('haft_day_leave', False), 
-             vals.get('type_half', False), day, reason,  uid, uid,leave_type_id)
-        cr.execute(sql)
+        leave_type_id = vals.get('check_leave_type_lop_esi')
+        #TPT START BY SSR-ON 26/07/2017 - Permission Issue 
+        if not leave_type_id:
+            leave_type_id =False
+            sql = '''
+            INSERT INTO arul_hr_employee_leave_details (employee_id, state, leave_type_id, date_from, date_to, haft_day_leave, type_half, day, reason, create_uid, write_uid)
+            VALUES (%s, 'draft', %s, '%s', '%s', %s, '%s', %s, '%s', %s, %s)
+            RETURNING id
+            '''%(vals['employee_id'], vals['leave_type_id'], vals['date_from'], vals['date_to'], vals.get('haft_day_leave', False),
+                 vals.get('type_half', False), day, reason,  uid, uid)
+            cr.execute(sql)
+        if leave_type_id:
+        ##
+            sql = '''
+            INSERT INTO arul_hr_employee_leave_details (employee_id, state, leave_type_id, date_from, date_to, haft_day_leave, type_half, day, reason, create_uid, write_uid, check_leave_type_lop_esi)
+            VALUES (%s, 'draft', %s, '%s', '%s', %s, '%s', %s, '%s', %s, %s, %s)
+            RETURNING id
+            '''%(vals['employee_id'], vals['leave_type_id'], vals['date_from'], vals['date_to'], vals.get('haft_day_leave', False),
+                 vals.get('type_half', False), day, reason,  uid, uid,leave_type_id)
+            cr.execute(sql) 
         ##
         new_id= cr.fetchone()[0]
         #TPT END
