@@ -11301,7 +11301,7 @@ class tpt_hr_attendance(osv.osv):
                 if flag==1 and categ!='S1':
                     c_off_day = shift_count
                 ##
-                employee_leave_ids = employee_leave_obj.search(cr, uid, [('year','=',work_date_format[7:11]),('employee_id','=',emp_root.id)])
+                employee_leave_ids = employee_leave_obj.search(cr, uid, [('year','=',work_date_format[:4]),('employee_id','=',emp_root.id)])
                 leave_type_ids = leave_type_obj.search(cr, uid, [('code','=','C.Off')])
                 if not leave_type_ids:
                     raise osv.except_osv(_('Warning!'),_('Can not find Leave Type C.Off. Please Create Leave Type C.Off before'))
@@ -11321,7 +11321,7 @@ class tpt_hr_attendance(osv.osv):
                 else:
                         employee_leave_obj.create(cr, uid, {
                             'employee_id': emp_root.id,
-                            'year': work_date_format[7:11],
+                            'year': work_date_format[:4],
                             'emp_leave_details_ids': [(0,0,{
                             'leave_type_id': leave_type_ids[0],
                             'total_day': c_off_day,
