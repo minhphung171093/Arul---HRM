@@ -11020,136 +11020,138 @@ class tpt_hr_attendance(osv.osv):
         for time_entry in attend_obj.browse(cr,uid,attend_obj_ids):
             emp_obj = self.pool.get('hr.employee') 
             emp_obj_ids = emp_obj.search(cr, uid, [('employee_id','=',time_entry.employee_id)]) 
-            emp_root = emp_obj.browse(cr,uid,emp_obj_ids[0])
-            ###
-            work_date = time_entry.work_date
-            punch_type = time_entry.punch_type
-            #Example Work_date = "2015-08-27 05:48:14.976784"
-            day = work_date[8:10]
-            month = work_date[5:7]
-            year = work_date[:4]
-            hour = work_date[11:13]
-            min = work_date[14:16]
-            sec = work_date[17:19]
-            punch_obj = self.pool.get('arul.hr.punch.in.out') 
-            
-            shift_id = punch_obj.get_work_shift(cr, uid, emp_root.id, int(day), int(month), year)
-            work_date_format = work_date[:4]+'-'+work_date[5:7]+'-'+work_date[8:10]
-
-            if punch_type=='in':
-                in_time = float(hour)+float(min)/60+float(sec)/3600
-                ##HANDLE HERE
-                in_time1 = float(hour)+float(min)/60
-                ast_ids = ast_obj.search(cr, uid, [('employee_id','=',emp_root.id), ('work_date','=',work_date_format), ('in_time','=',in_time1)]) 
-                ##
-                if not ast_ids:
-                    attend_temp_obj.create(cr, uid, {'employee_id': emp_root.id,
-                                     'work_date': work_date_format,                             
-                                     'in_time': in_time,
-                                     'out_time': 0,
-                                      })
-                    attend_obj.write(cr, uid, time_entry.id, {'is_processed':'t'})
-                    #AST Creation
-                    ast_obj.create(cr, uid, {'employee_id': emp_root.id,
-                                     'punch_in_date':work_date_format,
-                                     'work_date': work_date_format,
-                                     'ref_in_time': in_time,
-                                     'in_time': in_time,
-                                     'out_time': 0,
-                                     'employee_category_id':emp_root.employee_category_id.id,
-                                     'type':'punch',
-                                      })
-            if punch_type=='out':
-                out_time = float(hour)+float(min)/60+float(sec)/3600
-                ### AST UPDATE
-                perv_work_date_format = datetime.datetime.strptime(work_date_format,'%Y-%m-%d')
-                perv_work_date_format -= datetime.timedelta(days=1)
-                perv_work_date = self.get_date_format(perv_work_date_format)
-                ast_ids = ast_obj.search(cr, uid, [('employee_id','=',emp_root.id), ('work_date','=',work_date_format)]) 
-                prev_day_ast_ids = ast_obj.search(cr, uid, [('employee_id','=',emp_root.id), ('work_date','=',perv_work_date),('in_time','>',0), ('out_time','=',0)])  
-                if ast_ids:
-                    exist_ast_obj = ast_obj.browse(cr,uid,ast_ids[0])
-                    
-                    exist_in_time = exist_ast_obj.in_time
-                    punch_in_date = exist_ast_obj.work_date
-                    if exist_ast_obj.out_time == 0: # TPT-BM-05/07/2017 - IF ADDED TO AVOID DUPLICATE ATTENDANCE 
+            #IF handled 10/08/2017 - TO SKIP EMPLOYEED THOSE NOT PRESENT IN EMPLOYEE MASTER AND INACTIVE EMPLOYEE
+            if emp_obj_ids:
+                emp_root = emp_obj.browse(cr,uid,emp_obj_ids[0])
+                ###
+                work_date = time_entry.work_date
+                punch_type = time_entry.punch_type
+                #Example Work_date = "2015-08-27 05:48:14.976784"
+                day = work_date[8:10]
+                month = work_date[5:7]
+                year = work_date[:4]
+                hour = work_date[11:13]
+                min = work_date[14:16]
+                sec = work_date[17:19]
+                punch_obj = self.pool.get('arul.hr.punch.in.out') 
+                
+                shift_id = punch_obj.get_work_shift(cr, uid, emp_root.id, int(day), int(month), year)
+                work_date_format = work_date[:4]+'-'+work_date[5:7]+'-'+work_date[8:10]
+    
+                if punch_type=='in':
+                    in_time = float(hour)+float(min)/60+float(sec)/3600
+                    ##HANDLE HERE
+                    in_time1 = float(hour)+float(min)/60
+                    ast_ids = ast_obj.search(cr, uid, [('employee_id','=',emp_root.id), ('work_date','=',work_date_format), ('in_time','=',in_time1)]) 
+                    ##
+                    if not ast_ids:
+                        attend_temp_obj.create(cr, uid, {'employee_id': emp_root.id,
+                                         'work_date': work_date_format,                             
+                                         'in_time': in_time,
+                                         'out_time': 0,
+                                          })
+                        attend_obj.write(cr, uid, time_entry.id, {'is_processed':'t'})
+                        #AST Creation
+                        ast_obj.create(cr, uid, {'employee_id': emp_root.id,
+                                         'punch_in_date':work_date_format,
+                                         'work_date': work_date_format,
+                                         'ref_in_time': in_time,
+                                         'in_time': in_time,
+                                         'out_time': 0,
+                                         'employee_category_id':emp_root.employee_category_id.id,
+                                         'type':'punch',
+                                          })
+                if punch_type=='out':
+                    out_time = float(hour)+float(min)/60+float(sec)/3600
+                    ### AST UPDATE
+                    perv_work_date_format = datetime.datetime.strptime(work_date_format,'%Y-%m-%d')
+                    perv_work_date_format -= datetime.timedelta(days=1)
+                    perv_work_date = self.get_date_format(perv_work_date_format)
+                    ast_ids = ast_obj.search(cr, uid, [('employee_id','=',emp_root.id), ('work_date','=',work_date_format)]) 
+                    prev_day_ast_ids = ast_obj.search(cr, uid, [('employee_id','=',emp_root.id), ('work_date','=',perv_work_date),('in_time','>',0), ('out_time','=',0)])  
+                    if ast_ids:
+                        exist_ast_obj = ast_obj.browse(cr,uid,ast_ids[0])
+                        
+                        exist_in_time = exist_ast_obj.in_time
+                        punch_in_date = exist_ast_obj.work_date
+                        if exist_ast_obj.out_time == 0: # TPT-BM-05/07/2017 - IF ADDED TO AVOID DUPLICATE ATTENDANCE 
+                            ast_id = exist_ast_obj.id
+                            ast_obj.write(cr, uid, [exist_ast_obj.id], {'punch_out_date':work_date_format,
+                                         'ref_out_time': out_time,
+                                         'out_time': out_time,
+                                          }) 
+                            if exist_ast_obj.planned_work_shift_id and exist_ast_obj.planned_work_shift_id.code != 'W':
+                                self.auto_approve_to_attendance(cr, uid, emp_root, work_date_format, exist_in_time, out_time, shift_id, 
+                                                                      punch_in_date, ast_id)
+                                attend_obj.write(cr, uid, time_entry.id, {'is_processed':'t'})
+                                               
+                    elif prev_day_ast_ids:
+                        exist_ast_obj = ast_obj.browse(cr,uid,prev_day_ast_ids[0])
+                        exist_in_time = exist_ast_obj.in_time
+                        punch_in_date = exist_ast_obj.work_date
                         ast_id = exist_ast_obj.id
                         ast_obj.write(cr, uid, [exist_ast_obj.id], {'punch_out_date':work_date_format,
                                      'ref_out_time': out_time,
                                      'out_time': out_time,
                                       }) 
+                        ### 
                         if exist_ast_obj.planned_work_shift_id and exist_ast_obj.planned_work_shift_id.code != 'W':
+                            shift_id = exist_ast_obj.planned_work_shift_id and exist_ast_obj.planned_work_shift_id.id or False #TPT-BM-17/07/2017 -  AS PER USER FEEDBACK  
                             self.auto_approve_to_attendance(cr, uid, emp_root, work_date_format, exist_in_time, out_time, shift_id, 
                                                                   punch_in_date, ast_id)
                             attend_obj.write(cr, uid, time_entry.id, {'is_processed':'t'})
-                                           
-                elif prev_day_ast_ids:
-                    exist_ast_obj = ast_obj.browse(cr,uid,prev_day_ast_ids[0])
-                    exist_in_time = exist_ast_obj.in_time
-                    punch_in_date = exist_ast_obj.work_date
-                    ast_id = exist_ast_obj.id
-                    ast_obj.write(cr, uid, [exist_ast_obj.id], {'punch_out_date':work_date_format,
-                                 'ref_out_time': out_time,
-                                 'out_time': out_time,
-                                  }) 
-                    ### 
-                    if exist_ast_obj.planned_work_shift_id and exist_ast_obj.planned_work_shift_id.code != 'W':
-                        shift_id = exist_ast_obj.planned_work_shift_id and exist_ast_obj.planned_work_shift_id.id or False #TPT-BM-17/07/2017 -  AS PER USER FEEDBACK  
-                        self.auto_approve_to_attendance(cr, uid, emp_root, work_date_format, exist_in_time, out_time, shift_id, 
-                                                              punch_in_date, ast_id)
-                        attend_obj.write(cr, uid, time_entry.id, {'is_processed':'t'})
-                    
-                else:    
-                    work_date_format = work_date[:4]+'-'+work_date[5:7]+'-'+work_date[8:10]
-                    ### TO GET PREVIOUS DATE
-                    day = int(work_date[8:10]) - 1 # prev day
-                    month = work_date[5:7]
-                    year = work_date[:4]
-                    
-                    if day==0:
-                        if int(month)-1==0: #31-12-2015
-                            day = 31
-                            month = 12
-                            year = int(year) - 1
-                        elif (int(month)-1) >= 1:
-                            day = self.length_month(int(year),int(month) - 1)
-                            month = int(month) - 1
-    
-                    if len(str(day)) == 1:
-                        day = '0'+str(day)
-                    if len(str(month)) == 1:
-                        month = '0'+str(month)
-                    prev_work_date = str(year)+'-'+str(month)+'-'+ str(day)
-                    
-                    ### END
-                    attend_temp_obj_ids = attend_temp_obj.search(cr, uid, [('employee_id','=',emp_root.id), ('work_date','=',prev_work_date)]) 
-                    ###
-                    attend_temp_obj.create(cr, uid, {'employee_id': emp_root.id,
-                                 'work_date': work_date_format,
-                                 'in_time': 0,
-                                 'out_time': out_time,
-                                  }) 
-                    attend_obj.write(cr, uid, time_entry.id, {'is_processed':'t'})
-                    ### 2nd Version
-                    ast_obj.create(cr, uid, {'employee_id': emp_root.id,
-                                 'punch_out_date':work_date_format,
-                                 'work_date': work_date_format,
-                                 'in_time': 0,
-                                 'ref_out_time': out_time,
-                                 'out_time': out_time,
-                                 'employee_category_id':emp_root.employee_category_id.id,
-                                 'type':'punch',
-                                  }) 
-                    #ast_obj.write(cr, uid, time_entry.id, {'is_processed':'t'})
-                    ### end 2nd version
-                #===============================================================
-                # if not exist_emp_obj: 
-                #         
-                # else:
-                #===============================================================
                         
-            ###
-            #attend_obj.write(cr, uid, time_entry.id, {'is_processed':'t'})
+                    else:    
+                        work_date_format = work_date[:4]+'-'+work_date[5:7]+'-'+work_date[8:10]
+                        ### TO GET PREVIOUS DATE
+                        day = int(work_date[8:10]) - 1 # prev day
+                        month = work_date[5:7]
+                        year = work_date[:4]
+                        
+                        if day==0:
+                            if int(month)-1==0: #31-12-2015
+                                day = 31
+                                month = 12
+                                year = int(year) - 1
+                            elif (int(month)-1) >= 1:
+                                day = self.length_month(int(year),int(month) - 1)
+                                month = int(month) - 1
+        
+                        if len(str(day)) == 1:
+                            day = '0'+str(day)
+                        if len(str(month)) == 1:
+                            month = '0'+str(month)
+                        prev_work_date = str(year)+'-'+str(month)+'-'+ str(day)
+                        
+                        ### END
+                        attend_temp_obj_ids = attend_temp_obj.search(cr, uid, [('employee_id','=',emp_root.id), ('work_date','=',prev_work_date)]) 
+                        ###
+                        attend_temp_obj.create(cr, uid, {'employee_id': emp_root.id,
+                                     'work_date': work_date_format,
+                                     'in_time': 0,
+                                     'out_time': out_time,
+                                      }) 
+                        attend_obj.write(cr, uid, time_entry.id, {'is_processed':'t'})
+                        ### 2nd Version
+                        ast_obj.create(cr, uid, {'employee_id': emp_root.id,
+                                     'punch_out_date':work_date_format,
+                                     'work_date': work_date_format,
+                                     'in_time': 0,
+                                     'ref_out_time': out_time,
+                                     'out_time': out_time,
+                                     'employee_category_id':emp_root.employee_category_id.id,
+                                     'type':'punch',
+                                      }) 
+                        #ast_obj.write(cr, uid, time_entry.id, {'is_processed':'t'})
+                        ### end 2nd version
+                    #===============================================================
+                    # if not exist_emp_obj: 
+                    #         
+                    # else:
+                    #===============================================================
+                            
+                ###
+                #attend_obj.write(cr, uid, time_entry.id, {'is_processed':'t'})
             ###
         #END FOR
    
