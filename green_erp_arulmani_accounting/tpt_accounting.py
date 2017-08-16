@@ -1020,29 +1020,29 @@ class account_invoice(osv.osv):
                 '''%(purchase_id, line.id)
                 cr.execute(sql)
                 quantity = cr.dictfetchone()['quantity']
-                if line.product_qty > quantity:
-                    rs = {
-                          'product_id': line.product_id and line.product_id.id or False,
-                          'name': line.description,
-                          'quantity': line.product_qty - quantity or False,
-                          'uos_id': line.product_uom and line.product_uom.id or False,
-                          'price_unit': line.price_unit or False,
-                          'disc': line.discount or False,
-                          'p_f': line.p_f or False,
-                          'p_f_type':line.p_f_type or False,
-                          'ed':line.ed or False,
-                          'ed_type':line.ed_type or False,
-        #                   'taxes_id': [(6,0,[line.tax_id and line.tax_id.id])],
-                          'taxe_id': taxes_ids[0],
-                          'invoice_line_tax_id': [(6,0,taxes_ids)],
-                          'fright':line.fright or False,
-                          'fright_type':line.fright_type or False,
-                          'line_net': line.line_net or False,
-                          'account_id':line.product_id and line.product_id.purchase_acc_id and line.product_id.purchase_acc_id.id or False,
-                          'po_line_id': line.id,
-                          'tds_id': vendor or False,
-                      }
-                    service_line.append((0,0,rs))
+#                 if line.product_qty > quantity:
+#                     rs = {
+#                           'product_id': line.product_id and line.product_id.id or False,
+#                           'name': line.description,
+#                           'quantity': line.product_qty - quantity or False,
+#                           'uos_id': line.product_uom and line.product_uom.id or False,
+#                           'price_unit': line.price_unit or False,
+#                           'disc': line.discount or False,
+#                           'p_f': line.p_f or False,
+#                           'p_f_type':line.p_f_type or False,
+#                           'ed':line.ed or False,
+#                           'ed_type':line.ed_type or False,
+#         #                   'taxes_id': [(6,0,[line.tax_id and line.tax_id.id])],
+#                           'taxe_id': taxes_ids[0],
+#                           'invoice_line_tax_id': [(6,0,taxes_ids)],
+#                           'fright':line.fright or False,
+#                           'fright_type':line.fright_type or False,
+#                           'line_net': line.line_net or False,
+#                           'account_id':line.product_id and line.product_id.purchase_acc_id and line.product_id.purchase_acc_id.id or False,
+#                           'po_line_id': line.id,
+#                           'tds_id': vendor or False,
+#                       }
+#                     service_line.append((0,0,rs))
             if purchase.po_document_type == 'service_qty':
                 vals['doc_type']='service_invoice_qty'
                 sql = '''
