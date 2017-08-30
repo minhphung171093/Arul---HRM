@@ -1178,18 +1178,31 @@ class stock_picking(osv.osv):
         warehouse =  tpt_shared_component.warehouse_module() #TPT-BalamuruganPurushothaman ON 30/06/2016 - Call global_utility module
         location_id = False
         location_dest_id = False
+        pric = 0
         for picking in self.browse(cr, uid, ids, context=context):
             if picking.warehouse:
-                for line in picking.move_lines:
+                # TPT - SSR - Return sale Order null price unit changes
+                for line in picking.move_lines:       
+                    if line.price_unit != 0.0:
+                        sale_id = picking.sale_id.id
+                        sql = '''
+                        select price_unit from sale_order_line where order_id = '%s'                 
+                        '''%(sale_id)
+                        cr.execute(sql)
+                        period_ids = cr.dictfetchone()['price_unit']                        
+                        pric = period_ids
+                for line in picking.move_lines:                    
                     #parent_ids = locat_obj.search(cr, uid, [('name','=',name),('usage','=','internal')])            
                     location_id, location_dest_id = warehouse.get_return_warehouse_finish(line.product_id.default_code)
                     vals = {'state': 'done',
                            'location_id':location_id,
                            'location_dest_id':location_dest_id,
-                           'product_uos_qty':line.product_qty
+                           'product_uos_qty':line.product_qty,
+                           'price_unit':pric,
                            }
                     stock_move.write(cr, uid, [line.id], vals, context)
-                    #===========================================================
+                    ##
+                   #===========================================================
                     # sql = '''
                     # update stock_move set state='done', location_id=%s, location_dest_id=%s, product_uos_qty=%s where id=%s
                     # '''%(location_id, location_dest_id, line.product_qty, line.id)

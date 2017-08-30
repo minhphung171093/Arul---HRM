@@ -94,8 +94,6 @@
         <menuitem action="action_daily_sale_form_gst"
             id="menu_action_daily_sale_form_view_gst"
             parent="base.next_id_64" sequence="15"/>
-	 
-	    
     </data>
 </openerp>
 
