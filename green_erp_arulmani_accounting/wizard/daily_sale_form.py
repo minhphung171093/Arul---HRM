@@ -404,3 +404,471 @@ class daily_sale_form(osv.osv_memory):
                 }
         
 daily_sale_form()
+
+
+class tpt_daily_sale_report_gst(osv.osv_memory):
+    _name = "tpt.daily.sale.report.gst"
+    _columns = {
+        'name': fields.char('', readonly=True),
+        'daily_sale_line': fields.one2many('tpt.daily.sale.line.gst', 'dailysale_id', 'Daily Sale Line'),
+        'product_title': fields.char('', readonly=True), 
+        'application_title': fields.char('', readonly=True), 
+        'state_title': fields.char('', readonly=True), 
+        'city_title': fields.char('', readonly=True), 
+        'customer_title': fields.char('', readonly=True), 
+        'consignee_title': fields.char('', readonly=True),
+        'date_from_title': fields.char('', readonly=True), 
+        'date_to_title': fields.char('', readonly=True), 
+        
+        'product_id': fields.many2one('product.product', 'Material', required=False),
+        'application_id':fields.many2one('crm.application','Application', required=False),
+        'state_id':fields.many2one("res.country.state", 'Region', required=False),
+        'customer_id':fields.many2one("res.partner", 'Customer', required=False),
+        'name_consignee_id':fields.many2one("res.partner", 'Consignee', required=False),
+        'city': fields.char('City', size=128),
+        'date_from': fields.date('Date From', required=True),
+        'date_to': fields.date('Date To', required=True),
+    }
+    
+    def print_report_pdf(self, cr, uid, ids, context=None):
+        if context is None:
+            context = {}
+        datas = {'ids': context.get('active_ids', [])}
+        datas['model'] = 'daily.sale.form.gst'
+        datas['form'] = self.read(cr, uid, ids)[0]
+        datas['form'].update({'active_id':context.get('active_ids',False)})
+        return {'type': 'ir.actions.report.xml', 'report_name': 'daily_sale_report_pdf_gst', 'datas': datas}
+    
+    def print_report_xls(self, cr, uid, ids, context=None):
+        if context is None:
+            context = {}
+        datas = {'ids': context.get('active_ids', [])}
+        datas['model'] = 'daily.sale.form'
+        datas['form'] = self.read(cr, uid, ids)[0]
+        datas['form'].update({'active_id':context.get('active_ids',False)})
+        return {'type': 'ir.actions.report.xml', 'report_name': 'daily_sale_report_xls_gst', 'datas': datas}
+    
+    
+tpt_daily_sale_report_gst()
+
+class tpt_daily_sale_line_gst(osv.osv_memory):
+    _name = "tpt.daily.sale.line.gst"
+    _columns = {
+        'dailysale_id': fields.many2one('tpt.daily.sale.report.gst','Daily Sale', ondelete='cascade'),
+        'vvt_number': fields.char('Invoice. No', size = 1024),
+        'date_invoice': fields.date('Invoice Date'),
+        'order_type': fields.char('Billing Type', size = 1024),
+        'distribution': fields.char('Distribution Channel', size = 1024),
+        'country': fields.char('Destination Country', size = 1024),
+        'state': fields.char('Sales Region', size = 1024),
+        'city': fields.char('City Name', size = 1024),
+        'po_number': fields.char('Purchase Order', size = 1024),
+        'po_date': fields.date('Purchase Order Date'),
+        'sales_order': fields.char('Sales Order', size = 1024),
+        'delivery_order': fields.char('Delivery No', size = 1024),
+        'product_code': fields.char('Material', size = 1024),
+        'product_name': fields.char('Material Description', size = 1024),
+        'application_name': fields.char('Application', size = 1024),
+        'customer_code': fields.char('Customer No', size = 1024),
+        'partner_name': fields.char('Customer Name', size = 1024),
+        'consignee_code': fields.char('Consignee. No', size = 1024),
+        'consignee_name': fields.char('Consignee Name', size = 1024),
+        'transporter': fields.char('Transport', size = 1024),
+        'lr_no': fields.char('LR Number', size = 1024),
+        'truck': fields.char('Truck No', size = 1024),
+        'booked_to': fields.char('Booked To', size = 1024),
+        'customer_group': fields.char('Cus. Grp', size = 1024),
+        'payment_term': fields.char('Payment Term', size = 1024),
+        'quantity': fields.float('Quantity',digits=(16,3)),
+        'price_unit': fields.float('Unit Price',digits=(16,2)),
+        'uom': fields.char('UOM', size = 1024),
+        'basic_price': fields.float('Basic Price',digits=(16,2)),
+        
+        'excise_duty': fields.float('Excise Duty',digits=(16,2)),
+        'cst_tax': fields.float('CST',digits=(16,2)),
+        'vat_tax': fields.float('VAT',digits=(16,2)),
+        
+        'sgst_tax': fields.float('SGST',digits=(16,2)),
+        'cgst_tax': fields.float('CGST',digits=(16,2)),
+        'igst_tax': fields.float('IGST',digits=(16,2)),
+        'incoterms_id': fields.char('Incoterms', size = 1024),       
+        
+        'tcs_tax': fields.float('TCS',digits=(16,2)),
+        'freight': fields.float('Freight',digits=(16,2)),
+        'insurance': fields.float('Insurance',digits=(16,2)),
+        'other_charges': fields.float('Others',digits=(16,2)),
+        'currency': fields.char('Curr(DOC)', size = 1024),
+        'total_amt': fields.float('Value(INR)',digits=(16,2)),
+        
+        'usd_amt': fields.float('Value(USD)',digits=(16,2)),
+        'ex_rate': fields.float('Ex.Rate',digits=(16,2)),
+        
+        'other_reasons': fields.char('Order Reason', size = 1024),   
+                    
+        'sale_id':fields.many2one("sale.order", 'Sales Order'),   
+        'do_id':fields.many2one("stock.picking.out", 'Delivery Order'),  
+        'invoice_id': fields.many2one('account.invoice', 'Invoice No'),    
+        'customer_id':fields.many2one("res.partner", 'Customer'),
+        'name_consignee_id':fields.many2one("res.partner", 'Consignee'), 
+        'product_id': fields.many2one('product.product', 'Material'),   
+        
+        'form_type': fields.char('Form Type', size = 1024), 
+        'form_number': fields.char('Form Number', size = 1024),   
+        'form_date': fields.char('Form Date', size = 1024),     
+        
+ }
+tpt_daily_sale_line_gst()
+
+
+class daily_sale_form_gst(osv.osv_memory):
+    _name = "daily.sale.form.gst"
+    _columns = {    
+                'product_id': fields.many2one('product.product', 'Material', required=False),
+                'application_id':fields.many2one('crm.application','Application', required=False),
+                'state_id':fields.many2one("res.country.state", 'Region', required=False),
+                'customer_id':fields.many2one("res.partner", 'Customer', required=False),
+                'name_consignee_id':fields.many2one("res.partner", 'Consignee', required=False),
+                'city': fields.char('City', size=128),
+                'date_from': fields.date('Date From', required=True),
+                'date_to': fields.date('Date To', required=True),
+                }
+    def _check_date(self, cr, uid, ids, context=None):
+        for date in self.browse(cr, uid, ids, context=context):
+            if date.date_to < date.date_from:
+                raise osv.except_osv(_('Warning!'),_('Date To is not less than Date From'))
+                return False
+        return True
+    _constraints = [
+        (_check_date, 'Identical Data', []),
+    ]
+    
+    def print_report(self, cr, uid, ids, context=None):
+        
+         # TPT-Y added on 31Aug2015, fix - 3156
+        def get_total(cash,type):
+            sum = 0.00            
+            for line in cash:
+                if type == 'total_amt':
+                    sum += line.invoice_id.amount_total_inr
+                if type == 'total_basic_amt':
+                    sum += line.quantity*line.price_unit
+                if type == 'qty':
+                    sum += line.quantity
+                 # TPT START-P.VINOTHKUMAR, on 03/03/2016 for calculate subtotal of unitprice    
+                if type == 'price_unit':    
+                    sum += line.price_unit   
+            # END           
+                if type == 'exs_duty':
+                   sum += line.quantity*line.price_unit*(line.invoice_id.excise_duty_id and line.invoice_id.excise_duty_id.amount or 0.0)/100
+            # TPT START-P.VINOTHKUMAR, on 03/03/2016 for calculate subtotal of cst,vat,tcs,freight,insurance and other_charges    
+                if type == 'cst_subtotal':
+                    amt=0 
+                    stax_id = line.invoice_id.sale_tax_id    
+                    untax = line.invoice_id.amount_untaxed
+                    if 'CST' in stax_id.name: 
+                        sum += round(stax_id.amount*untax/100,0)
+                        
+                if type == 'sgst_subtotal':
+                    amt=0 
+                    stax_id = line.invoice_id.sale_tax_id    
+                    untax = line.invoice_id.amount_untaxed
+                    if 'SGST' in stax_id.name: 
+                        sum += round(stax_id.amount*untax/100,0)
+                 
+                if type == 'cgst_subtotal':
+                    amt=0 
+                    stax_id = line.invoice_id.sale_tax_id    
+                    untax = line.invoice_id.amount_untaxed
+                    if 'CGST' in stax_id.name: 
+                        sum += round(stax_id.amount*untax/100,0)
+                        
+                if type == 'igst_subtotal':
+                    amt=0 
+                    stax_id = line.invoice_id.sale_tax_id    
+                    untax = line.invoice_id.amount_untaxed
+                    if 'IGST' in stax_id.name: 
+                        sum += round(stax_id.amount*untax/100,0)
+                                
+                if type == 'tcs_subtotal':
+                    amt=0 
+                    stax_id = line.invoice_id.sale_tax_id    
+                    untax = line.invoice_id.amount_untaxed
+                    if 'TCS' in stax_id.name: 
+                        sum += round(stax_id.amount*untax/100,0)                
+           
+                if type == 'freight':
+                 sum += line.freight * line.quantity     
+                if type == 'insurance':
+                 sum += line.insurance * line.quantity
+                if type == 'other':
+                 sum += line.invoice_id.other_charges
+            # END                                                        
+            return sum
+        
+        def convert_date(date):
+            if date:
+                date = datetime.strptime(date, DATE_FORMAT)
+                return date.strftime('%d/%m/%Y')
+        
+        def get_invoice_type(invoice_type):
+            if invoice_type == 'domestic':
+                return "Domestic/Indirect Export"
+            if invoice_type == 'export':
+                return "Export"
+        
+        def get_order_type(order_type):
+            if order_type == 'domestic':
+                return "Domestic"
+            if order_type == 'export':
+                return "Export"
+        
+        def get_customer_group(customer):
+            if customer == 'export':
+                return "Export"
+            if customer == 'domestic':
+                return "Domestic"
+            if customer == 'indirect_export':
+                return "Indirect Export"
+        
+        def get_cst_tax(tax, untax):
+            amount = 0
+            if 'CST' in tax.name:
+                amount = tax.amount
+                return round(amount*untax/100,2)
+    
+        def get_vat_tax(tax, untax):
+            amount = 0
+            if 'VAT' in tax.name:
+                amount = tax.amount
+                return round(amount*untax/100,2)
+    
+        def get_sgst_tax(tax, untax):
+            amount = 0
+            if 'SGST' in tax.name:
+                amount = tax.amount
+                return round(amount*untax/100,2)
+            
+        def get_cgst_tax(tax, untax):
+            amount = 0
+            if 'CGST' in tax.name:
+                amount = tax.amount
+                return round(amount*untax/100,2)
+
+        def get_igst_tax(tax, untax):
+            amount = 0
+            if 'IGST' in tax.name:
+                amount = tax.amount
+                return round(amount*untax/100,2)
+            
+        def get_usd_amt(currency):
+            amount = 0
+            if currency != 'INR': 
+                amount = line.invoice_id.amount_total
+                return round(amount,2)
+            
+        def get_ex_rate(currency,amt_inr):
+            amount = 0
+            if currency != 'INR': 
+                amount = amt_inr/line.invoice_id.amount_total
+                return round(amount,2)
+                        
+        def get_tcs_tax(tax, untax):
+            amount = 0
+            if 'TCS' in tax.name:
+                amount = tax.amount
+                return round(amount*untax/100,2)
+            
+        def decimal_convert(amount):       
+            decamount = format(amount, '.3f')
+            return decamount
+        #
+        def get_form_type(form_type):
+            type = ''
+            if form_type=='cform':
+                type = "C-Form"
+            elif form_type=='hform':
+                type = "H-Form"
+            elif form_type=='iform':
+                type = "I-Form"
+            elif form_type=='na':
+                type = "Not Applicable"
+            elif form_type=='tbc':
+                type = "To be Collect"
+            return type
+        #    
+        def get_invoice(cb):
+            res = {}
+            product_id = cb.product_id.id
+            #print cb.product_id.id
+            application_id = cb.application_id.id
+            state_id = cb.state_id.id
+            customer_id = cb.customer_id.id
+            name_consignee_id = cb.name_consignee_id.id
+            city = cb.city
+            date_from = cb.date_from
+            date_to = cb.date_to
+            
+            invoice_obj = self.pool.get('account.invoice.line')
+            invoice_ids = []
+            sql = '''
+            select il.id from account_invoice_line il
+            join account_invoice i on (i.id=il.invoice_id)
+            join res_partner p on (p.id=i.partner_id)
+            where i.date_invoice between '%s' and '%s' and i.type = 'out_invoice'          
+            '''%(date_from, date_to)
+            if product_id:
+                str = " and il.product_id=%s"%(product_id)
+                sql = sql+str
+            if application_id:
+                str = " and il.application_id=%s"%(application_id)
+                sql = sql+str 
+            if state_id:
+                str = " and p.state_id=%s"%(state_id)
+                sql = sql+str
+            if customer_id:
+                str = " and il.partner_id=%s"%(customer_id)
+                sql = sql+str
+            if name_consignee_id:
+                str = " and i.cons_loca=%s"%(name_consignee_id)
+                sql = sql+str
+            if city:
+                str = " and UPPER(btrim(p.city))=UPPER(btrim('%s'))"%(city)
+                sql = sql+str
+                
+            sql=sql+" order by i.vvt_number"       
+        
+            cr.execute(sql)
+            invoice_ids = [r[0] for r in cr.fetchall()]
+            return invoice_obj.browse(cr,uid,invoice_ids)
+        #
+        
+        cr.execute('delete from tpt_daily_sale_report_gst')
+        cb_obj = self.pool.get('tpt.daily.sale.report.gst')
+        cb = self.browse(cr, uid, ids[0])
+        cb_line = []
+        for line in get_invoice(cb):
+            cb_line.append((0,0,{
+                'vvt_number': line.invoice_id.vvt_number,
+                #'date_invoice':convert_date(line.invoice_id.date_invoice or ''),
+                'date_invoice':line.invoice_id.date_invoice or False,
+                'order_type':get_order_type(line.invoice_id.sale_id and line.invoice_id.sale_id.order_type or ''),
+                #'distribution':line.invoice_id.sale_id and line.invoice_id.sale_id.distribution_channel.name or '',
+                'distribution':line.invoice_id.sale_id and line.invoice_id.sale_id.distribution_channel.name or '',
+                'country':line.invoice_id.partner_id and line.invoice_id.partner_id.country_id.name or '',
+                'state':line.invoice_id.partner_id and line.invoice_id.partner_id.state_id.name or '',
+                'city':line.invoice_id.partner_id and line.invoice_id.partner_id.city or '',
+                'po_number':line.invoice_id.sale_id.po_number,
+                #'po_date':convert_date(line.invoice_id.sale_id and line.invoice_id.sale_id.po_date or ''),
+                'po_date':line.invoice_id.sale_id and line.invoice_id.sale_id.po_date or False,
+                'sales_order':line.invoice_id.sale_id and line.invoice_id.sale_id.name or '',
+                'delivery_order':line.invoice_id.delivery_order_id and line.invoice_id.delivery_order_id.name or '',
+                'product_code':line.product_id and line.product_id.default_code or '',
+                'product_name':line.product_id and line.product_id.name or '',
+                'application_name':line.application_id and line.application_id.name or '',
+                'customer_code':line.invoice_id.partner_id and line.invoice_id.partner_id.customer_code or '',
+                'partner_name':line.invoice_id.partner_id and line.invoice_id.partner_id.name or '',
+                'consignee_code':line.invoice_id.cons_loca and line.invoice_id.cons_loca.customer_code or '',
+                'consignee_name':line.invoice_id.cons_loca and line.invoice_id.cons_loca.name or '',
+                'transporter':line.invoice_id.delivery_order_id.transporter,
+                'lr_no':line.invoice_id.lr_no,
+                'truck':line.invoice_id.delivery_order_id.truck,
+                'booked_to':line.invoice_id.booked_to,
+                'customer_group':get_customer_group(line.invoice_id.partner_id and line.invoice_id.partner_id.arulmani_type or ''),
+                'payment_term':line.invoice_id.payment_term and line.invoice_id.payment_term.name or '',
+                'quantity': decimal_convert(line.quantity) or 0.000, #YuVi                    
+                'price_unit':line.price_unit or '',
+                'uom':line.uos_id and line.uos_id.name or '',
+                'basic_price':line.quantity*line.price_unit or 0.00,
+                
+                'excise_duty':round(line.quantity*line.price_unit/100,2),#round(line.quantity*line.price_unit*(line.invoice_id.excise_duty_id and line.invoice_id.excise_duty_id.amount or 0.0)/100,2),
+                'cst_tax':get_cst_tax(line.invoice_id.sale_tax_id, line.invoice_id.amount_untaxed) or 0.00,
+                'vat_tax':get_vat_tax(line.invoice_id.sale_tax_id, line.invoice_id.amount_untaxed) or 0.00,
+                
+                'sgst_tax':get_sgst_tax(line.invoice_id.sale_tax_id, line.invoice_id.amount_untaxed) or 0.00,
+                'cgst_tax':get_cgst_tax(line.invoice_id.sale_tax_id, line.invoice_id.amount_untaxed) or 0.00,
+                'igst_tax':get_igst_tax(line.invoice_id.sale_tax_id, line.invoice_id.amount_untaxed) or 0.00,
+                'incoterms_id':line.invoice_id.sale_id.incoterms_id.code or '',
+                'tcs_tax':get_tcs_tax(line.invoice_id.sale_tax_id, line.invoice_id.amount_untaxed) or 0.00,
+                'freight':(line.freight * line.quantity) or 0.00,
+               # 'insurance':line.invoice_id.insurance or 0.00, 
+                'insurance':(line.insurance * line.quantity) or 0.00, # TPT - modified on 12-02-2016 by G.Ragesh Kumar and P.Vinoth Kumar
+                'other_charges':line.invoice_id.other_charges or 0.00,
+                'currency':line.invoice_id.currency_id and line.invoice_id.currency_id.name or '',
+                'total_amt':line.invoice_id.amount_total_inr or 0.00,
+                
+                'usd_amt':get_usd_amt(line.invoice_id.currency_id.name) or 0.00,
+                'ex_rate':get_ex_rate(line.invoice_id.currency_id.name,line.invoice_id.amount_total_inr) or 0.00,
+                
+                'other_reasons':line.invoice_id.other_info or '',
+                
+                'sale_id':line.invoice_id.sale_id and line.invoice_id.sale_id.id or False,
+                'do_id':line.invoice_id.delivery_order_id and line.invoice_id.delivery_order_id.id or False,
+                'invoice_id':line.invoice_id.id or False,
+                'product_id':line.product_id and line.product_id.id or False,
+                'customer_id':line.invoice_id.partner_id and line.invoice_id.partner_id.id or False,
+                'name_consignee_id':line.invoice_id.cons_loca and line.invoice_id.cons_loca.id or False,
+                'form_type':get_form_type(line.invoice_id.form_type) or '',
+                'form_number':line.invoice_id.form_number or '',
+                'form_date':convert_date(line.invoice_id.form_date) or '',
+                    
+            }))
+            
+        cb_line.append((0,0,{
+            'currency': 'Total',
+            'uom': 'Total Basic Price',
+            'payment_term': 'Total Quantity',
+            'total_amt': round(get_total(get_invoice(cb),'total_amt'),0) or 0.00,
+            'basic_price': round(get_total(get_invoice(cb),'total_basic_amt'),0) or 0.00,
+            'quantity': get_total(get_invoice(cb),'qty') or 0.000, #exs_duty
+            'excise_duty' : round(get_total(get_invoice(cb),'exs_duty'),0) or 0.000,
+            # TPT START-P.VINOTHKUMAR, on 03/03/2016 for append subtotal values of cst,vat,tcs,freight,insurance and other_charges
+            'price_unit': round(get_total(get_invoice(cb),'price_unit'),0) or 0.00,
+            
+            'cst_tax': round(get_total(get_invoice(cb),'cst_subtotal'),0) or 0.00,
+            'vat_tax': round(get_total(get_invoice(cb),'vat_subtotal'),0) or 0.00,
+            
+            'sgst_tax': round(get_total(get_invoice(cb),'sgst_subtotal'),0) or 0.00,
+            'cgst_tax': round(get_total(get_invoice(cb),'cgst_subtotal'),0) or 0.00,
+            'igst_tax': round(get_total(get_invoice(cb),'igst_subtotal'),0) or 0.00,
+            
+            'tcs_tax': round(get_total(get_invoice(cb),'tcs_subtotal'),0) or 0.00,
+            'freight' : round(get_total(get_invoice(cb),'freight'),0) or 0.000,
+            'insurance' : round(get_total(get_invoice(cb),'insurance'),0) or 0.000,
+            'other_charges' : round(get_total(get_invoice(cb),'other'),0) or 0.000,
+        }))
+        
+        vals = {
+            'name': 'Daily Sale Report GST',
+            'product_title': 'Material : ', 
+            'application_title': 'Application : ', 
+            'state_title': 'Region : ', 
+            'city_title': 'City : ', 
+            'customer_title': 'Customer : ', 
+            'consignee_title': 'Consignee : ',
+            'date_from_title': 'Date From : ', 
+            'date_to_title': 'Date To : ',
+            'product_id': cb.product_id.id,
+            'application_id': cb.application_id.id,
+            'state_id': cb.state_id.id,
+            'customer_id': cb.customer_id.id,
+            'name_consignee_id': cb.name_consignee_id.id,
+            'city': cb.city,
+            'date_from': cb.date_from,
+            'date_to': cb.date_to,
+            'daily_sale_line': cb_line,
+        }
+        cb_id = cb_obj.create(cr, uid, vals)
+        res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
+                                        'green_erp_arulmani_accounting', 'view_tpt_daily_sale_report_gst')
+        return {
+                    'name': 'Daily Sale Report GST',
+                    'view_type': 'form',
+                    'view_mode': 'form',
+                    'res_model': 'tpt.daily.sale.report.gst',
+                    'domain': [],
+                    'type': 'ir.actions.act_window',
+                    'target': 'current',
+                    'res_id': cb_id,
+                }
+        
+daily_sale_form_gst()

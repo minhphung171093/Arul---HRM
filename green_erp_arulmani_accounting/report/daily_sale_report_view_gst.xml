@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+<data>
+	<record id="daily_sale_report_pdf_gst" model="ir.actions.report.xml">
+	        <field name="name">daily_sale_report_pdf_gst</field>
+	        <field name="type">ir.actions.report.xml</field>
+	        <field name="model">tpt.daily.sale.report.gst</field>
+	        <field name="report_name">daily_sale_report_pdf_gst</field>
+	        <field name="report_type">aeroo</field>
+	        <field name="in_format">oo-ods</field>
+	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-pdf'),('compatible_types','=','oo-ods')]"/>
+	        <field name="parser_loc">green_erp_arulmani_accounting/report/daily_sale_report_gst.py</field>
+	        <field name="report_rml">green_erp_arulmani_accounting/report/daily_sale_report_gst.ods</field>
+	        <field name="parser_state">loc</field>
+	        <field name="tml_source">file</field>
+	        <field name="attachment_use" eval="0"/>
+    	</record>		    
+		
+		<report 
+			auto="True" 
+			menu="False"
+			id="daily_sale_report_pdf_gst" 
+			model="tpt.daily.sale.report.gst" 
+			name="daily_sale_report_pdf_gst"
+	        string="Daily Sales Report GST"
+	        rml="green_erp_arulmani_accounting/report/daily_sale_report_gst.ods"/>
+	        
+	<record id="daily_sale_report_xls_gst" model="ir.actions.report.xml">
+	        <field name="name">daily_sale_report_xls_gst</field>
+	        <field name="type">ir.actions.report.xml</field>
+	        <field name="model">tpt.daily.sale.report.gst</field>
+	        <field name="report_name">daily_sale_report_xls_gst</field>
+	        <field name="report_type">aeroo</field>
+	        <field name="in_format">oo-ods</field>
+	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-xls'),('compatible_types','=','oo-ods')]"/>
+	        <field name="parser_loc">green_erp_arulmani_accounting/report/daily_sale_report_gst.py</field>
+	        <field name="report_rml">green_erp_arulmani_accounting/report/daily_sale_report_gst.ods</field>
+	        <field name="parser_state">loc</field>
+	        <field name="tml_source">file</field>
+	        <field name="attachment_use" eval="0"/>
+    	</record>		    
+		
+		<report 
+			auto="True" 
+			menu="False"
+			id="daily_sale_report_xls_gst" 
+			model="tpt.daily.sale.report.gst" 
+			name="daily_sale_report_xls_gst"
+	        string="Daily Sales Report GST"
+	        rml="green_erp_arulmani_accounting/report/daily_sale_report_gst.ods"/>
+	        
+    <record id="view_tpt_daily_sale_report_gst" model="ir.ui.view">
+	        <field name="name">tpt.daily.sale.report.gst</field>
+	        <field name="model">tpt.daily.sale.report.gst</field>
+	        <field name="arch" type="xml">
+	            <form version='7.0' string="Daily Sale Report GST" create="false" edit="false" delete="false">
+	            	<header>
+	            		<button name="print_report_xls" string="Print (.xls)" type="object" class="oe_highlight" />
+	            		<button name="print_report_pdf" string="Print (.pdf)" type="object" class="oe_highlight" />
+	            	</header>
+	            	<sheet>
+	            		<div class="oe_text_center">
+            				<b><field name="name" nolabel="1" class="oe_text_center oe_inline"/></b>
+            			</div>
+            			<div class="oe_bold oe_text_left">
+            			<field name="product_title" nolabel = '1' class="oe_text_left oe_inline"/>
+            			<field name="product_id" class="oe_text_left oe_inline"/>
+            			<field name="application_id" class = "oe_right oe_inline"/>
+            			<field name="application_title" nolabel = '1' class="oe_right oe_inline"/>
+            			</div>
+            			<div class="oe_bold oe_text_left">
+            			<field name="state_title" nolabel = '1' class="oe_text_left oe_inline"/>
+            			<field name="state_id" class="oe_text_left oe_inline"/>
+            			<field name="city" class = "oe_right oe_inline"/>
+            			<field name="city_title" nolabel = '1' class="oe_right oe_inline"/>
+            			</div>
+            			<div class="oe_bold oe_text_left">
+            			<field name="customer_title" nolabel = '1' class="oe_text_left oe_inline"/>
+            			<field name="customer_id" class="oe_text_left oe_inline"/>
+            			<field name="name_consignee_id" class = "oe_right oe_inline"/>
+            			<field name="consignee_title" nolabel = '1' class="oe_right oe_inline"/>
+            			</div>
+            			<div class="oe_bold oe_text_left">
+            			<field name="date_from_title" nolabel = '1' class="oe_text_left oe_inline"/>
+            			<field name="date_from" class="oe_text_left oe_inline"/>
+            			<field name="date_to" class = "oe_right oe_inline"/>
+            			<field name="date_to_title" nolabel = '1' class="oe_right oe_inline"/>
+            			</div>
+            			<group>
+		                	<field name="daily_sale_line" nolabel='1'>
+		                		<tree create="false" edit="false" delete="false">
+		                		    <field name="vvt_number" class="oe_text_left oe_inline"/>
+            						<field name="date_invoice" class="oe_text_left oe_inline"/>
+            						<field name="order_type" class="oe_text_left oe_inline"/>
+            						<field name="distribution" class="oe_text_left oe_inline"/>
+            						<field name="country" class="oe_text_left oe_inline"/>
+            						<field name="state" class="oe_text_left oe_inline"/>
+            						<field name="city" class="oe_text_left oe_inline"/>
+            						<field name="po_number" class="oe_text_left oe_inline"/>
+            						<field name="po_date" class="oe_text_left oe_inline"/>
+            						<field name="sales_order" class="oe_text_left oe_inline"/>
+            						<field name="delivery_order" class="oe_text_left oe_inline"/>
+            						<field name="product_code" class="oe_text_left oe_inline"/>
+            						<field name="product_name" class="oe_text_left oe_inline"/>
+            						<field name="application_name" class="oe_text_left oe_inline"/>
+            						<field name="customer_code" class="oe_text_left oe_inline"/>
+            						<field name="partner_name" class="oe_text_left oe_inline"/>
+            						<field name="consignee_code" class="oe_text_left oe_inline"/>
+            						<field name="consignee_name" class="oe_text_left oe_inline"/>
+            						<field name="transporter" class="oe_text_left oe_inline"/>
+            						<field name="lr_no" class="oe_text_left oe_inline"/>
+            						<field name="truck" class="oe_text_left oe_inline"/>
+            						<field name="booked_to" class="oe_text_left oe_inline"/>
+            						<field name="customer_group" class="oe_text_left oe_inline"/>
+            						<field name="payment_term" class="oe_text_left oe_inline"/>
+            						<field name="incoterms_id" class="oe_text_left oe_inline"/>
+            						<field name="quantity" class="oe_text_left oe_inline"/>
+            						<field name="price_unit" class="oe_text_left oe_inline"/>
+            						<field name="uom" class="oe_text_left oe_inline"/>
+            						<field name="basic_price" class="oe_text_left oe_inline"/>
+            				<!-- 	<field name="excise_duty" class="oe_text_left oe_inline"/>
+            						<field name="cst_tax" class="oe_text_left oe_inline"/>
+            						<field name="vat_tax" class="oe_text_left oe_inline"/>  -->
+            						
+            						<field name="sgst_tax" class="oe_text_left oe_inline"/>
+            						<field name="cgst_tax" class="oe_text_left oe_inline"/>
+            						<field name="igst_tax" class="oe_text_left oe_inline"/>
+            						
+            						<field name="tcs_tax" class="oe_text_left oe_inline"/>
+            						<field name="freight" class="oe_text_left oe_inline"/>
+            						<field name="insurance" class="oe_text_left oe_inline"/>
+            						<field name="other_charges" class="oe_text_left oe_inline"/>
+            						<field name="currency" class="oe_text_left oe_inline"/>
+            						<field name="total_amt" class="oe_text_left oe_inline"/>
+            						
+            						<field name="usd_amt" class="oe_text_left oe_inline"/>
+            						<field name="ex_rate" class="oe_text_left oe_inline"/>
+            						
+            						<field name="other_reasons" class="oe_text_left oe_inline"/>
+            					<!--<field name="form_type" class="oe_text_left oe_inline"/>
+            						<field name="form_number" class="oe_text_left oe_inline"/>
+            						<field name="form_date" class="oe_text_left oe_inline"/> -->
+            						
+		                		</tree>
+		                	</field>
+	                	</group>
+	               	</sheet>
+	           </form>
+	        </field>
+	    </record>
+	    
+	    <record id="view_tpt_daily_sale_form_vew_gst" model="ir.ui.view">
+            <field name="name">tpt.daily.sale.line.form.gst</field>
+            <field name="model">tpt.daily.sale.line.gst</field>
+            <field name="arch" type="xml">
+	            <form string="Daily Sales Report Lines GST" version="7.0">
+		            <group >
+		            	<field name="sale_id"/> 
+		            	<field name="do_id"/> 
+		            	<field name="invoice_id"/> 
+		            	<newline/>
+			            <field name="customer_id"/>  
+			            <field name="name_consignee_id"/> 
+			            <field name="product_id"/>  
+				    </group>
+	            </form>
+			</field>
+		</record>
+		
+	    </data>
+</openerp>
