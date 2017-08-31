@@ -570,7 +570,7 @@ class daily_sale_form_gst(osv.osv_memory):
                         
                 if type == 'sgst_subtotal':
                     amt=0 
-                    sum = line.invoice_id.amount_total_sgst_tax or 0.0
+                    sum += line.invoice_id.amount_total_sgst_tax
 #                     stax_id = line.invoice_id.sale_tax_id    
 #                     untax = line.invoice_id.amount_untaxed
 #                     if 'SGST' in stax_id.name: 
@@ -578,7 +578,7 @@ class daily_sale_form_gst(osv.osv_memory):
                  
                 if type == 'cgst_subtotal':
                     amt=0
-                    sum = line.invoice_id.amount_total_cgst_tax or 0.0 
+                    sum += line.invoice_id.amount_total_cgst_tax
 #                     stax_id = line.invoice_id.sale_tax_id    
 #                     untax = line.invoice_id.amount_untaxed
 #                     if 'CGST' in stax_id.name: 
@@ -586,7 +586,7 @@ class daily_sale_form_gst(osv.osv_memory):
                         
                 if type == 'igst_subtotal':
                     amt=0 
-                    sum = line.invoice_id.amount_total_igst_tax or 0.0
+                    sum += line.invoice_id.amount_total_igst_tax
 #                     stax_id = line.invoice_id.sale_tax_id    
 #                     untax = line.invoice_id.amount_untaxed
 #                     if 'IGST' in stax_id.name: 
