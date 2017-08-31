@@ -43,9 +43,9 @@ class Parser(report_sxw.rml_parse):
             'get_cst_tax': self.get_cst_tax,
             'get_vat_tax': self.get_vat_tax,
             
-            'get_sgst_tax': self.get_sgst_tax,
-            'get_cgst_tax': self.get_cgst_tax,
-            'get_igst_tax': self.get_igst_tax,
+#             'get_sgst_tax': self.get_sgst_tax,
+#             'get_cgst_tax': self.get_cgst_tax,
+#             'get_igst_tax': self.get_igst_tax,
             'get_usd_amt': self.get_usd_amt,
             'get_ex_rate': self.get_ex_rate,            
             
@@ -164,24 +164,27 @@ class Parser(report_sxw.rml_parse):
                     
             if type == 'sgst_subtotal':
                 amt=0 
-                stax_id = line.invoice_id.sale_tax_id    
-                untax = line.invoice_id.amount_untaxed
-                if 'SGST' in stax_id.name: 
-                    sum += round(stax_id.amount*untax/100,0)
+                sum = line.invoice_id.amount_total_sgst_tax or 0.0
+#                 stax_id = line.invoice_id.sale_tax_id    
+#                 untax = line.invoice_id.amount_untaxed
+#                 if 'SGST' in stax_id.name: 
+#                     sum += round(stax_id.amount*untax/100,0)
                  
             if type == 'cgst_subtotal':
                 amt=0 
-                stax_id = line.invoice_id.sale_tax_id    
-                untax = line.invoice_id.amount_untaxed
-                if 'CGST' in stax_id.name: 
-                    sum += round(stax_id.amount*untax/100,0)
+                sum = line.invoice_id.amount_total_cgst_tax or 0.0
+#                 stax_id = line.invoice_id.sale_tax_id    
+#                 untax = line.invoice_id.amount_untaxed
+#                 if 'CGST' in stax_id.name: 
+#                     sum += round(stax_id.amount*untax/100,0)
                         
             if type == 'igst_subtotal':
                 amt=0 
-                stax_id = line.invoice_id.sale_tax_id    
-                untax = line.invoice_id.amount_untaxed
-                if 'IGST' in stax_id.name: 
-                    sum += round(stax_id.amount*untax/100,0)
+                sum = line.invoice_id.amount_total_igst_tax or 0.0
+#                 stax_id = line.invoice_id.sale_tax_id    
+#                 untax = line.invoice_id.amount_untaxed
+#                 if 'IGST' in stax_id.name: 
+#                     sum += round(stax_id.amount*untax/100,0)
                       
             if type == 'tcs_subtotal':
                 amt=0 
@@ -242,23 +245,23 @@ class Parser(report_sxw.rml_parse):
             decamount = format(amount, '.3f')
             return decamount
         
-    def get_sgst_tax(self, tax, untax):
-            amount = 0
-            if 'SGST' in tax.name:
-                amount = tax.amount
-                return round(amount*untax/100,2)
-            
-    def get_cgst_tax(self, tax, untax):
-            amount = 0
-            if 'CGST' in tax.name:
-                amount = tax.amount
-                return round(amount*untax/100,2)
-
-    def get_igst_tax(self, tax, untax):
-            amount = 0
-            if 'IGST' in tax.name:
-                amount = tax.amount
-                return round(amount*untax/100,2)
+#     def get_sgst_tax(self, tax, untax):
+#             amount = 0
+#             if 'SGST' in tax.name:
+#                 amount = tax.amount
+#                 return round(amount*untax/100,2)
+#             
+#     def get_cgst_tax(self, tax, untax):
+#             amount = 0
+#             if 'CGST' in tax.name:
+#                 amount = tax.amount
+#                 return round(amount*untax/100,2)
+# 
+#     def get_igst_tax(self, tax, untax):
+#             amount = 0
+#             if 'IGST' in tax.name:
+#                 amount = tax.amount
+#                 return round(amount*untax/100,2)
     
     def get_usd_amt(self, currency, amt_total):
             amount = 0

@@ -401,6 +401,7 @@ class stock_picking(osv.osv):
 #             'quantity': move_line.product_uos_qty or move_line.product_qty,
 #             'invoice_line_tax_id': [(6, 0, self._get_taxes_invoice(cr, uid, move_line, invoice_vals['type']))],
 #             'account_analytic_id': self._get_account_analytic_invoice(cr, uid, picking, move_line),
+                'price_unit':move_line.price_unit or 0,
                 'product_type':move_line.sale_line_id and move_line.sale_line_id.product_type or False,
                 'application_id':move_line.sale_line_id and move_line.sale_line_id.application_id and move_line.sale_line_id.application_id.id or False,
                 'freight':move_line.sale_line_id and move_line.sale_line_id.freight or False,

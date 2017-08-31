@@ -405,7 +405,6 @@ class daily_sale_form(osv.osv_memory):
         
 daily_sale_form()
 
-
 class tpt_daily_sale_report_gst(osv.osv_memory):
     _name = "tpt.daily.sale.report.gst"
     _columns = {
@@ -502,7 +501,8 @@ class tpt_daily_sale_line_gst(osv.osv_memory):
         
         'usd_amt': fields.float('Value(USD)',digits=(16,2)),
         'ex_rate': fields.float('Ex.Rate',digits=(16,2)),
-        
+        'hsn_code': fields.char('HSN Code', size = 1024),
+        'place_of_supply': fields.char('Place of Supply', size = 1024),
         'other_reasons': fields.char('Order Reason', size = 1024),   
                     
         'sale_id':fields.many2one("sale.order", 'Sales Order'),   
@@ -570,24 +570,27 @@ class daily_sale_form_gst(osv.osv_memory):
                         
                 if type == 'sgst_subtotal':
                     amt=0 
-                    stax_id = line.invoice_id.sale_tax_id    
-                    untax = line.invoice_id.amount_untaxed
-                    if 'SGST' in stax_id.name: 
-                        sum += round(stax_id.amount*untax/100,0)
+                    sum = line.invoice_id.amount_total_sgst_tax or 0.0
+#                     stax_id = line.invoice_id.sale_tax_id    
+#                     untax = line.invoice_id.amount_untaxed
+#                     if 'SGST' in stax_id.name: 
+#                         sum += round(stax_id.amount*untax/100,0)
                  
                 if type == 'cgst_subtotal':
-                    amt=0 
-                    stax_id = line.invoice_id.sale_tax_id    
-                    untax = line.invoice_id.amount_untaxed
-                    if 'CGST' in stax_id.name: 
-                        sum += round(stax_id.amount*untax/100,0)
+                    amt=0
+                    sum = line.invoice_id.amount_total_cgst_tax or 0.0 
+#                     stax_id = line.invoice_id.sale_tax_id    
+#                     untax = line.invoice_id.amount_untaxed
+#                     if 'CGST' in stax_id.name: 
+#                         sum += round(stax_id.amount*untax/100,0)
                         
                 if type == 'igst_subtotal':
                     amt=0 
-                    stax_id = line.invoice_id.sale_tax_id    
-                    untax = line.invoice_id.amount_untaxed
-                    if 'IGST' in stax_id.name: 
-                        sum += round(stax_id.amount*untax/100,0)
+                    sum = line.invoice_id.amount_total_igst_tax or 0.0
+#                     stax_id = line.invoice_id.sale_tax_id    
+#                     untax = line.invoice_id.amount_untaxed
+#                     if 'IGST' in stax_id.name: 
+#                         sum += round(stax_id.amount*untax/100,0)
                                 
                 if type == 'tcs_subtotal':
                     amt=0 
@@ -642,23 +645,23 @@ class daily_sale_form_gst(osv.osv_memory):
                 amount = tax.amount
                 return round(amount*untax/100,2)
     
-        def get_sgst_tax(tax, untax):
-            amount = 0
-            if 'SGST' in tax.name:
-                amount = tax.amount
-                return round(amount*untax/100,2)
-            
-        def get_cgst_tax(tax, untax):
-            amount = 0
-            if 'CGST' in tax.name:
-                amount = tax.amount
-                return round(amount*untax/100,2)
-
-        def get_igst_tax(tax, untax):
-            amount = 0
-            if 'IGST' in tax.name:
-                amount = tax.amount
-                return round(amount*untax/100,2)
+#         def get_sgst_tax(tax, untax):
+#             amount = 0
+#             if 'SGST' in tax.name:
+#                 amount = tax.amount
+#                 return round(amount*untax/100,2)
+#             
+#         def get_cgst_tax(tax, untax):
+#             amount = 0
+#             if 'CGST' in tax.name:
+#                 amount = tax.amount
+#                 return round(amount*untax/100,2)
+# 
+#         def get_igst_tax(tax, untax):
+#             amount = 0
+#             if 'IGST' in tax.name:
+#                 amount = tax.amount
+#                 return round(amount*untax/100,2)
             
         def get_usd_amt(currency):
             amount = 0
@@ -784,9 +787,9 @@ class daily_sale_form_gst(osv.osv_memory):
                 'cst_tax':get_cst_tax(line.invoice_id.sale_tax_id, line.invoice_id.amount_untaxed) or 0.00,
                 'vat_tax':get_vat_tax(line.invoice_id.sale_tax_id, line.invoice_id.amount_untaxed) or 0.00,
                 
-                'sgst_tax':get_sgst_tax(line.invoice_id.sale_tax_id, line.invoice_id.amount_untaxed) or 0.00,
-                'cgst_tax':get_cgst_tax(line.invoice_id.sale_tax_id, line.invoice_id.amount_untaxed) or 0.00,
-                'igst_tax':get_igst_tax(line.invoice_id.sale_tax_id, line.invoice_id.amount_untaxed) or 0.00,
+                'sgst_tax':line.invoice_id.amount_total_sgst_tax or 0.00,
+                'cgst_tax':line.invoice_id.amount_total_cgst_tax or 0.00,
+                'igst_tax':line.invoice_id.amount_total_igst_tax or 0.00,
                 'incoterms_id':line.invoice_id.sale_id.incoterms_id.code or '',
                 'tcs_tax':get_tcs_tax(line.invoice_id.sale_tax_id, line.invoice_id.amount_untaxed) or 0.00,
                 'freight':(line.freight * line.quantity) or 0.00,
@@ -798,7 +801,8 @@ class daily_sale_form_gst(osv.osv_memory):
                 
                 'usd_amt':get_usd_amt(line.invoice_id.currency_id.name) or 0.00,
                 'ex_rate':get_ex_rate(line.invoice_id.currency_id.name,line.invoice_id.amount_total_inr) or 0.00,
-                
+                'hsn_code': line.product_id and line.product_id.hsn_code or '',
+                'place_of_supply': line.invoice_id.place_of_supply  or '',
                 'other_reasons':line.invoice_id.other_info or '',
                 
                 'sale_id':line.invoice_id.sale_id and line.invoice_id.sale_id.id or False,
