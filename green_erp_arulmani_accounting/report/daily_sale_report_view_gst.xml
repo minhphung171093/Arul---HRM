@@ -112,7 +112,7 @@
             						<field name="lr_no" class="oe_text_left oe_inline"/>
             						<field name="truck" class="oe_text_left oe_inline"/>
             						<field name="place_of_supply" class="oe_text_left oe_inline"/>
-            						<field name="booked_to" class="oe_text_left oe_inline"/>
+            				<!--		<field name="booked_to" class="oe_text_left oe_inline"/> -->
             						<field name="customer_group" class="oe_text_left oe_inline"/>
             						<field name="payment_term" class="oe_text_left oe_inline"/>
             						<field name="incoterms_id" class="oe_text_left oe_inline"/>

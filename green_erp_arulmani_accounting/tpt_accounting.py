@@ -1976,7 +1976,7 @@ class account_invoice(osv.osv):
                     iml += invoice_line_obj.move_line_fi_debit_5(cr, uid, inv.id)            
                 else:
                     iml += invoice_line_obj.move_line_fi_debit(cr, uid, inv.id)
-                iml += invoice_line_obj.move_line_amount_tax_krishi_kalyan_cess_5(cr, uid, inv.id) #Added By P.vinothkumar - ON 21/06/2016 -for Krishi kalyan cess  
+                #iml += invoice_line_obj.move_line_amount_tax_krishi_kalyan_cess_5(cr, uid, inv.id) #Added By P.vinothkumar - ON 21/06/2016 -for Krishi kalyan cess  
                 iml += invoice_line_obj.move_line_fi_credit(cr, uid, inv.id) #TPT-COMMENTED
                 iml += invoice_line_obj.move_line_tds_amount_freight(cr, uid, inv.id) 
                 iml += invoice_line_obj.move_line_amount_round_off(cr, uid, inv.id)
@@ -5136,17 +5136,33 @@ class account_invoice_line(osv.osv):
                 tax = (basic + p_f + ed)*(tax_value) * voucher_rate
                 tax = round(tax,2)
             if line.fright_type == '1' :
-                fright = (basic + p_f + ed + tax) * line.fright/100
-                fright = round(fright,2)
+                if currency != 'INR':
+                    fright = ((basic + p_f + ed + tax) * line.fright/100)/ voucher_rate
+                    fright = round(fright,2)
+                else:
+                    fright = (basic + p_f + ed + tax) * line.fright/100
+                    fright = round(fright,2)
             elif line.fright_type == '2' :
-                fright = line.fright
-                fright = round(fright,2)
+                if currency != 'INR':
+                    fright = (line.fright)/ voucher_rate
+                    fright = round(fright,2)
+                else:
+                    fright = line.fright
+                    fright = round(fright,2)
             elif line.fright_type == '3' :
-                fright = line.fright * line.quantity
-                fright = round(fright,2)
+                if currency != 'INR':
+                    fright = (line.fright * line.quantity)/ voucher_rate
+                    fright = round(fright,2)
+                else:
+                    fright = line.fright * line.quantity
+                    fright = round(fright,2)
             else:
-                fright = line.fright
-                fright = round(fright,2)
+                if currency != 'INR':
+                    fright = (line.fright)/ voucher_rate
+                    fright = round(fright,2)
+                else:
+                    fright = line.fright
+                    fright = round(fright,2)
             if fright:
                 res.append({
                     'type':'tax',

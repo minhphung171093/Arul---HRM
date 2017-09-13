@@ -1264,6 +1264,7 @@ class stock_movement_analysis(osv.osv_memory):
                             '''%(locat_ids[0],product_id,date_from,date_to,date_from,date_to)
                             #%(locat_ids[0],product_id,date_from,date_to,date_from,date_to, date_from, date_to, product_id) #old
                 cr.execute(sql)
+                print sql
                 inventory = cr.dictfetchone()
                 '''
                 union                            
@@ -1330,6 +1331,7 @@ class stock_movement_analysis(osv.osv_memory):
                    select * from stock_move where product_id = %s and picking_id in (select id from stock_picking where to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') between '%s' and '%s' and state = 'done')
                '''%(product_id,date_from,date_to) 
             cr.execute(sql)
+            print sql
             for line in cr.dictfetchall():
                if line['action_taken'] == 'need':
                    #TPT-BM-ON 18/08/2016-To skip quality inspection record for which invoices yet to be created, since grn posting will be
@@ -1360,6 +1362,7 @@ class stock_movement_analysis(osv.osv_memory):
             where sa.adj_type='increase' and sm.product_id=%s and sm.date between '%s' and '%s'
             '''%(product_id, date_from, date_to)
             cr.execute(sql)
+            print sql
             temp = cr.fetchone()
             if temp:
                 adj_value = temp[0]
