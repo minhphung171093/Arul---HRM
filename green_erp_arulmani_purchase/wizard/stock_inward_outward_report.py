@@ -507,14 +507,20 @@ class stock_inward_outward_report(osv.osv_memory):
                                                         or inspec_id is not null 
                                                         or (st.id in (select move_id from stock_inventory_move_rel))
                                                 )
-                        union
-                                        select 0 as ton_sl, case when sum(ail.line_net)!=0 then sum(ail.line_net) else 0 end as total_cost from account_invoice ai
-                                        inner join account_invoice_line ail on ai.id=ail.invoice_id
-                                        where ai.doc_type='freight_invoice' and  ai.date_invoice < '%s' and ai.state not in('draft','cancel')
-                                        and ail.product_id=%s)a
-              '''%(locat_ids[0],product_id.id,date_from,date_from,product_id.id)
+                        
+                                        )a
+                                        
+
+              '''%(locat_ids[0],product_id.id,date_from) #,date_from,product_id.id
                cr.execute(sql)
+               print sql
                inventory = cr.dictfetchone()
+               
+#                                         union
+#                                         select 0 as ton_sl, case when sum(ail.line_net)!=0 then sum(ail.line_net) else 0 end as total_cost from account_invoice ai
+#                                         inner join account_invoice_line ail on ai.id=ail.invoice_id
+#                                         where ai.doc_type='freight_invoice' and  ai.date_invoice < '%s' and ai.state not in('draft','cancel')
+#                                         and ail.product_id=%s
                #TPT end 
                if inventory:
                    hand_quantity = inventory['ton_sl'] or 0
@@ -528,6 +534,7 @@ class stock_inward_outward_report(osv.osv_memory):
                         
                '''%(locat_ids[0],product_id.id,date_from)
                cr.execute(sql)
+               print sql
                product_isu_qty = cr.fetchone()[0]
                sql = '''
                        select case when sum(line_net)!=0 then sum(line_net) else 0 end line_net, product_id from account_invoice_line 
@@ -535,6 +542,7 @@ class stock_inward_outward_report(osv.osv_memory):
                        group by product_id
                '''%(product_id.id, date_from)
                cr.execute(sql)
+               print sql
                for inventory in cr.dictfetchall():
                    freight_cost = inventory['line_net'] or 0
             
@@ -548,9 +556,10 @@ class stock_inward_outward_report(osv.osv_memory):
                             
                    '''%(locat_ids[0],product_id.id,date_from)
                    cr.execute(sql)
+                   print sql
                    production_value = cr.fetchone()[0]
                    
-               opening_stock_value = total_cost-(product_isu_qty)+freight_cost-production_value
+               opening_stock_value = total_cost-(product_isu_qty)-production_value #+freight_cost
            #end
            #TPT-BM-ON 02/08/2016
            #pls call get_frt_cst_amt() method here. and add
