@@ -2468,6 +2468,10 @@ class purchase_order(osv.osv):
                 amount_total_cgst_tax += line_value['tax_cgst_amount']
                 amount_total_sgst_tax += line_value['tax_sgst_amount']
                 amount_total_igst_tax += line_value['tax_igst_amount']
+                #TPT - SSR - For GST TAX 0% uncalculated scenario - 27-9-2017
+                if (amount_total_cgst_tax != 0) | (amount_total_igst_tax != 0):
+                    is_non_gst = False
+                #End
                 if amount_total_cgst_tax == 0 and  amount_total_igst_tax == 0:
                     total_nongst_tax += (basic + p_f + ed)*(tax)
                     is_non_gst = True
