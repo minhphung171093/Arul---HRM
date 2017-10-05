@@ -1208,12 +1208,19 @@ class product_product(osv.osv):
 #             product_name_ids = self.search(cr, uid, [('id','!=',product.id),('name','=',product.name)])
             # Added by P.VINOTHKUMAR ON 04/11/2016 for adding validation unique product name
             #product_name_ids = self.search(cr, uid, [('id','!=',product.id),('name','=',product.name)])
+#             sql = '''
+#                 select pp.id
+#                     from product_product pp
+#                     left join product_template pt on pp.product_tmpl_id=pt.id
+#                     where pp.id != %s and pt.categ_id=%s and lower(regexp_replace((pp.name_template),'[^a-zA-Z0-9]', '', 'g')) = lower(regexp_replace(('%s'),'[^a-zA-Z0-9]', '', 'g'))
+#             '''%(product.id,product.categ_id.id,product.name)
+            # Added by S.SELVARAM ON 03/10/2017 for adding validation unique product name
             sql = '''
                 select pp.id
                     from product_product pp
                     left join product_template pt on pp.product_tmpl_id=pt.id
-                    where pp.id != %s and pt.categ_id=%s and lower(regexp_replace((pp.name_template),'[^a-zA-Z0-9]', '', 'g')) = lower(regexp_replace(('%s'),'[^a-zA-Z0-9]', '', 'g'))
-            '''%(product.id,product.categ_id.id,product.name)
+                    where pp.id != %s and pt.categ_id=%s and lower(regexp_replace((pp.name_template),'[^a-zA-Z0-9]', '"', 'g')) = lower(regexp_replace(('%s'),'[^a-zA-Z0-9]', '', 'g'))
+            '''%(product.id,product.categ_id.id,product.name)            
             cr.execute(sql)
             product_name_ids = [row[0] for row in cr.fetchall()]
             if product_name_ids:
@@ -2471,7 +2478,7 @@ class purchase_order(osv.osv):
                 #TPT - SSR - For GST TAX 0% uncalculated scenario - 27-9-2017
                 if (amount_total_cgst_tax != 0) | (amount_total_igst_tax != 0):
                     is_non_gst = False
-                #End
+                #End - SSR -
                 if amount_total_cgst_tax == 0 and  amount_total_igst_tax == 0:
                     total_nongst_tax += (basic + p_f + ed)*(tax)
                     is_non_gst = True
