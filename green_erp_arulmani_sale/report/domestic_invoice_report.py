@@ -200,7 +200,8 @@ class Parser(report_sxw.rml_parse):
     
     def get_qty_mt2(self, qty, price_unit):
         mt_qty = 0.0
-        Net_Amt = qty * price_unit       
+        Net_Amt = qty * price_unit
+        Net = round(Net_Amt)       
         #return "{:,}".format(Net_Amt,'.2f')
         locale.setlocale(locale.LC_NUMERIC, "en_IN")
         inr_comma_format = locale.format("%.2f", Net_Amt, grouping=True)
