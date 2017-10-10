@@ -204,7 +204,7 @@ class Parser(report_sxw.rml_parse):
         #return "{:,}".format(Net_Amt,'.2f')
         locale.setlocale(locale.LC_NUMERIC, "en_IN")
         inr_comma_format = locale.format("%.2f", Net_Amt, grouping=True)
-        return round(inr_comma_format,2)
+        return inr_comma_format
     def get_amt(self, amt):       
         #return "{:,}".format(amt,'.2f')
         locale.setlocale(locale.LC_NUMERIC, "en_IN")
