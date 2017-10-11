@@ -35,9 +35,9 @@ class hr_department(osv.osv):
             if department_ids:  
                 return False
         return True
-    _constraints = [
-        (_check_code, 'Identical Data', ['code']),
-    ] 
+#     _constraints = [
+#         (_check_code, 'Identical Data', ['code']),
+#     ] 
     
 
     def create(self, cr, uid, vals, context=None):
