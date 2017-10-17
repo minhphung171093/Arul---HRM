@@ -2393,7 +2393,8 @@ class account_invoice(osv.osv):
                 location_id = 14
             if line.product_id.cate_name=='raw':
                 location_id = 15
-                
+            if line.product_id.cate_name=='cunsum': # Fright invoice with consumable product
+                location_id = 14    
             inv_obj_ids = inventory_obj.search(cr, uid, [('product_id', '=', line.product_id.id),('warehouse_id', '=', location_id)])
             inv_ids = inventory_obj.browse(cr, uid, inv_obj_ids[0])
             hand_quantity = inv_ids.hand_quantity

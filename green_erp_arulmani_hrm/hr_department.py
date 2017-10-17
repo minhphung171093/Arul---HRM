@@ -37,7 +37,7 @@ class hr_department(osv.osv):
         return True
 #     _constraints = [
 #         (_check_code, 'Identical Data', ['code']),
-#     ] 
+#     ]
     
 
     def create(self, cr, uid, vals, context=None):
