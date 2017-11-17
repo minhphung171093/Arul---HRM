@@ -205,12 +205,12 @@ class approve_reject_quanlity_inspection(osv.osv_memory):
             if not period_ids:
                 raise osv.except_osv(_('Warning!'),_('Period is not null, please configure it in Period master !'))
             #to get journal id 
-            sql_journal = '''
-            select id from account_journal
-            '''
-            cr.execute(sql_journal)
-            journal_ids = [r[0] for r in cr.fetchall()]
-            journal = self.pool.get('account.journal').browse(cr,uid,journal_ids[0])
+#             sql_journal = '''
+#             select id from account_journal
+#             '''
+#             cr.execute(sql_journal)
+#             journal_ids = [r[0] for r in cr.fetchall()]
+#             journal = self.pool.get('account.journal').browse(cr,uid,journal_ids[0])
             #for seq generation
             sql = '''
             select code from account_fiscalyear where '%s' between date_start and date_stop
@@ -296,7 +296,7 @@ class approve_reject_quanlity_inspection(osv.osv_memory):
                 'product_id':line.product_id.id,
             }))
             value={
-            'journal_id':journal.id,
+            'journal_id':9,
             'period_id':period_ids[0] ,
             'date': date_period,
             'line_id': journal_line,

@@ -1760,6 +1760,7 @@ class stock_movement_analysis(osv.osv_memory):
                                         and ail.product_id=%s)a
                     '''%(locat_ids[0],product_id,date_from,date_from,product_id)
                 cr.execute(sql)
+                print sql
                 inventory = cr.dictfetchone()
                 #TPT End
                 if inventory:
@@ -1774,6 +1775,7 @@ class stock_movement_analysis(osv.osv_memory):
                         
                 '''%(locat_ids[0],product_id,date_from)
                 cr.execute(sql)
+                print sql
                 product_isu_qty = cr.fetchone()[0]
                 if product.default_code == 'M0501060001':
                    sql = '''
@@ -1785,6 +1787,7 @@ class stock_movement_analysis(osv.osv_memory):
                             
                    '''%(locat_ids[0],product.id,date_from)
                    cr.execute(sql)
+                   print sql
                    production_value = cr.fetchone()[0]
                 opening_stock_value = total_cost-(product_isu_qty)-production_value
             return opening_stock_value    

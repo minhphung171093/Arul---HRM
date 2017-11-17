@@ -11442,7 +11442,7 @@ class tpt_time_data_move(osv.osv):
                 from_cursor.execute(sql)
                 from_conn.commit()
             
-                #print "TIME DATA MOVED"
+                print "TIME DATA MOVED"
             return True
     ##TPT-BM-29/11/2016
     def upload_batronix_time_data(self, cr, uid, context=None):

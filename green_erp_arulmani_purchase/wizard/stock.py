@@ -55,7 +55,15 @@ class stock_partial_picking(osv.osv_memory):
             
             if picking_type=='in':
                 if wizard_line.move_id.purchase_line_id and wizard_line.product_id.tolerance_qty:
-                    po_qty = wizard_line.move_id.purchase_line_id.product_qty
+                    #po_qty = wizard_line.move_id.purchase_line_id.product_qty
+                    # START 09-11-17 - RK - Tolerance limit fix for 2 line in PO
+                    order_id=wizard_line.move_id.purchase_line_id.order_id.id
+                    #order_id1=order_id.id
+                    sql = '''
+                            select sum(product_qty) as product_qty from purchase_order_line where order_id=%s''' %(order_id)
+                    cr.execute(sql)       
+                    po_qty=cr.fetchone()[0]
+                    # END 09-11-17 - RK - Tolerance limit fix for 2 line in PO
                     tolerance_qty = po_qty*wizard_line.product_id.tolerance_qty/100 
                     sql = '''
                         select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty from stock_move
@@ -64,6 +72,7 @@ class stock_partial_picking(osv.osv_memory):
                     '''%(wizard_line.product_id.id,wizard_line.move_id.picking_id.purchase_id.id)
                     cr.execute(sql)
                     received_qty = cr.fetchone()[0]
+  
                     ### TPT START- By BalamuruganPurushothaman on 23/09/2015 
                     ### To fix instant ID: 3192 - Issue in Return GRN, while receive materials which are having tolerance limit
                     sql = '''

@@ -400,7 +400,8 @@
 					<field name="tax_igst_amount" invisible="1"/>
 					<field name="aed_id_1" invisible="1"/>
 					<field name="fright"/>
-					<field name="fright_type"/>
+					<!-- #RK Remove frieght invoice type % --> 
+					<field name="fright_fi_type"/>
 					<field name="line_net"/>
                     <field name="tpt_grn_id" invisible="1"/>
                     <field name="tpt_grn_line_id" invisible="1"/>

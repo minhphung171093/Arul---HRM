@@ -587,6 +587,7 @@ class tpt_purchase_product(osv.osv):
                     '''%(uid)
             cr.execute(sql)
             mana = cr.fetchone()
+            print mana
 #                 fq = self.pool.get('res_users').browse(cr,uid,uid)
             if line.state == 'confirm':
                 if mana[0]:
