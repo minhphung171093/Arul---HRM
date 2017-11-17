@@ -2739,7 +2739,6 @@
 							<field name="date_expec" on_change="onchange_date_issue(date_expec)" />
 							<field name="request_type" />
 							<field name="department_id" options="{'create': false, 'create_edit': false}" />
-							<field name="onhand_qty" />
 							<field name="flag" invisible='1' />
 						</group>
 						<notebook>
