@@ -686,10 +686,17 @@ class tpt_purchase_product(osv.osv):
             '''%(product_id)
             cr.execute(sql)
             product_mrs_qty=cr.dictfetchone()['product_mrs_qty']
+             # tpt Start RK
+            if not product.tpt_description:
+                    product_name = product.name
+            else:
+                     product_name = product.tpt_description
             res['value'].update({
                     'uom_po_id':product.uom_id.id,
                     #'price_unit':product.list_price,
-                    'description': product.name,
+                    #'description': product.name, # RK 20-nov-17 prodction desc load from master
+                    'description': product_name, # RK 20-nov-17 prodction desc load from master
+             # TPT END       
                     'item_text': product.name,
                     'mrs_qty':float(product_mrs_qty),
                     })
@@ -713,10 +720,17 @@ class tpt_purchase_product(osv.osv):
             '''%(vals['product_id'])
             cr.execute(sql)
             product_mrs_qty=cr.dictfetchone()['product_mrs_qty']
+             # TPT     Start RK
+            if not product.tpt_description:
+                    product_name = product.name
+            else:
+                     product_name = product.tpt_description
             if product.categ_id.cate_name not in ['consum','service']:
                 vals.update({
                              'uom_po_id':product.uom_id.id,
-                             'description':product.name,
+                             #'description':product.name, # RK 20-nov-17 prodction desc load from master
+                             'description':product_name, # RK 20-nov-17 prodction desc load from master
+              #TPT END               
                              'mrs_qty':float(product_mrs_qty),
                              })
             else:
@@ -740,10 +754,17 @@ class tpt_purchase_product(osv.osv):
             '''%(vals['product_id'])
             cr.execute(sql)
             product_mrs_qty=cr.dictfetchone()['product_mrs_qty']
+             # TPT Start RK
+            if not product.tpt_description:
+                    product_name = product.name
+            else:
+                     product_name = product.tpt_description
             if product.categ_id.cate_name not in ['consum','service']:
                 vals.update({
                              'uom_po_id':product.uom_id.id,
-                             'description':product.name,
+                             #'description':product.name,
+                             'description':product_name, # RK 20-nov-17 prodction desc load from master
+             #TPT END               
                              'mrs_qty':float(product_mrs_qty),
                              })
             else:
