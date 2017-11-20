@@ -5472,8 +5472,16 @@ class account_invoice_line(osv.osv):
         res = []
         invoice = self.pool.get('account.invoice').browse(cr, uid, invoice_id)
         for line in invoice.invoice_line:
-            if line.tax_id and not line.tax_id.gl_account_id:
-                raise osv.except_osv(_('Warning!'),_('GL Account is not null, please configure it in Tax Master!'))
+#             if line.tax_id and not line.tax_id.gl_account_id:
+#                 raise osv.except_osv(_('Warning!'),_('GL Account is not null, please configure it in Tax Master!'))
+            # Fixed by P.VINOTHKUMAR ON 17/11/2017 for fixing child gl account ids...
+            if line.tax_id.child_depend:
+                    for tax_child in line.tax_id.child_ids:
+                        if not tax_child.gl_account_id:
+                            raise osv.except_osv(_('Warning!'),_('GL Account is not null, please configure it in Tax Master!'))
+                        account_tax_id = tax_child.gl_account_id.id
+                        
+            # End by TPT 17/11/2017            
             if line.fright_fi_type == '2':
                 base_amount = round(line.fright,2)
                 tax_debit_amount = base_amount*(line.tax_id and line.tax_id.amount/100 or 0)
@@ -5489,7 +5497,7 @@ class account_invoice_line(osv.osv):
                     'price_unit': line.price_unit,
                     'quantity': 1,
                     'price': tax_debit_amount,
-                    'account_id': line.tax_id and line.tax_id.gl_account_id and line.tax_id.gl_account_id.id or False,
+                    'account_id': line.tax_id and line.tax_id.gl_account_id and account_tax_id or False,
                     'account_analytic_id': line.account_analytic_id.id,
                     # vsis add
                     'tpt_grn_id':line.tpt_grn_id and line.tpt_grn_id.id or False,

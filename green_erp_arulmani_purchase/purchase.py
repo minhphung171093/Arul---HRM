@@ -4509,6 +4509,7 @@ class tpt_gate_out_pass(osv.osv):
                 'po_indent_id': line.st_move_id.po_indent_id.id or False,
                 'action_taken': False,
                 'description':line.st_move_id.description or False,
+               # 'description':line.st_move_id.product_id.tpt_dr or False,
                 'item_text':line.st_move_id.item_text or False,
                 'cost_center_id': line.st_move_id.cost_center_id.id or False,
                 'gate_out_id':good.id,                       
