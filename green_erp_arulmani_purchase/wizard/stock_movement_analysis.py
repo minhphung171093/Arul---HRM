@@ -229,6 +229,7 @@ class tpt_movement_analysis_line(osv.osv):
                         )
                '''%(locat_ids[0],product_id.id, date_from)
                cr.execute(sql)
+               print sql
                inventory = cr.dictfetchone()
                if inventory:
                    hand_quantity = inventory['ton_sl'] or 0
@@ -241,6 +242,7 @@ class tpt_movement_analysis_line(osv.osv):
                         
                '''%(locat_ids[0],product_id.id,date_from)
                cr.execute(sql)
+               print sql
                product_isu_qty = cr.fetchone()[0]
                    
                if product_id.default_code == 'M0501060001':
