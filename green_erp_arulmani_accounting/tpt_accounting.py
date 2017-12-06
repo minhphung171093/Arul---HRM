@@ -1801,6 +1801,8 @@ class account_invoice(osv.osv):
                             iml += invoice_line_obj.move_line_amount_tax(cr, uid, inv.id)
                         iml += invoice_line_obj.move_line_tds_amount_without_po(cr, uid, inv.id) 
                         iml += invoice_line_obj.move_line_amount_round_off(cr, uid, inv.id)
+                        # Added by P.VINOTHKUMAR on 03/11/2017  for fixing average cost issue(fright)
+                        self.prod_avg_cost_update(cr, uid, inv.id, context) 
                         
                     if inv.purchase_id.po_document_type == 'service':
                         # service inv
@@ -2372,22 +2374,40 @@ class account_invoice(osv.osv):
 
         return True
     ###
-    def prod_avg_cost_update(self, cr, uid, invoice_id, context=None):
+    def prod_avg_cost_update(self, cr, uid, invoice_id,context=None):
         result = []
         if context is None:
             context = {}
         ctx = context.copy()
         inventory_obj = self.pool.get('tpt.product.avg.cost')
-        inv_id = self.pool.get('account.invoice').browse(cr, uid, invoice_id)
-        
+        inv_id = self.pool.get('account.invoice').browse(cr, uid, invoice_id) 
+#        currency = self.pool.get('res.currency') # RK
+#        currency_id = inv_id.currency_id.id
+#        freight_amt1 = 0
+#        if inv_id.currency_id.name != 'INR': # RK
+#                rate1 = self.pool.get('res.currency').read(cr, uid, currency_id, ['rate'], context=ctx)['rate'] # RK
+#                freight_amt1 = freight_amt * 1/rate1      # RK
         inv_line_net_amt = 0
         location_id = False
-        for line in inv_id.invoice_line:
-            freight_amt = 0
-            if line.fright_fi_type=='2':
+        for line in inv_id.invoice_line:            
+             # commented by P.VINOTHKUMAR ON 06/11/2017 for fixing Avg cost issue.
+#             if line.fright_fi_type=='2':
+#                 freight_amt = line.fright
+#             elif line.fright_fi_type=='3':
+#                 freight_amt = line.fright*line.quantity
+            # Comment end
+             # Added fright_type logic by P.VINOTHKUMAR ON 06/11/2017 for fixing Avg cost issue.
+            if line.fright_type=='1':
+                freight_amt = line.quantity * line.price_unit * line.fright/100
+            if line.fright_fi_type=='2' or line.fright_type=='2':
                 freight_amt = line.fright
-            elif line.fright_fi_type=='3':
-                freight_amt = line.fright*line.quantity
+            if line.fright_fi_type=='3' or line.fright_type=='3':
+                freight_amt = line.fright * line.quantity    
+            if line.fright_fi_type=='3' and line.fright_type=='2':
+                freight_amt = line.fright * line.quantity
+            if line.fright_fi_type=='2' and line.fright_type=='3':
+                freight_amt = line.fright                   
+            # TPT CODE End 06/11/2017
            
             if line.product_id.cate_name=='spares':
                 location_id = 14
@@ -2411,7 +2431,14 @@ class account_invoice(osv.osv):
                 hand_quantity = round(float(inventory['hand_quantity']),2)
                 total_cost = round(float(inventory['total_cost']),2)
                 avg_cost = round(float(inventory['avg_cost']),2)
-                total_cost += freight_amt
+                # commented by P.VINOTHKUMAR ON 07/11/2017 for fixing to decrease product stock value when cancel freight invoice
+                #total_cost += freight_amt
+                 # Added by P.VINOTHKUMAR ON 07/11/2017 for fixing to decrease product stock value when cancel freight invoice
+                if inv_id.state=='cancel':
+                    total_cost -= freight_amt
+                else:
+                    total_cost += freight_amt  
+                # End 07/11/2017
                 if hand_quantity>0:
                     #TPT-BM-ON 05/07/2016 - GET CST INVOICE AMT
                     cst_amt = 0
@@ -2433,59 +2460,61 @@ class account_invoice(osv.osv):
                     cst_amt = cr.fetchone()
                     if cst_amt:
                         cst_amt = cst_amt[0]
-                    #
-                    sql = '''
-                        select 
-                        
-                        case when 
-                        SUM(case when ail.fright_fi_type='2' then ail.fright
-                        when ail.fright_fi_type='3' then ail.fright*ail.quantity
-                        else 0 end) >=0
-                        then    
-                        SUM(case when ail.fright_fi_type='2' then ail.fright
-                        when ail.fright_fi_type='3' then ail.fright*ail.quantity
-                        else 0 end)                
-                        else 0 end as frt_amt
-                        
-                        from account_invoice ai
-                        inner join account_invoice_line ail on ai.id=ail.invoice_id
-                        where ail.product_id=%s and ai.state not in ('draft', 'cancel')
-                        and ai.doc_type='freight_invoice'
-                    '''%(line.product_id.id)
-                    cr.execute(sql)
-                    frt_amt = cr.fetchone()
-                    if frt_amt:
-                        frt_amt = frt_amt[0]    
-                    #
-                    #Modified by P.VINOTHKUMAR FOR MODIFY ail.fright_type='1' in script 
-                    sql = '''
-                    select 
-                        case when 
-                            SUM(case 
-                            when ail.fright_type='1' then ((ail.quantity * ail.price_unit) + ail.p_f + ail.ed + ail.tpt_tax_amt) * ail.fright/100
-                            when ail.fright_type='2' then ail.fright
-                            when ail.fright_type='3' then ail.fright*ail.quantity
-                            when ail.fright_type is null then ail.fright
-                            else 0 end) >=0
-                            then    
-                            SUM(case 
-                            when ail.fright_type='1' then ((ail.quantity * ail.price_unit) + ail.p_f + ail.ed + ail.tpt_tax_amt) * ail.fright/100
-                            when ail.fright_type='2' then ail.fright
-                            when ail.fright_type='3' then ail.fright*ail.quantity
-                            when ail.fright_type is null then ail.fright
-                            else 0 end)                
-                            else 0 end as frt_amt
-                        from account_invoice ai
-                        inner join account_invoice_line ail on ai.id=ail.invoice_id
-                        where ail.product_id=%s and 
-                        ai.state not in ('draft', 'cancel')
-                        and ai.doc_type='supplier_invoice' and ail.fright>0  
-                    '''%(line.product_id.id)
-                    cr.execute(sql)
-                    si_frt_amt = cr.fetchone()
-                    if si_frt_amt:
-                        si_frt_amt = si_frt_amt[0] 
-                    total_cost += (cst_amt + frt_amt + si_frt_amt)
+#                     #Commented by P.VINOTHKUMAR ON 06/11/2017 for calculate fright amt in fright invoice.
+#                     sql = '''
+#                         select 
+#                         
+#                         case when 
+#                         SUM(case when ail.fright_fi_type='2' then ail.fright
+#                         when ail.fright_fi_type='3' then ail.fright*ail.quantity
+#                         else 0 end) >=0
+#                         then    
+#                         SUM(case when ail.fright_fi_type='2' then ail.fright
+#                         when ail.fright_fi_type='3' then ail.fright*ail.quantity
+#                         else 0 end)                
+#                         else 0 end as frt_amt
+#                         
+#                         from account_invoice ai
+#                         inner join account_invoice_line ail on ai.id=ail.invoice_id
+#                         where ail.product_id=%s and ai.state not in ('draft', 'cancel')
+#                         and ai.doc_type='freight_invoice'
+#                     '''%(line.product_id.id)
+#                     cr.execute(sql)
+#                     frt_amt = cr.fetchone()
+#                     if frt_amt:
+#                         frt_amt = frt_amt[0]    
+#                     #
+#                     #Modified by P.VINOTHKUMAR FOR MODIFY ail.fright_type='1' in script 
+#                     sql = '''
+#                     select 
+#                         case when 
+#                             SUM(case 
+#                             when ail.fright_type='1' then ((ail.quantity * ail.price_unit) + ail.p_f + ail.ed + ail.tpt_tax_amt) * ail.fright/100
+#                             when ail.fright_type='2' then ail.fright
+#                             when ail.fright_type='3' then ail.fright*ail.quantity
+#                             when ail.fright_type is null then ail.fright
+#                             else 0 end) >=0
+#                             then    
+#                             SUM(case 
+#                             when ail.fright_type='1' then ((ail.quantity * ail.price_unit) + ail.p_f + ail.ed + ail.tpt_tax_amt) * ail.fright/100
+#                             when ail.fright_type='2' then ail.fright
+#                             when ail.fright_type='3' then ail.fright*ail.quantity
+#                             when ail.fright_type is null then ail.fright
+#                             else 0 end)                
+#                             else 0 end as frt_amt
+#                         from account_invoice ai
+#                         inner join account_invoice_line ail on ai.id=ail.invoice_id
+#                         where ail.product_id=%s and 
+#                         ai.state not in ('draft', 'cancel')
+#                         and ai.doc_type='supplier_invoice' and ail.fright>0  
+#                     '''%(line.product_id.id)
+#                     cr.execute(sql)
+#                     si_frt_amt = cr.fetchone()
+#                     if si_frt_amt:
+#                         si_frt_amt = si_frt_amt[0]
+                     # commented by P.VINOTHKUMAR ON 06/11/2017
+                    #total_cost += (cst_amt + frt_amt + si_frt_amt)
+                    total_cost += (cst_amt)
                     avg_cost = total_cost  / hand_quantity
                 else:
                     avg_cost = 0
@@ -2658,7 +2687,12 @@ class account_invoice(osv.osv):
             'tpt_grn_id':x.get('tpt_grn_id', False),
             'tpt_grn_line_id':x.get('tpt_grn_line_id', False),
         }
-
+ # Added by P.VINOTHKUMAR ON 07/11/2017 - In the time of cancelling fright invoice, product's freight value will be decreased...
+    def action_cancel(self, cr, uid, ids, context=None):
+        invoice_vals1 = super(account_invoice,self).action_cancel(cr, uid, ids, context=context)
+        for inv in self.browse(cr, uid, ids, context=context):
+            self.prod_avg_cost_update(cr, uid, inv.id, context)
+        return True
     
 account_invoice()
 #TPT-BM ON 22/04/2016 - MAINTENANCE MODULE CHANGES
@@ -5472,30 +5506,86 @@ class account_invoice_line(osv.osv):
         res = []
         invoice = self.pool.get('account.invoice').browse(cr, uid, invoice_id)
         for line in invoice.invoice_line:
-            if line.tax_id and not line.tax_id.gl_account_id:
+        # Added by P.VINOTHKUMAR ON 05/12/2017 for fixing GST/IGST in freight invoice 
+            if line.tax_id and not line.tax_id.gl_account_id and not line.tax_id.child_ids:
                  raise osv.except_osv(_('Warning!'),_('GL Account is not null, please configure it in Tax Master!'))
-         
-            if line.fright_fi_type == '2':
-                base_amount = round(line.fright,2)
-                tax_debit_amount = base_amount*(line.tax_id and line.tax_id.amount/100 or 0)
-                tax_debit_amount = round(tax_debit_amount,2)
-            else:
-                base_amount = round(line.fright*line.quantity,2)
-                tax_debit_amount = base_amount*(line.tax_id and line.tax_id.amount/100 or 0)
-                tax_debit_amount = round(tax_debit_amount,2)
-            if tax_debit_amount:
-                res.append({
-                    'type':'tax',
-                    'name':line.name,
-                    'price_unit': line.price_unit,
-                    'quantity': 1,
-                    'price': tax_debit_amount,
-                    'account_id': line.tax_id and line.tax_id.gl_account_id and account_tax_id or False,
-                    'account_analytic_id': line.account_analytic_id.id,
-                    # vsis add
-                    'tpt_grn_id':line.tpt_grn_id and line.tpt_grn_id.id or False,
-                    'tpt_grn_line_id':line.tpt_grn_line_id and line.tpt_grn_line_id.id or False,
-                })
+            if line.tax_id and 'GST' in line.tax_id.description.upper():
+                tax_cgst = 0
+                tax_sgst = 0
+                tax_igst = 0
+                if line.tax_id.child_ids:
+                    for tax_child in line.tax_id.child_ids:
+                        if 'CGST' in tax_child.description.upper():
+                            tax_cgst = invoice.amount_total_cgst_tax
+                            account_cgst_id = tax_child.gl_account_id.id
+                        if 'SGST' in tax_child.description.upper():
+                            tax_sgst = invoice.amount_total_sgst_tax
+                            account_sgst_id = tax_child.gl_account_id.id
+                else:
+                    if 'IGST' in line.tax_id.description.upper():
+                        if not line.tax_id.gl_account_id.id:
+                            raise osv.except_osv(_('Warning!'),_('GL account should be configured for Tax "%s"!'%(line.tax_id.name)))
+                        tax_igst = invoice.amount_total_igst_tax
+                        account_igst_id = line.tax_id.gl_account_id.id
+                 # Commented by P.VINOTHKUMAR ON ON 05/12/2017 for fixing GST/IGST in freight invoice          
+               #TPT End     
+#             if line.fright_fi_type == '2':
+#                 base_amount = round(line.fright,2)
+#                 tax_debit_amount = base_amount*(line.tax_id and line.tax_id.amount/100 or 0)
+#                 tax_debit_amount = round(tax_debit_amount,2)
+#             else:
+#                 base_amount = round(line.fright*line.quantity,2)
+#                 tax_debit_amount = base_amount*(line.tax_id and line.tax_id.amount/100 or 0)
+#                 tax_debit_amount = round(tax_debit_amount,2)
+#             if tax_debit_amount:
+#                 res.append({
+#                     'type':'tax',
+#                     'name':line.name,
+#                     'price_unit': line.price_unit,
+#                     'quantity': 1,
+#                     'price': tax_debit_amount,
+#                     'account_id': line.tax_id and line.tax_id.gl_account_id and account_tax_id or False,
+#                     'account_analytic_id': line.account_analytic_id.id,
+#                     # vsis add
+#                     'tpt_grn_id':line.tpt_grn_id and line.tpt_grn_id.id or False,
+#                     'tpt_grn_line_id':line.tpt_grn_line_id and line.tpt_grn_line_id.id or False,
+#                 })
+                if tax_cgst:
+                        res.append({
+                            'type':'tax',
+                            'name':line.name,
+                            'price_unit': line.price_unit,
+                            'quantity': 1,
+                            'price': tax_cgst,
+                            'account_id': account_cgst_id or False,
+                            'account_analytic_id': line.account_analytic_id.id,
+                            'tpt_grn_id':line.tpt_grn_id and line.tpt_grn_id.id or False,
+                            'tpt_grn_line_id':line.tpt_grn_line_id and line.tpt_grn_line_id.id or False,
+                        })
+                if tax_sgst:
+                        res.append({
+                            'type':'tax',
+                            'name':line.name,
+                            'price_unit': line.price_unit,
+                            'quantity': 1,
+                            'price': tax_sgst,
+                            'account_id': account_sgst_id or False,
+                            'account_analytic_id': line.account_analytic_id.id,
+                            'tpt_grn_id':line.tpt_grn_id and line.tpt_grn_id.id or False,
+                            'tpt_grn_line_id':line.tpt_grn_line_id and line.tpt_grn_line_id.id or False,
+                        })
+                if tax_igst:
+                        res.append({
+                            'type':'tax',
+                            'name':line.name,
+                            'price_unit': line.price_unit,
+                            'quantity': 1,
+                            'price': tax_igst,
+                            'account_id': account_igst_id or False,
+                            'account_analytic_id': line.account_analytic_id.id,
+                            'tpt_grn_id':line.tpt_grn_id and line.tpt_grn_id.id or False,
+                            'tpt_grn_line_id':line.tpt_grn_line_id and line.tpt_grn_line_id.id or False,
+                        })
         return res
     def move_line_fi_debit_14(self, cr, uid, invoice_id):
         res = []
@@ -6054,6 +6144,8 @@ class product_product(osv.osv):
                     if produce:
 #                         hand_quantity += float(produce['product_qty'])
                         total_cost += float(produce['produce_cost'])
+                        # Added and Modified by P.VINOTHKUMAR ON 23/11/2016 for round(avg_cost)
+                         #hand_quantity = round(hand_quantity,2)
                          # Added and Modified by P.VINOTHKUMAR ON 23/11/2016 for round(avg_cost)
                         avg_cost = hand_quantity and total_cost/hand_quantity
                         
@@ -6093,19 +6185,19 @@ class product_product(osv.osv):
                     frt_amt = cr.fetchone()
                     if frt_amt:
                         frt_amt = frt_amt[0]    
-                    #
+                   # Modify following query on 06/11/2017 by P.VINOTHKUMAR
                     sql = '''
                     select 
                         case when 
                             SUM(case 
-                            when ail.fright_type='1' then ail.fright*100
+                            when ail.fright_type='1' then ail.quantity * ail.price_unit * ail.fright/100
                             when ail.fright_type='2' then ail.fright
                             when ail.fright_type='3' then ail.fright*ail.quantity
                             when ail.fright_type is null then ail.fright
                             else 0 end) >=0
                             then    
                             SUM(case 
-                            when ail.fright_type='1' then ail.fright*100
+                            when ail.fright_type='1' then ail.quantity * ail.price_unit * ail.fright/100
                             when ail.fright_type='2' then ail.fright
                             when ail.fright_type='3' then ail.fright*ail.quantity
                             when ail.fright_type is null then ail.fright
@@ -6126,6 +6218,9 @@ class product_product(osv.osv):
                     if hand_quantity>0 and loc['loc'] in [14, 15]: #Spares, Raw respectively 
                         total_cost += (cst_amt + frt_amt + si_frt_amt)
                         # Modified by P.VINOTHKUMAR ON 23/11/2016 for round(avg_cost,2)
+                        #hand_quantity = round(hand_quantity,2)
+                        # Remove round off for hand_quantity ON 02/11/2017 by P.VINOTHKUMAR
+                        #avg_cost = round(total_cost  / hand_quantity,2)
                         hand_quantity = hand_quantity
                         avg_cost = total_cost  / hand_quantity
                         
@@ -6133,7 +6228,6 @@ class product_product(osv.osv):
                                                    'warehouse_id':loc['loc'],
                                                    'hand_quantity':hand_quantity,
                                                    'avg_cost':avg_cost,
-                                                   # Modified by P.VINOTHKUMAR ON 22/11/2016
                                                    'total_cost':avg_cost * hand_quantity})
             result[id] = 'Avg Cost'
         return result
@@ -6141,7 +6235,9 @@ class product_product(osv.osv):
     def _get_product(self, cr, uid, ids, context=None):
         result = {}
         for line in self.pool.get('stock.move').browse(cr, uid, ids, context=context):
-            result[line.product_id.id] = True
+            # Added by BM and P.VINOTHKUMAR on 09/11/2017
+            if not line.issue_id and line.product_id.id!=13030 and not line.move_dest_id and line.state!='cancel':
+                result[line.product_id.id] = True           
         return result.keys()
     
     _columns = {
@@ -9672,46 +9768,79 @@ class mrp_production(osv.osv):
                         parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
                         locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw Material','Raw Materials','Raw material']),('location_id','=',parent_ids[0])])
                         if mat.product_id.default_code == 'M0501060001':
-                            if locat_ids[0] == line.location_src_id.id:
-                                sql = '''
-                                    select case when sum(st.product_qty)!=0 then sum(st.product_qty) else 0 end ton_sl,
-                                    case when sum(st.price_unit*st.product_qty)!=0 then sum(st.price_unit*st.product_qty) else 0 end total_cost
-                                    from stock_move st
-                                    where state='done' and product_id = %s and to_char(date, 'YYYY-MM-DD')<'%s'
-                                        and location_dest_id != location_id
-                                        and  (action_taken = 'direct'
-                                        or (inspec_id is not null and location_dest_id = %s)
-                                        or (id in (select move_id from stock_inventory_move_rel where inventory_id != 173))
-                                )
-                                '''%(mat.product_id.id,line.date_planned, locat_ids[0])
-                                cr.execute(sql)
-                                inventory = cr.dictfetchone()
-                                if inventory:
-                                    hand_quantity_in = inventory['ton_sl'] or 0
-                                    total_cost_in = inventory['total_cost'] or 0
-                                    
-                                sql = '''
-                                    select case when sum(st.product_qty)!=0 then sum(st.product_qty) else 0 end ton_sl,
-                                    case when sum(st.price_unit*st.product_qty)!=0 then sum(st.price_unit*st.product_qty) else 0 end total_cost
-                                    from stock_move st
-                                    where state='done' and product_id = %s and to_char(date, 'YYYY-MM-DD')<'%s'
-                                        and location_dest_id != location_id
-                                        and  (issue_id is not null
-                                        or (location_id = %s and id in (select move_id from mrp_production_move_ids))
-                                )
-                                '''%(mat.product_id.id,line.date_planned, locat_ids[0])
-                                cr.execute(sql)
-                                inventory = cr.dictfetchone()
-                                if inventory:
-                                    hand_quantity_out = inventory['ton_sl'] or 0
-                                    hand_quantity_out = hand_quantity_out - mat.product_qty
-                                    total_cost_out = inventory['total_cost'] or 0
-                                price_unit = (hand_quantity_in-hand_quantity_out) and (total_cost_in-total_cost_out)/(hand_quantity_in-hand_quantity_out)
-                                sql = '''
-                                    update stock_move set price_unit = %s where id = %s
-                                '''%(price_unit, mat.id)
-                                cr.execute(sql)
-                                cost = price_unit*mat.product_qty or 0
+                  # Commented by P.VINOTHKUMAR ON 16/11/2017 for fixing coal and coal fines average cost issue
+#                           if locat_ids[0] == line.location_src_id.id:
+#                                 sql = '''
+#                                     select case when sum(st.product_qty)!=0 then sum(st.product_qty) else 0 end ton_sl,
+#                                     case when sum(st.price_unit*st.product_qty)!=0 then sum(st.price_unit*st.product_qty) else 0 end total_cost
+#                                     from stock_move st
+#                                     where state='done' and product_id = %s and to_char(date, 'YYYY-MM-DD')<'%s'
+#                                         and location_dest_id != location_id
+#                                         and  (action_taken = 'direct'
+#                                         or (inspec_id is not null and location_dest_id = %s)
+#                                         or (id in (select move_id from stock_inventory_move_rel where inventory_id != 173))
+#                                 )
+#                                 '''%(mat.product_id.id,line.date_planned, locat_ids[0])
+#                                 cr.execute(sql)
+#                                 inventory = cr.dictfetchone()
+#                                 if inventory:
+#                                     hand_quantity_in = inventory['ton_sl'] or 0
+#                                     total_cost_in = inventory['total_cost'] or 0
+#                                     
+#                                 sql = '''
+#                                     select case when sum(st.product_qty)!=0 then sum(st.product_qty) else 0 end ton_sl,
+#                                     case when sum(st.price_unit*st.product_qty)!=0 then sum(st.price_unit*st.product_qty) else 0 end total_cost
+#                                     from stock_move st
+#                                     where state='done' and product_id = %s and to_char(date, 'YYYY-MM-DD')<'%s'
+#                                         and location_dest_id != location_id
+#                                         and  (issue_id is not null
+#                                         or (location_id = %s and id in (select move_id from mrp_production_move_ids))
+#                                 )
+#                                 '''%(mat.product_id.id,line.date_planned, locat_ids[0])
+#                                 cr.execute(sql)
+#                                 inventory = cr.dictfetchone()
+#                                 if inventory:
+#                                     hand_quantity_out = inventory['ton_sl'] or 0
+#                                     hand_quantity_out = hand_quantity_out - mat.product_qty
+#                                     total_cost_out = inventory['total_cost'] or 0
+#                                 price_unit = (hand_quantity_in-hand_quantity_out) and (total_cost_in-total_cost_out)/(hand_quantity_in-hand_quantity_out)
+#                                 sql = '''
+#                                     update stock_move set price_unit = %s where id = %s
+#                                 '''%(price_unit, mat.id)
+#                                 cr.execute(sql)
+#                                 cost = price_unit*mat.product_qty or 0
+                               # Commented TPT end
+                               # Added by P.VINOTHKUMAR ON 16/11/2017 FOR fixing Average cost issue in production  for coal and coal fines product
+                                warehouse_id = line.location_src_id.id
+                                destination_id = line.location_dest_id.id
+                                avg_cost_ids = avg_cost_obj.search(cr, uid, [('product_id','=',mat.product_id.id),('warehouse_id','=',warehouse_id)]) 
+                                if avg_cost_ids:
+                                    avg_cost_id = avg_cost_obj.browse(cr, uid, avg_cost_ids[0])
+                                    unit = avg_cost_id.avg_cost or 0
+                                    # Added the following logic by P.VINOTHKUMAR AND BM on 09/11/2017 for fixing average cost and total issues
+                                    issue_value = unit * mat.product_qty
+                                    runtime_total_cost = avg_cost_id.total_cost - issue_value
+                                    runtime_qty = avg_cost_id.hand_quantity - mat.product_qty
+                                    vals = {'total_cost' : runtime_total_cost, 
+                                            'hand_quantity': runtime_qty}
+                                    avg_cost_obj.write(cr, uid, avg_cost_id.id, vals)
+                                       
+                                cost = issue_value
+                                
+                                if destination_id:
+                                    avg_cost_ids = avg_cost_obj.search(cr, uid, [('product_id','=',p.product_id.id),('warehouse_id','=',destination_id)])
+                                    if avg_cost_ids:
+                                       avg_cost_id = avg_cost_obj.browse(cr, uid, avg_cost_ids[0])
+                                       unit1 = unit or 0
+                                       issue_value = (avg_cost_id.total_cost) + (unit1 * mat.product_qty)
+                                       issue_qty = avg_cost_id.hand_quantity + mat.product_qty
+                                       avg_cost = issue_value/issue_qty
+                                       vals = {'total_cost' : issue_value, 
+                                               'hand_quantity':  issue_qty,
+                                               'avg_cost': avg_cost
+                                               }
+                                       avg_cost_obj.write(cr, uid, avg_cost_id.id, vals)
+               # TPT end by P.VINOTHKUMAR ON 16/11/2017  FOR fixing Average cost issue in production  for coal and coal fines
                                 debit += round(cost,2)
                                 if cost:
                                     if line.product_id.product_credit_id:
@@ -9723,23 +9852,25 @@ class mrp_production(osv.osv):
                                                        }))
                                     else:
                                         raise osv.except_osv(_('Warning!'),_("Product Credit Account is not configured for Product '%s'! Please configured it!")%(mat.product_id.default_code))
-                            else:
-                                avg_cost_ids = avg_cost_obj.search(cr, uid, [('product_id','=',mat.product_id.id),('warehouse_id','=',line.location_src_id.id)])
-                                if avg_cost_ids:
-                                    avg_cost_id = avg_cost_obj.browse(cr, uid, avg_cost_ids[0])
-                                    unit = avg_cost_id.avg_cost
-                                    cost = unit * mat.product_qty
-                                    debit += round(cost,2)
-                                    if cost:
-                                        if line.product_id.product_credit_id:
-                                            journal_line.append((0,0,{
-                                                            'name':mat.product_id.code, 
-                                                            'account_id': line.product_id.product_credit_id and line.product_id.product_credit_id.id,
-                                                            'debit':0,
-                                                            'credit':round(cost,2),
-                                                           }))
-                                        else:
-                                            raise osv.except_osv(_('Warning!'),_("Product Credit Account is not configured for Product '%s'! Please configured it!")%(mat.product_id.default_code))
+                              # Commented by P.VINOTHKUMAR ON 16/11/2017 for fixing coal and coal fines average cost issue      
+#                             else:
+#                                 avg_cost_ids = avg_cost_obj.search(cr, uid, [('product_id','=',mat.product_id.id),('warehouse_id','=',line.location_src_id.id)])
+#                                 if avg_cost_ids:
+#                                     avg_cost_id = avg_cost_obj.browse(cr, uid, avg_cost_ids[0])
+#                                     unit = avg_cost_id.avg_cost
+#                                     cost = unit * mat.product_qty
+#                                     debit += round(cost,2)
+#                                     if cost:
+#                                         if line.product_id.product_credit_id:
+#                                             journal_line.append((0,0,{
+#                                                             'name':mat.product_id.code, 
+#                                                             'account_id': line.product_id.product_credit_id and line.product_id.product_credit_id.id,
+#                                                             'debit':0,
+#                                                             'credit':round(cost,2),
+#                                                            }))
+#                                         else:
+#                                             raise osv.except_osv(_('Warning!'),_("Product Credit Account is not configured for Product '%s'! Please configured it!")%(mat.product_id.default_code))
+                            # Commented TPT end
                         else:
 #                             stock_move_obj.search(cr, uid, [('date','=',line.date_planned),('product_id','=',mat.product_id.id),('issue_id','!=',False)])
                             sql='''

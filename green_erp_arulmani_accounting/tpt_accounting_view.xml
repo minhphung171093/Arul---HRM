@@ -1560,7 +1560,11 @@
                                 </div>
                                 <field name="amount_tax" nolabel="1" widget="monetary" invisible = '1' options="{'currency_field': 'currency_id'}"/>
                                 <field name="fright" widget="monetary" invisible = '1' options="{'currency_field': 'currency_id'}"/>
-                                <field name="amount_tax_debit" widget="monetary" invisible = '0' options="{'currency_field': 'currency_id'}"/>
+                                <!--  <field name="amount_tax_debit" widget="monetary" invisible = '0' options="{'currency_field': 'currency_id'}"/> -->
+                                <!--RK freight invoice with GST-->
+                                <field name="amount_total_cgst_tax" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+								<field name="amount_total_sgst_tax" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+								<field name="amount_total_igst_tax" widget="monetary" options="{'currency_field': 'currency_id'}"/>
                                 <field name="amount_tax_credit" widget="monetary" invisible = '0' options="{'currency_field': 'currency_id'}"/>
                                 <field name="amount_total_tds_2" widget="monetary" invisible = '0' options="{'currency_field': 'currency_id'}" />
                                 <field name="amount_round_off" widget="monetary"/>

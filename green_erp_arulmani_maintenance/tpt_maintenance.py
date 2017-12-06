@@ -1381,14 +1381,39 @@ class tpt_material_issue(osv.osv):
 #                     if line.request_type=='production':
 #                         warehouse_id = line.dest_warehouse_id.id
 #                     else:
-                    warehouse_id = line.warehouse.id 
+                    warehouse_id = line.warehouse.id
+                    # Added the following line by P.VINOTHKUMAR AND BM on 09/11/2017 for fixing average cost and total issues
+                    dest_warehouse_id = line.dest_warehouse_id
+                    #End 10/11/2017
                     avg_cost_ids = avg_cost_obj.search(cr, uid, [('product_id','=',p.product_id.id),('warehouse_id','=',warehouse_id)])
                     
                     if avg_cost_ids:
                         avg_cost_id = avg_cost_obj.browse(cr, uid, avg_cost_ids[0])
                         unit = avg_cost_id.avg_cost or 0
-                    opening_stock_value = unit * p.product_isu_qty
-                    ##TPT-END
+                        # Added the following logic by P.VINOTHKUMAR AND BM on 09/11/2017 for fixing average cost and total issues
+                        issue_value = unit * p.product_isu_qty
+                        runtime_total_cost = avg_cost_id.total_cost - issue_value
+                        runtime_qty = avg_cost_id.hand_quantity - p.product_isu_qty
+                        vals = {'total_cost' : runtime_total_cost, 
+                                'hand_quantity': runtime_qty}
+                        avg_cost_obj.write(cr, uid, avg_cost_id.id, vals)
+                        
+                    if dest_warehouse_id:
+                        avg_cost_ids = avg_cost_obj.search(cr, uid, [('product_id','=',p.product_id.id),('warehouse_id','=',dest_warehouse_id.id)])
+                        if avg_cost_ids:
+                           avg_cost_id = avg_cost_obj.browse(cr, uid, avg_cost_ids[0])
+                           unit1 = unit or 0
+                           issue_value = (avg_cost_id.total_cost) + (unit1 * p.product_isu_qty)
+                           issue_qty = avg_cost_id.hand_quantity + p.product_isu_qty
+                           avg_cost = issue_value/issue_qty
+                           vals = {'total_cost' : issue_value, 
+                                   'hand_quantity':  issue_qty,
+                                   'avg_cost': avg_cost
+                                   }
+                           avg_cost_obj.write(cr, uid, avg_cost_id.id, vals)
+                    # commented the following line by P.VINOTHKUMAR ON 10/11/2017 
+                    #opening_stock_value = unit * p.product_isu_qty
+                    #TPT-END  by P.VINOTHKUMAR
                      
                 rs = {
                       'name': '/',
@@ -1449,23 +1474,26 @@ class tpt_material_issue(osv.osv):
                     unit=1
                 price += unit * mater.product_isu_qty
                 #product_price = unit * mater.product_isu_qty
-                product_price = opening_stock_value * mater.product_isu_qty
-                #
+          # Commented  and added by P.VINOTHKUMAR ON 08/11/2017 for fixing  wrong value updation in journal posting.
+                #product_price = opening_stock_value * mater.product_isu_qty
+                product_price = unit * mater.product_isu_qty
+         # End
                 ##TPT-By Balamurugan Purushothaman - ON 18/10/2016 - TO TAKE AVG COST AS UNIT PRICE FOR STOCK_MOVE ENTRIES
                 #above block wont be worked to take avg cost. ref following snippet that fetches from Product master - Avg Cost tab
                 # Commenting by SSR - 13-3-2017 - For Production Posting Issue Goods
 #                 if line.request_type=='production':
 #                     warehouse_id = line.dest_warehouse_id.id
 #                 else:
-                warehouse_id = line.warehouse.id 
-                avg_cost_ids = avg_cost_obj.search(cr, uid, [('product_id','=',mater.product_id.id),('warehouse_id','=',warehouse_id)])
-                unit = 1
-                if avg_cost_ids:
-                    avg_cost_id = avg_cost_obj.browse(cr, uid, avg_cost_ids[0])
-                    unit = avg_cost_id.avg_cost or 0
-                product_price = unit * mater.product_isu_qty
-
-                #
+      # Commented by P.VINOTHKUMAR ON 08/11/2017 for fixing avg cost issue @ 5:55 pm
+#                 warehouse_id = line.warehouse.id 
+#                 avg_cost_ids = avg_cost_obj.search(cr, uid, [('product_id','=',mater.product_id.id),('warehouse_id','=',warehouse_id)])
+#                 unit = 1
+#                 if avg_cost_ids:
+#                     avg_cost_id = avg_cost_obj.browse(cr, uid, avg_cost_ids[0])
+#                     unit = avg_cost_id.avg_cost or 0
+#                 product_price = unit * mater.product_isu_qty
+     # End by P.vinothkumar on 08/11/2017
+            
                 
                 #===============================================================        
                 # ##TPT-By Balamurugan Purushothaman - ON 31/08/2016 - TO TAKE AVG COST AS UNIT PRICE FOR STOCK_MOVE ENTRIES

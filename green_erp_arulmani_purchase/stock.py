@@ -1753,7 +1753,28 @@ class account_invoice_line(osv.osv):
                     else:
                         if 'IGST' in line.invoice_id.sale_tax_id.description.upper():
                             tax_igst_amount += (amount_untaxed)*(line.invoice_id.sale_tax_id.amount or 0) / 100
-                
+                            
+            # Added by P.VINOTHKUMAR ON 01/12/2017 for adding gst in freight invoice                
+            elif line.invoice_id.type == 'in_invoice' and line.invoice_id.doc_type == 'freight_invoice':
+                if line.tax_id.id:
+                    freight_amount=0
+                    if line.fright_fi_type=='2':
+                        freight_amount = line.fright
+                    elif line.fright_fi_type=='3':
+                        freight_amount= line.fright * line.quantity     
+                    for tax in line.invoice_line_tax_id:
+                        if tax.child_depend:
+                            for tax_child in tax.child_ids:
+                                if 'CGST' in tax_child.description.upper():
+                                    tax_cgst_amount += (freight_amount)*(tax_child.amount or 0) / 100
+                                if 'SGST' in tax_child.description.upper():
+                                    tax_sgst_amount += (freight_amount)*(tax_child.amount or 0) / 100
+                        else:
+                            if 'IGST' in tax.description.upper():
+                                tax_igst_amount += (freight_amount)*(tax.amount or 0) / 100
+                            
+            # End by P.VINOTHKUMAR ON 01/12/2017    
+            
             else: # IN_INVOICE
                 basic = (line.quantity * line.price_unit) - ( (line.quantity * line.price_unit)*line.disc/100)
                 basic = round(basic,2)
