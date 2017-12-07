@@ -2389,13 +2389,8 @@ class account_invoice(osv.osv):
 #                freight_amt1 = freight_amt * 1/rate1      # RK
         inv_line_net_amt = 0
         location_id = False
-        for line in inv_id.invoice_line:            
-             # commented by P.VINOTHKUMAR ON 06/11/2017 for fixing Avg cost issue.
-#             if line.fright_fi_type=='2':
-#                 freight_amt = line.fright
-#             elif line.fright_fi_type=='3':
-#                 freight_amt = line.fright*line.quantity
-            # Comment end
+        for line in inv_id.invoice_line: 
+            freight_amt = 0           
              # Added fright_type logic by P.VINOTHKUMAR ON 06/11/2017 for fixing Avg cost issue.
             if line.fright_type=='1':
                 freight_amt = line.quantity * line.price_unit * line.fright/100
@@ -2691,7 +2686,8 @@ class account_invoice(osv.osv):
     def action_cancel(self, cr, uid, ids, context=None):
         invoice_vals1 = super(account_invoice,self).action_cancel(cr, uid, ids, context=context)
         for inv in self.browse(cr, uid, ids, context=context):
-            self.prod_avg_cost_update(cr, uid, inv.id, context)
+            if inv.type!='out_invoice':
+                self.prod_avg_cost_update(cr, uid, inv.id, context)
         return True
     
 account_invoice()
