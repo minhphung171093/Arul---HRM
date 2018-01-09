@@ -132,6 +132,7 @@ class tpt_movement_analysis_line(osv.osv):
                         where product_id = %s and material_issue_id in (select id from tpt_material_issue where date_expec < '%s' and warehouse = %s and state = 'done')
                 '''%(product_id.id, date_from, locat_ids[0])
                 cr.execute(sql)
+                #print sql
                 product_isu_qty = cr.dictfetchone()['product_isu_qty']
                 
 #                 sql = '''
@@ -229,7 +230,7 @@ class tpt_movement_analysis_line(osv.osv):
                         )
                '''%(locat_ids[0],product_id.id, date_from)
                cr.execute(sql)
-               print sql
+               #print sql
                inventory = cr.dictfetchone()
                if inventory:
                    hand_quantity = inventory['ton_sl'] or 0
@@ -242,7 +243,7 @@ class tpt_movement_analysis_line(osv.osv):
                         
                '''%(locat_ids[0],product_id.id,date_from)
                cr.execute(sql)
-               print sql
+               #print sql
                product_isu_qty = cr.fetchone()[0]
                    
                if product_id.default_code == 'M0501060001':
@@ -477,6 +478,7 @@ class tpt_movement_analysis_line(osv.osv):
                         and product_id = %s and ((id in (select need_inspec_id from tpt_quanlity_inspection where state in ('done', 'remaining')) and action_taken='need') or action_taken='direct') order by si_no
                     '''%(move_id, product_id.id)
                     cr.execute(sql)
+                    #print sql
                     moves = cr.dictfetchall()
                     grn_name = get_account_move_line(move_id, material_issue_id, product_dec, move_type)
                     if self.num_call_grn['grn_name']==grn_name:
@@ -1580,12 +1582,14 @@ class stock_movement_analysis(osv.osv_memory):
                                     )
                     '''%(locat_ids[0],product_id,date_from,date_from)
                 cr.execute(sql)
+                print sql
                 inventory = cr.dictfetchone()
                 sql = '''
                         select case when sum(product_isu_qty)!=0 then sum(product_isu_qty) else 0 end product_isu_qty from tpt_material_issue_line  
                         where product_id = %s and material_issue_id in (select id from tpt_material_issue where date_expec < '%s' and warehouse = %s and state = 'done')
                     '''%(product_id, date_from,locat_ids[0])
                 cr.execute(sql)
+                print sql
                 product_isu_qty = cr.fetchone()[0]
                 
 #                 sql = '''

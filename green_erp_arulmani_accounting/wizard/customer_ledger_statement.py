@@ -46,7 +46,7 @@ class customer_ledger_statement(osv.osv_memory):
                     inner join account_move am on (aml.move_id = am.id)
                     left join res_partner p on (p.id=am.partner_id)
                     inner join account_account aa on (aa.id=aml.account_id)
-                    where am.date < '%s' and am.state='posted' and am.doc_type!='cash_rec'
+                    where am.date < '%s' and am.state='posted' 
                     and aml.account_id = (
                     select id from account_account where id in (
                     select btrim(value_reference,'account.account,')::Integer
@@ -63,7 +63,7 @@ class customer_ledger_statement(osv.osv_memory):
                     inner join account_move am on (aml.move_id = am.id)
                     left join res_partner p on (p.id=am.partner_id)
                     inner join account_account aa on (aa.id=aml.account_id)
-                    where am.date < '%s' and am.state='posted' and am.doc_type!='cash_rec'
+                    where am.date < '%s' and am.state='posted'
                     and aml.account_id = (
                     select id from account_account where id in (
                     select btrim(value_reference,'account.account,')::Integer
@@ -82,7 +82,7 @@ class customer_ledger_statement(osv.osv_memory):
                     inner join account_move am on (aml.move_id = am.id)
                     left join res_partner p on (p.id=am.partner_id)
                     inner join account_account aa on (aa.id=aml.account_id)
-                    where am.date < '%s' and am.state in ('draft','posted') and am.doc_type!='cash_rec'
+                    where am.date < '%s' and am.state in ('draft','posted') 
                     and aml.account_id = (
                     select id from account_account where id in (
                     select btrim(value_reference,'account.account,')::Integer
@@ -99,7 +99,7 @@ class customer_ledger_statement(osv.osv_memory):
                     inner join account_move am on (aml.move_id = am.id)
                     left join res_partner p on (p.id=am.partner_id)
                     inner join account_account aa on (aa.id=aml.account_id)
-                    where am.date < '%s' and am.state in ('draft','posted') and am.doc_type!='cash_rec'
+                    where am.date < '%s' and am.state in ('draft','posted')
                     and aml.account_id = (
                     select id from account_account where id in (
                     select btrim(value_reference,'account.account,')::Integer
@@ -135,7 +135,7 @@ class customer_ledger_statement(osv.osv_memory):
                     inner join account_move am on aml.move_id = am.id
                     left join res_partner p on (p.id=am.partner_id)
                     inner join account_account aa on (aa.id=aml.account_id)
-                    where am.date between '%s' and '%s' and am.doc_type!='cash_rec'
+                    where am.date between '%s' and '%s'
                     and am.state='posted' 
                     and aml.account_id = (
                     select id from account_account where id in (
@@ -151,7 +151,7 @@ class customer_ledger_statement(osv.osv_memory):
                     inner join account_move am on aml.move_id = am.id
                     left join res_partner p on (p.id=am.partner_id)
                     inner join account_account aa on (aa.id=aml.account_id)
-                    where am.date between '%s' and '%s' and am.doc_type!='cash_rec'
+                    where am.date between '%s' and '%s'
                     and am.state in ('draft','posted') 
                     and aml.account_id = (
                     select id from account_account where id in (

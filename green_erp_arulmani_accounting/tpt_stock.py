@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
-from openerp import tools
-from openerp.osv import osv, fields
-from openerp.tools.translate import _
-import time
-from openerp import SUPERUSER_ID
-from openerp.tools import DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_DATETIME_FORMAT, DATETIME_FORMATS_MAP, float_compare
+import calendar
 from datetime import datetime
 import datetime
-import calendar
-import openerp.addons.decimal_precision as dp
-from openerp import netsvc
+import time
+
 from global_utility import tpt_shared_component
+from openerp import SUPERUSER_ID, netsvc, tools
+import openerp.addons.decimal_precision as dp
+from openerp.osv import osv, fields
+from openerp.tools import DEFAULT_SERVER_DATE_FORMAT, \
+    DEFAULT_SERVER_DATETIME_FORMAT, DATETIME_FORMATS_MAP, float_compare
+from openerp.tools.translate import _
+
 
 class stock_picking(osv.osv):
     _inherit = "stock.picking"
